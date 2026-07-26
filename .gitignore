@@ -1,0 +1,36 @@
+# Environment & Secrets
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# Go / Backend Binaries & Temp Artifacts
+backend/bin/
+backend/tmp/
+backend/main
+backend/*.exe
+backend/*.log
+backend/build-errors.log
+backend/coverage.out
+backend/coverage.html
+backend/database/data/*.db
+
+# Flutter / Mobile Artifacts
+mobile/.dart_tool/
+mobile/.flutter-plugins
+mobile/.flutter-plugins-dependencies
+mobile/.pub-cache/
+mobile/.pub/
+mobile/build/
+mobile/ephemeral/
+mobile/android/.gradle
+mobile/android/local.properties
+
+# OS & IDE Files
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.sqlite
+*.db

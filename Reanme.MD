@@ -221,5 +221,5 @@ curl http://localhost:9002/health
 
 ## 📄 License
 
-Copyright © 2026 **codetheuri / DairyGo Platform**. All rights reserved.  
+Copyright © 2026 **Code The Uri / DairyGo Platform**. All rights reserved.  
 Licensed under the [MIT License](LICENSE).

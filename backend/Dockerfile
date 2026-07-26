@@ -1,5 +1,9 @@
 # Build stage
-FROM golang:1.24-alpine AS builder
+FROM golang:alpine AS builder
+
+# Enable automatic Go toolchain fetching and CA certificates
+ENV GOTOOLCHAIN=auto
+RUN apk add --no-cache ca-certificates git
 
 WORKDIR /app
 

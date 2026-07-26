@@ -69,9 +69,11 @@ func handleAuthCommand(args []string) {
 		// Mute noisy GORM trace logs and record-not-found warnings during CLI sync
 		db.Logger = gormlogger.Default.LogMode(gormlogger.Silent)
 
-		// Ensure RBAC schema exists
-		if err := db.AutoMigrate(&authz.PermissionRecord{}, &authz.Role{}, &authz.RolePermission{}, &authz.UserRole{}); err != nil {
-			log.Fatal("Failed to migrate authorization tables", err)
+		// Ensure RBAC schema exists if not created by Goose
+		if !db.Migrator().HasTable(&authz.PermissionRecord{}) {
+			if err := db.AutoMigrate(&authz.PermissionRecord{}, &authz.Role{}, &authz.RolePermission{}, &authz.UserRole{}); err != nil {
+				log.Fatal("Failed to migrate authorization tables", err)
+			}
 		}
 
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)

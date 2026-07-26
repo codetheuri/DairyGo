@@ -24,36 +24,36 @@ With **DairyGo**:
 ## 🏗️ System Architecture
 
 ```mermaid
-flowchart TD
-    subgraph MobileClient ["Mobile Clients"]
-        CollectorApp["📱 Milk Collector App"]
-        ExecutiveApp["📊 Board & Executive View"]
+graph TD
+    subgraph MobileClient [Mobile Clients]
+        CollectorApp[Milk Collector App]
+        ExecutiveApp[Board and Executive View]
     end
 
-    subgraph BackendAPI ["Go Backend (DairyGo API)"]
-        HumaAPI["🚀 Huma OpenAPI REST Server"]
-        AuthModule["🔐 Auth & RBAC Module"]
-        SaccoModule["🏢 Multi-Tenant Sacco Engine"]
-        CollectionModule["🥛 Intake & Sales Module"]
-        ReportModule["📈 Payout & Balancing Reports"]
+    subgraph BackendAPI [Go Backend API]
+        HumaAPI[Huma OpenAPI REST Server]
+        AuthModule[Auth and RBAC Module]
+        SaccoModule[Multi-Tenant Sacco Engine]
+        CollectionModule[Intake and Sales Module]
+        ReportModule[Payout and Balancing Reports]
     end
 
-    subgraph Database ["Database Layer"]
-        DB[("MySQL / PostgreSQL")]
+    subgraph DatabaseLayer [Database Layer]
+        DB[(MySQL / PostgreSQL Database)]
     end
 
-    CollectorApp -->|"HTTPS / Bearer JWT"| HumaAPI
-    ExecutiveApp -->|"HTTPS / Bearer JWT"| HumaAPI
+    CollectorApp -->|HTTPS / Bearer JWT| HumaAPI
+    ExecutiveApp -->|HTTPS / Bearer JWT| HumaAPI
 
     HumaAPI --> AuthModule
     HumaAPI --> SaccoModule
     HumaAPI --> CollectionModule
     HumaAPI --> ReportModule
 
-    AuthModule -->|"GORM ORM"| DB
-    SaccoModule -->|"GORM ORM"| DB
-    CollectionModule -->|"GORM ORM"| DB
-    ReportModule -->|"GORM ORM"| DB
+    AuthModule -->|GORM ORM| DB
+    SaccoModule -->|GORM ORM| DB
+    CollectionModule -->|GORM ORM| DB
+    ReportModule -->|GORM ORM| DB
 ```
 
 ---

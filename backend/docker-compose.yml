@@ -1,0 +1,54 @@
+services:
+  dairy-api:
+    container_name: dairy-api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "9002:8081"
+    environment:
+      - APP_ENV=production
+      - APP_NAME=dairy
+      - APP_MODE=production
+      - SERVER_PORT=8081
+
+      - DB_DRIVER=${DB_DRIVER:-postgres}
+      - DB_HOST=${DB_HOST:-postgres}
+      - DB_PORT=${DB_PORT:-5432}
+      - DB_USER=${DB_USER:-legendroot}
+      - DB_PASS=${DB_PASSWORD:-l3g3ndaryHub}
+      - DB_PASSWORD=${DB_PASSWORD:-l3g3ndaryHub}
+      - DB_NAME=${DB_NAME:-dairy_db}
+      - JWT_SECRET=${JWT_SECRET:-generate_a_secure_random_string_for_production}
+      - ACCESS_TOKEN_TTL=24h
+
+      - MAIL_HOST=smtp.gmail.com
+      - MAIL_PORT=587
+      - MAIL_USERNAME=${MAIL_USERNAME}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
+      - MAIL_SENDER=${MAIL_SENDER}
+    restart: unless-stopped
+    networks:
+      tigerforge-db:
+        ipv4_address: 172.20.0.16
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:8081/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  tigerforge-db:
+    external: true

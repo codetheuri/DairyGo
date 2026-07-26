@@ -47,7 +47,7 @@ func (s *Service) Register(ctx context.Context, req *RegisterRequest) (*User, er
 		IsVerified: false,
 	}
 
-	if req.SaccoID != nil && *req.SaccoID != "" {
+	if req.SaccoID != nil && *req.SaccoID != "" && *req.SaccoID != "string" {
 		user.SaccoID = req.SaccoID
 	} else if saccoID, ok := middleware.GetSaccoID(ctx); ok && saccoID != "" {
 		user.SaccoID = &saccoID
@@ -61,7 +61,7 @@ func (s *Service) Register(ctx context.Context, req *RegisterRequest) (*User, er
 	}
 
 	if err := s.repo.CreateUserWithProfileAndRole(ctx, user, profile, req.RoleID); err != nil {
-		return nil, fmt.Errorf("username, email, or phone already exists")
+		return nil, fmt.Errorf("registration failed: %v", err)
 	}
 
 	return user, nil

@@ -224,14 +224,23 @@ class DailyCollectionHistoryScreen extends ConsumerWidget {
             child: collectionsAsync.when(
               data: (collections) {
                 if (collections.isEmpty) {
-                  return EmptyStateWidget(
-                    title: 'No Intake Entries',
-                    description: isToday
-                        ? 'No milk intake recorded for today ($selectedDateStr) yet.'
-                        : 'No milk intake entries for $selectedDateStr.',
-                    icon: Icons.water_drop_outlined,
-                    buttonLabel: 'Record Intake',
-                    onButtonPressed: () => context.push(AppRoutes.recordCollection),
+                  return RefreshIndicator(
+                    onRefresh: () async => ref.refresh(milkCollectionsListProvider),
+                    child: ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.only(top: 40),
+                      children: [
+                        EmptyStateWidget(
+                          title: 'No Intake Entries',
+                          description: isToday
+                              ? 'No milk intake recorded for today ($selectedDateStr) yet.'
+                              : 'No milk intake entries for $selectedDateStr.',
+                          icon: Icons.water_drop_outlined,
+                          buttonLabel: 'Record Intake',
+                          onButtonPressed: () => context.push(AppRoutes.recordCollection),
+                        ),
+                      ],
+                    ),
                   );
                 }
 

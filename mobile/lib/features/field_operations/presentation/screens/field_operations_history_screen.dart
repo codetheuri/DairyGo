@@ -228,12 +228,21 @@ class _FieldOperationsHistoryScreenState
                 salesAsync.when(
                   data: (sales) {
                     if (sales.isEmpty) {
-                      return EmptyStateWidget(
-                        title: 'No Direct Field Sales',
-                        description: 'No field sales entries recorded for $selectedDateStr.',
-                        icon: Icons.storefront_outlined,
-                        buttonLabel: 'Record Field Sale',
-                        onButtonPressed: () => context.push(AppRoutes.recordSale),
+                      return RefreshIndicator(
+                        onRefresh: () async => ref.refresh(salesListProvider),
+                        child: ListView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: const EdgeInsets.only(top: 40),
+                          children: [
+                            EmptyStateWidget(
+                              title: 'No Direct Field Sales',
+                              description: 'No field sales entries recorded for $selectedDateStr.',
+                              icon: Icons.storefront_outlined,
+                              buttonLabel: 'Record Field Sale',
+                              onButtonPressed: () => context.push(AppRoutes.recordSale),
+                            ),
+                          ],
+                        ),
                       );
                     }
 
@@ -328,12 +337,21 @@ class _FieldOperationsHistoryScreenState
                 spoilageAsync.when(
                   data: (spoilages) {
                     if (spoilages.isEmpty) {
-                      return EmptyStateWidget(
-                        title: 'No Spoilage Losses Logged',
-                        description: 'No transit loss or spoilage entries recorded for $selectedDateStr.',
-                        icon: Icons.check_circle_outline_rounded,
-                        buttonLabel: 'Log Spoilage',
-                        onButtonPressed: () => context.push(AppRoutes.recordSpoilage),
+                      return RefreshIndicator(
+                        onRefresh: () async => ref.refresh(spoilageListProvider),
+                        child: ListView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: const EdgeInsets.only(top: 40),
+                          children: [
+                            EmptyStateWidget(
+                              title: 'No Spoilage Losses Logged',
+                              description: 'No transit loss or spoilage entries recorded for $selectedDateStr.',
+                              icon: Icons.check_circle_outline_rounded,
+                              buttonLabel: 'Log Spoilage',
+                              onButtonPressed: () => context.push(AppRoutes.recordSpoilage),
+                            ),
+                          ],
+                        ),
                       );
                     }
 

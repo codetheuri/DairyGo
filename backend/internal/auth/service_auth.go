@@ -246,6 +246,7 @@ func (s *Service) generateAccessToken(user *User) (string, error) {
 	claims := middleware.Claims{
 		UserID:  user.ID,
 		SaccoID: user.SaccoID,
+		Role:    user.RoleName,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expiry),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),

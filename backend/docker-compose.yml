@@ -9,7 +9,7 @@ services:
     environment:
       - APP_ENV=production
       - APP_NAME=dairy
-      - APP_MODE=production
+      - APP_MODE=prod
       - SERVER_PORT=8081
 
       - DB_DRIVER=${DB_DRIVER:-postgres}

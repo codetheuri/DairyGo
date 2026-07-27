@@ -23,14 +23,14 @@ func RegisterRoutes(api huma.API, db *gorm.DB, cfg *config.Config, log logger.Lo
 	// PUBLIC AUTHENTICATION ENDPOINTS
 	// -------------------------------------------------------------
 
-	huma.Register(api, huma.Operation{
+	huma.Register(api, guard.Protected(huma.Operation{
 		OperationID: "register-user",
 		Method:      http.MethodPost,
 		Path:        "/api/v1/auth/register",
 		Summary:     "Register a new user",
-		Description: "Creates a new user account and personal identity profile.",
+		Description: "Creates a new user account and personal identity profile. Requires users.create permission.",
 		Tags:        []string{"Authentication"},
-	}, handler.Register)
+	}, PermUsersCreate), handler.Register)
 
 	huma.Register(api, huma.Operation{
 		OperationID: "login-user",

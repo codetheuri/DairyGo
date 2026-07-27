@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/network/dio_client.dart';
 import '../../../collection/data/models/milk_collection_model.dart';
 import '../../../collection/presentation/controllers/collection_controller.dart';
+import '../../../reports/presentation/controllers/report_controller.dart';
 import '../../data/datasources/settings_remote_data_source.dart';
 import '../../data/models/settings_models.dart';
 import '../../data/repositories/settings_repository_impl.dart';
@@ -18,12 +19,12 @@ final settingsRepositoryProvider = Provider<SettingsRepository>((ref) {
   return SettingsRepositoryImpl(dataSource);
 });
 
-final saccoProfileProvider = FutureProvider.autoDispose<SaccoProfileModel>((ref) async {
+final saccoProfileProvider = FutureProvider<SaccoProfileModel>((ref) async {
   final repository = ref.watch(settingsRepositoryProvider);
   return repository.getSaccoProfile();
 });
 
-final milkPriceHistoryProvider = FutureProvider.autoDispose<List<MilkPriceModel>>((ref) async {
+final milkPriceHistoryProvider = FutureProvider<List<MilkPriceModel>>((ref) async {
   final repository = ref.watch(settingsRepositoryProvider);
   return repository.getPriceHistory();
 });
@@ -41,6 +42,7 @@ class SetMilkPriceController extends StateNotifier<AsyncValue<MilkPriceModel?>> 
       state = AsyncValue.data(price);
       _ref.invalidate(activeMilkPriceProvider);
       _ref.invalidate(milkPriceHistoryProvider);
+      invalidateAllAppMetrics(_ref);
       return true;
     } catch (e, st) {
       state = AsyncValue.error(e, st);

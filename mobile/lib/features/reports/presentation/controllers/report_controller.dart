@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/network/dio_client.dart';
 import '../../../collection/data/models/milk_collection_model.dart';
 import '../../../collection/presentation/controllers/collection_controller.dart';
+import '../../../dashboard/presentation/controllers/dashboard_controller.dart';
 import '../../../field_operations/data/models/field_ops_models.dart';
 import '../../../field_operations/presentation/controllers/field_ops_controller.dart';
+import '../../../members/presentation/controllers/member_controller.dart';
 import '../../data/datasources/report_remote_data_source.dart';
 import '../../data/models/report_models.dart';
 import '../../data/repositories/report_repository_impl.dart';
@@ -19,6 +21,20 @@ String getLastDayOfMonthString([DateTime? date]) {
   final now = date ?? DateTime.now();
   final lastDay = DateTime(now.year, now.month + 1, 0);
   return "${lastDay.year}-${lastDay.month.toString().padLeft(2, '0')}-${lastDay.day.toString().padLeft(2, '0')}";
+}
+
+/// Global helper to invalidate all cached metric and report providers after any mutation
+void invalidateAllAppMetrics(Ref ref) {
+  ref.invalidate(milkCollectionsListProvider);
+  ref.invalidate(collectorDashboardProvider(null));
+  ref.invalidate(executiveDashboardProvider(7));
+  ref.invalidate(salesListProvider);
+  ref.invalidate(spoilageListProvider);
+  ref.invalidate(reconciliationProvider(null));
+  ref.invalidate(membersListProvider);
+  ref.invalidate(farmerPayoutReportProvider);
+  ref.invalidate(saccoLedgerReportProvider);
+  ref.invalidate(collectorAuditReportProvider);
 }
 
 final reportRemoteDataSourceProvider = Provider<ReportRemoteDataSource>((ref) {
@@ -36,8 +52,9 @@ final reportFilterFromDateProvider =
 final reportFilterToDateProvider =
     StateProvider.autoDispose<String>((ref) => getLastDayOfMonthString());
 
+// Persistent cached providers (no autoDispose) for instant screen transitions
 final farmerPayoutReportProvider =
-    FutureProvider.autoDispose<List<FarmerPayoutStatementModel>>((ref) async {
+    FutureProvider<List<FarmerPayoutStatementModel>>((ref) async {
   final repository = ref.watch(reportRepositoryProvider);
   final fromDate = ref.watch(reportFilterFromDateProvider);
   final toDate = ref.watch(reportFilterToDateProvider);
@@ -49,7 +66,7 @@ final farmerPayoutReportProvider =
 });
 
 final saccoLedgerReportProvider =
-    FutureProvider.autoDispose<SaccoReconciliationLedgerModel>((ref) async {
+    FutureProvider<SaccoReconciliationLedgerModel>((ref) async {
   final repository = ref.watch(reportRepositoryProvider);
   final fromDate = ref.watch(reportFilterFromDateProvider);
   final toDate = ref.watch(reportFilterToDateProvider);
@@ -61,7 +78,7 @@ final saccoLedgerReportProvider =
 });
 
 final collectorAuditReportProvider =
-    FutureProvider.autoDispose<List<CollectorAuditSummaryModel>>((ref) async {
+    FutureProvider<List<CollectorAuditSummaryModel>>((ref) async {
   final repository = ref.watch(reportRepositoryProvider);
   final fromDate = ref.watch(reportFilterFromDateProvider);
   final toDate = ref.watch(reportFilterToDateProvider);
@@ -72,7 +89,7 @@ final collectorAuditReportProvider =
   );
 });
 
-final farmerIntakeHistoryProvider = FutureProvider.autoDispose
+final farmerIntakeHistoryProvider = FutureProvider
     .family<List<MilkCollectionModel>, ({String memberId, String fromDate, String toDate})>(
         (ref, arg) async {
   final repository = ref.watch(milkCollectionRepositoryProvider);
@@ -84,7 +101,7 @@ final farmerIntakeHistoryProvider = FutureProvider.autoDispose
   );
 });
 
-final collectorMonthCollectionsProvider = FutureProvider.autoDispose
+final collectorMonthCollectionsProvider = FutureProvider
     .family<List<MilkCollectionModel>, ({String fromDate, String toDate})>((ref, arg) async {
   final repository = ref.watch(milkCollectionRepositoryProvider);
   return repository.listCollections(
@@ -94,7 +111,7 @@ final collectorMonthCollectionsProvider = FutureProvider.autoDispose
   );
 });
 
-final collectorMonthSalesProvider = FutureProvider.autoDispose
+final collectorMonthSalesProvider = FutureProvider
     .family<List<MilkSaleModel>, ({String fromDate, String toDate})>((ref, arg) async {
   final repository = ref.watch(fieldOpsRepositoryProvider);
   return repository.listSales(
@@ -103,7 +120,7 @@ final collectorMonthSalesProvider = FutureProvider.autoDispose
   );
 });
 
-final collectorMonthSpoilageProvider = FutureProvider.autoDispose
+final collectorMonthSpoilageProvider = FutureProvider
     .family<List<MilkSpoilageModel>, ({String fromDate, String toDate})>((ref, arg) async {
   final repository = ref.watch(fieldOpsRepositoryProvider);
   return repository.listSpoilage(

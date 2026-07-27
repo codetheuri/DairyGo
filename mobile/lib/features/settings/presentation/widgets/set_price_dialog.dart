@@ -9,9 +9,9 @@ import '../../data/models/settings_models.dart';
 import '../controllers/settings_controller.dart';
 
 class SetPriceDialog extends ConsumerStatefulWidget {
-  final double currentPrice;
+  final double? currentPrice;
 
-  const SetPriceDialog({super.key, required this.currentPrice});
+  const SetPriceDialog({super.key, this.currentPrice});
 
   @override
   ConsumerState<SetPriceDialog> createState() => _SetPriceDialogState();
@@ -25,7 +25,9 @@ class _SetPriceDialogState extends ConsumerState<SetPriceDialog> {
   @override
   void initState() {
     super.initState();
-    _priceController = TextEditingController(text: widget.currentPrice.toStringAsFixed(2));
+    _priceController = TextEditingController(
+      text: widget.currentPrice != null ? widget.currentPrice!.toStringAsFixed(2) : '50.00',
+    );
     _effectiveDate = getTodayDateString();
   }
 
@@ -51,7 +53,7 @@ class _SetPriceDialogState extends ConsumerState<SetPriceDialog> {
     if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Active buying price updated to KES ${newPrice.toStringAsFixed(2)}/L!'),
+          content: Text('Active buying price set to KES ${newPrice.toStringAsFixed(2)}/L!'),
           backgroundColor: AppColors.success,
         ),
       );
@@ -78,9 +80,9 @@ class _SetPriceDialogState extends ConsumerState<SetPriceDialog> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Configure Buying Price',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17, color: AppColors.textPrimary),
+                  Text(
+                    widget.currentPrice != null ? 'Configure Buying Price' : 'Set Initial Milk Price',
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17, color: AppColors.textPrimary),
                   ),
                   IconButton(
                     icon: const Icon(Icons.close_rounded, size: 20),
@@ -103,7 +105,7 @@ class _SetPriceDialogState extends ConsumerState<SetPriceDialog> {
               ],
 
               AppTextField(
-                label: 'New Price per Litre (KES) *',
+                label: 'Price per Litre (KES) *',
                 controller: _priceController,
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 prefixIcon: Icons.payments_outlined,
@@ -160,7 +162,7 @@ class _SetPriceDialogState extends ConsumerState<SetPriceDialog> {
               const SizedBox(height: 22),
 
               PrimaryButton(
-                label: isLoading ? 'Saving New Rate...' : 'Set Active Price Rate',
+                label: isLoading ? 'Saving Price Rate...' : 'Set Active Price Rate',
                 icon: Icons.check_circle_rounded,
                 onPressed: isLoading ? null : _submit,
               ),

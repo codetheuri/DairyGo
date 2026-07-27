@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/network/dio_client.dart';
 import '../../../collection/presentation/controllers/collection_controller.dart';
-import '../../../dashboard/presentation/controllers/dashboard_controller.dart';
+import '../../../reports/presentation/controllers/report_controller.dart';
 import '../../data/datasources/field_ops_remote_data_source.dart';
 import '../../data/models/field_ops_models.dart';
 import '../../data/repositories/field_ops_repository_impl.dart';
@@ -21,18 +21,18 @@ final fieldOpsRepositoryProvider = Provider<FieldOpsRepository>((ref) {
 final fieldOpsFilterDateProvider = StateProvider.autoDispose<String>((ref) => getTodayDateString());
 
 final reconciliationProvider =
-    FutureProvider.autoDispose.family<ReconciliationModel, String?>((ref, date) async {
+    FutureProvider.family<ReconciliationModel, String?>((ref, date) async {
   final repository = ref.watch(fieldOpsRepositoryProvider);
   return repository.getReconciliation(date: date);
 });
 
-final salesListProvider = FutureProvider.autoDispose<List<MilkSaleModel>>((ref) async {
+final salesListProvider = FutureProvider<List<MilkSaleModel>>((ref) async {
   final repository = ref.watch(fieldOpsRepositoryProvider);
   final date = ref.watch(fieldOpsFilterDateProvider);
   return repository.listSales(fromDate: date, toDate: date);
 });
 
-final spoilageListProvider = FutureProvider.autoDispose<List<MilkSpoilageModel>>((ref) async {
+final spoilageListProvider = FutureProvider<List<MilkSpoilageModel>>((ref) async {
   final repository = ref.watch(fieldOpsRepositoryProvider);
   final date = ref.watch(fieldOpsFilterDateProvider);
   return repository.listSpoilage(fromDate: date, toDate: date);
@@ -49,10 +49,7 @@ class RecordSaleController extends StateNotifier<AsyncValue<MilkSaleModel?>> {
     try {
       final sale = await _repository.recordSale(request);
       state = AsyncValue.data(sale);
-      _ref.invalidate(salesListProvider);
-      _ref.invalidate(reconciliationProvider(null));
-      _ref.invalidate(collectorDashboardProvider(null));
-      _ref.invalidate(executiveDashboardProvider(7));
+      invalidateAllAppMetrics(_ref);
       return true;
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -78,10 +75,7 @@ class RecordSpoilageController extends StateNotifier<AsyncValue<MilkSpoilageMode
     try {
       final spoilage = await _repository.recordSpoilage(request);
       state = AsyncValue.data(spoilage);
-      _ref.invalidate(spoilageListProvider);
-      _ref.invalidate(reconciliationProvider(null));
-      _ref.invalidate(collectorDashboardProvider(null));
-      _ref.invalidate(executiveDashboardProvider(7));
+      invalidateAllAppMetrics(_ref);
       return true;
     } catch (e, st) {
       state = AsyncValue.error(e, st);

@@ -17,12 +17,12 @@ final dashboardRepositoryProvider = Provider<DashboardRepository>((ref) {
   return DashboardRepositoryImpl(dataSource);
 });
 
-final collectorDashboardProvider = FutureProvider.autoDispose.family<CollectorDashboardModel, String?>((ref, date) async {
+final collectorDashboardProvider = FutureProvider.family<CollectorDashboardModel, String?>((ref, date) async {
   final repository = ref.watch(dashboardRepositoryProvider);
   return repository.getCollectorDashboard(date: date);
 });
 
-final executiveDashboardProvider = FutureProvider.autoDispose.family<ExecutiveDashboardModel, int>((ref, days) async {
+final executiveDashboardProvider = FutureProvider.family<ExecutiveDashboardModel, int>((ref, days) async {
   final repository = ref.watch(dashboardRepositoryProvider);
   return repository.getExecutiveDashboard(days: days);
 });

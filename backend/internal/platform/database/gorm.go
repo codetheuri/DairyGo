@@ -16,7 +16,7 @@ import (
 )
 
 func NewGoRMDB(cfg *config.Config, log logger.Logger) (*gorm.DB, error) {
-	newLogger := NewGormLogger(log)
+	newLogger := NewGormLogger(log, cfg.AppMode)
 
 	var db *gorm.DB
 	var err error
@@ -57,14 +57,17 @@ func NewGoRMDB(cfg *config.Config, log logger.Logger) (*gorm.DB, error) {
 }
 
 type GormLogger struct {
-	logger logger.Logger
+	logger  logger.Logger
+	appMode string
 }
 
-func NewGormLogger(log logger.Logger) GormLogger {
+func NewGormLogger(log logger.Logger, appMode string) GormLogger {
 	return GormLogger{
-		logger: log,
+		logger:  log,
+		appMode: appMode,
 	}
 }
+
 func (gl GormLogger) LogMode(level gormlogger.LogLevel) gormlogger.Interface {
 	return gl
 }
@@ -72,6 +75,7 @@ func (gl GormLogger) LogMode(level gormlogger.LogLevel) gormlogger.Interface {
 func (gl GormLogger) Info(ctx context.Context, msg string, data ...interface{}) {
 	gl.logger.Info(msg, data...)
 }
+
 func (gl GormLogger) Warn(ctx context.Context, msg string, data ...interface{}) {
 	gl.logger.Warn(msg, data...)
 }
@@ -90,6 +94,7 @@ func (gl GormLogger) Error(ctx context.Context, msg string, data ...interface{})
 
 	gl.logger.Error(msg, actualErr, cleanedData...)
 }
+
 func (gl GormLogger) Trace(ctx context.Context, begin time.Time, fc func() (sql string, rowsAffected int64), err error) {
 	sql, rowsAffected := fc()
 	duration := time.Since(begin)
@@ -98,13 +103,22 @@ func (gl GormLogger) Trace(ctx context.Context, begin time.Time, fc func() (sql 
 		"rows_affected", rowsAffected,
 		"sql", sql,
 	}
+
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			gl.logger.Debug("GORM Trace", fields...)
+			if gl.appMode != "prod" {
+				gl.logger.Debug("GORM Trace", fields...)
+			}
 		} else {
 			gl.logger.Error("GORM Trace", err, fields...)
 		}
 	} else {
-		gl.logger.Debug("GORM Trace", fields...)
+		if gl.appMode == "prod" {
+			if duration > 200*time.Millisecond {
+				gl.logger.Warn("GORM Slow Query (>200ms)", fields...)
+			}
+		} else {
+			gl.logger.Debug("GORM Trace", fields...)
+		}
 	}
 }

@@ -45,6 +45,15 @@ class UserEntity with _$UserEntity {
     return lower.contains('board') || lower.contains('executive') || lower.contains('admin');
   }
 
+  bool get isSaccoAdmin {
+    if (isSuperUser) return true;
+    final lower = roleName.toLowerCase();
+    return lower.contains('admin');
+  }
+
+  bool get canManageStaff => isSaccoAdmin || isSuperUser;
+  bool get canSetPrice => isSaccoAdmin || isSuperUser;
+
   String get displayRole {
     if (isSuperUser) return 'Sacco Administrator';
     if (roleName.isNotEmpty) return roleName;

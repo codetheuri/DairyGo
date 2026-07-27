@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/network/dio_client.dart';
+import '../../../reports/presentation/controllers/report_controller.dart';
 import '../../data/datasources/member_remote_data_source.dart';
 import '../../data/models/member_model.dart';
 import '../../data/repositories/member_repository_impl.dart';
@@ -19,7 +20,7 @@ final memberRepositoryProvider = Provider<MemberRepository>((ref) {
 final memberSearchQueryProvider = StateProvider.autoDispose<String>((ref) => '');
 final memberStatusFilterProvider = StateProvider.autoDispose<String?>((ref) => null);
 
-final membersListProvider = FutureProvider.autoDispose<List<MemberModel>>((ref) async {
+final membersListProvider = FutureProvider<List<MemberModel>>((ref) async {
   final repository = ref.watch(memberRepositoryProvider);
   final search = ref.watch(memberSearchQueryProvider);
   final status = ref.watch(memberStatusFilterProvider);
@@ -31,7 +32,7 @@ final membersListProvider = FutureProvider.autoDispose<List<MemberModel>>((ref) 
   );
 });
 
-final memberDetailsProvider = FutureProvider.autoDispose.family<MemberModel, String>((ref, id) async {
+final memberDetailsProvider = FutureProvider.family<MemberModel, String>((ref, id) async {
   final repository = ref.watch(memberRepositoryProvider);
   return repository.getMemberById(id);
 });
@@ -48,7 +49,7 @@ class RegisterMemberController extends StateNotifier<AsyncValue<MemberModel?>> {
     try {
       final member = await _repository.createMember(request);
       state = AsyncValue.data(member);
-      _ref.invalidate(membersListProvider);
+      invalidateAllAppMetrics(_ref);
       return true;
     } catch (e, st) {
       state = AsyncValue.error(e, st);

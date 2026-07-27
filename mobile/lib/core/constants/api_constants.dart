@@ -4,7 +4,7 @@
 /// For local Android Emulator development, use `http://10.0.2.2:8081`.
 /// For physical mobile device testing on local network, update to your local LAN IP (e.g. `http://192.168.x.x:8081`).
 abstract class ApiConstants {
-  static const String baseUrl = 'http://192.168.18.6:8081';
+  static const String baseUrl = 'https://apis.dairy.urizon.co.ke';
   static const Duration connectionTimeout = Duration(seconds: 15);
   static const Duration receiveTimeout = Duration(seconds: 15);
 

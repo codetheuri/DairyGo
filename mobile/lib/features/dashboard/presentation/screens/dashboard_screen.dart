@@ -44,6 +44,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
 
     return Scaffold(
       appBar: AppBar(
+     
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

@@ -28,6 +28,7 @@ type Config struct {
 	AppName           string
 	AppVersion        string
 	AppMode           string
+	AppTimezone       string
 	DbURL             string
 	DBMaxIdleConns    int
 	DBMaxOpenConns    int
@@ -69,16 +70,10 @@ func LoadConfig() (*Config, error) {
 		AppName:           os.Getenv("APP_NAME"),
 		AppVersion:        os.Getenv("APP_VERSION"),
 		AppMode:           os.Getenv("APP_MODE"),
+		AppTimezone:       os.Getenv("APP_TIMEZONE"),
 		DBMaxIdleConns:    10,
 		DBMaxOpenConns:    100,
 		DBConnMaxLifetime: 60, // default value in seconds
-
-		// Mailer configuration
-		MailerHost:     os.Getenv("MAIL_HOST"),
-		MailerUsername: os.Getenv("MAIL_USERNAME"),
-		MailerPassword: os.Getenv("MAIL_PASSWORD"),
-		MailerSender:   os.Getenv("MAIL_SENDER"),
-
 		// SMS configuration
 		SMSProvider:      os.Getenv("SMS_PROVIDER"),
 		HttpSMSAPIKey:    os.Getenv("HTTPSMS_API_KEY"),
@@ -104,6 +99,13 @@ func LoadConfig() (*Config, error) {
     }
     cfg.AccessTokenTTL = parsedTTL
 
+	if cfg.AppTimezone == "" {
+		cfg.AppTimezone = "Africa/Nairobi"
+	}
+	if loc, err := time.LoadLocation(cfg.AppTimezone); err == nil {
+		time.Local = loc
+	}
+
 	if cfg.DBDriver == "" {
 		return nil, fmt.Errorf("DB_DRIVER not set in .env")
 	}
@@ -118,6 +120,8 @@ func LoadConfig() (*Config, error) {
 		}
 		cfg.DBPort = strconv.Itoa(dbPort)
 	}
+	// app mode 
+	
 
 	//server port
 	serverPortStr := os.Getenv("SERVER_PORT")

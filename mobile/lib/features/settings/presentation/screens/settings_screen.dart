@@ -27,12 +27,40 @@ class SettingsScreen extends ConsumerWidget {
     return '$day $month $year';
   }
 
+  Widget _buildLoadingCard(String message) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.cardBorder),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const SizedBox(
+            width: 18,
+            height: 18,
+            child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
+          ),
+          const SizedBox(width: 12),
+          Text(message, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary, fontWeight: FontWeight.w500)),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final saccoProfileAsync = ref.watch(saccoProfileProvider);
     final activePriceAsync = ref.watch(activeMilkPriceProvider);
     final priceHistoryAsync = ref.watch(milkPriceHistoryProvider);
     final authState = ref.watch(authControllerProvider).valueOrNull;
+    final user = authState?.user;
+
+    final canSetPrice = user?.canSetPrice ?? false;
+    final canManageStaff = user?.canManageStaff ?? false;
 
     return Scaffold(
       appBar: AppBar(
@@ -120,7 +148,7 @@ class SettingsScreen extends ConsumerWidget {
                     ),
                   );
                 },
-                loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+                loading: () => _buildLoadingCard('Loading organization profile...'),
                 error: (err, stack) => ErrorView(
                   message: err.toString().replaceAll('Exception: ', ''),
                   onRetry: () => ref.refresh(saccoProfileProvider),
@@ -139,29 +167,30 @@ class SettingsScreen extends ConsumerWidget {
                           color: AppColors.textPrimary,
                         ),
                   ),
-                  activePriceAsync.when(
-                    data: (activePrice) => TextButton.icon(
-                      style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  if (canSetPrice)
+                    activePriceAsync.when(
+                      data: (activePrice) => TextButton.icon(
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        icon: const Icon(Icons.edit_outlined, size: 16),
+                        label: const Text('Change Rate', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (_) => SetPriceDialog(currentPrice: activePrice.pricePerLitre),
+                          );
+                        },
                       ),
-                      icon: const Icon(Icons.edit_outlined, size: 16),
-                      label: const Text('Change Rate', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                      onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder: (_) => SetPriceDialog(currentPrice: activePrice.pricePerLitre),
-                        );
-                      },
+                      loading: () => const SizedBox.shrink(),
+                      error: (_, __) => const SizedBox.shrink(),
                     ),
-                    loading: () => const SizedBox.shrink(),
-                    error: (_, __) => const SizedBox.shrink(),
-                  ),
                 ],
               ),
               const SizedBox(height: 8),
 
-              // Active Buying Rate Card
+              // Active Buying Rate Card / Setup Banner
               activePriceAsync.when(
                 data: (activePrice) {
                   return Container(
@@ -198,11 +227,66 @@ class SettingsScreen extends ConsumerWidget {
                     ),
                   );
                 },
-                loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
-                error: (err, stack) => ErrorView(
-                  message: err.toString().replaceAll('Exception: ', ''),
-                  onRetry: () => ref.refresh(activeMilkPriceProvider),
-                ),
+                loading: () => _buildLoadingCard('Loading milk price configuration...'),
+                error: (err, stack) {
+                  final msg = err.toString().replaceAll('Exception: ', '');
+                  final isNoPriceConfigured = msg.toLowerCase().contains('no active milk price');
+
+                  if (isNoPriceConfigured) {
+                    return Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.amber.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.amber.shade400),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: const [
+                              Icon(Icons.info_outline_rounded, color: Colors.amber, size: 22),
+                              SizedBox(width: 8),
+                              Text(
+                                'No Active Milk Price Configured',
+                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textPrimary),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          const Text(
+                            'Set the initial milk buying price per litre for Sacco milk intake operations.',
+                            style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                          ),
+                          if (canSetPrice) ...[
+                            const SizedBox(height: 14),
+                            ElevatedButton.icon(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              ),
+                              icon: const Icon(Icons.add_rounded, size: 18),
+                              label: const Text('Set Initial Buying Price'),
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (_) => const SetPriceDialog(currentPrice: null),
+                                );
+                              },
+                            ),
+                          ],
+                        ],
+                      ),
+                    );
+                  }
+
+                  return ErrorView(
+                    message: msg,
+                    onRetry: () => ref.refresh(activeMilkPriceProvider),
+                  );
+                },
               ),
               const SizedBox(height: 14),
 
@@ -266,97 +350,96 @@ class SettingsScreen extends ConsumerWidget {
                     ),
                   );
                 },
-                loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
-                error: (err, stack) => ErrorView(
-                  message: err.toString().replaceAll('Exception: ', ''),
-                  onRetry: () => ref.refresh(milkPriceHistoryProvider),
-                ),
+                loading: () => _buildLoadingCard('Loading price rate history...'),
+                error: (err, stack) => const Text('No historical rates recorded.', style: TextStyle(fontSize: 12, color: AppColors.textMuted)),
               ),
               const SizedBox(height: 24),
 
-              // 3. Sacco Staff & User Management
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Sacco Staff & User Management',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
-                        ),
-                  ),
-                  TextButton.icon(
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    icon: const Icon(Icons.person_add_alt_1_outlined, size: 16),
-                    label: const Text('Add Staff', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                    onPressed: () {
-                      showDialog(
-                        context: context,
-                        builder: (_) => const RegisterStaffDialog(),
-                      );
-                    },
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.cardBorder),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+              // 3. Sacco Staff & User Management (Hiddne silently for non-Admins)
+              if (canManageStaff) ...[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'Staff Registration & Role Assignment',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textPrimary),
-                    ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      'Add and provision user accounts for Milk Collectors, Board Members, Executives, and Sacco Admins.',
-                      style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                    ),
-                    const SizedBox(height: 14),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            icon: const Icon(Icons.people_outline_rounded, size: 18),
-                            label: const Text('Staff Roster'),
-                            onPressed: () => context.push(AppRoutes.staff),
+                    Text(
+                      'Sacco Staff & User Management',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primary,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                            ),
-                            icon: const Icon(Icons.person_add_rounded, size: 18),
-                            label: const Text('Add Staff'),
-                            onPressed: () {
-                              showDialog(
-                                context: context,
-                                builder: (_) => const RegisterStaffDialog(),
-                              );
-                            },
-                          ),
-                        ),
-                      ],
+                    ),
+                    TextButton.icon(
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      icon: const Icon(Icons.person_add_alt_1_outlined, size: 16),
+                      label: const Text('Add Staff', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (_) => const RegisterStaffDialog(),
+                        );
+                      },
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(height: 24),
+                const SizedBox(height: 8),
+
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.cardBorder),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Staff Registration & Role Assignment',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textPrimary),
+                      ),
+                      const SizedBox(height: 4),
+                      const Text(
+                        'Add and provision user accounts for Milk Collectors, Board Members, Executives, and Sacco Admins.',
+                        style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                      ),
+                      const SizedBox(height: 14),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              icon: const Icon(Icons.people_outline_rounded, size: 18),
+                              label: const Text('Staff Roster'),
+                              onPressed: () => context.push(AppRoutes.staff),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              ),
+                              icon: const Icon(Icons.person_add_rounded, size: 18),
+                              label: const Text('Add Staff'),
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (_) => const RegisterStaffDialog(),
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+              ],
 
               // 4. User Session & Logout Card
               Text(
@@ -388,8 +471,8 @@ class SettingsScreen extends ConsumerWidget {
                               backgroundColor: AppColors.primary,
                               foregroundColor: Colors.white,
                               child: Text(
-                                authState?.user?.fullName.isNotEmpty == true
-                                    ? authState!.user!.fullName[0].toUpperCase()
+                                user?.fullName.isNotEmpty == true
+                                    ? user!.fullName[0].toUpperCase()
                                     : 'U',
                                 style: const TextStyle(fontWeight: FontWeight.bold),
                               ),
@@ -399,7 +482,7 @@ class SettingsScreen extends ConsumerWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  authState?.user?.fullName ?? 'Authenticated User',
+                                  user?.fullName ?? 'Authenticated User',
                                   style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 14,
@@ -407,7 +490,7 @@ class SettingsScreen extends ConsumerWidget {
                                   ),
                                 ),
                                 Text(
-                                  authState?.user?.email ?? 'User Account',
+                                  user?.email ?? 'User Account',
                                   style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
                                 ),
                               ],

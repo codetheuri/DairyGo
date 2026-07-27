@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/network/dio_client.dart';
-import '../../../dashboard/presentation/controllers/dashboard_controller.dart';
 import '../../../members/data/models/member_model.dart';
 import '../../../members/presentation/controllers/member_controller.dart';
+import '../../../reports/presentation/controllers/report_controller.dart';
 import '../../data/datasources/milk_collection_remote_data_source.dart';
 import '../../data/models/milk_collection_model.dart';
 import '../../data/repositories/milk_collection_repository_impl.dart';
@@ -21,7 +21,7 @@ final milkCollectionRepositoryProvider =
   return MilkCollectionRepositoryImpl(dataSource);
 });
 
-final activeMilkPriceProvider = FutureProvider.autoDispose<MilkPriceModel>((ref) async {
+final activeMilkPriceProvider = FutureProvider<MilkPriceModel>((ref) async {
   final repository = ref.watch(milkCollectionRepositoryProvider);
   return repository.getActivePrice();
 });
@@ -36,7 +36,7 @@ final collectionFilterDateProvider = StateProvider.autoDispose<String>((ref) => 
 final collectionSearchProvider = StateProvider.autoDispose<String>((ref) => '');
 
 final milkCollectionsListProvider =
-    FutureProvider.autoDispose<List<MilkCollectionModel>>((ref) async {
+    FutureProvider<List<MilkCollectionModel>>((ref) async {
   final repository = ref.watch(milkCollectionRepositoryProvider);
   final memberRepo = ref.watch(memberRepositoryProvider);
   final shift = ref.watch(collectionFilterShiftProvider);
@@ -80,9 +80,7 @@ class RecordMilkCollectionController
     try {
       final collection = await _repository.recordCollection(request);
       state = AsyncValue.data(collection);
-      _ref.invalidate(milkCollectionsListProvider);
-      _ref.invalidate(collectorDashboardProvider(null));
-      _ref.invalidate(executiveDashboardProvider(7));
+      invalidateAllAppMetrics(_ref);
       return true;
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -113,9 +111,7 @@ class UpdateMilkCollectionController
     try {
       final collection = await _repository.updateCollection(id, request);
       state = AsyncValue.data(collection);
-      _ref.invalidate(milkCollectionsListProvider);
-      _ref.invalidate(collectorDashboardProvider(null));
-      _ref.invalidate(executiveDashboardProvider(7));
+      invalidateAllAppMetrics(_ref);
       return true;
     } catch (e, st) {
       state = AsyncValue.error(e, st);

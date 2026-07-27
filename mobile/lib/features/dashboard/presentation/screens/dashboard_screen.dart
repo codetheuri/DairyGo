@@ -24,7 +24,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 2, vsync: this, initialIndex: 1);
   }
 
   @override
@@ -44,7 +44,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
 
     return Scaffold(
       appBar: AppBar(
-     
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -99,7 +98,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
           ? TabBarView(
               controller: _tabController,
               children: [
-                // Collector Dashboard View
+                // Collector Dashboard View with graceful permission handling
                 collectorAsync.when(
                   data: (data) => CollectorDashboardView(
                     data: data,
@@ -108,10 +107,36 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                   loading: () => const Center(
                     child: CircularProgressIndicator(color: AppColors.primary),
                   ),
-                  error: (err, stack) => ErrorView(
-                    message: err.toString().replaceAll('Exception: ', ''),
-                    onRetry: () => ref.refresh(collectorDashboardProvider(null)),
-                  ),
+                  error: (err, stack) {
+                    final msg = err.toString().replaceAll('Exception: ', '');
+                    if (msg.toLowerCase().contains('forbidden') || msg.toLowerCase().contains('permissions')) {
+                      return SingleChildScrollView(
+                        padding: const EdgeInsets.all(24),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const SizedBox(height: 40),
+                            Icon(Icons.insights_rounded, size: 54, color: AppColors.primary.withValues(alpha: 0.5)),
+                            const SizedBox(height: 16),
+                            const Text(
+                              'Field Collector Shift Data',
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textPrimary),
+                            ),
+                            const SizedBox(height: 6),
+                            const Text(
+                              'You are logged in as a Sacco Executive / Board Member. Switch to Executive Overview tab for Sacco-wide analytics.',
+                              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+                    return ErrorView(
+                      message: msg,
+                      onRetry: () => ref.refresh(collectorDashboardProvider(null)),
+                    );
+                  },
                 ),
 
                 // Executive Summary Dashboard View

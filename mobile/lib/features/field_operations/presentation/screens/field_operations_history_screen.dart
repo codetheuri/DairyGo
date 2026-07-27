@@ -7,6 +7,7 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../../core/widgets/empty_state_widget.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/status_pill.dart';
+import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../../collection/presentation/controllers/collection_controller.dart';
 import '../controllers/field_ops_controller.dart';
 
@@ -65,7 +66,7 @@ class _FieldOperationsHistoryScreenState
     if (createdAt == null || createdAt.isEmpty) return '';
     final parsed = DateTime.tryParse(createdAt);
     if (parsed == null) return '';
-    final local = parsed.toLocal();
+    final local = parsed.isUtc ? parsed.toLocal() : parsed;
     final hour = local.hour > 12 ? local.hour - 12 : (local.hour == 0 ? 12 : local.hour);
     final minute = local.minute.toString().padLeft(2, '0');
     final period = local.hour >= 12 ? 'PM' : 'AM';
@@ -77,7 +78,10 @@ class _FieldOperationsHistoryScreenState
     final selectedDateStr = ref.watch(fieldOpsFilterDateProvider);
     final isToday = selectedDateStr == getTodayDateString();
 
-    final reconciliationAsync = ref.watch(reconciliationProvider(selectedDateStr));
+    final authState = ref.watch(authControllerProvider).valueOrNull;
+    final user = authState?.user;
+    final isExecutive = user?.isExecutive ?? false;
+
     final salesAsync = ref.watch(salesListProvider);
     final spoilageAsync = ref.watch(spoilageListProvider);
 
@@ -215,36 +219,6 @@ class _FieldOperationsHistoryScreenState
           ),
           const Divider(height: 1, color: AppColors.cardBorder),
 
-          // Live Reconciliation Header Banner for selected date
-          reconciliationAsync.when(
-            data: (recon) {
-              return Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                color: AppColors.background,
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.cardBorder),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _buildReconMetric('Collected', '${recon.totalCollectedLitres.toStringAsFixed(1)}L', AppColors.primary),
-                      _buildReconMetric('Sold', '${recon.totalSoldLitres.toStringAsFixed(1)}L', AppColors.secondary),
-                      _buildReconMetric('Spoiled', '${recon.totalSpoiledLitres.toStringAsFixed(1)}L', AppColors.warning),
-                      _buildReconMetric('Net Station', '${recon.netDeliveredLitres.toStringAsFixed(1)}L', AppColors.success),
-                    ],
-                  ),
-                ),
-              );
-            },
-            loading: () => const LinearProgressIndicator(color: AppColors.primary),
-            error: (_, __) => const SizedBox.shrink(),
-          ),
-
           // Tab Content
           Expanded(
             child: TabBarView(
@@ -272,6 +246,7 @@ class _FieldOperationsHistoryScreenState
                         itemBuilder: (context, index) {
                           final item = sales[index];
                           final itemTime = _formatItemTime(item.createdAt);
+                          final collectorName = item.collectorName;
 
                           return Container(
                             padding: const EdgeInsets.all(12),
@@ -306,6 +281,17 @@ class _FieldOperationsHistoryScreenState
                                         '${item.quantityLitres.toStringAsFixed(1)} L @ KES ${item.unitPrice.toStringAsFixed(0)}/L • ${item.paymentMethod}${itemTime.isNotEmpty ? " • $itemTime" : ""}',
                                         style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
                                       ),
+                                      if (isExecutive && collectorName != null && collectorName.isNotEmpty) ...[
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          'By: $collectorName',
+                                          style: const TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.secondary,
+                                          ),
+                                        ),
+                                      ],
                                     ],
                                   ),
                                 ),
@@ -360,6 +346,7 @@ class _FieldOperationsHistoryScreenState
                         itemBuilder: (context, index) {
                           final item = spoilages[index];
                           final itemTime = _formatItemTime(item.createdAt);
+                          final collectorName = item.collectorName;
 
                           return Container(
                             padding: const EdgeInsets.all(12),
@@ -394,6 +381,17 @@ class _FieldOperationsHistoryScreenState
                                         '${item.notes ?? "Transit Loss"}${itemTime.isNotEmpty ? " • $itemTime" : ""}',
                                         style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
                                       ),
+                                      if (isExecutive && collectorName != null && collectorName.isNotEmpty) ...[
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          'By: $collectorName',
+                                          style: const TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.warning,
+                                          ),
+                                        ),
+                                      ],
                                     ],
                                   ),
                                 ),
@@ -430,21 +428,6 @@ class _FieldOperationsHistoryScreenState
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildReconMetric(String label, String value, Color color) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: color),
-        ),
-        Text(
-          label,
-          style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
-        ),
-      ],
     );
   }
 }

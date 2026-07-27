@@ -19,6 +19,7 @@ class MilkSaleModel with _$MilkSaleModel {
     @JsonKey(name: 'payment_method') @Default('CASH') String paymentMethod,
     String? notes,
     @JsonKey(name: 'created_at') String? createdAt,
+    @JsonKey(name: 'collector_name') String? collectorName,
   }) = _MilkSaleModel;
 
   factory MilkSaleModel.fromJson(Map<String, dynamic> json) =>
@@ -53,6 +54,7 @@ class MilkSpoilageModel with _$MilkSpoilageModel {
     required String reason,
     String? notes,
     @JsonKey(name: 'created_at') String? createdAt,
+    @JsonKey(name: 'collector_name') String? collectorName,
   }) = _MilkSpoilageModel;
 
   factory MilkSpoilageModel.fromJson(Map<String, dynamic> json) =>

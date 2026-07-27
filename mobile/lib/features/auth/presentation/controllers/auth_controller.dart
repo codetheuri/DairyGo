@@ -8,6 +8,8 @@ import '../../domain/entities/auth_state.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
 
+import '../../../reports/presentation/controllers/report_controller.dart';
+
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   final dio = ref.watch(dioClientProvider);
   final storageService = ref.watch(secureStorageServiceProvider);
@@ -40,16 +42,14 @@ class AuthController extends AsyncNotifier<AuthState> {
     final repo = ref.read(authRepositoryProvider);
     final result = await repo.login(identity: identity, password: password);
 
-    if (result.isAuthenticated) {
-      state = AsyncValue.data(result);
-    } else {
-      state = AsyncValue.data(result);
-    }
+    invalidateAllAppMetrics(ref);
+    state = AsyncValue.data(result);
   }
 
   Future<void> logout() async {
     final repo = ref.read(authRepositoryProvider);
     await repo.logout();
+    invalidateAllAppMetrics(ref);
     state = AsyncValue.data(AuthState.unauthenticated());
   }
 }

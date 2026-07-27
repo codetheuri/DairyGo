@@ -45,6 +45,8 @@ mixin _$MilkSaleModel {
   String? get notes => throw _privateConstructorUsedError;
   @JsonKey(name: 'created_at')
   String? get createdAt => throw _privateConstructorUsedError;
+  @JsonKey(name: 'collector_name')
+  String? get collectorName => throw _privateConstructorUsedError;
 
   /// Serializes this MilkSaleModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -77,6 +79,7 @@ abstract class $MilkSaleModelCopyWith<$Res> {
     @JsonKey(name: 'payment_method') String paymentMethod,
     String? notes,
     @JsonKey(name: 'created_at') String? createdAt,
+    @JsonKey(name: 'collector_name') String? collectorName,
   });
 }
 
@@ -108,6 +111,7 @@ class _$MilkSaleModelCopyWithImpl<$Res, $Val extends MilkSaleModel>
     Object? paymentMethod = null,
     Object? notes = freezed,
     Object? createdAt = freezed,
+    Object? collectorName = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -163,6 +167,10 @@ class _$MilkSaleModelCopyWithImpl<$Res, $Val extends MilkSaleModel>
                 ? _value.createdAt
                 : createdAt // ignore: cast_nullable_to_non_nullable
                       as String?,
+            collectorName: freezed == collectorName
+                ? _value.collectorName
+                : collectorName // ignore: cast_nullable_to_non_nullable
+                      as String?,
           )
           as $Val,
     );
@@ -192,6 +200,7 @@ abstract class _$$MilkSaleModelImplCopyWith<$Res>
     @JsonKey(name: 'payment_method') String paymentMethod,
     String? notes,
     @JsonKey(name: 'created_at') String? createdAt,
+    @JsonKey(name: 'collector_name') String? collectorName,
   });
 }
 
@@ -222,6 +231,7 @@ class __$$MilkSaleModelImplCopyWithImpl<$Res>
     Object? paymentMethod = null,
     Object? notes = freezed,
     Object? createdAt = freezed,
+    Object? collectorName = freezed,
   }) {
     return _then(
       _$MilkSaleModelImpl(
@@ -277,6 +287,10 @@ class __$$MilkSaleModelImplCopyWithImpl<$Res>
             ? _value.createdAt
             : createdAt // ignore: cast_nullable_to_non_nullable
                   as String?,
+        collectorName: freezed == collectorName
+            ? _value.collectorName
+            : collectorName // ignore: cast_nullable_to_non_nullable
+                  as String?,
       ),
     );
   }
@@ -299,6 +313,7 @@ class _$MilkSaleModelImpl implements _MilkSaleModel {
     @JsonKey(name: 'payment_method') this.paymentMethod = 'CASH',
     this.notes,
     @JsonKey(name: 'created_at') this.createdAt,
+    @JsonKey(name: 'collector_name') this.collectorName,
   });
 
   factory _$MilkSaleModelImpl.fromJson(Map<String, dynamic> json) =>
@@ -341,10 +356,13 @@ class _$MilkSaleModelImpl implements _MilkSaleModel {
   @override
   @JsonKey(name: 'created_at')
   final String? createdAt;
+  @override
+  @JsonKey(name: 'collector_name')
+  final String? collectorName;
 
   @override
   String toString() {
-    return 'MilkSaleModel(id: $id, saccoId: $saccoId, collectorId: $collectorId, saleDate: $saleDate, buyerName: $buyerName, buyerPhone: $buyerPhone, quantityLitres: $quantityLitres, unitPrice: $unitPrice, totalAmount: $totalAmount, paymentStatus: $paymentStatus, paymentMethod: $paymentMethod, notes: $notes, createdAt: $createdAt)';
+    return 'MilkSaleModel(id: $id, saccoId: $saccoId, collectorId: $collectorId, saleDate: $saleDate, buyerName: $buyerName, buyerPhone: $buyerPhone, quantityLitres: $quantityLitres, unitPrice: $unitPrice, totalAmount: $totalAmount, paymentStatus: $paymentStatus, paymentMethod: $paymentMethod, notes: $notes, createdAt: $createdAt, collectorName: $collectorName)';
   }
 
   @override
@@ -374,7 +392,9 @@ class _$MilkSaleModelImpl implements _MilkSaleModel {
                 other.paymentMethod == paymentMethod) &&
             (identical(other.notes, notes) || other.notes == notes) &&
             (identical(other.createdAt, createdAt) ||
-                other.createdAt == createdAt));
+                other.createdAt == createdAt) &&
+            (identical(other.collectorName, collectorName) ||
+                other.collectorName == collectorName));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -394,6 +414,7 @@ class _$MilkSaleModelImpl implements _MilkSaleModel {
     paymentMethod,
     notes,
     createdAt,
+    collectorName,
   );
 
   /// Create a copy of MilkSaleModel
@@ -425,6 +446,7 @@ abstract class _MilkSaleModel implements MilkSaleModel {
     @JsonKey(name: 'payment_method') final String paymentMethod,
     final String? notes,
     @JsonKey(name: 'created_at') final String? createdAt,
+    @JsonKey(name: 'collector_name') final String? collectorName,
   }) = _$MilkSaleModelImpl;
 
   factory _MilkSaleModel.fromJson(Map<String, dynamic> json) =
@@ -467,6 +489,9 @@ abstract class _MilkSaleModel implements MilkSaleModel {
   @override
   @JsonKey(name: 'created_at')
   String? get createdAt;
+  @override
+  @JsonKey(name: 'collector_name')
+  String? get collectorName;
 
   /// Create a copy of MilkSaleModel
   /// with the given fields replaced by the non-null parameter values.
@@ -846,6 +871,8 @@ mixin _$MilkSpoilageModel {
   String? get notes => throw _privateConstructorUsedError;
   @JsonKey(name: 'created_at')
   String? get createdAt => throw _privateConstructorUsedError;
+  @JsonKey(name: 'collector_name')
+  String? get collectorName => throw _privateConstructorUsedError;
 
   /// Serializes this MilkSpoilageModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -873,6 +900,7 @@ abstract class $MilkSpoilageModelCopyWith<$Res> {
     String reason,
     String? notes,
     @JsonKey(name: 'created_at') String? createdAt,
+    @JsonKey(name: 'collector_name') String? collectorName,
   });
 }
 
@@ -899,6 +927,7 @@ class _$MilkSpoilageModelCopyWithImpl<$Res, $Val extends MilkSpoilageModel>
     Object? reason = null,
     Object? notes = freezed,
     Object? createdAt = freezed,
+    Object? collectorName = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -934,6 +963,10 @@ class _$MilkSpoilageModelCopyWithImpl<$Res, $Val extends MilkSpoilageModel>
                 ? _value.createdAt
                 : createdAt // ignore: cast_nullable_to_non_nullable
                       as String?,
+            collectorName: freezed == collectorName
+                ? _value.collectorName
+                : collectorName // ignore: cast_nullable_to_non_nullable
+                      as String?,
           )
           as $Val,
     );
@@ -958,6 +991,7 @@ abstract class _$$MilkSpoilageModelImplCopyWith<$Res>
     String reason,
     String? notes,
     @JsonKey(name: 'created_at') String? createdAt,
+    @JsonKey(name: 'collector_name') String? collectorName,
   });
 }
 
@@ -983,6 +1017,7 @@ class __$$MilkSpoilageModelImplCopyWithImpl<$Res>
     Object? reason = null,
     Object? notes = freezed,
     Object? createdAt = freezed,
+    Object? collectorName = freezed,
   }) {
     return _then(
       _$MilkSpoilageModelImpl(
@@ -1018,6 +1053,10 @@ class __$$MilkSpoilageModelImplCopyWithImpl<$Res>
             ? _value.createdAt
             : createdAt // ignore: cast_nullable_to_non_nullable
                   as String?,
+        collectorName: freezed == collectorName
+            ? _value.collectorName
+            : collectorName // ignore: cast_nullable_to_non_nullable
+                  as String?,
       ),
     );
   }
@@ -1035,6 +1074,7 @@ class _$MilkSpoilageModelImpl implements _MilkSpoilageModel {
     required this.reason,
     this.notes,
     @JsonKey(name: 'created_at') this.createdAt,
+    @JsonKey(name: 'collector_name') this.collectorName,
   });
 
   factory _$MilkSpoilageModelImpl.fromJson(Map<String, dynamic> json) =>
@@ -1061,10 +1101,13 @@ class _$MilkSpoilageModelImpl implements _MilkSpoilageModel {
   @override
   @JsonKey(name: 'created_at')
   final String? createdAt;
+  @override
+  @JsonKey(name: 'collector_name')
+  final String? collectorName;
 
   @override
   String toString() {
-    return 'MilkSpoilageModel(id: $id, saccoId: $saccoId, collectorId: $collectorId, spoilageDate: $spoilageDate, quantityLitres: $quantityLitres, reason: $reason, notes: $notes, createdAt: $createdAt)';
+    return 'MilkSpoilageModel(id: $id, saccoId: $saccoId, collectorId: $collectorId, spoilageDate: $spoilageDate, quantityLitres: $quantityLitres, reason: $reason, notes: $notes, createdAt: $createdAt, collectorName: $collectorName)';
   }
 
   @override
@@ -1083,7 +1126,9 @@ class _$MilkSpoilageModelImpl implements _MilkSpoilageModel {
             (identical(other.reason, reason) || other.reason == reason) &&
             (identical(other.notes, notes) || other.notes == notes) &&
             (identical(other.createdAt, createdAt) ||
-                other.createdAt == createdAt));
+                other.createdAt == createdAt) &&
+            (identical(other.collectorName, collectorName) ||
+                other.collectorName == collectorName));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1098,6 +1143,7 @@ class _$MilkSpoilageModelImpl implements _MilkSpoilageModel {
     reason,
     notes,
     createdAt,
+    collectorName,
   );
 
   /// Create a copy of MilkSpoilageModel
@@ -1127,6 +1173,7 @@ abstract class _MilkSpoilageModel implements MilkSpoilageModel {
     required final String reason,
     final String? notes,
     @JsonKey(name: 'created_at') final String? createdAt,
+    @JsonKey(name: 'collector_name') final String? collectorName,
   }) = _$MilkSpoilageModelImpl;
 
   factory _MilkSpoilageModel.fromJson(Map<String, dynamic> json) =
@@ -1153,6 +1200,9 @@ abstract class _MilkSpoilageModel implements MilkSpoilageModel {
   @override
   @JsonKey(name: 'created_at')
   String? get createdAt;
+  @override
+  @JsonKey(name: 'collector_name')
+  String? get collectorName;
 
   /// Create a copy of MilkSpoilageModel
   /// with the given fields replaced by the non-null parameter values.

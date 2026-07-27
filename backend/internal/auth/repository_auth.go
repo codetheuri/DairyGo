@@ -62,9 +62,10 @@ func (r *Repository) attachRoleName(ctx context.Context, user *User) {
 	var roleName string
 	r.db.WithContext(ctx).
 		Table("roles").
+		Select("roles.name").
 		Joins("JOIN user_roles ON user_roles.role_id = roles.id").
 		Where("user_roles.user_id = ?", user.ID).
-		Pluck("roles.name", &roleName)
+		Scan(&roleName)
 	if roleName != "" {
 		user.RoleName = roleName
 	} else {

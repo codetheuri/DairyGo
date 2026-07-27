@@ -138,8 +138,8 @@ class StaffManagementScreen extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           StatusPill(
-                            status: isAdmin ? 'ADMIN' : 'COLLECTOR',
-                            type: isAdmin ? StatusType.success : StatusType.info,
+                            status: staff.displayRole.toUpperCase(),
+                            type: isAdmin ? StatusType.success : (staff.isExecutive ? StatusType.warning : StatusType.info),
                           ),
                           const SizedBox(height: 6),
                           const Text(

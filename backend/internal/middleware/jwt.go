@@ -129,6 +129,27 @@ func IsSuperUser(ctx context.Context) bool {
 	return false
 }
 
+func GetUserRole(ctx context.Context) string {
+	if ctx == nil {
+		return ""
+	}
+	if role, ok := ctx.Value(ContextKeyRole).(string); ok && role != "" {
+		return role
+	}
+	if role, ok := ctx.Value("role").(string); ok && role != "" {
+		return role
+	}
+	return ""
+}
+
+func IsExecutiveOrAdmin(ctx context.Context) bool {
+	if IsSuperUser(ctx) {
+		return true
+	}
+	role := strings.ToLower(GetUserRole(ctx))
+	return strings.Contains(role, "admin") || strings.Contains(role, "board") || strings.Contains(role, "executive")
+}
+
 // HumaAuthenticate decodes the JWT Authorization header into the Huma request context.
 func HumaAuthenticate(api huma.API, jwtSecret string, db *gorm.DB) func(huma.Context, func(huma.Context)) {
 	return func(ctx huma.Context, next func(huma.Context)) {

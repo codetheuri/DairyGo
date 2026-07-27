@@ -308,11 +308,13 @@ mixin _$MilkCollectionModel {
   String get status => throw _privateConstructorUsedError;
   String? get notes => throw _privateConstructorUsedError;
   @JsonKey(name: 'created_at')
-  String? get createdAt => throw _privateConstructorUsedError; // Optional populated member fields
+  String? get createdAt => throw _privateConstructorUsedError; // Optional populated member & collector fields
   @JsonKey(name: 'member_name')
   String? get memberName => throw _privateConstructorUsedError;
   @JsonKey(name: 'membership_number')
   String? get membershipNumber => throw _privateConstructorUsedError;
+  @JsonKey(name: 'collector_name')
+  String? get collectorName => throw _privateConstructorUsedError;
 
   /// Serializes this MilkCollectionModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -346,6 +348,7 @@ abstract class $MilkCollectionModelCopyWith<$Res> {
     @JsonKey(name: 'created_at') String? createdAt,
     @JsonKey(name: 'member_name') String? memberName,
     @JsonKey(name: 'membership_number') String? membershipNumber,
+    @JsonKey(name: 'collector_name') String? collectorName,
   });
 }
 
@@ -378,6 +381,7 @@ class _$MilkCollectionModelCopyWithImpl<$Res, $Val extends MilkCollectionModel>
     Object? createdAt = freezed,
     Object? memberName = freezed,
     Object? membershipNumber = freezed,
+    Object? collectorName = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -437,6 +441,10 @@ class _$MilkCollectionModelCopyWithImpl<$Res, $Val extends MilkCollectionModel>
                 ? _value.membershipNumber
                 : membershipNumber // ignore: cast_nullable_to_non_nullable
                       as String?,
+            collectorName: freezed == collectorName
+                ? _value.collectorName
+                : collectorName // ignore: cast_nullable_to_non_nullable
+                      as String?,
           )
           as $Val,
     );
@@ -467,6 +475,7 @@ abstract class _$$MilkCollectionModelImplCopyWith<$Res>
     @JsonKey(name: 'created_at') String? createdAt,
     @JsonKey(name: 'member_name') String? memberName,
     @JsonKey(name: 'membership_number') String? membershipNumber,
+    @JsonKey(name: 'collector_name') String? collectorName,
   });
 }
 
@@ -498,6 +507,7 @@ class __$$MilkCollectionModelImplCopyWithImpl<$Res>
     Object? createdAt = freezed,
     Object? memberName = freezed,
     Object? membershipNumber = freezed,
+    Object? collectorName = freezed,
   }) {
     return _then(
       _$MilkCollectionModelImpl(
@@ -557,6 +567,10 @@ class __$$MilkCollectionModelImplCopyWithImpl<$Res>
             ? _value.membershipNumber
             : membershipNumber // ignore: cast_nullable_to_non_nullable
                   as String?,
+        collectorName: freezed == collectorName
+            ? _value.collectorName
+            : collectorName // ignore: cast_nullable_to_non_nullable
+                  as String?,
       ),
     );
   }
@@ -580,6 +594,7 @@ class _$MilkCollectionModelImpl extends _MilkCollectionModel {
     @JsonKey(name: 'created_at') this.createdAt,
     @JsonKey(name: 'member_name') this.memberName,
     @JsonKey(name: 'membership_number') this.membershipNumber,
+    @JsonKey(name: 'collector_name') this.collectorName,
   }) : super._();
 
   factory _$MilkCollectionModelImpl.fromJson(Map<String, dynamic> json) =>
@@ -619,17 +634,20 @@ class _$MilkCollectionModelImpl extends _MilkCollectionModel {
   @override
   @JsonKey(name: 'created_at')
   final String? createdAt;
-  // Optional populated member fields
+  // Optional populated member & collector fields
   @override
   @JsonKey(name: 'member_name')
   final String? memberName;
   @override
   @JsonKey(name: 'membership_number')
   final String? membershipNumber;
+  @override
+  @JsonKey(name: 'collector_name')
+  final String? collectorName;
 
   @override
   String toString() {
-    return 'MilkCollectionModel(id: $id, saccoId: $saccoId, memberId: $memberId, collectorId: $collectorId, collectionDate: $collectionDate, shift: $shift, quantityLitres: $quantityLitres, pricePerLitre: $pricePerLitre, totalAmount: $totalAmount, status: $status, notes: $notes, createdAt: $createdAt, memberName: $memberName, membershipNumber: $membershipNumber)';
+    return 'MilkCollectionModel(id: $id, saccoId: $saccoId, memberId: $memberId, collectorId: $collectorId, collectionDate: $collectionDate, shift: $shift, quantityLitres: $quantityLitres, pricePerLitre: $pricePerLitre, totalAmount: $totalAmount, status: $status, notes: $notes, createdAt: $createdAt, memberName: $memberName, membershipNumber: $membershipNumber, collectorName: $collectorName)';
   }
 
   @override
@@ -659,7 +677,9 @@ class _$MilkCollectionModelImpl extends _MilkCollectionModel {
             (identical(other.memberName, memberName) ||
                 other.memberName == memberName) &&
             (identical(other.membershipNumber, membershipNumber) ||
-                other.membershipNumber == membershipNumber));
+                other.membershipNumber == membershipNumber) &&
+            (identical(other.collectorName, collectorName) ||
+                other.collectorName == collectorName));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -680,6 +700,7 @@ class _$MilkCollectionModelImpl extends _MilkCollectionModel {
     createdAt,
     memberName,
     membershipNumber,
+    collectorName,
   );
 
   /// Create a copy of MilkCollectionModel
@@ -715,6 +736,7 @@ abstract class _MilkCollectionModel extends MilkCollectionModel {
     @JsonKey(name: 'created_at') final String? createdAt,
     @JsonKey(name: 'member_name') final String? memberName,
     @JsonKey(name: 'membership_number') final String? membershipNumber,
+    @JsonKey(name: 'collector_name') final String? collectorName,
   }) = _$MilkCollectionModelImpl;
   const _MilkCollectionModel._() : super._();
 
@@ -752,13 +774,16 @@ abstract class _MilkCollectionModel extends MilkCollectionModel {
   String? get notes;
   @override
   @JsonKey(name: 'created_at')
-  String? get createdAt; // Optional populated member fields
+  String? get createdAt; // Optional populated member & collector fields
   @override
   @JsonKey(name: 'member_name')
   String? get memberName;
   @override
   @JsonKey(name: 'membership_number')
   String? get membershipNumber;
+  @override
+  @JsonKey(name: 'collector_name')
+  String? get collectorName;
 
   /// Create a copy of MilkCollectionModel
   /// with the given fields replaced by the non-null parameter values.

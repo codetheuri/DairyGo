@@ -47,6 +47,7 @@ type MilkCollection struct {
 	SaccoID        string           `json:"sacco_id" gorm:"index;type:varchar(36);not null"`
 	MemberID       string           `json:"member_id" gorm:"index;type:varchar(36);not null"`
 	CollectorID    uint             `json:"collector_id" gorm:"index;not null"`
+	CollectorName  string           `json:"collector_name,omitempty" gorm:"-"`
 	CollectionDate time.Time        `json:"collection_date" gorm:"type:date;not null;index"`
 	Shift          Shift            `json:"shift" gorm:"default:'MORNING';not null"`
 	QuantityLitres float64          `json:"quantity_litres" gorm:"type:decimal(10,2);not null"`
@@ -68,6 +69,7 @@ type MilkSale struct {
 	ID             string         `json:"id" gorm:"primaryKey;type:varchar(36)"`
 	SaccoID        string         `json:"sacco_id" gorm:"index;type:varchar(36);not null"`
 	CollectorID    uint           `json:"collector_id" gorm:"index;not null"`
+	CollectorName  string         `json:"collector_name,omitempty" gorm:"-"`
 	SaleDate       time.Time      `json:"sale_date" gorm:"type:date;not null;index"`
 	BuyerName      string         `json:"buyer_name" gorm:"not null"`
 	BuyerPhone     *string        `json:"buyer_phone,omitempty"`
@@ -91,6 +93,7 @@ type MilkSpoilage struct {
 	ID             string         `json:"id" gorm:"primaryKey;type:varchar(36)"`
 	SaccoID        string         `json:"sacco_id" gorm:"index;type:varchar(36);not null"`
 	CollectorID    uint           `json:"collector_id" gorm:"index;not null"`
+	CollectorName  string         `json:"collector_name,omitempty" gorm:"-"`
 	SpoilageDate   time.Time      `json:"spoilage_date" gorm:"type:date;not null;index"`
 	QuantityLitres float64        `json:"quantity_litres" gorm:"type:decimal(10,2);not null"`
 	Reason         string         `json:"reason" gorm:"not null"`

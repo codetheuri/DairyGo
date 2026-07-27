@@ -51,19 +51,22 @@ final milkCollectionsListProvider =
     perPage: 100,
   );
 
-  // Cross-reference members list to populate farmer full name & membership number
+  // Cross-reference members to populate farmer full name & membership number
   final members = await memberRepo.listMembers(perPage: 200).catchError((_) => <MemberModel>[]);
   final memberMap = {for (var m in members) m.id: m};
 
   return collections.map((c) {
     final member = memberMap[c.memberId];
-    if (member != null) {
-      return c.copyWith(
-        memberName: member.fullName,
-        membershipNumber: member.membershipNumber,
-      );
-    }
-    return c;
+    final backendCollectorName = c.collectorName;
+    final fallbackCollectorName = backendCollectorName != null && backendCollectorName.isNotEmpty
+        ? backendCollectorName
+        : 'Staff #${c.collectorId}';
+
+    return c.copyWith(
+      memberName: member?.fullName ?? c.memberName,
+      membershipNumber: member?.membershipNumber ?? c.membershipNumber,
+      collectorName: fallbackCollectorName,
+    );
   }).toList();
 });
 

@@ -34,9 +34,10 @@ class MilkCollectionModel with _$MilkCollectionModel {
     @Default('SUBMITTED') String status,
     String? notes,
     @JsonKey(name: 'created_at') String? createdAt,
-    // Optional populated member fields
+    // Optional populated member & collector fields
     @JsonKey(name: 'member_name') String? memberName,
     @JsonKey(name: 'membership_number') String? membershipNumber,
+    @JsonKey(name: 'collector_name') String? collectorName,
   }) = _MilkCollectionModel;
 
   factory MilkCollectionModel.fromJson(Map<String, dynamic> json) =>

@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	
 
+	"github.com/codetheuri/tusk/internal/middleware"
 	"github.com/codetheuri/tusk/pkg/query"
 	"gorm.io/gorm"
 )
@@ -16,6 +16,24 @@ type Repository struct {
 
 func NewRepository(db *gorm.DB) *Repository {
 	return &Repository{db: db}
+}
+
+// helper to populate collector usernames
+func (r *Repository) populateCollectorNames(ctx context.Context, collectorIDs []uint) map[uint]string {
+	nameMap := make(map[uint]string)
+	if len(collectorIDs) == 0 {
+		return nameMap
+	}
+	var userRows []struct {
+		ID       uint   `gorm:"id"`
+		Username string `gorm:"username"`
+	}
+	if err := r.db.WithContext(ctx).Table("users").Where("id IN ?", collectorIDs).Select("id", "username").Scan(&userRows).Error; err == nil {
+		for _, u := range userRows {
+			nameMap[u.ID] = u.Username
+		}
+	}
+	return nameMap
 }
 
 // --- PRICING REPOSITORY METHODS ---
@@ -113,7 +131,33 @@ func (r *Repository) ListCollections(ctx context.Context, q query.Query) ([]Milk
 		},
 	}
 	session := r.db.Model(&MilkCollection{}).Scopes(query.TenantScope(ctx))
-	return query.Paginate[MilkCollection](ctx, session, q, cfg)
+
+	// Enforce Role-Based Scoping: Collectors only see their own collections unless authorized Admin/Executive
+	if !middleware.IsSuperUser(ctx) && !middleware.IsExecutiveOrAdmin(ctx) {
+		collectorID := middleware.GetUserID(ctx)
+		if collectorID > 0 {
+			session = session.Where("milk_collections.collector_id = ?", collectorID)
+		}
+	}
+
+	collections, meta, err := query.Paginate[MilkCollection](ctx, session, q, cfg)
+	if err != nil {
+		return nil, meta, err
+	}
+
+	// Populate collector_name for each item
+	if len(collections) > 0 {
+		ids := make([]uint, 0, len(collections))
+		for _, c := range collections {
+			ids = append(ids, c.CollectorID)
+		}
+		namesMap := r.populateCollectorNames(ctx, ids)
+		for i := range collections {
+			collections[i].CollectorName = namesMap[collections[i].CollectorID]
+		}
+	}
+
+	return collections, meta, nil
 }
 
 func (r *Repository) UpdateCollectionStatus(ctx context.Context, id string, status CollectionStatus, notes *string) error {
@@ -162,7 +206,33 @@ func (r *Repository) ListSales(ctx context.Context, q query.Query) ([]MilkSale, 
 		},
 	}
 	session := r.db.Model(&MilkSale{}).Scopes(query.TenantScope(ctx))
-	return query.Paginate[MilkSale](ctx, session, q, cfg)
+
+	// Enforce Role-Based Scoping: Collectors only see their own sales unless authorized Admin/Executive
+	if !middleware.IsSuperUser(ctx) && !middleware.IsExecutiveOrAdmin(ctx) {
+		collectorID := middleware.GetUserID(ctx)
+		if collectorID > 0 {
+			session = session.Where("milk_sales.collector_id = ?", collectorID)
+		}
+	}
+
+	sales, meta, err := query.Paginate[MilkSale](ctx, session, q, cfg)
+	if err != nil {
+		return nil, meta, err
+	}
+
+	// Populate collector_name for each sale item
+	if len(sales) > 0 {
+		ids := make([]uint, 0, len(sales))
+		for _, s := range sales {
+			ids = append(ids, s.CollectorID)
+		}
+		namesMap := r.populateCollectorNames(ctx, ids)
+		for i := range sales {
+			sales[i].CollectorName = namesMap[sales[i].CollectorID]
+		}
+	}
+
+	return sales, meta, nil
 }
 
 // --- SPOILAGE REPOSITORY METHODS ---
@@ -187,7 +257,33 @@ func (r *Repository) ListSpoilage(ctx context.Context, q query.Query) ([]MilkSpo
 		},
 	}
 	session := r.db.Model(&MilkSpoilage{}).Scopes(query.TenantScope(ctx))
-	return query.Paginate[MilkSpoilage](ctx, session, q, cfg)
+
+	// Enforce Role-Based Scoping: Collectors only see their own spoilage unless authorized Admin/Executive
+	if !middleware.IsSuperUser(ctx) && !middleware.IsExecutiveOrAdmin(ctx) {
+		collectorID := middleware.GetUserID(ctx)
+		if collectorID > 0 {
+			session = session.Where("milk_spoilage.collector_id = ?", collectorID)
+		}
+	}
+
+	spoilages, meta, err := query.Paginate[MilkSpoilage](ctx, session, q, cfg)
+	if err != nil {
+		return nil, meta, err
+	}
+
+	// Populate collector_name for each spoilage item
+	if len(spoilages) > 0 {
+		ids := make([]uint, 0, len(spoilages))
+		for _, sp := range spoilages {
+			ids = append(ids, sp.CollectorID)
+		}
+		namesMap := r.populateCollectorNames(ctx, ids)
+		for i := range spoilages {
+			spoilages[i].CollectorName = namesMap[spoilages[i].CollectorID]
+		}
+	}
+
+	return spoilages, meta, nil
 }
 
 // --- RECONCILIATION SUMMARY METHOD ---

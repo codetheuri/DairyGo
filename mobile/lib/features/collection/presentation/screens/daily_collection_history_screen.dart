@@ -6,6 +6,7 @@ import '../../../../app/router/app_router.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/widgets/empty_state_widget.dart';
 import '../../../../core/widgets/error_view.dart';
+import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../controllers/collection_controller.dart';
 import '../widgets/edit_collection_dialog.dart';
 
@@ -42,7 +43,8 @@ class DailyCollectionHistoryScreen extends ConsumerWidget {
     if (createdAt != null && createdAt.isNotEmpty) {
       final parsed = DateTime.tryParse(createdAt);
       if (parsed != null) {
-        final local = parsed.toLocal();
+        // If string contains explicit UTC 'Z', convert to local; otherwise parse as local
+        final local = parsed.isUtc ? parsed.toLocal() : parsed;
         final hour = local.hour > 12 ? local.hour - 12 : (local.hour == 0 ? 12 : local.hour);
         final minute = local.minute.toString().padLeft(2, '0');
         final period = local.hour >= 12 ? 'PM' : 'AM';
@@ -54,6 +56,10 @@ class DailyCollectionHistoryScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authControllerProvider).valueOrNull;
+    final user = authState?.user;
+    final isExecutive = user?.isExecutive ?? false;
+
     final search = ref.watch(collectionSearchProvider);
     final shiftFilter = ref.watch(collectionFilterShiftProvider);
     final selectedDateStr = ref.watch(collectionFilterDateProvider);
@@ -293,7 +299,7 @@ class DailyCollectionHistoryScreen extends ConsumerWidget {
                                           ),
                                           const Text(' • ', style: TextStyle(fontSize: 11, color: AppColors.textMuted)),
                                         ],
-                                        Icon(Icons.access_time_rounded, size: 12, color: AppColors.textMuted),
+                                        const Icon(Icons.access_time_rounded, size: 12, color: AppColors.textMuted),
                                         const SizedBox(width: 3),
                                         Text(
                                           timeLabel,
@@ -302,6 +308,17 @@ class DailyCollectionHistoryScreen extends ConsumerWidget {
                                             color: AppColors.textSecondary,
                                           ),
                                         ),
+                                        if (isExecutive && item.collectorName != null && item.collectorName!.isNotEmpty) ...[
+                                          const Text(' • ', style: TextStyle(fontSize: 11, color: AppColors.textMuted)),
+                                          Text(
+                                            'By: ${item.collectorName}',
+                                            style: const TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.bold,
+                                              color: AppColors.secondary,
+                                            ),
+                                          ),
+                                        ],
                                       ],
                                     ),
                                   ],

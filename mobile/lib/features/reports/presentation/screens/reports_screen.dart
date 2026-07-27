@@ -5,6 +5,7 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../../core/widgets/empty_state_widget.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/status_pill.dart';
+import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../controllers/report_controller.dart';
 import 'collector_audit_detail_screen.dart';
 import 'farmer_payout_detail_screen.dart';
@@ -50,8 +51,58 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
     return '${monthNames[date.month - 1]} ${date.year}';
   }
 
+  void _refreshAllReports() {
+    ref.invalidate(farmerPayoutReportProvider);
+    ref.invalidate(saccoLedgerReportProvider);
+    ref.invalidate(collectorAuditReportProvider);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authControllerProvider).valueOrNull;
+    final user = authState?.user;
+    final isExecutive = user?.isExecutive ?? false;
+
+    // Security Gate: Restrict Reports View to Sacco Administrators & Executive Board Members
+    if (!isExecutive) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Reports & Audit Views', style: TextStyle(fontWeight: FontWeight.bold)),
+        ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.08),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.lock_outline_rounded, size: 54, color: AppColors.primary),
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'Executive Access Restricted',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.textPrimary),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Full Sacco audit reports, collector reconciliations, and farmer payout ledgers are reserved for Sacco Administrators and Executive Board Members.',
+                  style: TextStyle(fontSize: 13, color: AppColors.textSecondary, height: 1.4),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                const StatusPill(status: 'RESTRICTED VIEW', type: StatusType.warning),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     final payoutsAsync = ref.watch(farmerPayoutReportProvider);
     final ledgerAsync = ref.watch(saccoLedgerReportProvider);
     final auditAsync = ref.watch(collectorAuditReportProvider);
@@ -62,6 +113,13 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
     return Scaffold(
       appBar: AppBar(
         title: const Text('Reports & Audit Views', style: TextStyle(fontWeight: FontWeight.bold)),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh_rounded, color: AppColors.primary),
+            tooltip: 'Refresh Reports Data',
+            onPressed: _refreshAllReports,
+          ),
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(48),
           child: Container(
@@ -264,90 +322,94 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
                   ),
                 ),
 
-                // 2. Sacco Ledger View
+                // 2. Sacco Ledger View (Refreshable)
                 ledgerAsync.when(
                   data: (ledger) {
-                    return SingleChildScrollView(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Status Card
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(18),
-                            decoration: BoxDecoration(
-                              color: ledger.isBalanced ? AppColors.accentMint : AppColors.errorContainer,
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: ledger.isBalanced ? AppColors.primary : AppColors.error,
+                    return RefreshIndicator(
+                      onRefresh: () async => ref.refresh(saccoLedgerReportProvider),
+                      child: SingleChildScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Status Card
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(18),
+                              decoration: BoxDecoration(
+                                color: ledger.isBalanced ? AppColors.accentMint : AppColors.errorContainer,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: ledger.isBalanced ? AppColors.primary : AppColors.error,
+                                ),
+                              ),
+                              child: Column(
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        'Mathematical Balancing Status',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: ledger.isBalanced ? AppColors.primary : AppColors.error,
+                                        ),
+                                      ),
+                                      StatusPill.fromStatusString(
+                                        ledger.isBalanced ? 'VERIFIED' : 'REJECTED',
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    ledger.isBalanced
+                                        ? 'All intakes, sales, and spoilage losses mathematically balance!'
+                                        : 'Discrepancy detected: ${ledger.discrepancyLitres.toStringAsFixed(1)} Litres variance!',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: ledger.isBalanced ? AppColors.primary : AppColors.error,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                            child: Column(
-                              children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      'Mathematical Balancing Status',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: ledger.isBalanced ? AppColors.primary : AppColors.error,
-                                      ),
-                                    ),
-                                    StatusPill.fromStatusString(
-                                      ledger.isBalanced ? 'VERIFIED' : 'REJECTED',
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 12),
-                                Text(
-                                  ledger.isBalanced
-                                      ? 'All intakes, sales, and spoilage losses mathematically balance!'
-                                      : 'Discrepancy detected: ${ledger.discrepancyLitres.toStringAsFixed(1)} Litres variance!',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: ledger.isBalanced ? AppColors.primary : AppColors.error,
+                            const SizedBox(height: 20),
+
+                            Text(
+                              'Volume & Financial Balancing Ledger',
+                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textPrimary,
                                   ),
-                                ),
-                              ],
                             ),
-                          ),
-                          const SizedBox(height: 20),
+                            const SizedBox(height: 10),
 
-                          Text(
-                            'Volume & Financial Balancing Ledger',
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.textPrimary,
-                                ),
-                          ),
-                          const SizedBox(height: 10),
-
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: AppColors.cardBorder),
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: AppColors.cardBorder),
+                              ),
+                              child: Column(
+                                children: [
+                                  _buildLedgerRow('Total Farmer Intake', '${ledger.totalFarmerIntakeLitres.toStringAsFixed(1)} L', AppColors.primary),
+                                  const Divider(height: 20, color: AppColors.cardBorder),
+                                  _buildLedgerRow('Farmer Payout Liability', 'KES ${ledger.totalFarmerLiabilityKes.toStringAsFixed(2)}', AppColors.warning),
+                                  const Divider(height: 20, color: AppColors.cardBorder),
+                                  _buildLedgerRow('Field Sales Volume', '${ledger.totalFieldSalesLitres.toStringAsFixed(1)} L', AppColors.secondary),
+                                  const Divider(height: 20, color: AppColors.cardBorder),
+                                  _buildLedgerRow('Field Sales Revenue', 'KES ${ledger.totalFieldSalesRevenueKes.toStringAsFixed(2)}', AppColors.success),
+                                  const Divider(height: 20, color: AppColors.cardBorder),
+                                  _buildLedgerRow('Spoilage Loss', '${ledger.totalSpoilageLitres.toStringAsFixed(1)} L', AppColors.error),
+                                  const Divider(height: 20, color: AppColors.cardBorder),
+                                  _buildLedgerRow('Net Coolant Station Handover', '${ledger.netCoolantStationLitres.toStringAsFixed(1)} L', AppColors.primary),
+                                ],
+                              ),
                             ),
-                            child: Column(
-                              children: [
-                                _buildLedgerRow('Total Farmer Intake', '${ledger.totalFarmerIntakeLitres.toStringAsFixed(1)} L', AppColors.primary),
-                                const Divider(height: 20, color: AppColors.cardBorder),
-                                _buildLedgerRow('Farmer Payout Liability', 'KES ${ledger.totalFarmerLiabilityKes.toStringAsFixed(2)}', AppColors.warning),
-                                const Divider(height: 20, color: AppColors.cardBorder),
-                                _buildLedgerRow('Field Sales Volume', '${ledger.totalFieldSalesLitres.toStringAsFixed(1)} L', AppColors.secondary),
-                                const Divider(height: 20, color: AppColors.cardBorder),
-                                _buildLedgerRow('Field Sales Revenue', 'KES ${ledger.totalFieldSalesRevenueKes.toStringAsFixed(2)}', AppColors.success),
-                                const Divider(height: 20, color: AppColors.cardBorder),
-                                _buildLedgerRow('Spoilage Loss', '${ledger.totalSpoilageLitres.toStringAsFixed(1)} L', AppColors.error),
-                                const Divider(height: 20, color: AppColors.cardBorder),
-                                _buildLedgerRow('Net Coolant Station Handover', '${ledger.netCoolantStationLitres.toStringAsFixed(1)} L', AppColors.primary),
-                              ],
-                            ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     );
                   },
@@ -358,7 +420,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
                   ),
                 ),
 
-                // 3. Collector Audit Summaries View
+                // 3. Collector Audit Summaries View (Refreshable)
                 auditAsync.when(
                   data: (collectors) {
                     if (collectors.isEmpty) {

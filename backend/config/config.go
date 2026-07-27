@@ -184,12 +184,13 @@ func LoadConfig() (*Config, error) {
 			cfg.DBName,
 		)
 	case "postgres", "pgsql":
-		cfg.DbURL = fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=UTC",
+		cfg.DbURL = fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=%s",
 			cfg.DBHost,
 			cfg.DBUser,
 			cfg.DBPass,
 			cfg.DBName,
 			cfg.DBPort,
+			cfg.AppTimezone,
 		)
 	case "sqlite":
 		cfg.DbURL = cfg.DBName

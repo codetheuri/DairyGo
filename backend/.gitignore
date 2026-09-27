@@ -10,6 +10,7 @@ main
 *.test
 *.out
 *.html
+!web/platform/index.html
 *.log
 build-errors.log
 coverage.out

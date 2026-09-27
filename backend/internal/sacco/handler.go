@@ -116,7 +116,7 @@ func (h *Handler) UpdateStatus(ctx context.Context, input *UpdateSaccoStatusInpu
 		return nil, huma.Error403Forbidden("Only Platform Super Users can change Sacco status")
 	}
 
-	if err := h.service.UpdateStatus(ctx, input.ID, input.Body.Status); err != nil {
+	if err := h.service.UpdateStatus(ctx, input.ID, input.Body.Status, input.Body.Reason); err != nil {
 		return nil, huma.Error400BadRequest(err.Error(), err)
 	}
 

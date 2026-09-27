@@ -99,6 +99,21 @@ func resolveRegistrationSacco(ctx context.Context, req *RegisterRequest) (*strin
 	return &callerSacco, nil
 }
 
+// ensureSaccoActive refuses users whose Sacco is suspended or inactive.
+func (s *Service) ensureSaccoActive(ctx context.Context, user *User) error {
+	if user.SaccoID == nil || *user.SaccoID == "" {
+		return nil
+	}
+	status, err := s.repo.SaccoStatus(ctx, *user.SaccoID)
+	if err != nil {
+		return fmt.Errorf("could not verify your Sacco account")
+	}
+	if status != "ACTIVE" {
+		return fmt.Errorf("your Sacco account is %s: please contact DairyGo support", strings.ToLower(status))
+	}
+	return nil
+}
+
 type AuthTokens struct {
 	User         *User
 	AccessToken  string
@@ -115,6 +130,9 @@ func (s *Service) Login(ctx context.Context, req *LoginRequest) (*AuthTokens, er
 	// 1. Account Status Check
 	if !user.IsActive {
 		return nil, fmt.Errorf("account deactivated: please contact support")
+	}
+	if err := s.ensureSaccoActive(ctx, user); err != nil {
+		return nil, err
 	}
 
 	// 2. Lockout Check
@@ -173,6 +191,9 @@ func (s *Service) RefreshToken(ctx context.Context, rawRefreshToken string) (*Au
 	user, err := s.repo.FindByID(ctx, tokenRecord.UserID)
 	if err != nil || !user.IsActive {
 		return nil, fmt.Errorf("user account invalid or deactivated")
+	}
+	if err := s.ensureSaccoActive(ctx, user); err != nil {
+		return nil, err
 	}
 
 	newAccessToken, err := s.generateAccessToken(user)

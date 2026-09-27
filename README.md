@@ -81,6 +81,9 @@ graph TD
 * **Tenant Isolation**: Independent Sacco configurations with isolated database records (`sacco_id` scope).
 * **Super Admin Provisioning**: Platform-level onboarding for new Dairy Sacco tenants. Only platform super users (no `sacco_id`) can create or manage Saccos; each Sacco's own admin is a regular `Sacco Administrator` scoped to their Sacco.
 
+### 🖥️ Platform Console
+* **Web console at `/platform`** for DairyGo operators: all Saccos at a glance, onboarding, suspension, Sacco staff (add, deactivate, unlock, reset password), farmers, audit trail, error log and SMS logs. Served by the API, nothing extra to host.
+
 ### 🔐 5. Role-Based Access Control (RBAC)
 * **Pre-seeded Roles**:
   * `Sacco Administrator` (Role ID `1`): Full operational and staff management access.
@@ -104,7 +107,7 @@ Dairy/
 │   │   └── tusk/             # DairyGo CLI Permission Sync tool (dairy-cli)
 │   ├── config/               # App configuration & env loader
 │   ├── database/
-│   │   └── migrations/       # Goose SQL schema migrations (00001-00012)
+│   │   └── migrations/       # Goose SQL schema migrations (00001-00013)
 │   ├── internal/
 │   │   ├── auth/             # Authentication, Users, & Roles
 │   │   ├── collection/       # Milk Collections, Sales, Spoilage, Pricing
@@ -112,7 +115,9 @@ Dairy/
 │   │   ├── dashboard/        # Executive & Collector Dashboard Analytics
 │   │   ├── member/           # Sacco Farmer Directory
 │   │   ├── report/           # Payroll Payout & Audit Reports
-│   │   └── sacco/            # Sacco Tenant Profile & Settings
+│   │   ├── sacco/            # Sacco Tenant Profile & Settings
+│   │   └── superadmin/       # Platform console API (overview, staff, logs)
+│   ├── web/platform/         # Platform console web app (embedded, served at /platform)
 │   ├── Dockerfile            # Multi-stage production build
 │   └── docker-compose.yml    # Container orchestration configuration
 └── mobile/                   # Flutter Mobile Application

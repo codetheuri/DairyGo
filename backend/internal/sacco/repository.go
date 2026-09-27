@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/codetheuri/tusk/internal/auth"
+	"github.com/codetheuri/tusk/pkg/audit"
 	"github.com/codetheuri/tusk/pkg/query"
 	"gorm.io/gorm"
 )
@@ -20,7 +21,7 @@ func NewRepository(db *gorm.DB) *Repository {
 }
 
 // Create provisions a new Sacco, default settings, and initial Sacco Admin user atomically within a database transaction.
-func (r *Repository) Create(ctx context.Context, s *Sacco, adminUser *auth.User, adminProfile *auth.UserProfile, settings *SaccoSettings) error {
+func (r *Repository) Create(ctx context.Context, s *Sacco, adminUser *auth.User, adminProfile *auth.UserProfile, settings *SaccoSettings, createdBy uint) error {
 	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		if err := tx.Create(s).Error; err != nil {
 			return fmt.Errorf("failed to create sacco: %w", err)
@@ -41,6 +42,13 @@ func (r *Repository) Create(ctx context.Context, s *Sacco, adminUser *auth.User,
 			if err := tx.Create(adminProfile).Error; err != nil {
 				return fmt.Errorf("failed to create admin profile: %w", err)
 			}
+		}
+
+		if err := audit.Record(tx, audit.Entry{
+			SaccoID: s.ID, EntityType: "sacco", EntityID: s.ID, Action: audit.ActionCreate,
+			ActorID: createdBy, NewValues: map[string]any{"code": s.Code, "name": s.Name, "admin_username": adminUser.Username},
+		}); err != nil {
+			return err
 		}
 
 		// The initial admin is a regular Sacco Administrator, not a platform super
@@ -101,8 +109,18 @@ func (r *Repository) Update(ctx context.Context, s *Sacco) error {
 	return r.db.WithContext(ctx).Save(s).Error
 }
 
-func (r *Repository) UpdateStatus(ctx context.Context, id string, status Status) error {
-	return r.db.WithContext(ctx).Model(&Sacco{}).Where("id = ?", id).Update("status", status).Error
+// UpdateStatus changes a Sacco's status and saves the audit entry atomically.
+func (r *Repository) UpdateStatus(ctx context.Context, id string, status Status, entry audit.Entry) error {
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		res := tx.Model(&Sacco{}).Where("id = ?", id).Update("status", status)
+		if res.Error != nil {
+			return res.Error
+		}
+		if res.RowsAffected == 0 {
+			return fmt.Errorf("sacco not found")
+		}
+		return audit.Record(tx, entry)
+	})
 }
 
 func (r *Repository) GetSettings(ctx context.Context, saccoID string) (*SaccoSettings, error) {

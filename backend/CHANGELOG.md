@@ -9,6 +9,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 
 ### Added
+- **Platform console** at `/platform` (`internal/superadmin`, `web/platform`): overview across all Saccos, onboarding, suspend/reactivate, Sacco staff management (add, deactivate, unlock, reset password), registering farmers for a Sacco, and cross-Sacco audit trail, error log and SMS logs. See [docs/platform-console.md](docs/platform-console.md).
+- **Error log**: every failed API request (status ≥ 400) is stored in `system_logs` without request bodies, kept 30 days (migration `00013`).
+- **Sacco onboarding and status changes are audited**, with an optional reason.
 - **Code-First RBAC Engine (`pkg/authz`)**: Multi-tenant-ready Role-Based Access Control system with permission constants, global registry, and runtime GORM DB synchronization.
 - **Huma v2 Integration**: Strongly-typed HTTP API framework built on Chi with automated OpenAPI 3.0 specification (`/openapi.json`) and interactive documentation UI (`/docs`).
 - **Permission Sync CLI (`tusk auth sync`)**: CLI tool with `--prune` option to sync code-declared permissions directly to runtime database tables.
@@ -40,6 +43,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **Collection edit rules.** Collectors edit only their own `SUBMITTED` records on the day they were recorded; admins edit `SUBMITTED`/`ADJUSTED` records with a reason, and their edits mark the record `ADJUSTED`. `VERIFIED`/`REJECTED` records are locked (`409`) until reopened as `ADJUSTED`. Status changes follow a defined flow and `REJECTED`/`ADJUSTED` need a reason; the status reason no longer overwrites the collection's notes.
 
 ### Security
+- **Suspended Saccos and deactivated users are locked out immediately.** Previously their access tokens kept working until expiry and suspension did not block login at all. Every request now checks the user is active and their Sacco is `ACTIVE`, and login and token refresh refuse them.
 - **Sacco admins no longer act as platform super users.** The admin created during Sacco onboarding was flagged `is_super_user`, letting any Sacco admin list, edit, suspend and create Saccos across the platform. Onboarded admins are now role `1` (Sacco Administrator), and the auth middleware ignores `is_super_user` on any account with a `sacco_id`.
 - **Staff registration is locked to the caller's Sacco.** `POST /api/v1/auth/register` previously trusted `sacco_id` from the request body, allowing accounts to be created inside another Sacco. Non-platform callers now always register into their own Sacco, with role `1`, `2` or `3` only.
 - **Collectors can only view their own reconciliation.**

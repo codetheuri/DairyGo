@@ -37,7 +37,8 @@ type UpdateSaccoInput struct {
 }
 
 type UpdateSaccoStatusRequest struct {
-	Status Status `json:"status" enum:"ACTIVE,INACTIVE,SUSPENDED" doc:"New operational status"`
+	Status Status  `json:"status" enum:"ACTIVE,INACTIVE,SUSPENDED" doc:"New operational status"`
+	Reason *string `json:"reason,omitempty" doc:"Why the status is changing (kept in the audit trail)"`
 }
 
 type UpdateSaccoStatusInput struct {

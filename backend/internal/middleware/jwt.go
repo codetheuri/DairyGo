@@ -187,8 +187,11 @@ func HumaAuthenticate(api huma.API, jwtSecret string, db *gorm.DB) func(huma.Con
 				}
 				if db != nil {
 					if err := db.WithContext(reqCtx).Table("users").Where("id = ?", claims.UserID).Select("is_super_user", "sacco_id").Take(&userStruct).Error; err == nil {
-						reqCtx = context.WithValue(reqCtx, "is_super_user", userStruct.IsSuperUser)
-						if userStruct.SaccoID != nil && *userStruct.SaccoID != "" {
+						// A platform super user is never bound to a Sacco. Ignoring the flag on
+						// Sacco-bound accounts keeps a tenant admin inside its own tenant.
+						boundToSacco := userStruct.SaccoID != nil && *userStruct.SaccoID != ""
+						reqCtx = context.WithValue(reqCtx, "is_super_user", userStruct.IsSuperUser && !boundToSacco)
+						if boundToSacco {
 							reqCtx = context.WithValue(reqCtx, ContextKeySaccoID, *userStruct.SaccoID)
 							reqCtx = context.WithValue(reqCtx, "sacco_id", *userStruct.SaccoID)
 						}

@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -33,6 +34,11 @@ func (s *Service) Register(ctx context.Context, req *RegisterRequest) (*User, er
 		return nil, fmt.Errorf("passwords do not match")
 	}
 
+	saccoID, err := resolveRegistrationSacco(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
 	hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash password: %w", err)
@@ -45,14 +51,7 @@ func (s *Service) Register(ctx context.Context, req *RegisterRequest) (*User, er
 		Password:   string(hash),
 		IsActive:   true,
 		IsVerified: false,
-	}
-
-	if req.SaccoID != nil && *req.SaccoID != "" && *req.SaccoID != "string" {
-		user.SaccoID = req.SaccoID
-	} else if saccoID, ok := middleware.GetSaccoID(ctx); ok && saccoID != "" {
-		user.SaccoID = &saccoID
-	} else if authUser, ok := ctx.Value("user").(*User); ok && authUser != nil && authUser.SaccoID != nil {
-		user.SaccoID = authUser.SaccoID
+		SaccoID:    saccoID,
 	}
 
 	profile := &UserProfile{
@@ -65,6 +64,39 @@ func (s *Service) Register(ctx context.Context, req *RegisterRequest) (*User, er
 	}
 
 	return user, nil
+}
+
+// resolveRegistrationSacco decides which Sacco a new user belongs to.
+//
+// Platform super users may place a user in any Sacco (or none) through
+// req.SaccoID. Everyone else always registers staff into their own Sacco,
+// and only with one of the Sacco roles, so a tenant admin cannot create
+// accounts in another tenant or grant platform-level roles.
+func resolveRegistrationSacco(ctx context.Context, req *RegisterRequest) (*string, error) {
+	requested := ""
+	if req.SaccoID != nil {
+		requested = strings.TrimSpace(*req.SaccoID)
+	}
+
+	if middleware.IsSuperUser(ctx) {
+		if requested == "" {
+			return nil, nil
+		}
+		return &requested, nil
+	}
+
+	callerSacco, ok := middleware.GetSaccoID(ctx)
+	if !ok {
+		return nil, fmt.Errorf("sacco context is required to register staff")
+	}
+	if requested != "" && requested != callerSacco {
+		return nil, fmt.Errorf("you can only register staff in your own sacco")
+	}
+	if req.RoleID == nil || !IsSaccoRole(*req.RoleID) {
+		return nil, fmt.Errorf("role_id must be %d (Sacco Administrator), %d (Milk Collector) or %d (Board Member / Executive)",
+			RoleSaccoAdmin, RoleCollector, RoleExecutive)
+	}
+	return &callerSacco, nil
 }
 
 type AuthTokens struct {

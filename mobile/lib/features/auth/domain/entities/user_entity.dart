@@ -55,7 +55,7 @@ class UserEntity with _$UserEntity {
   bool get canSetPrice => isSaccoAdmin || isSuperUser;
 
   String get displayRole {
-    if (isSuperUser) return 'Sacco Administrator';
+    if (isSuperUser) return 'Platform Administrator';
     if (roleName.isNotEmpty) return roleName;
     return 'Field Milk Collector';
   }

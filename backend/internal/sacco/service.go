@@ -61,7 +61,6 @@ func (s *Service) CreateSacco(ctx context.Context, req *CreateSaccoRequest) (*Sa
 		Email:       strings.TrimSpace(req.AdminUser.Email),
 		Phone:       req.AdminUser.Phone,
 		Password:    string(hash),
-		IsSuperUser: true,
 		IsActive:    true,
 		IsVerified:  true,
 	}

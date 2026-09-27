@@ -92,7 +92,19 @@ If the authenticated user lacks the `users.read` permission (and is not a superu
 
 ## 4. Superuser Bypass
 
-Users with `IsSuperUser = true` automatically bypass all RBAC permission checks, ensuring system administrators always maintain full access.
+Platform Super Users automatically bypass all RBAC permission checks, ensuring platform operators always maintain full access.
+
+A user counts as a Platform Super User only when `is_super_user = true` **and** their `sacco_id` is `NULL`. The flag is ignored on Sacco-bound accounts (see `middleware.HumaAuthenticate`), so Sacco Administrators get their access from role `1` like any other staff member. See [Multi-Tenancy](multi-tenancy.md).
+
+### Seeded Sacco Roles
+
+| Role ID | Name | Typical access |
+| :--- | :--- | :--- |
+| `1` | Sacco Administrator | Pricing, staff, farmers (incl. edit/status), verify collections, reconciliation, reports, settings, SMS |
+| `2` | Milk Collector | Record intake, sales and spoilage; register farmers; own dashboard and own reconciliation |
+| `3` | Board Member / Executive | Read-only dashboards, reports, reconciliation and settings |
+
+Grants live in migrations `00007` and `00008`. Use the constants `auth.RoleSaccoAdmin`, `auth.RoleCollector` and `auth.RoleExecutive` rather than bare numbers.
 
 ---
 

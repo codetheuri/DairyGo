@@ -43,14 +43,11 @@ func (r *Repository) Create(ctx context.Context, s *Sacco, adminUser *auth.User,
 			}
 		}
 
-		// Look up or assign "admin" role to the initial admin user if roles exist
-		var role auth.Role
-		if err := tx.Where("name = ?", "admin").First(&role).Error; err == nil {
-			userRole := auth.UserRole{
-				UserID: adminUser.ID,
-				RoleID: role.ID,
-			}
-			_ = tx.Create(&userRole).Error
+		// The initial admin is a regular Sacco Administrator, not a platform super
+		// user, so their access stays inside this Sacco.
+		userRole := auth.UserRole{UserID: adminUser.ID, RoleID: auth.RoleSaccoAdmin}
+		if err := tx.Create(&userRole).Error; err != nil {
+			return fmt.Errorf("failed to assign sacco admin role: %w", err)
 		}
 
 		return nil

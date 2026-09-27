@@ -81,7 +81,7 @@ class StaffManagementScreen extends ConsumerWidget {
               separatorBuilder: (_, __) => const SizedBox(height: 10),
               itemBuilder: (context, index) {
                 final staff = users[index];
-                final isAdmin = staff.isSuperUser;
+                final isAdmin = staff.isSaccoAdmin;
 
                 return Container(
                   padding: const EdgeInsets.all(14),

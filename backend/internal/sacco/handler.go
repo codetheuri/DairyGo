@@ -41,6 +41,10 @@ func (h *Handler) Create(ctx context.Context, input *CreateSaccoInput) (*SaccoOu
 
 // GetByID returns detailed information for a specific Sacco.
 func (h *Handler) GetByID(ctx context.Context, input *SaccoIDInput) (*SaccoOutput, error) {
+	if !middleware.IsSuperUser(ctx) {
+		return nil, huma.Error403Forbidden("Only Platform Super Users can view Sacco records")
+	}
+
 	sacco, err := h.service.GetSaccoByID(ctx, input.ID)
 	if err != nil {
 		return nil, huma.Error404NotFound("Sacco not found", err)

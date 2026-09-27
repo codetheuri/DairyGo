@@ -55,8 +55,8 @@ func (r *Repository) attachRoleName(ctx context.Context, user *User) {
 	if user == nil {
 		return
 	}
-	if user.IsSuperUser {
-		user.RoleName = "Sacco Administrator"
+	if user.IsSuperUser && user.SaccoID == nil {
+		user.RoleName = "Platform Administrator"
 		return
 	}
 	var roleName string

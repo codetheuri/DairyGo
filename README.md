@@ -75,7 +75,7 @@ graph TD
 
 ### 🏢 4. Multi-Tenant Sacco Architecture
 * **Tenant Isolation**: Independent Sacco configurations with isolated database records (`sacco_id` scope).
-* **Super Admin Provisioning**: Platform-level onboarding for new Dairy Sacco tenants.
+* **Super Admin Provisioning**: Platform-level onboarding for new Dairy Sacco tenants. Only platform super users (no `sacco_id`) can create or manage Saccos; each Sacco's own admin is a regular `Sacco Administrator` scoped to their Sacco.
 
 ### 🔐 5. Role-Based Access Control (RBAC)
 * **Pre-seeded Roles**:
@@ -100,7 +100,7 @@ Dairy/
 │   │   └── tusk/             # DairyGo CLI Permission Sync tool (dairy-cli)
 │   ├── config/               # App configuration & env loader
 │   ├── database/
-│   │   └── migrations/       # Goose SQL schema migrations (00001-00007)
+│   │   └── migrations/       # Goose SQL schema migrations (00001-00008)
 │   ├── internal/
 │   │   ├── auth/             # Authentication, Users, & Roles
 │   │   ├── collection/       # Milk Collections, Sales, Spoilage, Pricing
@@ -208,9 +208,9 @@ curl http://localhost:9002/health
 | `POST` | `/api/v1/auth/login` | Authenticate user & issue JWT | Public |
 | `GET` | `/api/v1/auth/me` | Current user profile & role name | Authenticated |
 | `POST` | `/api/v1/auth/me/change-password` | Change authenticated user password | Authenticated |
-| `POST` | `/api/v1/auth/register` | Register new staff member (Admin/Collector/Executive) | Sacco Admin |
+| `POST` | `/api/v1/auth/register` | Register new staff member (role 1/2/3) into the caller's own Sacco | `users.create` |
 | `GET` | `/api/v1/sacco/dashboard/collector` | Real-time collector shift metrics | `dashboard.collector.read` |
-| `GET` | `/api/v1/sacco/dashboard/executive` | Executive Sacco summary cards & trend graph | `dashboard.executive.read` |
+| `GET` | `/api/v1/sacco/dashboard/summary` | Executive Sacco summary cards & trend graph | `dashboard.executive.read` |
 | `POST` | `/api/v1/sacco/milk-collections` | Record farmer milk intake | `milk.collections.create` |
 | `POST` | `/api/v1/sacco/milk-sales` | Record direct field milk sale | `milk.sales.create` |
 | `POST` | `/api/v1/sacco/milk-spoilage` | Log transit milk loss | `milk.spoilage.create` |

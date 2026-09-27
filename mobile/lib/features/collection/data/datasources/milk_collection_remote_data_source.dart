@@ -16,6 +16,7 @@ abstract class MilkCollectionRemoteDataSource {
   });
   Future<MilkCollectionModel> recordCollection(RecordCollectionRequestModel request);
   Future<MilkCollectionModel> updateCollection(String id, UpdateCollectionRequestModel request);
+  Future<List<CollectionHistoryEntryModel>> getCollectionHistory(String id);
 }
 
 class MilkCollectionRemoteDataSourceImpl implements MilkCollectionRemoteDataSource {
@@ -148,6 +149,24 @@ class MilkCollectionRemoteDataSourceImpl implements MilkCollectionRemoteDataSour
     } on DioException catch (e) {
       final serverMsg = e.response?.data is Map ? e.response?.data['message'] : null;
       throw Exception(serverMsg ?? e.message ?? 'Error updating milk intake');
+    }
+  }
+
+  @override
+  Future<List<CollectionHistoryEntryModel>> getCollectionHistory(String id) async {
+    try {
+      final response = await _dio.get('${ApiConstants.collections}/$id/history');
+      final data = response.data as Map<String, dynamic>;
+      if (data['success'] == true && data['data'] != null) {
+        final list = (data['data']['history'] as List<dynamic>? ?? const []);
+        return list
+            .map((e) => CollectionHistoryEntryModel.fromJson(e as Map<String, dynamic>))
+            .toList();
+      }
+      throw Exception(data['message'] ?? 'Failed to load entry history');
+    } on DioException catch (e) {
+      final serverMsg = e.response?.data is Map ? e.response?.data['message'] : null;
+      throw Exception(serverMsg ?? e.message ?? 'Error loading entry history');
     }
   }
 }

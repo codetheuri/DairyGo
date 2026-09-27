@@ -26,6 +26,13 @@ final activeMilkPriceProvider = FutureProvider<MilkPriceModel>((ref) async {
   return repository.getActivePrice();
 });
 
+/// Audit history of one collection, oldest first.
+final collectionHistoryProvider = FutureProvider.autoDispose
+    .family<List<CollectionHistoryEntryModel>, String>((ref, id) async {
+  final repository = ref.watch(milkCollectionRepositoryProvider);
+  return repository.getCollectionHistory(id);
+});
+
 String getTodayDateString() {
   final now = DateTime.now();
   return "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
@@ -115,6 +122,7 @@ class UpdateMilkCollectionController
       final collection = await _repository.updateCollection(id, request);
       state = AsyncValue.data(collection);
       invalidateAllAppMetrics(_ref);
+      _ref.invalidate(collectionHistoryProvider(id));
       return true;
     } catch (e, st) {
       state = AsyncValue.error(e, st);

@@ -65,8 +65,28 @@ class UpdateCollectionRequestModel with _$UpdateCollectionRequestModel {
     @JsonKey(name: 'quantity_litres') double? quantityLitres,
     String? shift,
     String? notes,
+    // Why the record is changing; required by the API for admin edits.
+    String? reason,
   }) = _UpdateCollectionRequestModel;
 
   factory UpdateCollectionRequestModel.fromJson(Map<String, dynamic> json) =>
       _$UpdateCollectionRequestModelFromJson(json);
+}
+
+/// One entry in a collection's audit history (who changed what, and why).
+/// [oldValues] and [newValues] are JSON snapshots of the editable fields.
+@freezed
+class CollectionHistoryEntryModel with _$CollectionHistoryEntryModel {
+  const factory CollectionHistoryEntryModel({
+    required String id,
+    @Default('') String action,
+    @JsonKey(name: 'actor_name') String? actorName,
+    String? reason,
+    @JsonKey(name: 'old_values') String? oldValues,
+    @JsonKey(name: 'new_values') String? newValues,
+    @JsonKey(name: 'created_at') String? createdAt,
+  }) = _CollectionHistoryEntryModel;
+
+  factory CollectionHistoryEntryModel.fromJson(Map<String, dynamic> json) =>
+      _$CollectionHistoryEntryModelFromJson(json);
 }

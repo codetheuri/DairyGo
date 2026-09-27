@@ -21,6 +21,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **Router Tagging & Schema Refinement**: Standardized Huma API operation tags and route descriptions across authentication and authorization endpoints.
 - **Updated CI Pipelines**: Refreshed `.github/workflows/go.yml` to support Go 1.24.x and updated action versions.
 
+### Added
+- **Collection audit history**: every create, edit and status change of a milk collection is stored in the new generic `audit_logs` table (`pkg/audit`) in the same transaction, with actor, reason and before/after values. `GET /api/v1/sacco/milk-collections/{id}/history` returns it. See [docs/collections-and-pricing.md](docs/collections-and-pricing.md).
+
+### Changed
+- **Prices follow their effective date.** A collection is priced at the latest price effective on or before its date, so backdated collections get the correct historical rate and future-dated prices start automatically. Setting a price no longer deactivates older ones (migration `00009` reactivates existing rows).
+- **Collections require an ACTIVE farmer from the caller's Sacco.**
+- **Collection edit rules.** Collectors edit only their own `SUBMITTED` records on the day they were recorded; admins edit `SUBMITTED`/`ADJUSTED` records with a reason, and their edits mark the record `ADJUSTED`. `VERIFIED`/`REJECTED` records are locked (`409`) until reopened as `ADJUSTED`. Status changes follow a defined flow and `REJECTED`/`ADJUSTED` need a reason; the status reason no longer overwrites the collection's notes.
+
 ### Security
 - **Sacco admins no longer act as platform super users.** The admin created during Sacco onboarding was flagged `is_super_user`, letting any Sacco admin list, edit, suspend and create Saccos across the platform. Onboarded admins are now role `1` (Sacco Administrator), and the auth middleware ignores `is_super_user` on any account with a `sacco_id`.
 - **Staff registration is locked to the caller's Sacco.** `POST /api/v1/auth/register` previously trusted `sacco_id` from the request body, allowing accounts to be created inside another Sacco. Non-platform callers now always register into their own Sacco, with role `1`, `2` or `3` only.

@@ -2,6 +2,7 @@ package collection
 
 import (
 	"context"
+	"errors"
 
 	"github.com/danielgtaylor/huma/v2"
 
@@ -72,7 +73,7 @@ func (h *Handler) RecordCollection(ctx context.Context, input *RecordCollectionI
 	col, err := h.service.RecordCollection(ctx, &input.Body)
 	if err != nil {
 		h.log.Error("Failed to record milk collection", err)
-		return nil, huma.Error400BadRequest(err.Error(), err)
+		return nil, toHTTPError(err)
 	}
 
 	resp := &CollectionOutput{}
@@ -138,7 +139,7 @@ func (h *Handler) ListCollections(ctx context.Context, input *ListCollectionsInp
 func (h *Handler) UpdateCollection(ctx context.Context, input *UpdateCollectionInput) (*CollectionOutput, error) {
 	col, err := h.service.UpdateCollection(ctx, input.ID, &input.Body)
 	if err != nil {
-		return nil, huma.Error400BadRequest(err.Error(), err)
+		return nil, toHTTPError(err)
 	}
 
 	resp := &CollectionOutput{}
@@ -151,7 +152,7 @@ func (h *Handler) UpdateCollection(ctx context.Context, input *UpdateCollectionI
 func (h *Handler) UpdateCollectionStatus(ctx context.Context, input *UpdateCollectionStatusInput) (*CollectionOutput, error) {
 	col, err := h.service.UpdateCollectionStatus(ctx, input.ID, &input.Body)
 	if err != nil {
-		return nil, huma.Error400BadRequest(err.Error(), err)
+		return nil, toHTTPError(err)
 	}
 
 	resp := &CollectionOutput{}
@@ -159,6 +160,35 @@ func (h *Handler) UpdateCollectionStatus(ctx context.Context, input *UpdateColle
 	resp.Body.Message = "Collection status updated successfully"
 	resp.Body.Data.Collection = col
 	return resp, nil
+}
+
+// GetCollectionHistory returns the audit trail of a collection.
+func (h *Handler) GetCollectionHistory(ctx context.Context, input *CollectionIDInput) (*CollectionHistoryOutput, error) {
+	history, err := h.service.CollectionHistory(ctx, input.ID)
+	if err != nil {
+		return nil, toHTTPError(err)
+	}
+
+	resp := &CollectionHistoryOutput{}
+	resp.Body.Success = true
+	resp.Body.Message = "Collection history retrieved"
+	resp.Body.Data.History = history
+	return resp, nil
+}
+
+// toHTTPError maps domain errors to HTTP status codes. Anything that is not a
+// known domain error is a validation problem with the request.
+func toHTTPError(err error) error {
+	switch {
+	case errors.Is(err, ErrNotFound):
+		return huma.Error404NotFound(err.Error())
+	case errors.Is(err, ErrForbidden):
+		return huma.Error403Forbidden(err.Error())
+	case errors.Is(err, ErrLocked):
+		return huma.Error409Conflict(err.Error())
+	default:
+		return huma.Error400BadRequest(err.Error(), err)
+	}
 }
 
 // --- SALES HANDLERS ---

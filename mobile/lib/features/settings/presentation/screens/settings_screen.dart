@@ -7,6 +7,7 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/status_pill.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
+import '../../../collection/data/models/milk_collection_model.dart';
 import '../../../collection/presentation/controllers/collection_controller.dart';
 import '../controllers/settings_controller.dart';
 import '../widgets/change_password_dialog.dart';
@@ -15,6 +16,20 @@ import '../widgets/set_price_dialog.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
+
+  bool _isFuture(String? dateStr) {
+    final parsed = DateTime.tryParse(dateStr ?? '')?.toLocal();
+    return parsed != null && parsed.isAfter(DateTime.now());
+  }
+
+  /// The price in force today: the latest non-voided price already in effect.
+  String? _currentPriceId(List<MilkPriceModel> prices) {
+    final inEffect = prices
+        .where((p) => p.isActive && !_isFuture(p.effectiveDate))
+        .toList()
+      ..sort((a, b) => (b.effectiveDate ?? '').compareTo(a.effectiveDate ?? ''));
+    return inEffect.isEmpty ? null : inEffect.first.id;
+  }
 
   String _formatDate(String? dateStr) {
     if (dateStr == null || dateStr.isEmpty) return 'N/A';
@@ -306,6 +321,7 @@ class SettingsScreen extends ConsumerWidget {
                   if (prices.isEmpty) {
                     return const Text('No price history entries recorded.', style: TextStyle(fontSize: 12, color: AppColors.textMuted));
                   }
+                  final currentPriceId = _currentPriceId(prices);
 
                   return Container(
                     decoration: BoxDecoration(
@@ -320,7 +336,9 @@ class SettingsScreen extends ConsumerWidget {
                       separatorBuilder: (_, __) => const Divider(height: 1, color: AppColors.cardBorder),
                       itemBuilder: (context, index) {
                         final item = prices[index];
-                        final isCurrentActive = item.isActive;
+                        // Prices form a schedule: the current one is the latest already in effect.
+                        final isCurrentActive = item.id == currentPriceId;
+                        final isScheduled = _isFuture(item.effectiveDate);
 
                         return ListTile(
                           contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
@@ -343,8 +361,10 @@ class SettingsScreen extends ConsumerWidget {
                             style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
                           ),
                           trailing: isCurrentActive
-                              ? const StatusPill(status: 'ACTIVE', type: StatusType.success)
-                              : const Text('HISTORICAL', style: TextStyle(fontSize: 10, color: AppColors.textMuted, fontWeight: FontWeight.bold)),
+                              ? const StatusPill(status: 'CURRENT', type: StatusType.success)
+                              : isScheduled
+                                  ? const StatusPill(status: 'SCHEDULED', type: StatusType.info)
+                                  : const Text('HISTORICAL', style: TextStyle(fontSize: 10, color: AppColors.textMuted, fontWeight: FontWeight.bold)),
                         );
                       },
                     ),

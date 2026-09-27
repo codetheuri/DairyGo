@@ -9,7 +9,10 @@ import '../controllers/collection_controller.dart';
 class EditCollectionDialog extends ConsumerStatefulWidget {
   final MilkCollectionModel collection;
 
-  const EditCollectionDialog({super.key, required this.collection});
+  /// Admin edits require a reason, which is stored in the entry's audit history.
+  final bool isAdmin;
+
+  const EditCollectionDialog({super.key, required this.collection, this.isAdmin = false});
 
   @override
   ConsumerState<EditCollectionDialog> createState() => _EditCollectionDialogState();
@@ -19,6 +22,7 @@ class _EditCollectionDialogState extends ConsumerState<EditCollectionDialog> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _litresController;
   late TextEditingController _notesController;
+  final _reasonController = TextEditingController();
   late String _shift;
 
   @override
@@ -33,6 +37,7 @@ class _EditCollectionDialogState extends ConsumerState<EditCollectionDialog> {
   void dispose() {
     _litresController.dispose();
     _notesController.dispose();
+    _reasonController.dispose();
     super.dispose();
   }
 
@@ -46,6 +51,7 @@ class _EditCollectionDialogState extends ConsumerState<EditCollectionDialog> {
       quantityLitres: litres,
       shift: _shift,
       notes: _notesController.text.trim().isNotEmpty ? _notesController.text.trim() : null,
+      reason: _reasonController.text.trim().isNotEmpty ? _reasonController.text.trim() : null,
     );
 
     final success = await ref
@@ -111,9 +117,22 @@ class _EditCollectionDialogState extends ConsumerState<EditCollectionDialog> {
               const SizedBox(height: 14),
 
               AppTextField(
-                label: 'Notes / Reason for Edit',
-                controller: _notesController,
+                label: widget.isAdmin ? 'Reason for Edit *' : 'Reason for Edit',
+                controller: _reasonController,
                 hint: 'e.g. Corrected scale entry',
+                prefixIcon: Icons.history_edu_rounded,
+                validator: (val) {
+                  if (widget.isAdmin && (val == null || val.trim().isEmpty)) {
+                    return 'A reason is required for admin corrections';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 14),
+
+              AppTextField(
+                label: 'Notes',
+                controller: _notesController,
                 prefixIcon: Icons.edit_note_rounded,
               ),
             ],

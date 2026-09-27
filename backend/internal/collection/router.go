@@ -15,7 +15,7 @@ import (
 func RegisterRoutes(api huma.API, db *gorm.DB, cfg *config.Config, log logger.Logger) {
 	repo := NewRepository(db)
 	smsService := sms.NewService(cfg, db, log)
-	service := NewService(repo, smsService)
+	service := NewService(repo, smsService, authz.NewEvaluator(db))
 	handler := NewHandler(service, log)
 
 	guard := authz.NewGuard(api, db)
@@ -60,7 +60,7 @@ func RegisterRoutes(api huma.API, db *gorm.DB, cfg *config.Config, log logger.Lo
 		Method:      http.MethodPost,
 		Path:        "/api/v1/sacco/milk-collections",
 		Summary:     "Record Farmer Milk Collection",
-		Description: "Logs milk received from a farmer in the field. Automatically applies effective buying price snapshot.",
+		Description: "Logs milk received from an ACTIVE farmer of the Sacco, priced at the buying rate in force on the collection date.",
 		Tags:        []string{"Milk Collections"},
 	}, PermMilkCollectionsCreate), handler.RecordCollection)
 
@@ -87,16 +87,25 @@ func RegisterRoutes(api huma.API, db *gorm.DB, cfg *config.Config, log logger.Lo
 		Method:      http.MethodPut,
 		Path:        "/api/v1/sacco/milk-collections/{id}",
 		Summary:     "Update Collection entry",
-		Description: "Edits an existing milk collection record (quantity, shift, or notes). Recalculates total amount based on original snapshot price.",
+		Description: "Edits quantity, shift or notes and recalculates the total at the original snapshot price. Collectors may edit only their own SUBMITTED records on the day they were recorded; admins may edit SUBMITTED or ADJUSTED records and must give a reason. VERIFIED and REJECTED records are locked (409).",
 		Tags:        []string{"Milk Collections"},
 	}, PermMilkCollectionsCreate), handler.UpdateCollection)
+
+	huma.Register(api, guard.Protected(huma.Operation{
+		OperationID: "get-collection-history",
+		Method:      http.MethodGet,
+		Path:        "/api/v1/sacco/milk-collections/{id}/history",
+		Summary:     "Collection change history",
+		Description: "Returns who created and changed a collection, with before/after values and reasons, oldest first.",
+		Tags:        []string{"Milk Collections"},
+	}, PermMilkCollectionsRead), handler.GetCollectionHistory)
 
 	huma.Register(api, guard.Protected(huma.Operation{
 		OperationID: "update-collection-status",
 		Method:      http.MethodPatch,
 		Path:        "/api/v1/sacco/milk-collections/{id}/status",
 		Summary:     "Verify / Adjust Collection status",
-		Description: "Updates collection status to VERIFIED, REJECTED, or ADJUSTED.",
+		Description: "Moves a collection through SUBMITTED -> VERIFIED/REJECTED/ADJUSTED, ADJUSTED -> VERIFIED/REJECTED, and reopens VERIFIED/REJECTED as ADJUSTED. REJECTED and ADJUSTED require a reason.",
 		Tags:        []string{"Milk Collections"},
 	}, PermMilkCollectionsManage), handler.UpdateCollectionStatus)
 

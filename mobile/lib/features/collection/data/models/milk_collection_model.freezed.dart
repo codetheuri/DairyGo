@@ -1115,7 +1115,9 @@ mixin _$UpdateCollectionRequestModel {
   @JsonKey(name: 'quantity_litres')
   double? get quantityLitres => throw _privateConstructorUsedError;
   String? get shift => throw _privateConstructorUsedError;
-  String? get notes => throw _privateConstructorUsedError;
+  String? get notes =>
+      throw _privateConstructorUsedError; // Why the record is changing; required by the API for admin edits.
+  String? get reason => throw _privateConstructorUsedError;
 
   /// Serializes this UpdateCollectionRequestModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -1142,6 +1144,7 @@ abstract class $UpdateCollectionRequestModelCopyWith<$Res> {
     @JsonKey(name: 'quantity_litres') double? quantityLitres,
     String? shift,
     String? notes,
+    String? reason,
   });
 }
 
@@ -1166,6 +1169,7 @@ class _$UpdateCollectionRequestModelCopyWithImpl<
     Object? quantityLitres = freezed,
     Object? shift = freezed,
     Object? notes = freezed,
+    Object? reason = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -1180,6 +1184,10 @@ class _$UpdateCollectionRequestModelCopyWithImpl<
             notes: freezed == notes
                 ? _value.notes
                 : notes // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            reason: freezed == reason
+                ? _value.reason
+                : reason // ignore: cast_nullable_to_non_nullable
                       as String?,
           )
           as $Val,
@@ -1200,6 +1208,7 @@ abstract class _$$UpdateCollectionRequestModelImplCopyWith<$Res>
     @JsonKey(name: 'quantity_litres') double? quantityLitres,
     String? shift,
     String? notes,
+    String? reason,
   });
 }
 
@@ -1224,6 +1233,7 @@ class __$$UpdateCollectionRequestModelImplCopyWithImpl<$Res>
     Object? quantityLitres = freezed,
     Object? shift = freezed,
     Object? notes = freezed,
+    Object? reason = freezed,
   }) {
     return _then(
       _$UpdateCollectionRequestModelImpl(
@@ -1239,6 +1249,10 @@ class __$$UpdateCollectionRequestModelImplCopyWithImpl<$Res>
             ? _value.notes
             : notes // ignore: cast_nullable_to_non_nullable
                   as String?,
+        reason: freezed == reason
+            ? _value.reason
+            : reason // ignore: cast_nullable_to_non_nullable
+                  as String?,
       ),
     );
   }
@@ -1252,6 +1266,7 @@ class _$UpdateCollectionRequestModelImpl
     @JsonKey(name: 'quantity_litres') this.quantityLitres,
     this.shift,
     this.notes,
+    this.reason,
   });
 
   factory _$UpdateCollectionRequestModelImpl.fromJson(
@@ -1265,10 +1280,13 @@ class _$UpdateCollectionRequestModelImpl
   final String? shift;
   @override
   final String? notes;
+  // Why the record is changing; required by the API for admin edits.
+  @override
+  final String? reason;
 
   @override
   String toString() {
-    return 'UpdateCollectionRequestModel(quantityLitres: $quantityLitres, shift: $shift, notes: $notes)';
+    return 'UpdateCollectionRequestModel(quantityLitres: $quantityLitres, shift: $shift, notes: $notes, reason: $reason)';
   }
 
   @override
@@ -1279,12 +1297,14 @@ class _$UpdateCollectionRequestModelImpl
             (identical(other.quantityLitres, quantityLitres) ||
                 other.quantityLitres == quantityLitres) &&
             (identical(other.shift, shift) || other.shift == shift) &&
-            (identical(other.notes, notes) || other.notes == notes));
+            (identical(other.notes, notes) || other.notes == notes) &&
+            (identical(other.reason, reason) || other.reason == reason));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, quantityLitres, shift, notes);
+  int get hashCode =>
+      Object.hash(runtimeType, quantityLitres, shift, notes, reason);
 
   /// Create a copy of UpdateCollectionRequestModel
   /// with the given fields replaced by the non-null parameter values.
@@ -1311,6 +1331,7 @@ abstract class _UpdateCollectionRequestModel
     @JsonKey(name: 'quantity_litres') final double? quantityLitres,
     final String? shift,
     final String? notes,
+    final String? reason,
   }) = _$UpdateCollectionRequestModelImpl;
 
   factory _UpdateCollectionRequestModel.fromJson(Map<String, dynamic> json) =
@@ -1322,7 +1343,9 @@ abstract class _UpdateCollectionRequestModel
   @override
   String? get shift;
   @override
-  String? get notes;
+  String? get notes; // Why the record is changing; required by the API for admin edits.
+  @override
+  String? get reason;
 
   /// Create a copy of UpdateCollectionRequestModel
   /// with the given fields replaced by the non-null parameter values.
@@ -1331,5 +1354,333 @@ abstract class _UpdateCollectionRequestModel
   _$$UpdateCollectionRequestModelImplCopyWith<
     _$UpdateCollectionRequestModelImpl
   >
+  get copyWith => throw _privateConstructorUsedError;
+}
+
+CollectionHistoryEntryModel _$CollectionHistoryEntryModelFromJson(
+  Map<String, dynamic> json,
+) {
+  return _CollectionHistoryEntryModel.fromJson(json);
+}
+
+/// @nodoc
+mixin _$CollectionHistoryEntryModel {
+  String get id => throw _privateConstructorUsedError;
+  String get action => throw _privateConstructorUsedError;
+  @JsonKey(name: 'actor_name')
+  String? get actorName => throw _privateConstructorUsedError;
+  String? get reason => throw _privateConstructorUsedError;
+  @JsonKey(name: 'old_values')
+  String? get oldValues => throw _privateConstructorUsedError;
+  @JsonKey(name: 'new_values')
+  String? get newValues => throw _privateConstructorUsedError;
+  @JsonKey(name: 'created_at')
+  String? get createdAt => throw _privateConstructorUsedError;
+
+  /// Serializes this CollectionHistoryEntryModel to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of CollectionHistoryEntryModel
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $CollectionHistoryEntryModelCopyWith<CollectionHistoryEntryModel>
+  get copyWith => throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $CollectionHistoryEntryModelCopyWith<$Res> {
+  factory $CollectionHistoryEntryModelCopyWith(
+    CollectionHistoryEntryModel value,
+    $Res Function(CollectionHistoryEntryModel) then,
+  ) =
+      _$CollectionHistoryEntryModelCopyWithImpl<
+        $Res,
+        CollectionHistoryEntryModel
+      >;
+  @useResult
+  $Res call({
+    String id,
+    String action,
+    @JsonKey(name: 'actor_name') String? actorName,
+    String? reason,
+    @JsonKey(name: 'old_values') String? oldValues,
+    @JsonKey(name: 'new_values') String? newValues,
+    @JsonKey(name: 'created_at') String? createdAt,
+  });
+}
+
+/// @nodoc
+class _$CollectionHistoryEntryModelCopyWithImpl<
+  $Res,
+  $Val extends CollectionHistoryEntryModel
+>
+    implements $CollectionHistoryEntryModelCopyWith<$Res> {
+  _$CollectionHistoryEntryModelCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of CollectionHistoryEntryModel
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? action = null,
+    Object? actorName = freezed,
+    Object? reason = freezed,
+    Object? oldValues = freezed,
+    Object? newValues = freezed,
+    Object? createdAt = freezed,
+  }) {
+    return _then(
+      _value.copyWith(
+            id: null == id
+                ? _value.id
+                : id // ignore: cast_nullable_to_non_nullable
+                      as String,
+            action: null == action
+                ? _value.action
+                : action // ignore: cast_nullable_to_non_nullable
+                      as String,
+            actorName: freezed == actorName
+                ? _value.actorName
+                : actorName // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            reason: freezed == reason
+                ? _value.reason
+                : reason // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            oldValues: freezed == oldValues
+                ? _value.oldValues
+                : oldValues // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            newValues: freezed == newValues
+                ? _value.newValues
+                : newValues // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            createdAt: freezed == createdAt
+                ? _value.createdAt
+                : createdAt // ignore: cast_nullable_to_non_nullable
+                      as String?,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$CollectionHistoryEntryModelImplCopyWith<$Res>
+    implements $CollectionHistoryEntryModelCopyWith<$Res> {
+  factory _$$CollectionHistoryEntryModelImplCopyWith(
+    _$CollectionHistoryEntryModelImpl value,
+    $Res Function(_$CollectionHistoryEntryModelImpl) then,
+  ) = __$$CollectionHistoryEntryModelImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    String id,
+    String action,
+    @JsonKey(name: 'actor_name') String? actorName,
+    String? reason,
+    @JsonKey(name: 'old_values') String? oldValues,
+    @JsonKey(name: 'new_values') String? newValues,
+    @JsonKey(name: 'created_at') String? createdAt,
+  });
+}
+
+/// @nodoc
+class __$$CollectionHistoryEntryModelImplCopyWithImpl<$Res>
+    extends
+        _$CollectionHistoryEntryModelCopyWithImpl<
+          $Res,
+          _$CollectionHistoryEntryModelImpl
+        >
+    implements _$$CollectionHistoryEntryModelImplCopyWith<$Res> {
+  __$$CollectionHistoryEntryModelImplCopyWithImpl(
+    _$CollectionHistoryEntryModelImpl _value,
+    $Res Function(_$CollectionHistoryEntryModelImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of CollectionHistoryEntryModel
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? action = null,
+    Object? actorName = freezed,
+    Object? reason = freezed,
+    Object? oldValues = freezed,
+    Object? newValues = freezed,
+    Object? createdAt = freezed,
+  }) {
+    return _then(
+      _$CollectionHistoryEntryModelImpl(
+        id: null == id
+            ? _value.id
+            : id // ignore: cast_nullable_to_non_nullable
+                  as String,
+        action: null == action
+            ? _value.action
+            : action // ignore: cast_nullable_to_non_nullable
+                  as String,
+        actorName: freezed == actorName
+            ? _value.actorName
+            : actorName // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        reason: freezed == reason
+            ? _value.reason
+            : reason // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        oldValues: freezed == oldValues
+            ? _value.oldValues
+            : oldValues // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        newValues: freezed == newValues
+            ? _value.newValues
+            : newValues // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        createdAt: freezed == createdAt
+            ? _value.createdAt
+            : createdAt // ignore: cast_nullable_to_non_nullable
+                  as String?,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$CollectionHistoryEntryModelImpl
+    implements _CollectionHistoryEntryModel {
+  const _$CollectionHistoryEntryModelImpl({
+    required this.id,
+    this.action = '',
+    @JsonKey(name: 'actor_name') this.actorName,
+    this.reason,
+    @JsonKey(name: 'old_values') this.oldValues,
+    @JsonKey(name: 'new_values') this.newValues,
+    @JsonKey(name: 'created_at') this.createdAt,
+  });
+
+  factory _$CollectionHistoryEntryModelImpl.fromJson(
+    Map<String, dynamic> json,
+  ) => _$$CollectionHistoryEntryModelImplFromJson(json);
+
+  @override
+  final String id;
+  @override
+  @JsonKey()
+  final String action;
+  @override
+  @JsonKey(name: 'actor_name')
+  final String? actorName;
+  @override
+  final String? reason;
+  @override
+  @JsonKey(name: 'old_values')
+  final String? oldValues;
+  @override
+  @JsonKey(name: 'new_values')
+  final String? newValues;
+  @override
+  @JsonKey(name: 'created_at')
+  final String? createdAt;
+
+  @override
+  String toString() {
+    return 'CollectionHistoryEntryModel(id: $id, action: $action, actorName: $actorName, reason: $reason, oldValues: $oldValues, newValues: $newValues, createdAt: $createdAt)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$CollectionHistoryEntryModelImpl &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.action, action) || other.action == action) &&
+            (identical(other.actorName, actorName) ||
+                other.actorName == actorName) &&
+            (identical(other.reason, reason) || other.reason == reason) &&
+            (identical(other.oldValues, oldValues) ||
+                other.oldValues == oldValues) &&
+            (identical(other.newValues, newValues) ||
+                other.newValues == newValues) &&
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    id,
+    action,
+    actorName,
+    reason,
+    oldValues,
+    newValues,
+    createdAt,
+  );
+
+  /// Create a copy of CollectionHistoryEntryModel
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$CollectionHistoryEntryModelImplCopyWith<_$CollectionHistoryEntryModelImpl>
+  get copyWith =>
+      __$$CollectionHistoryEntryModelImplCopyWithImpl<
+        _$CollectionHistoryEntryModelImpl
+      >(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$CollectionHistoryEntryModelImplToJson(this);
+  }
+}
+
+abstract class _CollectionHistoryEntryModel
+    implements CollectionHistoryEntryModel {
+  const factory _CollectionHistoryEntryModel({
+    required final String id,
+    final String action,
+    @JsonKey(name: 'actor_name') final String? actorName,
+    final String? reason,
+    @JsonKey(name: 'old_values') final String? oldValues,
+    @JsonKey(name: 'new_values') final String? newValues,
+    @JsonKey(name: 'created_at') final String? createdAt,
+  }) = _$CollectionHistoryEntryModelImpl;
+
+  factory _CollectionHistoryEntryModel.fromJson(Map<String, dynamic> json) =
+      _$CollectionHistoryEntryModelImpl.fromJson;
+
+  @override
+  String get id;
+  @override
+  String get action;
+  @override
+  @JsonKey(name: 'actor_name')
+  String? get actorName;
+  @override
+  String? get reason;
+  @override
+  @JsonKey(name: 'old_values')
+  String? get oldValues;
+  @override
+  @JsonKey(name: 'new_values')
+  String? get newValues;
+  @override
+  @JsonKey(name: 'created_at')
+  String? get createdAt;
+
+  /// Create a copy of CollectionHistoryEntryModel
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$CollectionHistoryEntryModelImplCopyWith<_$CollectionHistoryEntryModelImpl>
   get copyWith => throw _privateConstructorUsedError;
 }

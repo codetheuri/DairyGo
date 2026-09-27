@@ -93,6 +93,7 @@ _$UpdateCollectionRequestModelImpl _$$UpdateCollectionRequestModelImplFromJson(
   quantityLitres: (json['quantity_litres'] as num?)?.toDouble(),
   shift: json['shift'] as String?,
   notes: json['notes'] as String?,
+  reason: json['reason'] as String?,
 );
 
 Map<String, dynamic> _$$UpdateCollectionRequestModelImplToJson(
@@ -101,4 +102,29 @@ Map<String, dynamic> _$$UpdateCollectionRequestModelImplToJson(
   'quantity_litres': instance.quantityLitres,
   'shift': instance.shift,
   'notes': instance.notes,
+  'reason': instance.reason,
+};
+
+_$CollectionHistoryEntryModelImpl _$$CollectionHistoryEntryModelImplFromJson(
+  Map<String, dynamic> json,
+) => _$CollectionHistoryEntryModelImpl(
+  id: json['id'] as String,
+  action: json['action'] as String? ?? '',
+  actorName: json['actor_name'] as String?,
+  reason: json['reason'] as String?,
+  oldValues: json['old_values'] as String?,
+  newValues: json['new_values'] as String?,
+  createdAt: json['created_at'] as String?,
+);
+
+Map<String, dynamic> _$$CollectionHistoryEntryModelImplToJson(
+  _$CollectionHistoryEntryModelImpl instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'action': instance.action,
+  'actor_name': instance.actorName,
+  'reason': instance.reason,
+  'old_values': instance.oldValues,
+  'new_values': instance.newValues,
+  'created_at': instance.createdAt,
 };

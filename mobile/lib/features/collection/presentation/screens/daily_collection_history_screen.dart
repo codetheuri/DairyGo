@@ -7,7 +7,9 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../../core/widgets/empty_state_widget.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
+import '../../domain/collection_edit_rules.dart';
 import '../controllers/collection_controller.dart';
+import '../widgets/collection_history_sheet.dart';
 import '../widgets/edit_collection_dialog.dart';
 
 class DailyCollectionHistoryScreen extends ConsumerWidget {
@@ -255,11 +257,17 @@ class DailyCollectionHistoryScreen extends ConsumerWidget {
                       final farmerName = item.memberName ?? 'Farmer';
                       final timeLabel = _formatCollectedTime(item.createdAt, item.shift);
 
-                      // High density thin tile card
+                      final editBlockReason =
+                          user == null ? 'Sign in again to edit.' : collectionEditBlockReason(item, user);
+
+                      // High density thin tile card; tap to see status and change history.
                       return Material(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(10),
-                        child: Container(
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(10),
+                          onTap: () => CollectionHistorySheet.show(context, item),
+                          child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                           decoration: BoxDecoration(
                             border: Border.all(color: AppColors.cardBorder),
@@ -351,21 +359,35 @@ class DailyCollectionHistoryScreen extends ConsumerWidget {
                                 ),
                               ),
 
-                              // Edit Button
+                              // Edit button when the rules allow it, otherwise a lock explaining why.
                               IconButton(
-                                icon: const Icon(Icons.edit_outlined, color: AppColors.textMuted, size: 18),
+                                icon: Icon(
+                                  editBlockReason == null ? Icons.edit_outlined : Icons.lock_outline_rounded,
+                                  color: AppColors.textMuted,
+                                  size: 18,
+                                ),
                                 padding: const EdgeInsets.only(left: 6),
                                 constraints: const BoxConstraints(),
-                                tooltip: 'Edit quantity',
+                                tooltip: editBlockReason ?? 'Edit entry',
                                 onPressed: () {
+                                  if (editBlockReason != null) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text(editBlockReason)),
+                                    );
+                                    return;
+                                  }
                                   showDialog(
                                     context: context,
-                                    builder: (_) => EditCollectionDialog(collection: item),
+                                    builder: (_) => EditCollectionDialog(
+                                      collection: item,
+                                      isAdmin: user?.isSaccoAdmin ?? false,
+                                    ),
                                   );
                                 },
                               ),
                             ],
                           ),
+                        ),
                         ),
                       );
                     },

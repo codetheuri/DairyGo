@@ -4,8 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/codetheuri/tusk/internal/middleware"
+	"github.com/codetheuri/tusk/pkg/audit"
 	"github.com/codetheuri/tusk/pkg/query"
 	"gorm.io/gorm"
 )
@@ -38,27 +40,61 @@ func (r *Repository) populateCollectorNames(ctx context.Context, collectorIDs []
 
 // --- PRICING REPOSITORY METHODS ---
 
+// CreatePrice adds a price to the Sacco's rate schedule. Older prices stay
+// active: the price for a date is chosen by effective_date (see GetPriceForDate).
 func (r *Repository) CreatePrice(ctx context.Context, p *MilkPrice) error {
-	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		// Deactivate current active price for this sacco
-		if err := tx.Model(&MilkPrice{}).Scopes(query.TenantScope(ctx)).Where("is_active = ?", true).Update("is_active", false).Error; err != nil {
-			return err
-		}
-		p.IsActive = true
-		return tx.Create(p).Error
-	})
+	p.IsActive = true
+	return r.db.WithContext(ctx).Create(p).Error
 }
 
-func (r *Repository) GetActivePrice(ctx context.Context) (*MilkPrice, error) {
+// GetPriceForDate returns the price in force on date (YYYY-MM-DD): the latest
+// non-voided price whose effective_date falls on or before that day.
+func (r *Repository) GetPriceForDate(ctx context.Context, date time.Time) (*MilkPrice, error) {
+	nextDay := date.AddDate(0, 0, 1).Format(dateLayout)
+
 	var p MilkPrice
-	err := r.db.WithContext(ctx).Scopes(query.TenantScope(ctx)).Where("is_active = ?", true).Order("effective_date DESC").First(&p).Error
+	err := r.db.WithContext(ctx).Scopes(query.TenantScope(ctx)).
+		Where("is_active = ? AND effective_date < ?", true, nextDay).
+		Order("effective_date DESC, created_at DESC").
+		First(&p).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, fmt.Errorf("no active milk price configured for this Sacco")
+			return nil, fmt.Errorf("no milk price configured for this Sacco on %s", date.Format(dateLayout))
 		}
 		return nil, err
 	}
 	return &p, nil
+}
+
+// GetActivePrice returns the price in force today.
+func (r *Repository) GetActivePrice(ctx context.Context) (*MilkPrice, error) {
+	return r.GetPriceForDate(ctx, time.Now())
+}
+
+// collectionMember is the subset of a farmer record needed to record a collection.
+type collectionMember struct {
+	ID        string
+	Status    string
+	Phone     string
+	FirstName string
+	LastName  string
+}
+
+// FindMemberForCollection loads a farmer from the caller's Sacco.
+func (r *Repository) FindMemberForCollection(ctx context.Context, memberID string) (*collectionMember, error) {
+	var m collectionMember
+	err := r.db.WithContext(ctx).Table("members").
+		Scopes(query.TenantScope(ctx)).
+		Select("id, status, phone, first_name, last_name").
+		Where("id = ? AND deleted_at IS NULL", memberID).
+		Take(&m).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("%w: member not found in this Sacco", ErrNotFound)
+		}
+		return nil, err
+	}
+	return &m, nil
 }
 
 func (r *Repository) ListPrices(ctx context.Context, q query.Query) ([]MilkPrice, query.Meta, error) {
@@ -77,8 +113,14 @@ func (r *Repository) ListPrices(ctx context.Context, q query.Query) ([]MilkPrice
 
 // --- COLLECTION REPOSITORY METHODS ---
 
-func (r *Repository) CreateCollection(ctx context.Context, c *MilkCollection) error {
-	return r.db.WithContext(ctx).Create(c).Error
+// CreateCollection saves a new collection and its CREATE audit entry atomically.
+func (r *Repository) CreateCollection(ctx context.Context, c *MilkCollection, entry audit.Entry) error {
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(c).Error; err != nil {
+			return err
+		}
+		return audit.Record(tx, entry)
+	})
 }
 
 func (r *Repository) FindCollectionByID(ctx context.Context, id string) (*MilkCollection, error) {
@@ -86,7 +128,7 @@ func (r *Repository) FindCollectionByID(ctx context.Context, id string) (*MilkCo
 	err := r.db.WithContext(ctx).Scopes(query.TenantScope(ctx)).Where("id = ?", id).First(&c).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, fmt.Errorf("milk collection record not found")
+			return nil, fmt.Errorf("%w: milk collection record not found", ErrNotFound)
 		}
 		return nil, err
 	}
@@ -105,8 +147,19 @@ func (r *Repository) FindByMemberAndDate(ctx context.Context, saccoID, memberID,
 	return &c, nil
 }
 
-func (r *Repository) UpdateCollection(ctx context.Context, c *MilkCollection) error {
-	return r.db.WithContext(ctx).Scopes(query.TenantScope(ctx)).Save(c).Error
+// UpdateCollection saves an edited collection and its audit entry atomically.
+func (r *Repository) UpdateCollection(ctx context.Context, c *MilkCollection, entry audit.Entry) error {
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Scopes(query.TenantScope(ctx)).Save(c).Error; err != nil {
+			return err
+		}
+		return audit.Record(tx, entry)
+	})
+}
+
+// CollectionHistory returns the audit trail of one collection, oldest first.
+func (r *Repository) CollectionHistory(ctx context.Context, c *MilkCollection) ([]audit.Log, error) {
+	return audit.List(ctx, r.db, c.SaccoID, auditEntityCollection, c.ID)
 }
 
 func (r *Repository) ListCollections(ctx context.Context, q query.Query) ([]MilkCollection, query.Meta, error) {
@@ -160,12 +213,14 @@ func (r *Repository) ListCollections(ctx context.Context, q query.Query) ([]Milk
 	return collections, meta, nil
 }
 
-func (r *Repository) UpdateCollectionStatus(ctx context.Context, id string, status CollectionStatus, notes *string) error {
-	updates := map[string]interface{}{"status": status}
-	if notes != nil {
-		updates["notes"] = *notes
-	}
-	return r.db.WithContext(ctx).Model(&MilkCollection{}).Scopes(query.TenantScope(ctx)).Where("id = ?", id).Updates(updates).Error
+// UpdateCollectionStatus changes a collection's status and saves the audit entry atomically.
+func (r *Repository) UpdateCollectionStatus(ctx context.Context, id string, status CollectionStatus, entry audit.Entry) error {
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Model(&MilkCollection{}).Scopes(query.TenantScope(ctx)).Where("id = ?", id).Update("status", status).Error; err != nil {
+			return err
+		}
+		return audit.Record(tx, entry)
+	})
 }
 
 // --- SALES REPOSITORY METHODS ---

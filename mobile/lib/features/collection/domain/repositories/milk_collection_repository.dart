@@ -14,4 +14,5 @@ abstract class MilkCollectionRepository {
   });
   Future<MilkCollectionModel> recordCollection(RecordCollectionRequestModel request);
   Future<MilkCollectionModel> updateCollection(String id, UpdateCollectionRequestModel request);
+  Future<List<CollectionHistoryEntryModel>> getCollectionHistory(String id);
 }

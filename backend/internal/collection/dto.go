@@ -1,6 +1,7 @@
 package collection
 
 import (
+	"github.com/codetheuri/tusk/pkg/audit"
 	"github.com/codetheuri/tusk/pkg/query"
 	"github.com/codetheuri/tusk/pkg/response"
 )
@@ -59,6 +60,7 @@ type UpdateCollectionRequest struct {
 	QuantityLitres *float64 `json:"quantity_litres,omitempty" minimum:"0.01" doc:"Updated quantity of milk in litres"`
 	Shift          *Shift   `json:"shift,omitempty" doc:"Updated shift"`
 	Notes          *string  `json:"notes,omitempty" doc:"Updated notes"`
+	Reason         *string  `json:"reason,omitempty" doc:"Why the record is being changed (required for admin edits)"`
 }
 
 type UpdateCollectionInput struct {
@@ -72,7 +74,8 @@ type CollectionIDInput struct {
 
 type UpdateCollectionStatusRequest struct {
 	Status CollectionStatus `json:"status" enum:"SUBMITTED,VERIFIED,REJECTED,ADJUSTED" doc:"Updated status"`
-	Notes  *string          `json:"notes,omitempty" doc:"Reason for status update"`
+	Reason *string          `json:"reason,omitempty" doc:"Why the status is changing (required for REJECTED and ADJUSTED)"`
+	Notes  *string          `json:"notes,omitempty" doc:"Deprecated: use reason"`
 }
 
 type UpdateCollectionStatusInput struct {
@@ -99,6 +102,14 @@ type CollectionData struct {
 
 type CollectionOutput struct {
 	Body response.Data[CollectionData]
+}
+
+type CollectionHistoryData struct {
+	History []audit.Log `json:"history"`
+}
+
+type CollectionHistoryOutput struct {
+	Body response.Data[CollectionHistoryData]
 }
 
 type ListCollectionsData struct {

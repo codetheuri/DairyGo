@@ -44,4 +44,9 @@ class MilkCollectionRepositoryImpl implements MilkCollectionRepository {
   Future<MilkCollectionModel> updateCollection(String id, UpdateCollectionRequestModel request) {
     return _remoteDataSource.updateCollection(id, request);
   }
+
+  @override
+  Future<List<CollectionHistoryEntryModel>> getCollectionHistory(String id) {
+    return _remoteDataSource.getCollectionHistory(id);
+  }
 }

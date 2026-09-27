@@ -3,6 +3,7 @@ package collection
 import (
 	"errors"
 	"fmt"
+	"math"
 	"time"
 )
 
@@ -71,4 +72,74 @@ func validateStatusTransition(from, to CollectionStatus) error {
 		}
 	}
 	return fmt.Errorf("%w: cannot change status from %s to %s", ErrLocked, from, to)
+}
+
+// Sale payment statuses, derived from what was paid at the time of sale.
+const (
+	SalePaid    = "PAID"
+	SalePartial = "PARTIAL"
+	SaleCredit  = "CREDIT"
+)
+
+var validSaleMethods = map[string]bool{"CASH": true, "MPESA": true, "BANK_TRANSFER": true, "CREDIT": true}
+
+// settleSale works out what was paid at the time of sale and the resulting
+// payment status. When amountPaid is nil the whole total is paid, unless the
+// method is CREDIT. A sale with nothing paid is always recorded as CREDIT.
+// The status describes the sale moment only; later payments reduce the
+// customer's running balance, not individual sales.
+func settleSale(total float64, amountPaid *float64, method string) (paid float64, status string, finalMethod string, err error) {
+	if method == "" {
+		method = "CASH"
+	}
+	if !validSaleMethods[method] {
+		return 0, "", "", fmt.Errorf("payment_method must be CASH, MPESA, BANK_TRANSFER or CREDIT")
+	}
+
+	switch {
+	case amountPaid != nil:
+		paid = math.Round(*amountPaid*100) / 100
+	case method == "CREDIT":
+		paid = 0
+	default:
+		paid = total
+	}
+
+	if paid < 0 {
+		return 0, "", "", fmt.Errorf("amount_paid cannot be negative")
+	}
+	if paid > total {
+		return 0, "", "", fmt.Errorf("amount_paid (%.2f) cannot exceed the sale total (%.2f); record extra money as a customer payment", paid, total)
+	}
+	if paid > 0 && method == "CREDIT" {
+		return 0, "", "", fmt.Errorf("payment_method CREDIT means nothing was paid; choose how the %.2f was received", paid)
+	}
+
+	switch {
+	case paid == 0:
+		return 0, SaleCredit, "CREDIT", nil
+	case paid < total:
+		return paid, SalePartial, method, nil
+	default:
+		return paid, SalePaid, method, nil
+	}
+}
+
+// canEditSale applies the collection edit rules to sales: voided sales are
+// locked; admins (milk.sales.manage) may edit any other sale; collectors may
+// edit only their own sales on the day they were recorded.
+func canEditSale(a actor, s *MilkSale, today string) error {
+	if s.VoidedAt != nil {
+		return fmt.Errorf("%w: sale is voided", ErrLocked)
+	}
+	if a.canManage {
+		return nil
+	}
+	if s.CollectorID != a.userID {
+		return fmt.Errorf("%w: you can only edit sales you recorded", ErrForbidden)
+	}
+	if s.CreatedAt.In(time.Local).Format(dateLayout) != today {
+		return fmt.Errorf("%w: sales can only be edited on the day they were recorded; ask an admin", ErrLocked)
+	}
+	return nil
 }

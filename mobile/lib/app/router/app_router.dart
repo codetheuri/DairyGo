@@ -7,6 +7,9 @@ import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/collection/presentation/screens/daily_collection_history_screen.dart';
 import '../../features/collection/presentation/screens/record_milk_intake_screen.dart';
+import '../../features/customers/data/models/customer_models.dart';
+import '../../features/customers/presentation/screens/customer_detail_screen.dart';
+import '../../features/customers/presentation/screens/customers_screen.dart';
 import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
 import '../../features/field_operations/presentation/screens/field_operations_history_screen.dart';
 import '../../features/field_operations/presentation/screens/record_field_sale_screen.dart';
@@ -33,6 +36,7 @@ abstract class AppRoutes {
   static const String reports = '/reports';
   static const String settings = '/settings';
   static const String staff = '/settings/staff';
+  static const String customers = '/customers';
 }
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -151,7 +155,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppRoutes.recordSale,
-        builder: (context, state) => const RecordFieldSaleScreen(),
+        builder: (context, state) => RecordFieldSaleScreen(
+          initialCustomer: state.extra is CustomerModel ? state.extra as CustomerModel : null,
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.customers,
+        builder: (context, state) => const CustomersScreen(),
+      ),
+      GoRoute(
+        path: '/customers/:id',
+        builder: (context, state) => CustomerDetailScreen(customerId: state.pathParameters['id'] ?? ''),
       ),
       GoRoute(
         path: AppRoutes.recordSpoilage,

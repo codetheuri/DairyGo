@@ -136,7 +136,7 @@ func (r *Repository) GetSaccoReconciliationLedger(ctx context.Context, fromDateS
 		TotalRevenue float64 `gorm:"total_revenue"`
 	}
 	r.db.WithContext(ctx).Table("milk_sales").
-		Where("sacco_id = ? AND deleted_at IS NULL AND DATE(sale_date) BETWEEN ? AND ?", saccoID, fromDateStr, toDateStr).
+		Where("sacco_id = ? AND deleted_at IS NULL AND voided_at IS NULL AND DATE(sale_date) BETWEEN ? AND ?", saccoID, fromDateStr, toDateStr).
 		Select("COALESCE(SUM(quantity_litres), 0) as total_litres, COALESCE(SUM(total_amount), 0) as total_revenue").
 		Scan(&salesResult)
 
@@ -218,7 +218,7 @@ func (r *Repository) GetCollectorAuditSummaries(ctx context.Context, fromDateStr
 			Revenue float64 `gorm:"revenue"`
 		}
 		r.db.WithContext(ctx).Table("milk_sales").
-			Where("sacco_id = ? AND collector_id = ? AND deleted_at IS NULL AND DATE(sale_date) BETWEEN ? AND ?", saccoID, c.ID, fromDateStr, toDateStr).
+			Where("sacco_id = ? AND collector_id = ? AND deleted_at IS NULL AND voided_at IS NULL AND DATE(sale_date) BETWEEN ? AND ?", saccoID, c.ID, fromDateStr, toDateStr).
 			Select("COALESCE(SUM(quantity_litres), 0) as litres, COALESCE(SUM(total_amount), 0) as revenue").
 			Scan(&sales)
 

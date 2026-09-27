@@ -118,7 +118,7 @@ func RegisterRoutes(api huma.API, db *gorm.DB, cfg *config.Config, log logger.Lo
 		Method:      http.MethodPost,
 		Path:        "/api/v1/sacco/milk-sales",
 		Summary:     "Record Field Milk Sale",
-		Description: "Logs direct milk sales made by collectors in the field to buyers, hotels, or processors.",
+		Description: "Records milk sold to a customer (coolers included: every litre leaving a collector is a sale). The unit price defaults to the customer's agreed price. amount_paid is what was paid at the sale (defaults to the full total, or 0 for CREDIT); the rest goes on the customer's balance.",
 		Tags:        []string{"Milk Sales"},
 	}, PermMilkSalesCreate), handler.RecordSale)
 
@@ -130,6 +130,32 @@ func RegisterRoutes(api huma.API, db *gorm.DB, cfg *config.Config, log logger.Lo
 		Description: "Returns a paginated list of direct field sales.",
 		Tags:        []string{"Milk Sales"},
 	}, PermMilkSalesRead), handler.ListSales)
+
+	huma.Register(api, guard.Protected(huma.Operation{
+		OperationID: "update-milk-sale",
+		Method:      http.MethodPut,
+		Path:        "/api/v1/sacco/milk-sales/{id}",
+		Summary:     "Correct a Milk Sale",
+		Description: "Collectors may correct their own sales on the day they were recorded; admins (milk.sales.manage) may correct any non-voided sale and must give a reason. Voided sales are locked (409).",
+		Tags:        []string{"Milk Sales"},
+	}, PermMilkSalesCreate), handler.UpdateSale)
+
+	huma.Register(api, guard.Protected(huma.Operation{
+		OperationID: "void-milk-sale",
+		Method:      http.MethodPost,
+		Path:        "/api/v1/sacco/milk-sales/{id}/void",
+		Summary:     "Void a Milk Sale",
+		Description: "Cancels a sale recorded in error. It stays on record for audit but no longer counts in reconciliation or the customer's balance.",
+		Tags:        []string{"Milk Sales"},
+	}, PermMilkSalesManage), handler.VoidSale)
+
+	huma.Register(api, guard.Protected(huma.Operation{
+		OperationID: "get-milk-sale-history",
+		Method:      http.MethodGet,
+		Path:        "/api/v1/sacco/milk-sales/{id}/history",
+		Summary:     "Milk Sale change history",
+		Tags:        []string{"Milk Sales"},
+	}, PermMilkSalesRead), handler.GetSaleHistory)
 
 	// -------------------------------------------------------------
 	// MILK SPOILAGE / LOSS ENDPOINTS

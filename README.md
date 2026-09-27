@@ -62,7 +62,8 @@ graph TD
 
 ### 🥛 1. Field Milk Intake & Sales Operations
 * **Farmer Intake Log**: Fast farmer search by membership code/phone and instant litre recording.
-* **Direct Field Sales**: Record direct milk sales to local buyers and hotels with cash/M-Pesa payment tags.
+* **Customer Sales**: Every litre leaving a collector is a sale to a customer (coolers, processors, hotels, shops, individuals). Collectors search or add the customer on the spot; agreed prices prefill.
+* **Customer Ledger**: Credit and part-paid sales build a running balance per customer; admins record M-Pesa/cash/bank payments, and admins and board members see statements and who owes what.
 * **Spoilage Tracking**: Log transit milk loss and spoilage events to ensure daily intake balancing.
 
 * **Trustworthy Records**: Collections only for active farmers of the Sacco, priced by the rate in force on the collection date. Controlled edits (collectors same-day on their own entries, admins with a reason) and a full audit history of every change.
@@ -102,10 +103,11 @@ Dairy/
 │   │   └── tusk/             # DairyGo CLI Permission Sync tool (dairy-cli)
 │   ├── config/               # App configuration & env loader
 │   ├── database/
-│   │   └── migrations/       # Goose SQL schema migrations (00001-00009)
+│   │   └── migrations/       # Goose SQL schema migrations (00001-00011)
 │   ├── internal/
 │   │   ├── auth/             # Authentication, Users, & Roles
 │   │   ├── collection/       # Milk Collections, Sales, Spoilage, Pricing
+│   │   ├── customer/         # Customers, payments, statements (ledger)
 │   │   ├── dashboard/        # Executive & Collector Dashboard Analytics
 │   │   ├── member/           # Sacco Farmer Directory
 │   │   ├── report/           # Payroll Payout & Audit Reports
@@ -120,6 +122,7 @@ Dairy/
     │       ├── auth/         # Login, Auth Controller, State
     │       ├── collection/   # Intake, Field Sales, Spoilage UI & Controllers
     │       ├── dashboard/    # Collector Shift & Executive Dashboard Screens
+    │       ├── customers/    # Customers, picker, statements & payments
     │       ├── members/      # Farmers Directory UI & Profile Screens
     │       ├── reports/      # Payout Statements & Collector Audit UI
     │       └── settings/     # Staff Registration & Price Configuration
@@ -216,7 +219,13 @@ curl http://localhost:9002/health
 | `POST` | `/api/v1/sacco/milk-collections` | Record farmer milk intake | `milk.collections.create` |
 | `PUT` | `/api/v1/sacco/milk-collections/{id}` | Edit an intake entry (edit rules apply) | `milk.collections.create` |
 | `GET` | `/api/v1/sacco/milk-collections/{id}/history` | Audit history of an intake entry | `milk.collections.read` |
-| `POST` | `/api/v1/sacco/milk-sales` | Record direct field milk sale | `milk.sales.create` |
+| `POST` | `/api/v1/sacco/milk-sales` | Record a milk sale to a customer | `milk.sales.create` |
+| `POST` | `/api/v1/sacco/milk-sales/{id}/void` | Void a sale recorded in error | `milk.sales.manage` |
+| `GET` | `/api/v1/sacco/customers` | Search customers | `customers.read` |
+| `POST` | `/api/v1/sacco/customers` | Add a customer | `customers.create` |
+| `POST` | `/api/v1/sacco/customers/{id}/payments` | Record a customer payment | `customers.payments.manage` |
+| `GET` | `/api/v1/sacco/customers/{id}/statement` | Customer statement (running balance) | `customers.statement.read` |
+| `GET` | `/api/v1/sacco/customers/balances` | Who owes what | `customers.statement.read` |
 | `POST` | `/api/v1/sacco/milk-spoilage` | Log transit milk loss | `milk.spoilage.create` |
 | `POST` | `/api/v1/sacco/milk-prices` | Set active per-litre milk buying price | `sacco.settings.manage` |
 | `GET` | `/api/v1/sacco/reports/farmer-payout` | Farmer payroll payout report statement | `reports.payout.read` |

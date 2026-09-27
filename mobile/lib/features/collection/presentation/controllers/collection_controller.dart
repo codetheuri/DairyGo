@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/models/audit_log_model.dart';
 
 import '../../../../core/network/dio_client.dart';
 import '../../../members/data/models/member_model.dart';
@@ -28,7 +29,7 @@ final activeMilkPriceProvider = FutureProvider<MilkPriceModel>((ref) async {
 
 /// Audit history of one collection, oldest first.
 final collectionHistoryProvider = FutureProvider.autoDispose
-    .family<List<CollectionHistoryEntryModel>, String>((ref, id) async {
+    .family<List<AuditLogModel>, String>((ref, id) async {
   final repository = ref.watch(milkCollectionRepositoryProvider);
   return repository.getCollectionHistory(id);
 });

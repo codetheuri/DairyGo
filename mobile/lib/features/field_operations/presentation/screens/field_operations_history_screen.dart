@@ -10,6 +10,7 @@ import '../../../../core/widgets/status_pill.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../../collection/presentation/controllers/collection_controller.dart';
 import '../controllers/field_ops_controller.dart';
+import '../widgets/sale_detail_sheet.dart';
 
 class FieldOperationsHistoryScreen extends ConsumerStatefulWidget {
   const FieldOperationsHistoryScreen({super.key});
@@ -89,6 +90,11 @@ class _FieldOperationsHistoryScreenState
       appBar: AppBar(
         title: const Text('Field Operations & Sales', style: TextStyle(fontWeight: FontWeight.bold)),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.groups_2_rounded, color: AppColors.primary),
+            tooltip: 'Customers',
+            onPressed: () => context.push(AppRoutes.customers),
+          ),
           IconButton(
             icon: const Icon(Icons.add_shopping_cart_rounded, color: AppColors.primary),
             tooltip: 'Record Sale',
@@ -257,7 +263,12 @@ class _FieldOperationsHistoryScreenState
                           final itemTime = _formatItemTime(item.createdAt);
                           final collectorName = item.collectorName;
 
-                          return Container(
+                          return InkWell(
+                            borderRadius: BorderRadius.circular(12),
+                            onTap: () => SaleDetailSheet.show(context, item),
+                            child: Opacity(
+                            opacity: item.isVoided ? 0.55 : 1,
+                            child: Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
                               color: Colors.white,
@@ -270,7 +281,10 @@ class _FieldOperationsHistoryScreenState
                                   radius: 18,
                                   backgroundColor: AppColors.accentMint,
                                   foregroundColor: AppColors.primary,
-                                  child: const Icon(Icons.storefront_rounded, size: 18),
+                                  child: Icon(
+                                    item.customerType == 'COOLER' ? Icons.ac_unit_rounded : Icons.storefront_rounded,
+                                    size: 18,
+                                  ),
                                 ),
                                 const SizedBox(width: 12),
                                 Expanded(
@@ -279,10 +293,11 @@ class _FieldOperationsHistoryScreenState
                                     children: [
                                       Text(
                                         item.buyerName,
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 14,
                                           color: AppColors.textPrimary,
+                                          decoration: item.isVoided ? TextDecoration.lineThrough : null,
                                         ),
                                       ),
                                       const SizedBox(height: 2),
@@ -316,11 +331,22 @@ class _FieldOperationsHistoryScreenState
                                       ),
                                     ),
                                     const SizedBox(height: 2),
-                                    StatusPill.fromStatusString(item.paymentStatus),
+                                    item.isVoided
+                                        ? const StatusPill(status: 'VOIDED', type: StatusType.error)
+                                        : StatusPill.fromStatusString(item.paymentStatus),
+                                    if (item.amountOnCredit > 0) ...[
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        'Owes ${item.amountOnCredit.toStringAsFixed(2)}',
+                                        style: const TextStyle(fontSize: 10, color: AppColors.warning, fontWeight: FontWeight.w700),
+                                      ),
+                                    ],
                                   ],
                                 ),
                               ],
                             ),
+                          ),
+                          ),
                           );
                         },
                       ),

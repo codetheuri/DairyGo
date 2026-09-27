@@ -29,13 +29,14 @@ func NewService(repo *Repository, smsService *sms.Service, evaluator *authz.Eval
 	return &Service{repo: repo, smsService: smsService, authz: evaluator}
 }
 
-// actorFrom identifies the caller and whether they may manage collections.
-func (s *Service) actorFrom(ctx context.Context) (actor, error) {
+// actorFrom identifies the caller and whether they hold managePerm (e.g.
+// milk.collections.manage), which makes them an admin for edit rules.
+func (s *Service) actorFrom(ctx context.Context, managePerm string) (actor, error) {
 	sub, ok := authz.DefaultSubjectExtractor(ctx)
 	if !ok || sub.UserID == 0 {
 		return actor{}, fmt.Errorf("%w: authenticated user identity is required", ErrForbidden)
 	}
-	canManage, err := s.authz.IsAuthorized(ctx, sub, authz.RequirePermissionPolicy{Permission: PermMilkCollectionsManage})
+	canManage, err := s.authz.IsAuthorized(ctx, sub, authz.RequirePermissionPolicy{Permission: managePerm})
 	if err != nil {
 		return actor{}, err
 	}
@@ -221,7 +222,7 @@ func (s *Service) RecordCollection(ctx context.Context, req *RecordCollectionReq
 // UpdateCollection edits quantity, shift or notes, subject to canEditCollection.
 // Admin edits must give a reason; every edit is recorded in the audit history.
 func (s *Service) UpdateCollection(ctx context.Context, id string, req *UpdateCollectionRequest) (*MilkCollection, error) {
-	a, err := s.actorFrom(ctx)
+	a, err := s.actorFrom(ctx, PermMilkCollectionsManage)
 	if err != nil {
 		return nil, err
 	}
@@ -299,7 +300,7 @@ func (s *Service) ListCollections(ctx context.Context, q query.Query) ([]MilkCol
 // UpdateCollectionStatus verifies, rejects, adjusts or reopens a collection
 // following allowedTransitions, and records the change in the audit history.
 func (s *Service) UpdateCollectionStatus(ctx context.Context, id string, req *UpdateCollectionStatusRequest) (*MilkCollection, error) {
-	a, err := s.actorFrom(ctx)
+	a, err := s.actorFrom(ctx, PermMilkCollectionsManage)
 	if err != nil {
 		return nil, err
 	}
@@ -364,6 +365,35 @@ func trimmedOrNil(s *string) *string {
 
 // --- SALES BUSINESS LOGIC ---
 
+// auditEntitySale is the entity_type used for sale audit entries.
+const auditEntitySale = "milk_sale"
+
+// saleSnapshot is the audited view of a sale's editable values.
+type saleSnapshot struct {
+	CustomerID     string     `json:"customer_id"`
+	BuyerName      string     `json:"buyer_name"`
+	QuantityLitres float64    `json:"quantity_litres"`
+	UnitPrice      float64    `json:"unit_price"`
+	TotalAmount    float64    `json:"total_amount"`
+	AmountPaid     float64    `json:"amount_paid"`
+	PaymentStatus  string     `json:"payment_status"`
+	PaymentMethod  string     `json:"payment_method"`
+	Notes          *string    `json:"notes,omitempty"`
+	VoidedAt       *time.Time `json:"voided_at,omitempty"`
+}
+
+func saleSnapshotOf(s *MilkSale) saleSnapshot {
+	return saleSnapshot{
+		CustomerID: s.CustomerID, BuyerName: s.BuyerName, QuantityLitres: s.QuantityLitres,
+		UnitPrice: s.UnitPrice, TotalAmount: s.TotalAmount, AmountPaid: s.AmountPaid,
+		PaymentStatus: s.PaymentStatus, PaymentMethod: s.PaymentMethod, Notes: s.Notes, VoidedAt: s.VoidedAt,
+	}
+}
+
+// RecordSale records milk sold to an ACTIVE customer of the caller's Sacco.
+// The unit price defaults to the customer's agreed price; what was paid at the
+// time of sale is settled by settleSale, and any remainder goes on the
+// customer's running balance.
 func (s *Service) RecordSale(ctx context.Context, req *RecordSaleRequest) (*MilkSale, error) {
 	saccoID, ok := middleware.GetSaccoID(ctx)
 	if !ok || saccoID == "" {
@@ -378,47 +408,198 @@ func (s *Service) RecordSale(ctx context.Context, req *RecordSaleRequest) (*Milk
 	if req.QuantityLitres <= 0 {
 		return nil, fmt.Errorf("quantity in litres must be greater than zero")
 	}
-	if req.UnitPrice <= 0 {
-		return nil, fmt.Errorf("unit price must be greater than zero")
-	}
 
-	saleDate, err := time.Parse("2006-01-02", req.SaleDate)
+	customer, err := s.repo.FindCustomerForSale(ctx, strings.TrimSpace(req.CustomerID))
 	if err != nil {
-		return nil, fmt.Errorf("invalid sale_date format, expected YYYY-MM-DD")
+		return nil, err
+	}
+	if customer.Status != "ACTIVE" {
+		return nil, fmt.Errorf("customer %s is %s; reactivate them before recording sales", customer.Name, customer.Status)
 	}
 
-	paymentStatus := "PAID"
-	if req.PaymentStatus != nil && *req.PaymentStatus != "" {
-		paymentStatus = strings.ToUpper(*req.PaymentStatus)
+	saleDate := time.Now()
+	if req.SaleDate != nil && strings.TrimSpace(*req.SaleDate) != "" {
+		saleDate, err = time.ParseInLocation(dateLayout, strings.TrimSpace(*req.SaleDate), time.Local)
+		if err != nil {
+			return nil, fmt.Errorf("invalid sale_date format, expected YYYY-MM-DD")
+		}
 	}
 
-	paymentMethod := "CASH"
-	if req.PaymentMethod != nil && *req.PaymentMethod != "" {
-		paymentMethod = strings.ToUpper(*req.PaymentMethod)
+	unitPrice, err := resolveUnitPrice(req.UnitPrice, customer.DefaultPricePerLitre)
+	if err != nil {
+		return nil, err
 	}
 
-	totalAmount := math.Round(req.QuantityLitres*req.UnitPrice*100) / 100
+	quantity := math.Round(req.QuantityLitres*100) / 100
+	total := math.Round(quantity*unitPrice*100) / 100
+
+	method := ""
+	if req.PaymentMethod != nil {
+		method = strings.ToUpper(strings.TrimSpace(*req.PaymentMethod))
+	}
+	paid, status, method, err := settleSale(total, req.AmountPaid, method)
+	if err != nil {
+		return nil, err
+	}
 
 	sale := &MilkSale{
 		ID:             uuid.New().String(),
 		SaccoID:        saccoID,
 		CollectorID:    collectorID,
+		CustomerID:     customer.ID,
+		CustomerType:   customer.CustomerType,
 		SaleDate:       saleDate,
-		BuyerName:      strings.TrimSpace(req.BuyerName),
-		BuyerPhone:     req.BuyerPhone,
-		QuantityLitres: math.Round(req.QuantityLitres*100) / 100,
-		UnitPrice:      math.Round(req.UnitPrice*100) / 100,
-		TotalAmount:    totalAmount,
-		PaymentStatus:  paymentStatus,
-		PaymentMethod:  paymentMethod,
+		BuyerName:      customer.Name,
+		BuyerPhone:     customer.Phone,
+		QuantityLitres: quantity,
+		UnitPrice:      unitPrice,
+		TotalAmount:    total,
+		AmountPaid:     paid,
+		PaymentStatus:  status,
+		PaymentMethod:  method,
 		Notes:          req.Notes,
 	}
 
-	if err := s.repo.CreateSale(ctx, sale); err != nil {
+	entry := audit.Entry{
+		SaccoID: saccoID, EntityType: auditEntitySale, EntityID: sale.ID,
+		Action: audit.ActionCreate, ActorID: collectorID, NewValues: saleSnapshotOf(sale),
+	}
+	if err := s.repo.CreateSale(ctx, sale, entry); err != nil {
 		return nil, fmt.Errorf("failed to record milk sale: %w", err)
 	}
 
 	return sale, nil
+}
+
+// UpdateSale corrects a sale, subject to canEditSale. Admin edits need a reason.
+func (s *Service) UpdateSale(ctx context.Context, id string, req *UpdateSaleRequest) (*MilkSale, error) {
+	a, err := s.actorFrom(ctx, PermMilkSalesManage)
+	if err != nil {
+		return nil, err
+	}
+	sale, err := s.repo.FindSaleByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if err := canEditSale(a, sale, time.Now().Format(dateLayout)); err != nil {
+		return nil, err
+	}
+	reason := trimmedOrNil(req.Reason)
+	if a.canManage && reason == nil {
+		return nil, fmt.Errorf("a reason is required when an admin edits a sale")
+	}
+
+	before := saleSnapshotOf(sale)
+
+	if req.CustomerID != nil && strings.TrimSpace(*req.CustomerID) != sale.CustomerID {
+		customer, err := s.repo.FindCustomerForSale(ctx, strings.TrimSpace(*req.CustomerID))
+		if err != nil {
+			return nil, err
+		}
+		if customer.Status != "ACTIVE" {
+			return nil, fmt.Errorf("customer %s is %s", customer.Name, customer.Status)
+		}
+		sale.CustomerID, sale.BuyerName, sale.BuyerPhone = customer.ID, customer.Name, customer.Phone
+	}
+	if req.QuantityLitres != nil {
+		if *req.QuantityLitres <= 0 {
+			return nil, fmt.Errorf("quantity in litres must be greater than zero")
+		}
+		sale.QuantityLitres = math.Round(*req.QuantityLitres*100) / 100
+	}
+	if req.UnitPrice != nil {
+		if *req.UnitPrice <= 0 {
+			return nil, fmt.Errorf("unit price must be greater than zero")
+		}
+		sale.UnitPrice = math.Round(*req.UnitPrice*100) / 100
+	}
+	if req.Notes != nil {
+		sale.Notes = req.Notes
+	}
+	sale.TotalAmount = math.Round(sale.QuantityLitres*sale.UnitPrice*100) / 100
+
+	// Re-settle: keep the previous amount paid unless a new one is given, and
+	// keep the previous method unless a new one is given.
+	amountPaid := sale.AmountPaid
+	if req.AmountPaid != nil {
+		amountPaid = *req.AmountPaid
+	}
+	method := sale.PaymentMethod
+	if req.PaymentMethod != nil && *req.PaymentMethod != "" {
+		method = strings.ToUpper(*req.PaymentMethod)
+	}
+	if amountPaid > 0 && method == "CREDIT" && req.PaymentMethod == nil {
+		method = "CASH"
+	}
+	paid, status, method, err := settleSale(sale.TotalAmount, &amountPaid, method)
+	if err != nil {
+		return nil, err
+	}
+	sale.AmountPaid, sale.PaymentStatus, sale.PaymentMethod = paid, status, method
+
+	entry := audit.Entry{
+		SaccoID: sale.SaccoID, EntityType: auditEntitySale, EntityID: sale.ID,
+		Action: audit.ActionUpdate, ActorID: a.userID, Reason: reason,
+		OldValues: before, NewValues: saleSnapshotOf(sale),
+	}
+	if err := s.repo.UpdateSale(ctx, sale, entry); err != nil {
+		return nil, fmt.Errorf("failed to update sale: %w", err)
+	}
+	return sale, nil
+}
+
+// VoidSale cancels a sale recorded in error. The sale stays on record for the
+// audit trail but no longer counts in reconciliation or the customer's balance.
+func (s *Service) VoidSale(ctx context.Context, id string, reason string) (*MilkSale, error) {
+	reasonPtr := trimmedOrNil(&reason)
+	if reasonPtr == nil {
+		return nil, fmt.Errorf("a reason is required to void a sale")
+	}
+	sale, err := s.repo.FindSaleByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if sale.VoidedAt != nil {
+		return nil, fmt.Errorf("%w: sale is already voided", ErrLocked)
+	}
+
+	before := saleSnapshotOf(sale)
+	now := time.Now()
+	sale.VoidedAt = &now
+	sale.VoidReason = reasonPtr
+
+	entry := audit.Entry{
+		SaccoID: sale.SaccoID, EntityType: auditEntitySale, EntityID: sale.ID,
+		Action: audit.ActionVoid, ActorID: middleware.GetUserID(ctx), Reason: reasonPtr,
+		OldValues: before, NewValues: saleSnapshotOf(sale),
+	}
+	if err := s.repo.UpdateSale(ctx, sale, entry); err != nil {
+		return nil, fmt.Errorf("failed to void sale: %w", err)
+	}
+	return sale, nil
+}
+
+// SaleHistory returns who created and changed a sale, oldest first.
+func (s *Service) SaleHistory(ctx context.Context, id string) ([]audit.Log, error) {
+	sale, err := s.repo.FindSaleByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return s.repo.SaleHistory(ctx, sale)
+}
+
+// resolveUnitPrice uses the requested price, or the customer's agreed price.
+func resolveUnitPrice(requested, customerDefault *float64) (float64, error) {
+	switch {
+	case requested != nil && *requested > 0:
+		return math.Round(*requested*100) / 100, nil
+	case requested != nil:
+		return 0, fmt.Errorf("unit price must be greater than zero")
+	case customerDefault != nil && *customerDefault > 0:
+		return *customerDefault, nil
+	default:
+		return 0, fmt.Errorf("unit_price is required: this customer has no agreed price per litre")
+	}
 }
 
 func (s *Service) ListSales(ctx context.Context, q query.Query) ([]MilkSale, query.Meta, error) {

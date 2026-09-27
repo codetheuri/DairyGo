@@ -79,3 +79,91 @@ func TestValidateStatusTransition(t *testing.T) {
 		})
 	}
 }
+
+func TestSettleSale(t *testing.T) {
+	f := func(v float64) *float64 { return &v }
+	tests := []struct {
+		name       string
+		total      float64
+		amountPaid *float64
+		method     string
+		wantPaid   float64
+		wantStatus string
+		wantMethod string
+		wantErr    bool
+	}{
+		{"default is paid in full cash", 1000, nil, "", 1000, SalePaid, "CASH", false},
+		{"mpesa in full", 1000, nil, "MPESA", 1000, SalePaid, "MPESA", false},
+		{"credit defaults to nothing paid", 1000, nil, "CREDIT", 0, SaleCredit, "CREDIT", false},
+		{"zero paid becomes credit", 1000, f(0), "CASH", 0, SaleCredit, "CREDIT", false},
+		{"partial payment", 1000, f(400), "MPESA", 400, SalePartial, "MPESA", false},
+		{"exact payment", 1000, f(1000), "CASH", 1000, SalePaid, "CASH", false},
+		{"overpayment rejected", 1000, f(1200), "CASH", 0, "", "", true},
+		{"negative rejected", 1000, f(-1), "CASH", 0, "", "", true},
+		{"paid with credit method rejected", 1000, f(300), "CREDIT", 0, "", "", true},
+		{"unknown method rejected", 1000, nil, "BARTER", 0, "", "", true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			paid, status, method, err := settleSale(tt.total, tt.amountPaid, tt.method)
+			if tt.wantErr {
+				if err == nil {
+					t.Fatalf("expected error, got paid=%v status=%v", paid, status)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if paid != tt.wantPaid || status != tt.wantStatus || method != tt.wantMethod {
+				t.Fatalf("got (%v, %s, %s), want (%v, %s, %s)", paid, status, method, tt.wantPaid, tt.wantStatus, tt.wantMethod)
+			}
+		})
+	}
+}
+
+func TestCanEditSale(t *testing.T) {
+	now := time.Now()
+	today := now.Format(dateLayout)
+	voided := now
+
+	tests := []struct {
+		name    string
+		actor   actor
+		sale    *MilkSale
+		wantErr error
+	}{
+		{"collector edits own same-day sale", actor{userID: 7}, &MilkSale{CollectorID: 7, CreatedAt: now}, nil},
+		{"collector cannot edit yesterday's sale", actor{userID: 7}, &MilkSale{CollectorID: 7, CreatedAt: now.AddDate(0, 0, -1)}, ErrLocked},
+		{"collector cannot edit another's sale", actor{userID: 8}, &MilkSale{CollectorID: 7, CreatedAt: now}, ErrForbidden},
+		{"admin edits old sale", actor{userID: 1, canManage: true}, &MilkSale{CollectorID: 7, CreatedAt: now.AddDate(0, 0, -9)}, nil},
+		{"nobody edits voided sale", actor{userID: 1, canManage: true}, &MilkSale{CollectorID: 7, CreatedAt: now, VoidedAt: &voided}, ErrLocked},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := canEditSale(tt.actor, tt.sale, today)
+			if tt.wantErr == nil && err != nil {
+				t.Fatalf("expected no error, got %v", err)
+			}
+			if tt.wantErr != nil && !errors.Is(err, tt.wantErr) {
+				t.Fatalf("expected %v, got %v", tt.wantErr, err)
+			}
+		})
+	}
+}
+
+func TestResolveUnitPrice(t *testing.T) {
+	f := func(v float64) *float64 { return &v }
+	if p, err := resolveUnitPrice(f(55.555), f(50)); err != nil || p != 55.56 {
+		t.Fatalf("requested price should win and round: %v %v", p, err)
+	}
+	if p, err := resolveUnitPrice(nil, f(50)); err != nil || p != 50 {
+		t.Fatalf("customer default expected: %v %v", p, err)
+	}
+	if _, err := resolveUnitPrice(nil, nil); err == nil {
+		t.Fatal("expected error when no price is available")
+	}
+	if _, err := resolveUnitPrice(f(0), f(50)); err == nil {
+		t.Fatal("expected error for zero requested price")
+	}
+}

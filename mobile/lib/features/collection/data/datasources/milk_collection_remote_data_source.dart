@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import '../../../../core/models/audit_log_model.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../models/milk_collection_model.dart';
 
@@ -16,7 +17,7 @@ abstract class MilkCollectionRemoteDataSource {
   });
   Future<MilkCollectionModel> recordCollection(RecordCollectionRequestModel request);
   Future<MilkCollectionModel> updateCollection(String id, UpdateCollectionRequestModel request);
-  Future<List<CollectionHistoryEntryModel>> getCollectionHistory(String id);
+  Future<List<AuditLogModel>> getCollectionHistory(String id);
 }
 
 class MilkCollectionRemoteDataSourceImpl implements MilkCollectionRemoteDataSource {
@@ -153,14 +154,14 @@ class MilkCollectionRemoteDataSourceImpl implements MilkCollectionRemoteDataSour
   }
 
   @override
-  Future<List<CollectionHistoryEntryModel>> getCollectionHistory(String id) async {
+  Future<List<AuditLogModel>> getCollectionHistory(String id) async {
     try {
       final response = await _dio.get('${ApiConstants.collections}/$id/history');
       final data = response.data as Map<String, dynamic>;
       if (data['success'] == true && data['data'] != null) {
         final list = (data['data']['history'] as List<dynamic>? ?? const []);
         return list
-            .map((e) => CollectionHistoryEntryModel.fromJson(e as Map<String, dynamic>))
+            .map((e) => AuditLogModel.fromJson(e as Map<String, dynamic>))
             .toList();
       }
       throw Exception(data['message'] ?? 'Failed to load entry history');

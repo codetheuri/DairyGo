@@ -225,8 +225,56 @@ func (r *Repository) UpdateCollectionStatus(ctx context.Context, id string, stat
 
 // --- SALES REPOSITORY METHODS ---
 
-func (r *Repository) CreateSale(ctx context.Context, s *MilkSale) error {
-	return r.db.WithContext(ctx).Create(s).Error
+// saleCustomer is the subset of a customer record needed to record a sale.
+type saleCustomer struct {
+	ID                   string
+	Name                 string
+	Phone                *string
+	CustomerType         string
+	Status               string
+	DefaultPricePerLitre *float64
+}
+
+// FindCustomerForSale loads a customer from the caller's Sacco.
+func (r *Repository) FindCustomerForSale(ctx context.Context, customerID string) (*saleCustomer, error) {
+	var c saleCustomer
+	err := r.db.WithContext(ctx).Table("customers").
+		Scopes(query.TenantScope(ctx)).
+		Select("id, name, phone, customer_type, status, default_price_per_litre").
+		Where("id = ? AND deleted_at IS NULL", customerID).
+		Take(&c).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("%w: customer not found in this Sacco", ErrNotFound)
+		}
+		return nil, err
+	}
+	return &c, nil
+}
+
+// CreateSale saves a sale and its audit entry atomically.
+func (r *Repository) CreateSale(ctx context.Context, s *MilkSale, entry audit.Entry) error {
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(s).Error; err != nil {
+			return err
+		}
+		return audit.Record(tx, entry)
+	})
+}
+
+// UpdateSale saves an edited or voided sale and its audit entry atomically.
+func (r *Repository) UpdateSale(ctx context.Context, s *MilkSale, entry audit.Entry) error {
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Scopes(query.TenantScope(ctx)).Save(s).Error; err != nil {
+			return err
+		}
+		return audit.Record(tx, entry)
+	})
+}
+
+// SaleHistory returns the audit trail of one sale, oldest first.
+func (r *Repository) SaleHistory(ctx context.Context, s *MilkSale) ([]audit.Log, error) {
+	return audit.List(ctx, r.db, s.SaccoID, auditEntitySale, s.ID)
 }
 
 func (r *Repository) FindSaleByID(ctx context.Context, id string) (*MilkSale, error) {
@@ -234,7 +282,7 @@ func (r *Repository) FindSaleByID(ctx context.Context, id string) (*MilkSale, er
 	err := r.db.WithContext(ctx).Scopes(query.TenantScope(ctx)).Where("id = ?", id).First(&s).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, fmt.Errorf("milk sale record not found")
+			return nil, fmt.Errorf("%w: milk sale record not found", ErrNotFound)
 		}
 		return nil, err
 	}
@@ -255,6 +303,7 @@ func (r *Repository) ListSales(ctx context.Context, q query.Query) ([]MilkSale, 
 		AllowedSearches: []string{"milk_sales.buyer_name", "milk_sales.buyer_phone", "milk_sales.notes"},
 		AllowedFilters: map[string]string{
 			"collector_id":   "milk_sales.collector_id",
+			"customer_id":    "milk_sales.customer_id",
 			"payment_status": "milk_sales.payment_status",
 			"payment_method": "milk_sales.payment_method",
 			"sale_date":      "milk_sales.sale_date",
@@ -282,12 +331,33 @@ func (r *Repository) ListSales(ctx context.Context, q query.Query) ([]MilkSale, 
 			ids = append(ids, s.CollectorID)
 		}
 		namesMap := r.populateCollectorNames(ctx, ids)
+		customerIDs := make([]string, 0, len(sales))
+		for _, s := range sales {
+			customerIDs = append(customerIDs, s.CustomerID)
+		}
+		typesMap := r.customerTypes(ctx, customerIDs)
 		for i := range sales {
 			sales[i].CollectorName = namesMap[sales[i].CollectorID]
+			sales[i].CustomerType = typesMap[sales[i].CustomerID]
 		}
 	}
 
 	return sales, meta, nil
+}
+
+// customerTypes maps customer IDs to their type, for labelling sales in lists.
+func (r *Repository) customerTypes(ctx context.Context, ids []string) map[string]string {
+	types := make(map[string]string, len(ids))
+	var rows []struct {
+		ID           string
+		CustomerType string
+	}
+	if err := r.db.WithContext(ctx).Table("customers").Select("id, customer_type").Where("id IN ?", ids).Scan(&rows).Error; err == nil {
+		for _, row := range rows {
+			types[row.ID] = row.CustomerType
+		}
+	}
+	return types
 }
 
 // --- SPOILAGE REPOSITORY METHODS ---
@@ -372,7 +442,7 @@ func (r *Repository) GetCollectorReconciliation(ctx context.Context, collectorID
 	}
 	err = r.db.WithContext(ctx).Model(&MilkSale{}).
 		Scopes(query.TenantScope(ctx)).
-		Where("collector_id = ? AND DATE(sale_date) = ?", collectorID, dateStr).
+		Where("collector_id = ? AND DATE(sale_date) = ? AND voided_at IS NULL", collectorID, dateStr).
 		Select("COALESCE(SUM(quantity_litres), 0) as total_litres, COALESCE(SUM(total_amount), 0) as total_amount").
 		Scan(&salesResult).Error
 	if err != nil {

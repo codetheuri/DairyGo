@@ -17,6 +17,7 @@ import (
 	"github.com/codetheuri/tusk/config"
 	"github.com/codetheuri/tusk/internal/auth"
 	"github.com/codetheuri/tusk/internal/collection"
+	"github.com/codetheuri/tusk/internal/customer"
 	"github.com/codetheuri/tusk/internal/dashboard"
 	"github.com/codetheuri/tusk/internal/member"
 	"github.com/codetheuri/tusk/internal/middleware"
@@ -89,6 +90,7 @@ func New(cfg *config.Config, log logger.Logger) (*App, error) {
 		{Name: "Milk Collections", Description: "Farmer milk intake recording and status verification"},
 		{Name: "Milk Sales", Description: "Direct field sales to hotels, processors, or local buyers"},
 		{Name: "Milk Spoilage", Description: "Milk loss, acidity testing failure, and transport damage logging"},
+		{Name: "Customers & Ledger", Description: "Milk buyers (coolers, processors, hotels, shops, individuals), customer payments, statements and outstanding balances"},
 		{Name: "Collector Reconciliation", Description: "Collector daily intake, sales, spoilage, and net delivery overview"},
 		{Name: "Reports & Reconciliation", Description: "Farmer payroll statements, Sacco balancing ledgers, and collector audit reports"},
 		{Name: "Executive & Mobile Dashboards", Description: "Sacco summary cards, trend time series charts, and collector field shift metrics"},
@@ -153,6 +155,7 @@ func New(cfg *config.Config, log logger.Logger) (*App, error) {
 				"Milk Collections",
 				"Milk Sales",
 				"Milk Spoilage",
+				"Customers & Ledger",
 				"Collector Reconciliation",
 				"Reports & Reconciliation",
 			},
@@ -179,6 +182,7 @@ func New(cfg *config.Config, log logger.Logger) (*App, error) {
 	sacco.RegisterRoutes(api, db, cfg, log)
 	member.RegisterRoutes(api, db, cfg, log)
 	collection.RegisterRoutes(api, db, cfg, log)
+	customer.RegisterRoutes(api, db, cfg, log)
 	report.RegisterRoutes(api, db, cfg, log)
 	dashboard.RegisterRoutes(api, db, cfg, log)
 	notification.RegisterRoutes(api, db, cfg, log)

@@ -26,6 +26,10 @@ mixin _$MilkSaleModel {
   String get saccoId => throw _privateConstructorUsedError;
   @JsonKey(name: 'collector_id')
   int get collectorId => throw _privateConstructorUsedError;
+  @JsonKey(name: 'customer_id')
+  String get customerId => throw _privateConstructorUsedError;
+  @JsonKey(name: 'customer_type')
+  String? get customerType => throw _privateConstructorUsedError;
   @JsonKey(name: 'sale_date')
   String get saleDate => throw _privateConstructorUsedError;
   @JsonKey(name: 'buyer_name')
@@ -38,10 +42,16 @@ mixin _$MilkSaleModel {
   double get unitPrice => throw _privateConstructorUsedError;
   @JsonKey(name: 'total_amount')
   double get totalAmount => throw _privateConstructorUsedError;
+  @JsonKey(name: 'amount_paid')
+  double get amountPaid => throw _privateConstructorUsedError;
   @JsonKey(name: 'payment_status')
   String get paymentStatus => throw _privateConstructorUsedError;
   @JsonKey(name: 'payment_method')
   String get paymentMethod => throw _privateConstructorUsedError;
+  @JsonKey(name: 'voided_at')
+  String? get voidedAt => throw _privateConstructorUsedError;
+  @JsonKey(name: 'void_reason')
+  String? get voidReason => throw _privateConstructorUsedError;
   String? get notes => throw _privateConstructorUsedError;
   @JsonKey(name: 'created_at')
   String? get createdAt => throw _privateConstructorUsedError;
@@ -69,14 +79,19 @@ abstract class $MilkSaleModelCopyWith<$Res> {
     String id,
     @JsonKey(name: 'sacco_id') String saccoId,
     @JsonKey(name: 'collector_id') int collectorId,
+    @JsonKey(name: 'customer_id') String customerId,
+    @JsonKey(name: 'customer_type') String? customerType,
     @JsonKey(name: 'sale_date') String saleDate,
     @JsonKey(name: 'buyer_name') String buyerName,
     @JsonKey(name: 'buyer_phone') String? buyerPhone,
     @JsonKey(name: 'quantity_litres') double quantityLitres,
     @JsonKey(name: 'unit_price') double unitPrice,
     @JsonKey(name: 'total_amount') double totalAmount,
+    @JsonKey(name: 'amount_paid') double amountPaid,
     @JsonKey(name: 'payment_status') String paymentStatus,
     @JsonKey(name: 'payment_method') String paymentMethod,
+    @JsonKey(name: 'voided_at') String? voidedAt,
+    @JsonKey(name: 'void_reason') String? voidReason,
     String? notes,
     @JsonKey(name: 'created_at') String? createdAt,
     @JsonKey(name: 'collector_name') String? collectorName,
@@ -101,14 +116,19 @@ class _$MilkSaleModelCopyWithImpl<$Res, $Val extends MilkSaleModel>
     Object? id = null,
     Object? saccoId = null,
     Object? collectorId = null,
+    Object? customerId = null,
+    Object? customerType = freezed,
     Object? saleDate = null,
     Object? buyerName = null,
     Object? buyerPhone = freezed,
     Object? quantityLitres = null,
     Object? unitPrice = null,
     Object? totalAmount = null,
+    Object? amountPaid = null,
     Object? paymentStatus = null,
     Object? paymentMethod = null,
+    Object? voidedAt = freezed,
+    Object? voidReason = freezed,
     Object? notes = freezed,
     Object? createdAt = freezed,
     Object? collectorName = freezed,
@@ -127,6 +147,14 @@ class _$MilkSaleModelCopyWithImpl<$Res, $Val extends MilkSaleModel>
                 ? _value.collectorId
                 : collectorId // ignore: cast_nullable_to_non_nullable
                       as int,
+            customerId: null == customerId
+                ? _value.customerId
+                : customerId // ignore: cast_nullable_to_non_nullable
+                      as String,
+            customerType: freezed == customerType
+                ? _value.customerType
+                : customerType // ignore: cast_nullable_to_non_nullable
+                      as String?,
             saleDate: null == saleDate
                 ? _value.saleDate
                 : saleDate // ignore: cast_nullable_to_non_nullable
@@ -151,6 +179,10 @@ class _$MilkSaleModelCopyWithImpl<$Res, $Val extends MilkSaleModel>
                 ? _value.totalAmount
                 : totalAmount // ignore: cast_nullable_to_non_nullable
                       as double,
+            amountPaid: null == amountPaid
+                ? _value.amountPaid
+                : amountPaid // ignore: cast_nullable_to_non_nullable
+                      as double,
             paymentStatus: null == paymentStatus
                 ? _value.paymentStatus
                 : paymentStatus // ignore: cast_nullable_to_non_nullable
@@ -159,6 +191,14 @@ class _$MilkSaleModelCopyWithImpl<$Res, $Val extends MilkSaleModel>
                 ? _value.paymentMethod
                 : paymentMethod // ignore: cast_nullable_to_non_nullable
                       as String,
+            voidedAt: freezed == voidedAt
+                ? _value.voidedAt
+                : voidedAt // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            voidReason: freezed == voidReason
+                ? _value.voidReason
+                : voidReason // ignore: cast_nullable_to_non_nullable
+                      as String?,
             notes: freezed == notes
                 ? _value.notes
                 : notes // ignore: cast_nullable_to_non_nullable
@@ -190,14 +230,19 @@ abstract class _$$MilkSaleModelImplCopyWith<$Res>
     String id,
     @JsonKey(name: 'sacco_id') String saccoId,
     @JsonKey(name: 'collector_id') int collectorId,
+    @JsonKey(name: 'customer_id') String customerId,
+    @JsonKey(name: 'customer_type') String? customerType,
     @JsonKey(name: 'sale_date') String saleDate,
     @JsonKey(name: 'buyer_name') String buyerName,
     @JsonKey(name: 'buyer_phone') String? buyerPhone,
     @JsonKey(name: 'quantity_litres') double quantityLitres,
     @JsonKey(name: 'unit_price') double unitPrice,
     @JsonKey(name: 'total_amount') double totalAmount,
+    @JsonKey(name: 'amount_paid') double amountPaid,
     @JsonKey(name: 'payment_status') String paymentStatus,
     @JsonKey(name: 'payment_method') String paymentMethod,
+    @JsonKey(name: 'voided_at') String? voidedAt,
+    @JsonKey(name: 'void_reason') String? voidReason,
     String? notes,
     @JsonKey(name: 'created_at') String? createdAt,
     @JsonKey(name: 'collector_name') String? collectorName,
@@ -221,14 +266,19 @@ class __$$MilkSaleModelImplCopyWithImpl<$Res>
     Object? id = null,
     Object? saccoId = null,
     Object? collectorId = null,
+    Object? customerId = null,
+    Object? customerType = freezed,
     Object? saleDate = null,
     Object? buyerName = null,
     Object? buyerPhone = freezed,
     Object? quantityLitres = null,
     Object? unitPrice = null,
     Object? totalAmount = null,
+    Object? amountPaid = null,
     Object? paymentStatus = null,
     Object? paymentMethod = null,
+    Object? voidedAt = freezed,
+    Object? voidReason = freezed,
     Object? notes = freezed,
     Object? createdAt = freezed,
     Object? collectorName = freezed,
@@ -247,6 +297,14 @@ class __$$MilkSaleModelImplCopyWithImpl<$Res>
             ? _value.collectorId
             : collectorId // ignore: cast_nullable_to_non_nullable
                   as int,
+        customerId: null == customerId
+            ? _value.customerId
+            : customerId // ignore: cast_nullable_to_non_nullable
+                  as String,
+        customerType: freezed == customerType
+            ? _value.customerType
+            : customerType // ignore: cast_nullable_to_non_nullable
+                  as String?,
         saleDate: null == saleDate
             ? _value.saleDate
             : saleDate // ignore: cast_nullable_to_non_nullable
@@ -271,6 +329,10 @@ class __$$MilkSaleModelImplCopyWithImpl<$Res>
             ? _value.totalAmount
             : totalAmount // ignore: cast_nullable_to_non_nullable
                   as double,
+        amountPaid: null == amountPaid
+            ? _value.amountPaid
+            : amountPaid // ignore: cast_nullable_to_non_nullable
+                  as double,
         paymentStatus: null == paymentStatus
             ? _value.paymentStatus
             : paymentStatus // ignore: cast_nullable_to_non_nullable
@@ -279,6 +341,14 @@ class __$$MilkSaleModelImplCopyWithImpl<$Res>
             ? _value.paymentMethod
             : paymentMethod // ignore: cast_nullable_to_non_nullable
                   as String,
+        voidedAt: freezed == voidedAt
+            ? _value.voidedAt
+            : voidedAt // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        voidReason: freezed == voidReason
+            ? _value.voidReason
+            : voidReason // ignore: cast_nullable_to_non_nullable
+                  as String?,
         notes: freezed == notes
             ? _value.notes
             : notes // ignore: cast_nullable_to_non_nullable
@@ -298,23 +368,28 @@ class __$$MilkSaleModelImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$MilkSaleModelImpl implements _MilkSaleModel {
+class _$MilkSaleModelImpl extends _MilkSaleModel {
   const _$MilkSaleModelImpl({
     required this.id,
     @JsonKey(name: 'sacco_id') this.saccoId = '',
     @JsonKey(name: 'collector_id') this.collectorId = 0,
+    @JsonKey(name: 'customer_id') this.customerId = '',
+    @JsonKey(name: 'customer_type') this.customerType,
     @JsonKey(name: 'sale_date') required this.saleDate,
     @JsonKey(name: 'buyer_name') required this.buyerName,
     @JsonKey(name: 'buyer_phone') this.buyerPhone,
     @JsonKey(name: 'quantity_litres') this.quantityLitres = 0.0,
     @JsonKey(name: 'unit_price') this.unitPrice = 0.0,
     @JsonKey(name: 'total_amount') this.totalAmount = 0.0,
+    @JsonKey(name: 'amount_paid') this.amountPaid = 0.0,
     @JsonKey(name: 'payment_status') this.paymentStatus = 'PAID',
     @JsonKey(name: 'payment_method') this.paymentMethod = 'CASH',
+    @JsonKey(name: 'voided_at') this.voidedAt,
+    @JsonKey(name: 'void_reason') this.voidReason,
     this.notes,
     @JsonKey(name: 'created_at') this.createdAt,
     @JsonKey(name: 'collector_name') this.collectorName,
-  });
+  }) : super._();
 
   factory _$MilkSaleModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$MilkSaleModelImplFromJson(json);
@@ -327,6 +402,12 @@ class _$MilkSaleModelImpl implements _MilkSaleModel {
   @override
   @JsonKey(name: 'collector_id')
   final int collectorId;
+  @override
+  @JsonKey(name: 'customer_id')
+  final String customerId;
+  @override
+  @JsonKey(name: 'customer_type')
+  final String? customerType;
   @override
   @JsonKey(name: 'sale_date')
   final String saleDate;
@@ -346,11 +427,20 @@ class _$MilkSaleModelImpl implements _MilkSaleModel {
   @JsonKey(name: 'total_amount')
   final double totalAmount;
   @override
+  @JsonKey(name: 'amount_paid')
+  final double amountPaid;
+  @override
   @JsonKey(name: 'payment_status')
   final String paymentStatus;
   @override
   @JsonKey(name: 'payment_method')
   final String paymentMethod;
+  @override
+  @JsonKey(name: 'voided_at')
+  final String? voidedAt;
+  @override
+  @JsonKey(name: 'void_reason')
+  final String? voidReason;
   @override
   final String? notes;
   @override
@@ -362,7 +452,7 @@ class _$MilkSaleModelImpl implements _MilkSaleModel {
 
   @override
   String toString() {
-    return 'MilkSaleModel(id: $id, saccoId: $saccoId, collectorId: $collectorId, saleDate: $saleDate, buyerName: $buyerName, buyerPhone: $buyerPhone, quantityLitres: $quantityLitres, unitPrice: $unitPrice, totalAmount: $totalAmount, paymentStatus: $paymentStatus, paymentMethod: $paymentMethod, notes: $notes, createdAt: $createdAt, collectorName: $collectorName)';
+    return 'MilkSaleModel(id: $id, saccoId: $saccoId, collectorId: $collectorId, customerId: $customerId, customerType: $customerType, saleDate: $saleDate, buyerName: $buyerName, buyerPhone: $buyerPhone, quantityLitres: $quantityLitres, unitPrice: $unitPrice, totalAmount: $totalAmount, amountPaid: $amountPaid, paymentStatus: $paymentStatus, paymentMethod: $paymentMethod, voidedAt: $voidedAt, voidReason: $voidReason, notes: $notes, createdAt: $createdAt, collectorName: $collectorName)';
   }
 
   @override
@@ -374,6 +464,10 @@ class _$MilkSaleModelImpl implements _MilkSaleModel {
             (identical(other.saccoId, saccoId) || other.saccoId == saccoId) &&
             (identical(other.collectorId, collectorId) ||
                 other.collectorId == collectorId) &&
+            (identical(other.customerId, customerId) ||
+                other.customerId == customerId) &&
+            (identical(other.customerType, customerType) ||
+                other.customerType == customerType) &&
             (identical(other.saleDate, saleDate) ||
                 other.saleDate == saleDate) &&
             (identical(other.buyerName, buyerName) ||
@@ -386,10 +480,16 @@ class _$MilkSaleModelImpl implements _MilkSaleModel {
                 other.unitPrice == unitPrice) &&
             (identical(other.totalAmount, totalAmount) ||
                 other.totalAmount == totalAmount) &&
+            (identical(other.amountPaid, amountPaid) ||
+                other.amountPaid == amountPaid) &&
             (identical(other.paymentStatus, paymentStatus) ||
                 other.paymentStatus == paymentStatus) &&
             (identical(other.paymentMethod, paymentMethod) ||
                 other.paymentMethod == paymentMethod) &&
+            (identical(other.voidedAt, voidedAt) ||
+                other.voidedAt == voidedAt) &&
+            (identical(other.voidReason, voidReason) ||
+                other.voidReason == voidReason) &&
             (identical(other.notes, notes) || other.notes == notes) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
@@ -399,23 +499,28 @@ class _$MilkSaleModelImpl implements _MilkSaleModel {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     runtimeType,
     id,
     saccoId,
     collectorId,
+    customerId,
+    customerType,
     saleDate,
     buyerName,
     buyerPhone,
     quantityLitres,
     unitPrice,
     totalAmount,
+    amountPaid,
     paymentStatus,
     paymentMethod,
+    voidedAt,
+    voidReason,
     notes,
     createdAt,
     collectorName,
-  );
+  ]);
 
   /// Create a copy of MilkSaleModel
   /// with the given fields replaced by the non-null parameter values.
@@ -431,23 +536,29 @@ class _$MilkSaleModelImpl implements _MilkSaleModel {
   }
 }
 
-abstract class _MilkSaleModel implements MilkSaleModel {
+abstract class _MilkSaleModel extends MilkSaleModel {
   const factory _MilkSaleModel({
     required final String id,
     @JsonKey(name: 'sacco_id') final String saccoId,
     @JsonKey(name: 'collector_id') final int collectorId,
+    @JsonKey(name: 'customer_id') final String customerId,
+    @JsonKey(name: 'customer_type') final String? customerType,
     @JsonKey(name: 'sale_date') required final String saleDate,
     @JsonKey(name: 'buyer_name') required final String buyerName,
     @JsonKey(name: 'buyer_phone') final String? buyerPhone,
     @JsonKey(name: 'quantity_litres') final double quantityLitres,
     @JsonKey(name: 'unit_price') final double unitPrice,
     @JsonKey(name: 'total_amount') final double totalAmount,
+    @JsonKey(name: 'amount_paid') final double amountPaid,
     @JsonKey(name: 'payment_status') final String paymentStatus,
     @JsonKey(name: 'payment_method') final String paymentMethod,
+    @JsonKey(name: 'voided_at') final String? voidedAt,
+    @JsonKey(name: 'void_reason') final String? voidReason,
     final String? notes,
     @JsonKey(name: 'created_at') final String? createdAt,
     @JsonKey(name: 'collector_name') final String? collectorName,
   }) = _$MilkSaleModelImpl;
+  const _MilkSaleModel._() : super._();
 
   factory _MilkSaleModel.fromJson(Map<String, dynamic> json) =
       _$MilkSaleModelImpl.fromJson;
@@ -460,6 +571,12 @@ abstract class _MilkSaleModel implements MilkSaleModel {
   @override
   @JsonKey(name: 'collector_id')
   int get collectorId;
+  @override
+  @JsonKey(name: 'customer_id')
+  String get customerId;
+  @override
+  @JsonKey(name: 'customer_type')
+  String? get customerType;
   @override
   @JsonKey(name: 'sale_date')
   String get saleDate;
@@ -479,11 +596,20 @@ abstract class _MilkSaleModel implements MilkSaleModel {
   @JsonKey(name: 'total_amount')
   double get totalAmount;
   @override
+  @JsonKey(name: 'amount_paid')
+  double get amountPaid;
+  @override
   @JsonKey(name: 'payment_status')
   String get paymentStatus;
   @override
   @JsonKey(name: 'payment_method')
   String get paymentMethod;
+  @override
+  @JsonKey(name: 'voided_at')
+  String? get voidedAt;
+  @override
+  @JsonKey(name: 'void_reason')
+  String? get voidReason;
   @override
   String? get notes;
   @override
@@ -509,18 +635,16 @@ RecordSaleRequestModel _$RecordSaleRequestModelFromJson(
 
 /// @nodoc
 mixin _$RecordSaleRequestModel {
+  @JsonKey(name: 'customer_id')
+  String get customerId => throw _privateConstructorUsedError;
   @JsonKey(name: 'sale_date')
-  String get saleDate => throw _privateConstructorUsedError;
-  @JsonKey(name: 'buyer_name')
-  String get buyerName => throw _privateConstructorUsedError;
-  @JsonKey(name: 'buyer_phone')
-  String? get buyerPhone => throw _privateConstructorUsedError;
+  String? get saleDate => throw _privateConstructorUsedError;
   @JsonKey(name: 'quantity_litres')
   double get quantityLitres => throw _privateConstructorUsedError;
   @JsonKey(name: 'unit_price')
   double get unitPrice => throw _privateConstructorUsedError;
-  @JsonKey(name: 'payment_status')
-  String get paymentStatus => throw _privateConstructorUsedError;
+  @JsonKey(name: 'amount_paid')
+  double get amountPaid => throw _privateConstructorUsedError;
   @JsonKey(name: 'payment_method')
   String get paymentMethod => throw _privateConstructorUsedError;
   String? get notes => throw _privateConstructorUsedError;
@@ -543,12 +667,11 @@ abstract class $RecordSaleRequestModelCopyWith<$Res> {
   ) = _$RecordSaleRequestModelCopyWithImpl<$Res, RecordSaleRequestModel>;
   @useResult
   $Res call({
-    @JsonKey(name: 'sale_date') String saleDate,
-    @JsonKey(name: 'buyer_name') String buyerName,
-    @JsonKey(name: 'buyer_phone') String? buyerPhone,
+    @JsonKey(name: 'customer_id') String customerId,
+    @JsonKey(name: 'sale_date') String? saleDate,
     @JsonKey(name: 'quantity_litres') double quantityLitres,
     @JsonKey(name: 'unit_price') double unitPrice,
-    @JsonKey(name: 'payment_status') String paymentStatus,
+    @JsonKey(name: 'amount_paid') double amountPaid,
     @JsonKey(name: 'payment_method') String paymentMethod,
     String? notes,
   });
@@ -572,28 +695,23 @@ class _$RecordSaleRequestModelCopyWithImpl<
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? saleDate = null,
-    Object? buyerName = null,
-    Object? buyerPhone = freezed,
+    Object? customerId = null,
+    Object? saleDate = freezed,
     Object? quantityLitres = null,
     Object? unitPrice = null,
-    Object? paymentStatus = null,
+    Object? amountPaid = null,
     Object? paymentMethod = null,
     Object? notes = freezed,
   }) {
     return _then(
       _value.copyWith(
-            saleDate: null == saleDate
+            customerId: null == customerId
+                ? _value.customerId
+                : customerId // ignore: cast_nullable_to_non_nullable
+                      as String,
+            saleDate: freezed == saleDate
                 ? _value.saleDate
                 : saleDate // ignore: cast_nullable_to_non_nullable
-                      as String,
-            buyerName: null == buyerName
-                ? _value.buyerName
-                : buyerName // ignore: cast_nullable_to_non_nullable
-                      as String,
-            buyerPhone: freezed == buyerPhone
-                ? _value.buyerPhone
-                : buyerPhone // ignore: cast_nullable_to_non_nullable
                       as String?,
             quantityLitres: null == quantityLitres
                 ? _value.quantityLitres
@@ -603,10 +721,10 @@ class _$RecordSaleRequestModelCopyWithImpl<
                 ? _value.unitPrice
                 : unitPrice // ignore: cast_nullable_to_non_nullable
                       as double,
-            paymentStatus: null == paymentStatus
-                ? _value.paymentStatus
-                : paymentStatus // ignore: cast_nullable_to_non_nullable
-                      as String,
+            amountPaid: null == amountPaid
+                ? _value.amountPaid
+                : amountPaid // ignore: cast_nullable_to_non_nullable
+                      as double,
             paymentMethod: null == paymentMethod
                 ? _value.paymentMethod
                 : paymentMethod // ignore: cast_nullable_to_non_nullable
@@ -631,12 +749,11 @@ abstract class _$$RecordSaleRequestModelImplCopyWith<$Res>
   @override
   @useResult
   $Res call({
-    @JsonKey(name: 'sale_date') String saleDate,
-    @JsonKey(name: 'buyer_name') String buyerName,
-    @JsonKey(name: 'buyer_phone') String? buyerPhone,
+    @JsonKey(name: 'customer_id') String customerId,
+    @JsonKey(name: 'sale_date') String? saleDate,
     @JsonKey(name: 'quantity_litres') double quantityLitres,
     @JsonKey(name: 'unit_price') double unitPrice,
-    @JsonKey(name: 'payment_status') String paymentStatus,
+    @JsonKey(name: 'amount_paid') double amountPaid,
     @JsonKey(name: 'payment_method') String paymentMethod,
     String? notes,
   });
@@ -657,28 +774,23 @@ class __$$RecordSaleRequestModelImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? saleDate = null,
-    Object? buyerName = null,
-    Object? buyerPhone = freezed,
+    Object? customerId = null,
+    Object? saleDate = freezed,
     Object? quantityLitres = null,
     Object? unitPrice = null,
-    Object? paymentStatus = null,
+    Object? amountPaid = null,
     Object? paymentMethod = null,
     Object? notes = freezed,
   }) {
     return _then(
       _$RecordSaleRequestModelImpl(
-        saleDate: null == saleDate
+        customerId: null == customerId
+            ? _value.customerId
+            : customerId // ignore: cast_nullable_to_non_nullable
+                  as String,
+        saleDate: freezed == saleDate
             ? _value.saleDate
             : saleDate // ignore: cast_nullable_to_non_nullable
-                  as String,
-        buyerName: null == buyerName
-            ? _value.buyerName
-            : buyerName // ignore: cast_nullable_to_non_nullable
-                  as String,
-        buyerPhone: freezed == buyerPhone
-            ? _value.buyerPhone
-            : buyerPhone // ignore: cast_nullable_to_non_nullable
                   as String?,
         quantityLitres: null == quantityLitres
             ? _value.quantityLitres
@@ -688,10 +800,10 @@ class __$$RecordSaleRequestModelImplCopyWithImpl<$Res>
             ? _value.unitPrice
             : unitPrice // ignore: cast_nullable_to_non_nullable
                   as double,
-        paymentStatus: null == paymentStatus
-            ? _value.paymentStatus
-            : paymentStatus // ignore: cast_nullable_to_non_nullable
-                  as String,
+        amountPaid: null == amountPaid
+            ? _value.amountPaid
+            : amountPaid // ignore: cast_nullable_to_non_nullable
+                  as double,
         paymentMethod: null == paymentMethod
             ? _value.paymentMethod
             : paymentMethod // ignore: cast_nullable_to_non_nullable
@@ -709,12 +821,11 @@ class __$$RecordSaleRequestModelImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$RecordSaleRequestModelImpl implements _RecordSaleRequestModel {
   const _$RecordSaleRequestModelImpl({
-    @JsonKey(name: 'sale_date') required this.saleDate,
-    @JsonKey(name: 'buyer_name') required this.buyerName,
-    @JsonKey(name: 'buyer_phone') this.buyerPhone,
+    @JsonKey(name: 'customer_id') required this.customerId,
+    @JsonKey(name: 'sale_date') this.saleDate,
     @JsonKey(name: 'quantity_litres') required this.quantityLitres,
     @JsonKey(name: 'unit_price') required this.unitPrice,
-    @JsonKey(name: 'payment_status') this.paymentStatus = 'PAID',
+    @JsonKey(name: 'amount_paid') required this.amountPaid,
     @JsonKey(name: 'payment_method') this.paymentMethod = 'CASH',
     this.notes,
   });
@@ -723,14 +834,11 @@ class _$RecordSaleRequestModelImpl implements _RecordSaleRequestModel {
       _$$RecordSaleRequestModelImplFromJson(json);
 
   @override
+  @JsonKey(name: 'customer_id')
+  final String customerId;
+  @override
   @JsonKey(name: 'sale_date')
-  final String saleDate;
-  @override
-  @JsonKey(name: 'buyer_name')
-  final String buyerName;
-  @override
-  @JsonKey(name: 'buyer_phone')
-  final String? buyerPhone;
+  final String? saleDate;
   @override
   @JsonKey(name: 'quantity_litres')
   final double quantityLitres;
@@ -738,8 +846,8 @@ class _$RecordSaleRequestModelImpl implements _RecordSaleRequestModel {
   @JsonKey(name: 'unit_price')
   final double unitPrice;
   @override
-  @JsonKey(name: 'payment_status')
-  final String paymentStatus;
+  @JsonKey(name: 'amount_paid')
+  final double amountPaid;
   @override
   @JsonKey(name: 'payment_method')
   final String paymentMethod;
@@ -748,7 +856,7 @@ class _$RecordSaleRequestModelImpl implements _RecordSaleRequestModel {
 
   @override
   String toString() {
-    return 'RecordSaleRequestModel(saleDate: $saleDate, buyerName: $buyerName, buyerPhone: $buyerPhone, quantityLitres: $quantityLitres, unitPrice: $unitPrice, paymentStatus: $paymentStatus, paymentMethod: $paymentMethod, notes: $notes)';
+    return 'RecordSaleRequestModel(customerId: $customerId, saleDate: $saleDate, quantityLitres: $quantityLitres, unitPrice: $unitPrice, amountPaid: $amountPaid, paymentMethod: $paymentMethod, notes: $notes)';
   }
 
   @override
@@ -756,18 +864,16 @@ class _$RecordSaleRequestModelImpl implements _RecordSaleRequestModel {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$RecordSaleRequestModelImpl &&
+            (identical(other.customerId, customerId) ||
+                other.customerId == customerId) &&
             (identical(other.saleDate, saleDate) ||
                 other.saleDate == saleDate) &&
-            (identical(other.buyerName, buyerName) ||
-                other.buyerName == buyerName) &&
-            (identical(other.buyerPhone, buyerPhone) ||
-                other.buyerPhone == buyerPhone) &&
             (identical(other.quantityLitres, quantityLitres) ||
                 other.quantityLitres == quantityLitres) &&
             (identical(other.unitPrice, unitPrice) ||
                 other.unitPrice == unitPrice) &&
-            (identical(other.paymentStatus, paymentStatus) ||
-                other.paymentStatus == paymentStatus) &&
+            (identical(other.amountPaid, amountPaid) ||
+                other.amountPaid == amountPaid) &&
             (identical(other.paymentMethod, paymentMethod) ||
                 other.paymentMethod == paymentMethod) &&
             (identical(other.notes, notes) || other.notes == notes));
@@ -777,12 +883,11 @@ class _$RecordSaleRequestModelImpl implements _RecordSaleRequestModel {
   @override
   int get hashCode => Object.hash(
     runtimeType,
+    customerId,
     saleDate,
-    buyerName,
-    buyerPhone,
     quantityLitres,
     unitPrice,
-    paymentStatus,
+    amountPaid,
     paymentMethod,
     notes,
   );
@@ -807,12 +912,11 @@ class _$RecordSaleRequestModelImpl implements _RecordSaleRequestModel {
 
 abstract class _RecordSaleRequestModel implements RecordSaleRequestModel {
   const factory _RecordSaleRequestModel({
-    @JsonKey(name: 'sale_date') required final String saleDate,
-    @JsonKey(name: 'buyer_name') required final String buyerName,
-    @JsonKey(name: 'buyer_phone') final String? buyerPhone,
+    @JsonKey(name: 'customer_id') required final String customerId,
+    @JsonKey(name: 'sale_date') final String? saleDate,
     @JsonKey(name: 'quantity_litres') required final double quantityLitres,
     @JsonKey(name: 'unit_price') required final double unitPrice,
-    @JsonKey(name: 'payment_status') final String paymentStatus,
+    @JsonKey(name: 'amount_paid') required final double amountPaid,
     @JsonKey(name: 'payment_method') final String paymentMethod,
     final String? notes,
   }) = _$RecordSaleRequestModelImpl;
@@ -821,14 +925,11 @@ abstract class _RecordSaleRequestModel implements RecordSaleRequestModel {
       _$RecordSaleRequestModelImpl.fromJson;
 
   @override
+  @JsonKey(name: 'customer_id')
+  String get customerId;
+  @override
   @JsonKey(name: 'sale_date')
-  String get saleDate;
-  @override
-  @JsonKey(name: 'buyer_name')
-  String get buyerName;
-  @override
-  @JsonKey(name: 'buyer_phone')
-  String? get buyerPhone;
+  String? get saleDate;
   @override
   @JsonKey(name: 'quantity_litres')
   double get quantityLitres;
@@ -836,8 +937,8 @@ abstract class _RecordSaleRequestModel implements RecordSaleRequestModel {
   @JsonKey(name: 'unit_price')
   double get unitPrice;
   @override
-  @JsonKey(name: 'payment_status')
-  String get paymentStatus;
+  @JsonKey(name: 'amount_paid')
+  double get amountPaid;
   @override
   @JsonKey(name: 'payment_method')
   String get paymentMethod;

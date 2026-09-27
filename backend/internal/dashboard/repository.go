@@ -39,7 +39,7 @@ func (r *Repository) GetExecutiveDashboard(ctx context.Context, days int) (*Exec
 	// 2. Today's Field Sales
 	var todaySales float64
 	r.db.WithContext(ctx).Table("milk_sales").
-		Where("sacco_id = ? AND deleted_at IS NULL AND DATE(sale_date) = ?", saccoID, todayStr).
+		Where("sacco_id = ? AND deleted_at IS NULL AND voided_at IS NULL AND DATE(sale_date) = ?", saccoID, todayStr).
 		Select("COALESCE(SUM(quantity_litres), 0)").
 		Scan(&todaySales)
 	cards.TodaySalesLitres = math.Round(todaySales*100) / 100
@@ -74,7 +74,7 @@ func (r *Repository) GetExecutiveDashboard(ctx context.Context, days int) (*Exec
 	// 5. Month-to-Date Field Sales Revenue
 	var monthSalesRevenue float64
 	r.db.WithContext(ctx).Table("milk_sales").
-		Where("sacco_id = ? AND deleted_at IS NULL AND DATE(sale_date) BETWEEN ? AND ?", saccoID, monthStartStr, todayStr).
+		Where("sacco_id = ? AND deleted_at IS NULL AND voided_at IS NULL AND DATE(sale_date) BETWEEN ? AND ?", saccoID, monthStartStr, todayStr).
 		Select("COALESCE(SUM(total_amount), 0)").
 		Scan(&monthSalesRevenue)
 	cards.MonthSalesRevenueKES = math.Round(monthSalesRevenue*100) / 100
@@ -114,7 +114,7 @@ func (r *Repository) GetExecutiveDashboard(ctx context.Context, days int) (*Exec
 
 		var dSales float64
 		r.db.WithContext(ctx).Table("milk_sales").
-			Where("sacco_id = ? AND deleted_at IS NULL AND DATE(sale_date) = ?", saccoID, targetDateStr).
+			Where("sacco_id = ? AND deleted_at IS NULL AND voided_at IS NULL AND DATE(sale_date) = ?", saccoID, targetDateStr).
 			Select("COALESCE(SUM(quantity_litres), 0)").
 			Scan(&dSales)
 
@@ -174,7 +174,7 @@ func (r *Repository) GetCollectorDashboard(ctx context.Context, collectorID uint
 		Revenue float64 `gorm:"revenue"`
 	}
 	r.db.WithContext(ctx).Table("milk_sales").
-		Where("sacco_id = ? AND collector_id = ? AND deleted_at IS NULL AND DATE(sale_date) = ?", saccoID, collectorID, dateStr).
+		Where("sacco_id = ? AND collector_id = ? AND deleted_at IS NULL AND voided_at IS NULL AND DATE(sale_date) = ?", saccoID, collectorID, dateStr).
 		Select("COALESCE(SUM(quantity_litres), 0) as litres, COALESCE(SUM(total_amount), 0) as revenue").
 		Scan(&sales)
 

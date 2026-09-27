@@ -17,7 +17,7 @@ class StatusPill extends StatelessWidget {
     final s = status.toUpperCase();
     if (s == 'VERIFIED' || s == 'PAID' || s == 'SUCCESS') {
       return StatusPill(status: status, type: StatusType.success);
-    } else if (s == 'SUBMITTED' || s == 'PENDING') {
+    } else if (s == 'SUBMITTED' || s == 'PENDING' || s == 'PARTIAL' || s == 'CREDIT' || s == 'ADJUSTED') {
       return StatusPill(status: status, type: StatusType.warning);
     } else if (s == 'REJECTED' || s == 'CANCELLED' || s == 'FAILED') {
       return StatusPill(status: status, type: StatusType.error);

@@ -3,6 +3,7 @@ package collection
 import (
 	"context"
 	"errors"
+	"strconv"
 
 	"github.com/danielgtaylor/huma/v2"
 
@@ -197,7 +198,7 @@ func (h *Handler) RecordSale(ctx context.Context, input *RecordSaleInput) (*Sale
 	sale, err := h.service.RecordSale(ctx, &input.Body)
 	if err != nil {
 		h.log.Error("Failed to record milk sale", err)
-		return nil, huma.Error400BadRequest(err.Error(), err)
+		return nil, toHTTPError(err)
 	}
 
 	resp := &SaleOutput{}
@@ -221,6 +222,15 @@ func (h *Handler) ListSales(ctx context.Context, input *ListSalesInput) (*ListSa
 	if input.ToDate != "" {
 		q.Filters["sale_date_to"] = input.ToDate
 	}
+	if input.CollectorID > 0 {
+		q.Filters["collector_id"] = strconv.FormatUint(uint64(input.CollectorID), 10)
+	}
+	if input.CustomerID != "" {
+		q.Filters["customer_id"] = input.CustomerID
+	}
+	if input.PaymentStatus != "" {
+		q.Filters["payment_status"] = input.PaymentStatus
+	}
 
 	sales, meta, err := h.service.ListSales(ctx, q)
 	if err != nil {
@@ -232,6 +242,45 @@ func (h *Handler) ListSales(ctx context.Context, input *ListSalesInput) (*ListSa
 	resp.Body.Message = "Milk sales retrieved successfully"
 	resp.Body.Data.Sales = sales
 	resp.Body.Data.Meta = meta
+	return resp, nil
+}
+
+func saleOutput(sale *MilkSale, msg string) *SaleOutput {
+	resp := &SaleOutput{}
+	resp.Body.Success = true
+	resp.Body.Message = msg
+	resp.Body.Data.Sale = sale
+	return resp
+}
+
+// UpdateSale corrects a sale within the edit rules.
+func (h *Handler) UpdateSale(ctx context.Context, input *UpdateSaleInput) (*SaleOutput, error) {
+	sale, err := h.service.UpdateSale(ctx, input.ID, &input.Body)
+	if err != nil {
+		return nil, toHTTPError(err)
+	}
+	return saleOutput(sale, "Milk sale updated successfully"), nil
+}
+
+// VoidSale cancels a sale recorded in error.
+func (h *Handler) VoidSale(ctx context.Context, input *VoidSaleInput) (*SaleOutput, error) {
+	sale, err := h.service.VoidSale(ctx, input.ID, input.Body.Reason)
+	if err != nil {
+		return nil, toHTTPError(err)
+	}
+	return saleOutput(sale, "Milk sale voided"), nil
+}
+
+// GetSaleHistory returns the audit trail of a sale.
+func (h *Handler) GetSaleHistory(ctx context.Context, input *SaleIDInput) (*CollectionHistoryOutput, error) {
+	history, err := h.service.SaleHistory(ctx, input.ID)
+	if err != nil {
+		return nil, toHTTPError(err)
+	}
+	resp := &CollectionHistoryOutput{}
+	resp.Body.Success = true
+	resp.Body.Message = "Sale history retrieved"
+	resp.Body.Data.History = history
 	return resp, nil
 }
 

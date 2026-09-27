@@ -45,10 +45,11 @@ func Apply(db *gorm.DB, q Query, cfg Config) *gorm.DB {
 	if q.Search != "" && len(cfg.AllowedSearches) > 0 {
 		var searchConditions []string
 		var searchArgs []interface{}
-		pattern := "%" + q.Search + "%"
+		// Case-insensitive on every supported driver: Postgres LIKE is case-sensitive.
+		pattern := "%" + strings.ToLower(q.Search) + "%"
 
 		for _, col := range cfg.AllowedSearches {
-			searchConditions = append(searchConditions, fmt.Sprintf("%s LIKE ?", col))
+			searchConditions = append(searchConditions, fmt.Sprintf("LOWER(%s) LIKE ?", col))
 			searchArgs = append(searchArgs, pattern)
 		}
 

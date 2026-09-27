@@ -24,7 +24,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Added
 - **Collection audit history**: every create, edit and status change of a milk collection is stored in the new generic `audit_logs` table (`pkg/audit`) in the same transaction, with actor, reason and before/after values. `GET /api/v1/sacco/milk-collections/{id}/history` returns it. See [docs/collections-and-pricing.md](docs/collections-and-pricing.md).
 
+- **Customers & customer ledger** (`internal/customer`): coolers, processors, hotels, shops and individuals are customers; collectors add them on the spot while selling. Admins record and void customer payments; admins and board members see statements (running balance) and who owes what. See [docs/customers-and-ledger.md](docs/customers-and-ledger.md). Migrations `00010` (tables, backfill of existing sales) and `00011` (permissions).
+- **Sale corrections and voids**: `PUT /milk-sales/{id}` (same edit rules as collections), `POST /milk-sales/{id}/void` (admin, reason required), `GET /milk-sales/{id}/history`.
+
 ### Changed
+- **Breaking: sales belong to a customer.** `POST /milk-sales` takes `customer_id`, optional `unit_price` (defaults to the customer's agreed price) and `amount_paid`; `buyer_name`, `buyer_phone` and `payment_status` are no longer accepted, and `payment_status` is derived (`PAID`, `PARTIAL`, `CREDIT`). Ship the matching mobile release together with this backend.
+- **Voided sales are excluded** from reconciliation, dashboards and reports.
+- **List search is case-insensitive** on every database (Postgres `LIKE` was case-sensitive, so farmer and customer search missed differently-cased names).
 - **Prices follow their effective date.** A collection is priced at the latest price effective on or before its date, so backdated collections get the correct historical rate and future-dated prices start automatically. Setting a price no longer deactivates older ones (migration `00009` reactivates existing rows).
 - **Collections require an ACTIVE farmer from the caller's Sacco.**
 - **Collection edit rules.** Collectors edit only their own `SUBMITTED` records on the day they were recorded; admins edit `SUBMITTED`/`ADJUSTED` records with a reason, and their edits mark the record `ADJUSTED`. `VERIFIED`/`REJECTED` records are locked (`409`) until reopened as `ADJUSTED`. Status changes follow a defined flow and `REJECTED`/`ADJUSTED` need a reason; the status reason no longer overwrites the collection's notes.

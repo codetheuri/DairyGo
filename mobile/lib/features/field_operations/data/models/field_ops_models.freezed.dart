@@ -1579,11 +1579,20 @@ mixin _$ReconciliationModel {
   @JsonKey(name: 'total_sold_litres')
   double get totalSoldLitres => throw _privateConstructorUsedError;
   @JsonKey(name: 'total_spoiled_litres')
-  double get totalSpoiledLitres => throw _privateConstructorUsedError;
-  @JsonKey(name: 'net_delivered_litres')
-  double get netDeliveredLitres => throw _privateConstructorUsedError;
+  double get totalSpoiledLitres => throw _privateConstructorUsedError; // collected - sold - spoiled; > 0 missing, < 0 oversold
+  @JsonKey(name: 'unaccounted_litres')
+  double get unaccountedLitres => throw _privateConstructorUsedError;
+  @JsonKey(name: 'balance_status')
+  String get balanceStatus => throw _privateConstructorUsedError;
   @JsonKey(name: 'total_sales_amount')
   double get totalSalesAmount => throw _privateConstructorUsedError;
+  @JsonKey(name: 'cash_received_amount')
+  double get cashReceivedAmount => throw _privateConstructorUsedError;
+  @JsonKey(name: 'credit_sales_amount')
+  double get creditSalesAmount => throw _privateConstructorUsedError;
+  @JsonKey(name: 'sales_by_customer_type')
+  List<CustomerTypeTotalModel> get salesByCustomerType =>
+      throw _privateConstructorUsedError;
   @JsonKey(name: 'total_purchases_amount')
   double get totalPurchasesAmount => throw _privateConstructorUsedError;
 
@@ -1611,8 +1620,13 @@ abstract class $ReconciliationModelCopyWith<$Res> {
     @JsonKey(name: 'total_collected_litres') double totalCollectedLitres,
     @JsonKey(name: 'total_sold_litres') double totalSoldLitres,
     @JsonKey(name: 'total_spoiled_litres') double totalSpoiledLitres,
-    @JsonKey(name: 'net_delivered_litres') double netDeliveredLitres,
+    @JsonKey(name: 'unaccounted_litres') double unaccountedLitres,
+    @JsonKey(name: 'balance_status') String balanceStatus,
     @JsonKey(name: 'total_sales_amount') double totalSalesAmount,
+    @JsonKey(name: 'cash_received_amount') double cashReceivedAmount,
+    @JsonKey(name: 'credit_sales_amount') double creditSalesAmount,
+    @JsonKey(name: 'sales_by_customer_type')
+    List<CustomerTypeTotalModel> salesByCustomerType,
     @JsonKey(name: 'total_purchases_amount') double totalPurchasesAmount,
   });
 }
@@ -1638,8 +1652,12 @@ class _$ReconciliationModelCopyWithImpl<$Res, $Val extends ReconciliationModel>
     Object? totalCollectedLitres = null,
     Object? totalSoldLitres = null,
     Object? totalSpoiledLitres = null,
-    Object? netDeliveredLitres = null,
+    Object? unaccountedLitres = null,
+    Object? balanceStatus = null,
     Object? totalSalesAmount = null,
+    Object? cashReceivedAmount = null,
+    Object? creditSalesAmount = null,
+    Object? salesByCustomerType = null,
     Object? totalPurchasesAmount = null,
   }) {
     return _then(
@@ -1668,14 +1686,30 @@ class _$ReconciliationModelCopyWithImpl<$Res, $Val extends ReconciliationModel>
                 ? _value.totalSpoiledLitres
                 : totalSpoiledLitres // ignore: cast_nullable_to_non_nullable
                       as double,
-            netDeliveredLitres: null == netDeliveredLitres
-                ? _value.netDeliveredLitres
-                : netDeliveredLitres // ignore: cast_nullable_to_non_nullable
+            unaccountedLitres: null == unaccountedLitres
+                ? _value.unaccountedLitres
+                : unaccountedLitres // ignore: cast_nullable_to_non_nullable
                       as double,
+            balanceStatus: null == balanceStatus
+                ? _value.balanceStatus
+                : balanceStatus // ignore: cast_nullable_to_non_nullable
+                      as String,
             totalSalesAmount: null == totalSalesAmount
                 ? _value.totalSalesAmount
                 : totalSalesAmount // ignore: cast_nullable_to_non_nullable
                       as double,
+            cashReceivedAmount: null == cashReceivedAmount
+                ? _value.cashReceivedAmount
+                : cashReceivedAmount // ignore: cast_nullable_to_non_nullable
+                      as double,
+            creditSalesAmount: null == creditSalesAmount
+                ? _value.creditSalesAmount
+                : creditSalesAmount // ignore: cast_nullable_to_non_nullable
+                      as double,
+            salesByCustomerType: null == salesByCustomerType
+                ? _value.salesByCustomerType
+                : salesByCustomerType // ignore: cast_nullable_to_non_nullable
+                      as List<CustomerTypeTotalModel>,
             totalPurchasesAmount: null == totalPurchasesAmount
                 ? _value.totalPurchasesAmount
                 : totalPurchasesAmount // ignore: cast_nullable_to_non_nullable
@@ -1702,8 +1736,13 @@ abstract class _$$ReconciliationModelImplCopyWith<$Res>
     @JsonKey(name: 'total_collected_litres') double totalCollectedLitres,
     @JsonKey(name: 'total_sold_litres') double totalSoldLitres,
     @JsonKey(name: 'total_spoiled_litres') double totalSpoiledLitres,
-    @JsonKey(name: 'net_delivered_litres') double netDeliveredLitres,
+    @JsonKey(name: 'unaccounted_litres') double unaccountedLitres,
+    @JsonKey(name: 'balance_status') String balanceStatus,
     @JsonKey(name: 'total_sales_amount') double totalSalesAmount,
+    @JsonKey(name: 'cash_received_amount') double cashReceivedAmount,
+    @JsonKey(name: 'credit_sales_amount') double creditSalesAmount,
+    @JsonKey(name: 'sales_by_customer_type')
+    List<CustomerTypeTotalModel> salesByCustomerType,
     @JsonKey(name: 'total_purchases_amount') double totalPurchasesAmount,
   });
 }
@@ -1728,8 +1767,12 @@ class __$$ReconciliationModelImplCopyWithImpl<$Res>
     Object? totalCollectedLitres = null,
     Object? totalSoldLitres = null,
     Object? totalSpoiledLitres = null,
-    Object? netDeliveredLitres = null,
+    Object? unaccountedLitres = null,
+    Object? balanceStatus = null,
     Object? totalSalesAmount = null,
+    Object? cashReceivedAmount = null,
+    Object? creditSalesAmount = null,
+    Object? salesByCustomerType = null,
     Object? totalPurchasesAmount = null,
   }) {
     return _then(
@@ -1758,14 +1801,30 @@ class __$$ReconciliationModelImplCopyWithImpl<$Res>
             ? _value.totalSpoiledLitres
             : totalSpoiledLitres // ignore: cast_nullable_to_non_nullable
                   as double,
-        netDeliveredLitres: null == netDeliveredLitres
-            ? _value.netDeliveredLitres
-            : netDeliveredLitres // ignore: cast_nullable_to_non_nullable
+        unaccountedLitres: null == unaccountedLitres
+            ? _value.unaccountedLitres
+            : unaccountedLitres // ignore: cast_nullable_to_non_nullable
                   as double,
+        balanceStatus: null == balanceStatus
+            ? _value.balanceStatus
+            : balanceStatus // ignore: cast_nullable_to_non_nullable
+                  as String,
         totalSalesAmount: null == totalSalesAmount
             ? _value.totalSalesAmount
             : totalSalesAmount // ignore: cast_nullable_to_non_nullable
                   as double,
+        cashReceivedAmount: null == cashReceivedAmount
+            ? _value.cashReceivedAmount
+            : cashReceivedAmount // ignore: cast_nullable_to_non_nullable
+                  as double,
+        creditSalesAmount: null == creditSalesAmount
+            ? _value.creditSalesAmount
+            : creditSalesAmount // ignore: cast_nullable_to_non_nullable
+                  as double,
+        salesByCustomerType: null == salesByCustomerType
+            ? _value._salesByCustomerType
+            : salesByCustomerType // ignore: cast_nullable_to_non_nullable
+                  as List<CustomerTypeTotalModel>,
         totalPurchasesAmount: null == totalPurchasesAmount
             ? _value.totalPurchasesAmount
             : totalPurchasesAmount // ignore: cast_nullable_to_non_nullable
@@ -1785,10 +1844,15 @@ class _$ReconciliationModelImpl implements _ReconciliationModel {
     @JsonKey(name: 'total_collected_litres') this.totalCollectedLitres = 0.0,
     @JsonKey(name: 'total_sold_litres') this.totalSoldLitres = 0.0,
     @JsonKey(name: 'total_spoiled_litres') this.totalSpoiledLitres = 0.0,
-    @JsonKey(name: 'net_delivered_litres') this.netDeliveredLitres = 0.0,
+    @JsonKey(name: 'unaccounted_litres') this.unaccountedLitres = 0.0,
+    @JsonKey(name: 'balance_status') this.balanceStatus = 'BALANCED',
     @JsonKey(name: 'total_sales_amount') this.totalSalesAmount = 0.0,
+    @JsonKey(name: 'cash_received_amount') this.cashReceivedAmount = 0.0,
+    @JsonKey(name: 'credit_sales_amount') this.creditSalesAmount = 0.0,
+    @JsonKey(name: 'sales_by_customer_type')
+    final List<CustomerTypeTotalModel> salesByCustomerType = const [],
     @JsonKey(name: 'total_purchases_amount') this.totalPurchasesAmount = 0.0,
-  });
+  }) : _salesByCustomerType = salesByCustomerType;
 
   factory _$ReconciliationModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$ReconciliationModelImplFromJson(json);
@@ -1811,19 +1875,39 @@ class _$ReconciliationModelImpl implements _ReconciliationModel {
   @override
   @JsonKey(name: 'total_spoiled_litres')
   final double totalSpoiledLitres;
+  // collected - sold - spoiled; > 0 missing, < 0 oversold
   @override
-  @JsonKey(name: 'net_delivered_litres')
-  final double netDeliveredLitres;
+  @JsonKey(name: 'unaccounted_litres')
+  final double unaccountedLitres;
+  @override
+  @JsonKey(name: 'balance_status')
+  final String balanceStatus;
   @override
   @JsonKey(name: 'total_sales_amount')
   final double totalSalesAmount;
+  @override
+  @JsonKey(name: 'cash_received_amount')
+  final double cashReceivedAmount;
+  @override
+  @JsonKey(name: 'credit_sales_amount')
+  final double creditSalesAmount;
+  final List<CustomerTypeTotalModel> _salesByCustomerType;
+  @override
+  @JsonKey(name: 'sales_by_customer_type')
+  List<CustomerTypeTotalModel> get salesByCustomerType {
+    if (_salesByCustomerType is EqualUnmodifiableListView)
+      return _salesByCustomerType;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_salesByCustomerType);
+  }
+
   @override
   @JsonKey(name: 'total_purchases_amount')
   final double totalPurchasesAmount;
 
   @override
   String toString() {
-    return 'ReconciliationModel(collectorId: $collectorId, collectorName: $collectorName, date: $date, totalCollectedLitres: $totalCollectedLitres, totalSoldLitres: $totalSoldLitres, totalSpoiledLitres: $totalSpoiledLitres, netDeliveredLitres: $netDeliveredLitres, totalSalesAmount: $totalSalesAmount, totalPurchasesAmount: $totalPurchasesAmount)';
+    return 'ReconciliationModel(collectorId: $collectorId, collectorName: $collectorName, date: $date, totalCollectedLitres: $totalCollectedLitres, totalSoldLitres: $totalSoldLitres, totalSpoiledLitres: $totalSpoiledLitres, unaccountedLitres: $unaccountedLitres, balanceStatus: $balanceStatus, totalSalesAmount: $totalSalesAmount, cashReceivedAmount: $cashReceivedAmount, creditSalesAmount: $creditSalesAmount, salesByCustomerType: $salesByCustomerType, totalPurchasesAmount: $totalPurchasesAmount)';
   }
 
   @override
@@ -1842,10 +1926,20 @@ class _$ReconciliationModelImpl implements _ReconciliationModel {
                 other.totalSoldLitres == totalSoldLitres) &&
             (identical(other.totalSpoiledLitres, totalSpoiledLitres) ||
                 other.totalSpoiledLitres == totalSpoiledLitres) &&
-            (identical(other.netDeliveredLitres, netDeliveredLitres) ||
-                other.netDeliveredLitres == netDeliveredLitres) &&
+            (identical(other.unaccountedLitres, unaccountedLitres) ||
+                other.unaccountedLitres == unaccountedLitres) &&
+            (identical(other.balanceStatus, balanceStatus) ||
+                other.balanceStatus == balanceStatus) &&
             (identical(other.totalSalesAmount, totalSalesAmount) ||
                 other.totalSalesAmount == totalSalesAmount) &&
+            (identical(other.cashReceivedAmount, cashReceivedAmount) ||
+                other.cashReceivedAmount == cashReceivedAmount) &&
+            (identical(other.creditSalesAmount, creditSalesAmount) ||
+                other.creditSalesAmount == creditSalesAmount) &&
+            const DeepCollectionEquality().equals(
+              other._salesByCustomerType,
+              _salesByCustomerType,
+            ) &&
             (identical(other.totalPurchasesAmount, totalPurchasesAmount) ||
                 other.totalPurchasesAmount == totalPurchasesAmount));
   }
@@ -1860,8 +1954,12 @@ class _$ReconciliationModelImpl implements _ReconciliationModel {
     totalCollectedLitres,
     totalSoldLitres,
     totalSpoiledLitres,
-    netDeliveredLitres,
+    unaccountedLitres,
+    balanceStatus,
     totalSalesAmount,
+    cashReceivedAmount,
+    creditSalesAmount,
+    const DeepCollectionEquality().hash(_salesByCustomerType),
     totalPurchasesAmount,
   );
 
@@ -1890,8 +1988,13 @@ abstract class _ReconciliationModel implements ReconciliationModel {
     @JsonKey(name: 'total_collected_litres') final double totalCollectedLitres,
     @JsonKey(name: 'total_sold_litres') final double totalSoldLitres,
     @JsonKey(name: 'total_spoiled_litres') final double totalSpoiledLitres,
-    @JsonKey(name: 'net_delivered_litres') final double netDeliveredLitres,
+    @JsonKey(name: 'unaccounted_litres') final double unaccountedLitres,
+    @JsonKey(name: 'balance_status') final String balanceStatus,
     @JsonKey(name: 'total_sales_amount') final double totalSalesAmount,
+    @JsonKey(name: 'cash_received_amount') final double cashReceivedAmount,
+    @JsonKey(name: 'credit_sales_amount') final double creditSalesAmount,
+    @JsonKey(name: 'sales_by_customer_type')
+    final List<CustomerTypeTotalModel> salesByCustomerType,
     @JsonKey(name: 'total_purchases_amount') final double totalPurchasesAmount,
   }) = _$ReconciliationModelImpl;
 
@@ -1914,13 +2017,25 @@ abstract class _ReconciliationModel implements ReconciliationModel {
   double get totalSoldLitres;
   @override
   @JsonKey(name: 'total_spoiled_litres')
-  double get totalSpoiledLitres;
+  double get totalSpoiledLitres; // collected - sold - spoiled; > 0 missing, < 0 oversold
   @override
-  @JsonKey(name: 'net_delivered_litres')
-  double get netDeliveredLitres;
+  @JsonKey(name: 'unaccounted_litres')
+  double get unaccountedLitres;
+  @override
+  @JsonKey(name: 'balance_status')
+  String get balanceStatus;
   @override
   @JsonKey(name: 'total_sales_amount')
   double get totalSalesAmount;
+  @override
+  @JsonKey(name: 'cash_received_amount')
+  double get cashReceivedAmount;
+  @override
+  @JsonKey(name: 'credit_sales_amount')
+  double get creditSalesAmount;
+  @override
+  @JsonKey(name: 'sales_by_customer_type')
+  List<CustomerTypeTotalModel> get salesByCustomerType;
   @override
   @JsonKey(name: 'total_purchases_amount')
   double get totalPurchasesAmount;

@@ -24,6 +24,10 @@ final saccoProfileProvider = FutureProvider<SaccoProfileModel>((ref) async {
   return repository.getSaccoProfile();
 });
 
+final saccoSettingsProvider = FutureProvider.autoDispose<SaccoSettingsModel>((ref) async {
+  return ref.watch(settingsRepositoryProvider).getSettings();
+});
+
 final milkPriceHistoryProvider = FutureProvider<List<MilkPriceModel>>((ref) async {
   final repository = ref.watch(settingsRepositoryProvider);
   return repository.getPriceHistory();

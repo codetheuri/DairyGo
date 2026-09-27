@@ -1,5 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../../../../core/models/customer_type_total_model.dart';
+
 part 'report_models.freezed.dart';
 part 'report_models.g.dart';
 
@@ -34,8 +36,12 @@ class CollectorAuditSummaryModel with _$CollectorAuditSummaryModel {
     @JsonKey(name: 'total_purchases_amount') @Default(0.0) double totalPurchasesAmount,
     @JsonKey(name: 'total_sold_litres') @Default(0.0) double totalSoldLitres,
     @JsonKey(name: 'total_sales_revenue') @Default(0.0) double totalSalesRevenue,
+    @JsonKey(name: 'cash_received_amount') @Default(0.0) double cashReceivedAmount,
     @JsonKey(name: 'total_spoiled_litres') @Default(0.0) double totalSpoiledLitres,
-    @JsonKey(name: 'net_delivered_litres') @Default(0.0) double netDeliveredLitres,
+    // collected - sold - spoiled; > 0 missing, < 0 oversold
+    @JsonKey(name: 'unaccounted_litres') @Default(0.0) double unaccountedLitres,
+    @JsonKey(name: 'balance_status') @Default('BALANCED') String balanceStatus,
+    @JsonKey(name: 'active_days') @Default(0) int activeDays,
     @JsonKey(name: 'farmers_serviced_count') @Default(0) int farmersServicedCount,
   }) = _CollectorAuditSummaryModel;
 
@@ -52,12 +58,19 @@ class SaccoReconciliationLedgerModel with _$SaccoReconciliationLedgerModel {
     @JsonKey(name: 'to_date') @Default('') String toDate,
     @JsonKey(name: 'total_farmer_intake_litres') @Default(0.0) double totalFarmerIntakeLitres,
     @JsonKey(name: 'total_farmer_liability_kes') @Default(0.0) double totalFarmerLiabilityKes,
-    @JsonKey(name: 'total_field_sales_litres') @Default(0.0) double totalFieldSalesLitres,
-    @JsonKey(name: 'total_field_sales_revenue_kes') @Default(0.0) double totalFieldSalesRevenueKes,
+    @JsonKey(name: 'total_sold_litres') @Default(0.0) double totalSoldLitres,
+    @JsonKey(name: 'total_sales_revenue_kes') @Default(0.0) double totalSalesRevenueKes,
+    @JsonKey(name: 'cash_received_kes') @Default(0.0) double cashReceivedKes,
+    @JsonKey(name: 'credit_sales_kes') @Default(0.0) double creditSalesKes,
     @JsonKey(name: 'total_spoilage_litres') @Default(0.0) double totalSpoilageLitres,
-    @JsonKey(name: 'net_coolant_station_litres') @Default(0.0) double netCoolantStationLitres,
+    // collected - sold - spoiled; > 0 missing, < 0 oversold
+    @JsonKey(name: 'unaccounted_litres') @Default(0.0) double unaccountedLitres,
+    @JsonKey(name: 'allowance_litres') @Default(0.0) double allowanceLitres,
     @JsonKey(name: 'is_balanced') @Default(true) bool isBalanced,
-    @JsonKey(name: 'discrepancy_litres') @Default(0.0) double discrepancyLitres,
+    @JsonKey(name: 'balance_status') @Default('BALANCED') String balanceStatus,
+    @JsonKey(name: 'gross_margin_kes') @Default(0.0) double grossMarginKes,
+    @JsonKey(name: 'receivables_kes') @Default(0.0) double receivablesKes,
+    @JsonKey(name: 'sales_by_customer_type') @Default([]) List<CustomerTypeTotalModel> salesByCustomerType,
     @JsonKey(name: 'collectors_summary') @Default([]) List<CollectorAuditSummaryModel> collectorsSummary,
   }) = _SaccoReconciliationLedgerModel;
 

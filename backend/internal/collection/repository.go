@@ -4,11 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 	"time"
 
 	"github.com/codetheuri/tusk/internal/middleware"
 	"github.com/codetheuri/tusk/pkg/audit"
 	"github.com/codetheuri/tusk/pkg/query"
+	"github.com/codetheuri/tusk/pkg/reconcile"
 	"gorm.io/gorm"
 )
 
@@ -413,69 +415,73 @@ func (r *Repository) ListSpoilage(ctx context.Context, q query.Query) ([]MilkSpo
 
 // --- RECONCILIATION SUMMARY METHOD ---
 
+// GetCollectorReconciliation balances one collector's day. Queries use plain
+// date equality (not DATE(col)) so the (sacco_id, collector_id, date) indexes apply.
 func (r *Repository) GetCollectorReconciliation(ctx context.Context, collectorID uint, dateStr string) (*CollectorReconciliation, error) {
-	recon := &CollectorReconciliation{
-		CollectorID: collectorID,
-		Date:        dateStr,
+	saccoID, _ := middleware.GetSaccoID(ctx)
+	day, err := time.ParseInLocation(dateLayout, dateStr, time.Local)
+	if err != nil {
+		return nil, fmt.Errorf("invalid date format, expected YYYY-MM-DD")
 	}
 
-	// 1. Sum Total Collected
-	var collectionResult struct {
-		TotalLitres float64 `gorm:"total_litres"`
-		TotalAmount float64 `gorm:"total_amount"`
+	recon := &CollectorReconciliation{CollectorID: collectorID, Date: dateStr}
+
+	var intake struct {
+		Litres float64
+		Amount float64
 	}
-	err := r.db.WithContext(ctx).Model(&MilkCollection{}).
-		Scopes(query.TenantScope(ctx)).
-		Where("collector_id = ? AND DATE(collection_date) = ? AND status != 'REJECTED'", collectorID, dateStr).
-		Select("COALESCE(SUM(quantity_litres), 0) as total_litres, COALESCE(SUM(total_amount), 0) as total_amount").
-		Scan(&collectionResult).Error
+	err = r.db.WithContext(ctx).Table("milk_collections").
+		Select("COALESCE(SUM(quantity_litres), 0) AS litres, COALESCE(SUM(total_amount), 0) AS amount").
+		Where("sacco_id = ? AND collector_id = ? AND collection_date = ? AND status <> 'REJECTED' AND deleted_at IS NULL", saccoID, collectorID, dateStr).
+		Scan(&intake).Error
 	if err != nil {
 		return nil, err
 	}
-	recon.TotalCollectedLitres = collectionResult.TotalLitres
-	recon.TotalPurchasesAmount = collectionResult.TotalAmount
 
-	// 2. Sum Total Sold
-	var salesResult struct {
-		TotalLitres float64 `gorm:"total_litres"`
-		TotalAmount float64 `gorm:"total_amount"`
+	var sales struct {
+		Litres  float64
+		Revenue float64
+		Paid    float64
 	}
-	err = r.db.WithContext(ctx).Model(&MilkSale{}).
-		Scopes(query.TenantScope(ctx)).
-		Where("collector_id = ? AND DATE(sale_date) = ? AND voided_at IS NULL", collectorID, dateStr).
-		Select("COALESCE(SUM(quantity_litres), 0) as total_litres, COALESCE(SUM(total_amount), 0) as total_amount").
-		Scan(&salesResult).Error
+	err = r.db.WithContext(ctx).Table("milk_sales").
+		Select("COALESCE(SUM(quantity_litres), 0) AS litres, COALESCE(SUM(total_amount), 0) AS revenue, COALESCE(SUM(amount_paid), 0) AS paid").
+		Where("sacco_id = ? AND collector_id = ? AND sale_date = ? AND deleted_at IS NULL AND voided_at IS NULL", saccoID, collectorID, dateStr).
+		Scan(&sales).Error
 	if err != nil {
 		return nil, err
 	}
-	recon.TotalSoldLitres = salesResult.TotalLitres
-	recon.TotalSalesAmount = salesResult.TotalAmount
 
-	// 3. Sum Total Spoiled
-	var spoiledLitres float64
-	err = r.db.WithContext(ctx).Model(&MilkSpoilage{}).
-		Scopes(query.TenantScope(ctx)).
-		Where("collector_id = ? AND DATE(spoilage_date) = ?", collectorID, dateStr).
+	var spoiled float64
+	err = r.db.WithContext(ctx).Table("milk_spoilage").
 		Select("COALESCE(SUM(quantity_litres), 0)").
-		Scan(&spoiledLitres).Error
+		Where("sacco_id = ? AND collector_id = ? AND spoilage_date = ? AND deleted_at IS NULL", saccoID, collectorID, dateStr).
+		Scan(&spoiled).Error
 	if err != nil {
 		return nil, err
 	}
-	recon.TotalSpoiledLitres = spoiledLitres
 
-	// 4. Net Delivered to Station = Total Collected - Total Sold - Total Spoiled
-	recon.NetDeliveredLitres = recon.TotalCollectedLitres - recon.TotalSoldLitres - recon.TotalSpoiledLitres
-	if recon.NetDeliveredLitres < 0 {
-		recon.NetDeliveredLitres = 0
+	byType, err := reconcile.SalesByCustomerType(ctx, r.db, saccoID, day, day, collectorID)
+	if err != nil {
+		return nil, err
 	}
 
-	// Fetch collector user's username/name if available
-	var userStruct struct {
-		Username string `gorm:"username"`
-	}
-	if err := r.db.WithContext(ctx).Table("users").Where("id = ?", collectorID).Select("username").Take(&userStruct).Error; err == nil {
-		recon.CollectorName = userStruct.Username
-	}
+	recon.TotalCollectedLitres = round2(intake.Litres)
+	recon.TotalPurchasesAmount = round2(intake.Amount)
+	recon.TotalSoldLitres = round2(sales.Litres)
+	recon.TotalSalesAmount = round2(sales.Revenue)
+	recon.CashReceivedAmount = round2(sales.Paid)
+	recon.CreditSalesAmount = round2(sales.Revenue - sales.Paid)
+	recon.TotalSpoiledLitres = round2(spoiled)
+	recon.SalesByCustomerType = byType
+	recon.Result = reconcile.Compute(intake.Litres, sales.Litres, spoiled, reconcile.ToleranceLitres(ctx, r.db, saccoID))
+
+	var username string
+	r.db.WithContext(ctx).Table("users").Where("id = ?", collectorID).Select("username").Scan(&username)
+	recon.CollectorName = username
 
 	return recon, nil
+}
+
+func round2(v float64) float64 {
+	return math.Round(v*100) / 100
 }

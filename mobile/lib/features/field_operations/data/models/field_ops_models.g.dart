@@ -132,8 +132,18 @@ _$ReconciliationModelImpl _$$ReconciliationModelImplFromJson(
       (json['total_collected_litres'] as num?)?.toDouble() ?? 0.0,
   totalSoldLitres: (json['total_sold_litres'] as num?)?.toDouble() ?? 0.0,
   totalSpoiledLitres: (json['total_spoiled_litres'] as num?)?.toDouble() ?? 0.0,
-  netDeliveredLitres: (json['net_delivered_litres'] as num?)?.toDouble() ?? 0.0,
+  unaccountedLitres: (json['unaccounted_litres'] as num?)?.toDouble() ?? 0.0,
+  balanceStatus: json['balance_status'] as String? ?? 'BALANCED',
   totalSalesAmount: (json['total_sales_amount'] as num?)?.toDouble() ?? 0.0,
+  cashReceivedAmount: (json['cash_received_amount'] as num?)?.toDouble() ?? 0.0,
+  creditSalesAmount: (json['credit_sales_amount'] as num?)?.toDouble() ?? 0.0,
+  salesByCustomerType:
+      (json['sales_by_customer_type'] as List<dynamic>?)
+          ?.map(
+            (e) => CustomerTypeTotalModel.fromJson(e as Map<String, dynamic>),
+          )
+          .toList() ??
+      const [],
   totalPurchasesAmount:
       (json['total_purchases_amount'] as num?)?.toDouble() ?? 0.0,
 );
@@ -147,7 +157,11 @@ Map<String, dynamic> _$$ReconciliationModelImplToJson(
   'total_collected_litres': instance.totalCollectedLitres,
   'total_sold_litres': instance.totalSoldLitres,
   'total_spoiled_litres': instance.totalSpoiledLitres,
-  'net_delivered_litres': instance.netDeliveredLitres,
+  'unaccounted_litres': instance.unaccountedLitres,
+  'balance_status': instance.balanceStatus,
   'total_sales_amount': instance.totalSalesAmount,
+  'cash_received_amount': instance.cashReceivedAmount,
+  'credit_sales_amount': instance.creditSalesAmount,
+  'sales_by_customer_type': instance.salesByCustomerType,
   'total_purchases_amount': instance.totalPurchasesAmount,
 };

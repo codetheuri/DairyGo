@@ -69,12 +69,13 @@ graph TD
 * **Trustworthy Records**: Collections only for active farmers of the Sacco, priced by the rate in force on the collection date. Controlled edits (collectors same-day on their own entries, admins with a reason) and a full audit history of every change.
 
 ### 📊 2. Executive Board Analytics
-* **Real-time Overview Cards**: Total intake litres, sales revenue (KES), spoilage losses, active farmers count, and active collectors count.
+* **Milk Balance**: Every litre collected must be sold (coolers included) or logged as spoilage. Unaccounted milk is flagged as *missing* or *oversold* per collector and per Sacco, within a configurable tolerance.
+* **Real-time Overview Cards**: Intake, sales, spoilage, today's balance status, month gross margin, what customers owe, active farmers and collectors.
 * **Daily Trend Graphs**: Dynamic 7-day, 14-day, and 30-day milk volume time-series charts.
 
 ### 💰 3. Dynamic Sacco Milk Pricing Engine
 * **Per-Litre Buying Rates**: A schedule of buying prices with effective dates; each collection is priced by the rate in force on its date, and future rates start automatically.
-* **Farmer Payout Statements**: Automated calculation of gross earnings, deductions, and net payout liability per farmer.
+* **Farmer Payout Statements**: Gross earnings per farmer over any period (litres × the rate in force on each collection date), with M-Pesa and bank payout details.
 
 ### 🏢 4. Multi-Tenant Sacco Architecture
 * **Tenant Isolation**: Independent Sacco configurations with isolated database records (`sacco_id` scope).
@@ -103,7 +104,7 @@ Dairy/
 │   │   └── tusk/             # DairyGo CLI Permission Sync tool (dairy-cli)
 │   ├── config/               # App configuration & env loader
 │   ├── database/
-│   │   └── migrations/       # Goose SQL schema migrations (00001-00011)
+│   │   └── migrations/       # Goose SQL schema migrations (00001-00012)
 │   ├── internal/
 │   │   ├── auth/             # Authentication, Users, & Roles
 │   │   ├── collection/       # Milk Collections, Sales, Spoilage, Pricing

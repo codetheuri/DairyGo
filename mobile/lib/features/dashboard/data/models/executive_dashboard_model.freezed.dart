@@ -28,15 +28,21 @@ mixin _$ExecutiveSummaryCards {
   @JsonKey(name: 'today_sales_litres')
   double get todaySalesLitres => throw _privateConstructorUsedError;
   @JsonKey(name: 'today_spoilage_litres')
-  double get todaySpoilageLitres => throw _privateConstructorUsedError;
-  @JsonKey(name: 'today_net_coolant_station_litres')
-  double get todayNetCoolantStationLitres => throw _privateConstructorUsedError;
+  double get todaySpoilageLitres => throw _privateConstructorUsedError; // collected - sold - spoiled today; > 0 missing, < 0 oversold
+  @JsonKey(name: 'today_unaccounted_litres')
+  double get todayUnaccountedLitres => throw _privateConstructorUsedError;
+  @JsonKey(name: 'today_balance_status')
+  String get todayBalanceStatus => throw _privateConstructorUsedError;
   @JsonKey(name: 'month_collected_litres')
   double get monthCollectedLitres => throw _privateConstructorUsedError;
   @JsonKey(name: 'month_payout_liability_kes')
   double get monthPayoutLiabilityKes => throw _privateConstructorUsedError;
   @JsonKey(name: 'month_sales_revenue_kes')
   double get monthSalesRevenueKes => throw _privateConstructorUsedError;
+  @JsonKey(name: 'month_gross_margin_kes')
+  double get monthGrossMarginKes => throw _privateConstructorUsedError;
+  @JsonKey(name: 'receivables_kes')
+  double get receivablesKes => throw _privateConstructorUsedError;
   @JsonKey(name: 'active_members_count')
   int get activeMembersCount => throw _privateConstructorUsedError;
   @JsonKey(name: 'active_collectors_count')
@@ -63,11 +69,13 @@ abstract class $ExecutiveSummaryCardsCopyWith<$Res> {
     @JsonKey(name: 'today_collected_litres') double todayCollectedLitres,
     @JsonKey(name: 'today_sales_litres') double todaySalesLitres,
     @JsonKey(name: 'today_spoilage_litres') double todaySpoilageLitres,
-    @JsonKey(name: 'today_net_coolant_station_litres')
-    double todayNetCoolantStationLitres,
+    @JsonKey(name: 'today_unaccounted_litres') double todayUnaccountedLitres,
+    @JsonKey(name: 'today_balance_status') String todayBalanceStatus,
     @JsonKey(name: 'month_collected_litres') double monthCollectedLitres,
     @JsonKey(name: 'month_payout_liability_kes') double monthPayoutLiabilityKes,
     @JsonKey(name: 'month_sales_revenue_kes') double monthSalesRevenueKes,
+    @JsonKey(name: 'month_gross_margin_kes') double monthGrossMarginKes,
+    @JsonKey(name: 'receivables_kes') double receivablesKes,
     @JsonKey(name: 'active_members_count') int activeMembersCount,
     @JsonKey(name: 'active_collectors_count') int activeCollectorsCount,
   });
@@ -94,10 +102,13 @@ class _$ExecutiveSummaryCardsCopyWithImpl<
     Object? todayCollectedLitres = null,
     Object? todaySalesLitres = null,
     Object? todaySpoilageLitres = null,
-    Object? todayNetCoolantStationLitres = null,
+    Object? todayUnaccountedLitres = null,
+    Object? todayBalanceStatus = null,
     Object? monthCollectedLitres = null,
     Object? monthPayoutLiabilityKes = null,
     Object? monthSalesRevenueKes = null,
+    Object? monthGrossMarginKes = null,
+    Object? receivablesKes = null,
     Object? activeMembersCount = null,
     Object? activeCollectorsCount = null,
   }) {
@@ -115,10 +126,14 @@ class _$ExecutiveSummaryCardsCopyWithImpl<
                 ? _value.todaySpoilageLitres
                 : todaySpoilageLitres // ignore: cast_nullable_to_non_nullable
                       as double,
-            todayNetCoolantStationLitres: null == todayNetCoolantStationLitres
-                ? _value.todayNetCoolantStationLitres
-                : todayNetCoolantStationLitres // ignore: cast_nullable_to_non_nullable
+            todayUnaccountedLitres: null == todayUnaccountedLitres
+                ? _value.todayUnaccountedLitres
+                : todayUnaccountedLitres // ignore: cast_nullable_to_non_nullable
                       as double,
+            todayBalanceStatus: null == todayBalanceStatus
+                ? _value.todayBalanceStatus
+                : todayBalanceStatus // ignore: cast_nullable_to_non_nullable
+                      as String,
             monthCollectedLitres: null == monthCollectedLitres
                 ? _value.monthCollectedLitres
                 : monthCollectedLitres // ignore: cast_nullable_to_non_nullable
@@ -130,6 +145,14 @@ class _$ExecutiveSummaryCardsCopyWithImpl<
             monthSalesRevenueKes: null == monthSalesRevenueKes
                 ? _value.monthSalesRevenueKes
                 : monthSalesRevenueKes // ignore: cast_nullable_to_non_nullable
+                      as double,
+            monthGrossMarginKes: null == monthGrossMarginKes
+                ? _value.monthGrossMarginKes
+                : monthGrossMarginKes // ignore: cast_nullable_to_non_nullable
+                      as double,
+            receivablesKes: null == receivablesKes
+                ? _value.receivablesKes
+                : receivablesKes // ignore: cast_nullable_to_non_nullable
                       as double,
             activeMembersCount: null == activeMembersCount
                 ? _value.activeMembersCount
@@ -158,11 +181,13 @@ abstract class _$$ExecutiveSummaryCardsImplCopyWith<$Res>
     @JsonKey(name: 'today_collected_litres') double todayCollectedLitres,
     @JsonKey(name: 'today_sales_litres') double todaySalesLitres,
     @JsonKey(name: 'today_spoilage_litres') double todaySpoilageLitres,
-    @JsonKey(name: 'today_net_coolant_station_litres')
-    double todayNetCoolantStationLitres,
+    @JsonKey(name: 'today_unaccounted_litres') double todayUnaccountedLitres,
+    @JsonKey(name: 'today_balance_status') String todayBalanceStatus,
     @JsonKey(name: 'month_collected_litres') double monthCollectedLitres,
     @JsonKey(name: 'month_payout_liability_kes') double monthPayoutLiabilityKes,
     @JsonKey(name: 'month_sales_revenue_kes') double monthSalesRevenueKes,
+    @JsonKey(name: 'month_gross_margin_kes') double monthGrossMarginKes,
+    @JsonKey(name: 'receivables_kes') double receivablesKes,
     @JsonKey(name: 'active_members_count') int activeMembersCount,
     @JsonKey(name: 'active_collectors_count') int activeCollectorsCount,
   });
@@ -186,10 +211,13 @@ class __$$ExecutiveSummaryCardsImplCopyWithImpl<$Res>
     Object? todayCollectedLitres = null,
     Object? todaySalesLitres = null,
     Object? todaySpoilageLitres = null,
-    Object? todayNetCoolantStationLitres = null,
+    Object? todayUnaccountedLitres = null,
+    Object? todayBalanceStatus = null,
     Object? monthCollectedLitres = null,
     Object? monthPayoutLiabilityKes = null,
     Object? monthSalesRevenueKes = null,
+    Object? monthGrossMarginKes = null,
+    Object? receivablesKes = null,
     Object? activeMembersCount = null,
     Object? activeCollectorsCount = null,
   }) {
@@ -207,10 +235,14 @@ class __$$ExecutiveSummaryCardsImplCopyWithImpl<$Res>
             ? _value.todaySpoilageLitres
             : todaySpoilageLitres // ignore: cast_nullable_to_non_nullable
                   as double,
-        todayNetCoolantStationLitres: null == todayNetCoolantStationLitres
-            ? _value.todayNetCoolantStationLitres
-            : todayNetCoolantStationLitres // ignore: cast_nullable_to_non_nullable
+        todayUnaccountedLitres: null == todayUnaccountedLitres
+            ? _value.todayUnaccountedLitres
+            : todayUnaccountedLitres // ignore: cast_nullable_to_non_nullable
                   as double,
+        todayBalanceStatus: null == todayBalanceStatus
+            ? _value.todayBalanceStatus
+            : todayBalanceStatus // ignore: cast_nullable_to_non_nullable
+                  as String,
         monthCollectedLitres: null == monthCollectedLitres
             ? _value.monthCollectedLitres
             : monthCollectedLitres // ignore: cast_nullable_to_non_nullable
@@ -222,6 +254,14 @@ class __$$ExecutiveSummaryCardsImplCopyWithImpl<$Res>
         monthSalesRevenueKes: null == monthSalesRevenueKes
             ? _value.monthSalesRevenueKes
             : monthSalesRevenueKes // ignore: cast_nullable_to_non_nullable
+                  as double,
+        monthGrossMarginKes: null == monthGrossMarginKes
+            ? _value.monthGrossMarginKes
+            : monthGrossMarginKes // ignore: cast_nullable_to_non_nullable
+                  as double,
+        receivablesKes: null == receivablesKes
+            ? _value.receivablesKes
+            : receivablesKes // ignore: cast_nullable_to_non_nullable
                   as double,
         activeMembersCount: null == activeMembersCount
             ? _value.activeMembersCount
@@ -243,12 +283,15 @@ class _$ExecutiveSummaryCardsImpl implements _ExecutiveSummaryCards {
     @JsonKey(name: 'today_collected_litres') this.todayCollectedLitres = 0.0,
     @JsonKey(name: 'today_sales_litres') this.todaySalesLitres = 0.0,
     @JsonKey(name: 'today_spoilage_litres') this.todaySpoilageLitres = 0.0,
-    @JsonKey(name: 'today_net_coolant_station_litres')
-    this.todayNetCoolantStationLitres = 0.0,
+    @JsonKey(name: 'today_unaccounted_litres')
+    this.todayUnaccountedLitres = 0.0,
+    @JsonKey(name: 'today_balance_status') this.todayBalanceStatus = 'BALANCED',
     @JsonKey(name: 'month_collected_litres') this.monthCollectedLitres = 0.0,
     @JsonKey(name: 'month_payout_liability_kes')
     this.monthPayoutLiabilityKes = 0.0,
     @JsonKey(name: 'month_sales_revenue_kes') this.monthSalesRevenueKes = 0.0,
+    @JsonKey(name: 'month_gross_margin_kes') this.monthGrossMarginKes = 0.0,
+    @JsonKey(name: 'receivables_kes') this.receivablesKes = 0.0,
     @JsonKey(name: 'active_members_count') this.activeMembersCount = 0,
     @JsonKey(name: 'active_collectors_count') this.activeCollectorsCount = 0,
   });
@@ -265,9 +308,13 @@ class _$ExecutiveSummaryCardsImpl implements _ExecutiveSummaryCards {
   @override
   @JsonKey(name: 'today_spoilage_litres')
   final double todaySpoilageLitres;
+  // collected - sold - spoiled today; > 0 missing, < 0 oversold
   @override
-  @JsonKey(name: 'today_net_coolant_station_litres')
-  final double todayNetCoolantStationLitres;
+  @JsonKey(name: 'today_unaccounted_litres')
+  final double todayUnaccountedLitres;
+  @override
+  @JsonKey(name: 'today_balance_status')
+  final String todayBalanceStatus;
   @override
   @JsonKey(name: 'month_collected_litres')
   final double monthCollectedLitres;
@@ -278,6 +325,12 @@ class _$ExecutiveSummaryCardsImpl implements _ExecutiveSummaryCards {
   @JsonKey(name: 'month_sales_revenue_kes')
   final double monthSalesRevenueKes;
   @override
+  @JsonKey(name: 'month_gross_margin_kes')
+  final double monthGrossMarginKes;
+  @override
+  @JsonKey(name: 'receivables_kes')
+  final double receivablesKes;
+  @override
   @JsonKey(name: 'active_members_count')
   final int activeMembersCount;
   @override
@@ -286,7 +339,7 @@ class _$ExecutiveSummaryCardsImpl implements _ExecutiveSummaryCards {
 
   @override
   String toString() {
-    return 'ExecutiveSummaryCards(todayCollectedLitres: $todayCollectedLitres, todaySalesLitres: $todaySalesLitres, todaySpoilageLitres: $todaySpoilageLitres, todayNetCoolantStationLitres: $todayNetCoolantStationLitres, monthCollectedLitres: $monthCollectedLitres, monthPayoutLiabilityKes: $monthPayoutLiabilityKes, monthSalesRevenueKes: $monthSalesRevenueKes, activeMembersCount: $activeMembersCount, activeCollectorsCount: $activeCollectorsCount)';
+    return 'ExecutiveSummaryCards(todayCollectedLitres: $todayCollectedLitres, todaySalesLitres: $todaySalesLitres, todaySpoilageLitres: $todaySpoilageLitres, todayUnaccountedLitres: $todayUnaccountedLitres, todayBalanceStatus: $todayBalanceStatus, monthCollectedLitres: $monthCollectedLitres, monthPayoutLiabilityKes: $monthPayoutLiabilityKes, monthSalesRevenueKes: $monthSalesRevenueKes, monthGrossMarginKes: $monthGrossMarginKes, receivablesKes: $receivablesKes, activeMembersCount: $activeMembersCount, activeCollectorsCount: $activeCollectorsCount)';
   }
 
   @override
@@ -300,12 +353,10 @@ class _$ExecutiveSummaryCardsImpl implements _ExecutiveSummaryCards {
                 other.todaySalesLitres == todaySalesLitres) &&
             (identical(other.todaySpoilageLitres, todaySpoilageLitres) ||
                 other.todaySpoilageLitres == todaySpoilageLitres) &&
-            (identical(
-                  other.todayNetCoolantStationLitres,
-                  todayNetCoolantStationLitres,
-                ) ||
-                other.todayNetCoolantStationLitres ==
-                    todayNetCoolantStationLitres) &&
+            (identical(other.todayUnaccountedLitres, todayUnaccountedLitres) ||
+                other.todayUnaccountedLitres == todayUnaccountedLitres) &&
+            (identical(other.todayBalanceStatus, todayBalanceStatus) ||
+                other.todayBalanceStatus == todayBalanceStatus) &&
             (identical(other.monthCollectedLitres, monthCollectedLitres) ||
                 other.monthCollectedLitres == monthCollectedLitres) &&
             (identical(
@@ -315,6 +366,10 @@ class _$ExecutiveSummaryCardsImpl implements _ExecutiveSummaryCards {
                 other.monthPayoutLiabilityKes == monthPayoutLiabilityKes) &&
             (identical(other.monthSalesRevenueKes, monthSalesRevenueKes) ||
                 other.monthSalesRevenueKes == monthSalesRevenueKes) &&
+            (identical(other.monthGrossMarginKes, monthGrossMarginKes) ||
+                other.monthGrossMarginKes == monthGrossMarginKes) &&
+            (identical(other.receivablesKes, receivablesKes) ||
+                other.receivablesKes == receivablesKes) &&
             (identical(other.activeMembersCount, activeMembersCount) ||
                 other.activeMembersCount == activeMembersCount) &&
             (identical(other.activeCollectorsCount, activeCollectorsCount) ||
@@ -328,10 +383,13 @@ class _$ExecutiveSummaryCardsImpl implements _ExecutiveSummaryCards {
     todayCollectedLitres,
     todaySalesLitres,
     todaySpoilageLitres,
-    todayNetCoolantStationLitres,
+    todayUnaccountedLitres,
+    todayBalanceStatus,
     monthCollectedLitres,
     monthPayoutLiabilityKes,
     monthSalesRevenueKes,
+    monthGrossMarginKes,
+    receivablesKes,
     activeMembersCount,
     activeCollectorsCount,
   );
@@ -359,12 +417,15 @@ abstract class _ExecutiveSummaryCards implements ExecutiveSummaryCards {
     @JsonKey(name: 'today_collected_litres') final double todayCollectedLitres,
     @JsonKey(name: 'today_sales_litres') final double todaySalesLitres,
     @JsonKey(name: 'today_spoilage_litres') final double todaySpoilageLitres,
-    @JsonKey(name: 'today_net_coolant_station_litres')
-    final double todayNetCoolantStationLitres,
+    @JsonKey(name: 'today_unaccounted_litres')
+    final double todayUnaccountedLitres,
+    @JsonKey(name: 'today_balance_status') final String todayBalanceStatus,
     @JsonKey(name: 'month_collected_litres') final double monthCollectedLitres,
     @JsonKey(name: 'month_payout_liability_kes')
     final double monthPayoutLiabilityKes,
     @JsonKey(name: 'month_sales_revenue_kes') final double monthSalesRevenueKes,
+    @JsonKey(name: 'month_gross_margin_kes') final double monthGrossMarginKes,
+    @JsonKey(name: 'receivables_kes') final double receivablesKes,
     @JsonKey(name: 'active_members_count') final int activeMembersCount,
     @JsonKey(name: 'active_collectors_count') final int activeCollectorsCount,
   }) = _$ExecutiveSummaryCardsImpl;
@@ -380,10 +441,13 @@ abstract class _ExecutiveSummaryCards implements ExecutiveSummaryCards {
   double get todaySalesLitres;
   @override
   @JsonKey(name: 'today_spoilage_litres')
-  double get todaySpoilageLitres;
+  double get todaySpoilageLitres; // collected - sold - spoiled today; > 0 missing, < 0 oversold
   @override
-  @JsonKey(name: 'today_net_coolant_station_litres')
-  double get todayNetCoolantStationLitres;
+  @JsonKey(name: 'today_unaccounted_litres')
+  double get todayUnaccountedLitres;
+  @override
+  @JsonKey(name: 'today_balance_status')
+  String get todayBalanceStatus;
   @override
   @JsonKey(name: 'month_collected_litres')
   double get monthCollectedLitres;
@@ -393,6 +457,12 @@ abstract class _ExecutiveSummaryCards implements ExecutiveSummaryCards {
   @override
   @JsonKey(name: 'month_sales_revenue_kes')
   double get monthSalesRevenueKes;
+  @override
+  @JsonKey(name: 'month_gross_margin_kes')
+  double get monthGrossMarginKes;
+  @override
+  @JsonKey(name: 'receivables_kes')
+  double get receivablesKes;
   @override
   @JsonKey(name: 'active_members_count')
   int get activeMembersCount;
@@ -421,8 +491,8 @@ mixin _$DailyTrendPoint {
   double get salesLitres => throw _privateConstructorUsedError;
   @JsonKey(name: 'spoilage_litres')
   double get spoilageLitres => throw _privateConstructorUsedError;
-  @JsonKey(name: 'net_coolant_litres')
-  double get netCoolantLitres => throw _privateConstructorUsedError;
+  @JsonKey(name: 'unaccounted_litres')
+  double get unaccountedLitres => throw _privateConstructorUsedError;
 
   /// Serializes this DailyTrendPoint to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -446,7 +516,7 @@ abstract class $DailyTrendPointCopyWith<$Res> {
     @JsonKey(name: 'collected_litres') double collectedLitres,
     @JsonKey(name: 'sales_litres') double salesLitres,
     @JsonKey(name: 'spoilage_litres') double spoilageLitres,
-    @JsonKey(name: 'net_coolant_litres') double netCoolantLitres,
+    @JsonKey(name: 'unaccounted_litres') double unaccountedLitres,
   });
 }
 
@@ -469,7 +539,7 @@ class _$DailyTrendPointCopyWithImpl<$Res, $Val extends DailyTrendPoint>
     Object? collectedLitres = null,
     Object? salesLitres = null,
     Object? spoilageLitres = null,
-    Object? netCoolantLitres = null,
+    Object? unaccountedLitres = null,
   }) {
     return _then(
       _value.copyWith(
@@ -489,9 +559,9 @@ class _$DailyTrendPointCopyWithImpl<$Res, $Val extends DailyTrendPoint>
                 ? _value.spoilageLitres
                 : spoilageLitres // ignore: cast_nullable_to_non_nullable
                       as double,
-            netCoolantLitres: null == netCoolantLitres
-                ? _value.netCoolantLitres
-                : netCoolantLitres // ignore: cast_nullable_to_non_nullable
+            unaccountedLitres: null == unaccountedLitres
+                ? _value.unaccountedLitres
+                : unaccountedLitres // ignore: cast_nullable_to_non_nullable
                       as double,
           )
           as $Val,
@@ -513,7 +583,7 @@ abstract class _$$DailyTrendPointImplCopyWith<$Res>
     @JsonKey(name: 'collected_litres') double collectedLitres,
     @JsonKey(name: 'sales_litres') double salesLitres,
     @JsonKey(name: 'spoilage_litres') double spoilageLitres,
-    @JsonKey(name: 'net_coolant_litres') double netCoolantLitres,
+    @JsonKey(name: 'unaccounted_litres') double unaccountedLitres,
   });
 }
 
@@ -535,7 +605,7 @@ class __$$DailyTrendPointImplCopyWithImpl<$Res>
     Object? collectedLitres = null,
     Object? salesLitres = null,
     Object? spoilageLitres = null,
-    Object? netCoolantLitres = null,
+    Object? unaccountedLitres = null,
   }) {
     return _then(
       _$DailyTrendPointImpl(
@@ -555,9 +625,9 @@ class __$$DailyTrendPointImplCopyWithImpl<$Res>
             ? _value.spoilageLitres
             : spoilageLitres // ignore: cast_nullable_to_non_nullable
                   as double,
-        netCoolantLitres: null == netCoolantLitres
-            ? _value.netCoolantLitres
-            : netCoolantLitres // ignore: cast_nullable_to_non_nullable
+        unaccountedLitres: null == unaccountedLitres
+            ? _value.unaccountedLitres
+            : unaccountedLitres // ignore: cast_nullable_to_non_nullable
                   as double,
       ),
     );
@@ -572,7 +642,7 @@ class _$DailyTrendPointImpl implements _DailyTrendPoint {
     @JsonKey(name: 'collected_litres') this.collectedLitres = 0.0,
     @JsonKey(name: 'sales_litres') this.salesLitres = 0.0,
     @JsonKey(name: 'spoilage_litres') this.spoilageLitres = 0.0,
-    @JsonKey(name: 'net_coolant_litres') this.netCoolantLitres = 0.0,
+    @JsonKey(name: 'unaccounted_litres') this.unaccountedLitres = 0.0,
   });
 
   factory _$DailyTrendPointImpl.fromJson(Map<String, dynamic> json) =>
@@ -591,12 +661,12 @@ class _$DailyTrendPointImpl implements _DailyTrendPoint {
   @JsonKey(name: 'spoilage_litres')
   final double spoilageLitres;
   @override
-  @JsonKey(name: 'net_coolant_litres')
-  final double netCoolantLitres;
+  @JsonKey(name: 'unaccounted_litres')
+  final double unaccountedLitres;
 
   @override
   String toString() {
-    return 'DailyTrendPoint(date: $date, collectedLitres: $collectedLitres, salesLitres: $salesLitres, spoilageLitres: $spoilageLitres, netCoolantLitres: $netCoolantLitres)';
+    return 'DailyTrendPoint(date: $date, collectedLitres: $collectedLitres, salesLitres: $salesLitres, spoilageLitres: $spoilageLitres, unaccountedLitres: $unaccountedLitres)';
   }
 
   @override
@@ -611,8 +681,8 @@ class _$DailyTrendPointImpl implements _DailyTrendPoint {
                 other.salesLitres == salesLitres) &&
             (identical(other.spoilageLitres, spoilageLitres) ||
                 other.spoilageLitres == spoilageLitres) &&
-            (identical(other.netCoolantLitres, netCoolantLitres) ||
-                other.netCoolantLitres == netCoolantLitres));
+            (identical(other.unaccountedLitres, unaccountedLitres) ||
+                other.unaccountedLitres == unaccountedLitres));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -623,7 +693,7 @@ class _$DailyTrendPointImpl implements _DailyTrendPoint {
     collectedLitres,
     salesLitres,
     spoilageLitres,
-    netCoolantLitres,
+    unaccountedLitres,
   );
 
   /// Create a copy of DailyTrendPoint
@@ -649,7 +719,7 @@ abstract class _DailyTrendPoint implements DailyTrendPoint {
     @JsonKey(name: 'collected_litres') final double collectedLitres,
     @JsonKey(name: 'sales_litres') final double salesLitres,
     @JsonKey(name: 'spoilage_litres') final double spoilageLitres,
-    @JsonKey(name: 'net_coolant_litres') final double netCoolantLitres,
+    @JsonKey(name: 'unaccounted_litres') final double unaccountedLitres,
   }) = _$DailyTrendPointImpl;
 
   factory _DailyTrendPoint.fromJson(Map<String, dynamic> json) =
@@ -667,8 +737,8 @@ abstract class _DailyTrendPoint implements DailyTrendPoint {
   @JsonKey(name: 'spoilage_litres')
   double get spoilageLitres;
   @override
-  @JsonKey(name: 'net_coolant_litres')
-  double get netCoolantLitres;
+  @JsonKey(name: 'unaccounted_litres')
+  double get unaccountedLitres;
 
   /// Create a copy of DailyTrendPoint
   /// with the given fields replaced by the non-null parameter values.

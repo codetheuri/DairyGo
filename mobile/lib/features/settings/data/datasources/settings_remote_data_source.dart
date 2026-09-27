@@ -7,6 +7,8 @@ abstract class SettingsRemoteDataSource {
   Future<SaccoProfileModel> getSaccoProfile();
   Future<List<MilkPriceModel>> getPriceHistory();
   Future<MilkPriceModel> setMilkPrice(SetPriceRequestModel request);
+  Future<SaccoSettingsModel> getSettings();
+  Future<SaccoSettingsModel> updateTolerance(double litres);
 }
 
 class SettingsRemoteDataSourceImpl implements SettingsRemoteDataSource {
@@ -62,6 +64,36 @@ class SettingsRemoteDataSourceImpl implements SettingsRemoteDataSource {
     } on DioException catch (e) {
       final serverMsg = e.response?.data is Map ? e.response?.data['message'] : null;
       throw Exception(serverMsg ?? e.message ?? 'Error updating milk price rate');
+    }
+  }
+
+  @override
+  Future<SaccoSettingsModel> getSettings() async {
+    try {
+      final response = await _dio.get(ApiConstants.saccoSettings);
+      final data = response.data as Map<String, dynamic>;
+      if (data['success'] == true && data['data'] != null) {
+        return SaccoSettingsModel.fromJson(data['data']['settings'] as Map<String, dynamic>);
+      }
+      throw Exception(data['message'] ?? 'Failed to load Sacco settings');
+    } on DioException catch (e) {
+      final serverMsg = e.response?.data is Map ? e.response?.data['message'] : null;
+      throw Exception(serverMsg ?? e.message ?? 'Error loading Sacco settings');
+    }
+  }
+
+  @override
+  Future<SaccoSettingsModel> updateTolerance(double litres) async {
+    try {
+      final response = await _dio.put(ApiConstants.saccoSettings, data: {'reconciliation_tolerance_litres': litres});
+      final data = response.data as Map<String, dynamic>;
+      if (data['success'] == true && data['data'] != null) {
+        return SaccoSettingsModel.fromJson(data['data']['settings'] as Map<String, dynamic>);
+      }
+      throw Exception(data['message'] ?? 'Failed to update tolerance');
+    } on DioException catch (e) {
+      final serverMsg = e.response?.data is Map ? e.response?.data['message'] : null;
+      throw Exception(serverMsg ?? e.message ?? 'Error updating tolerance');
     }
   }
 }

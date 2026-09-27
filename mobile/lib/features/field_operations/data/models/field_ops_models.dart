@@ -1,5 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../../../../core/models/customer_type_total_model.dart';
+
 part 'field_ops_models.freezed.dart';
 part 'field_ops_models.g.dart';
 
@@ -98,8 +100,13 @@ class ReconciliationModel with _$ReconciliationModel {
     @JsonKey(name: 'total_collected_litres') @Default(0.0) double totalCollectedLitres,
     @JsonKey(name: 'total_sold_litres') @Default(0.0) double totalSoldLitres,
     @JsonKey(name: 'total_spoiled_litres') @Default(0.0) double totalSpoiledLitres,
-    @JsonKey(name: 'net_delivered_litres') @Default(0.0) double netDeliveredLitres,
+    // collected - sold - spoiled; > 0 missing, < 0 oversold
+    @JsonKey(name: 'unaccounted_litres') @Default(0.0) double unaccountedLitres,
+    @JsonKey(name: 'balance_status') @Default('BALANCED') String balanceStatus,
     @JsonKey(name: 'total_sales_amount') @Default(0.0) double totalSalesAmount,
+    @JsonKey(name: 'cash_received_amount') @Default(0.0) double cashReceivedAmount,
+    @JsonKey(name: 'credit_sales_amount') @Default(0.0) double creditSalesAmount,
+    @JsonKey(name: 'sales_by_customer_type') @Default([]) List<CustomerTypeTotalModel> salesByCustomerType,
     @JsonKey(name: 'total_purchases_amount') @Default(0.0) double totalPurchasesAmount,
   }) = _ReconciliationModel;
 

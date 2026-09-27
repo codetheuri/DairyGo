@@ -9,6 +9,8 @@ import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../controllers/report_controller.dart';
 import 'collector_audit_detail_screen.dart';
 import 'farmer_payout_detail_screen.dart';
+import '../../../../core/widgets/balance_badge.dart';
+import '../../../customers/data/models/customer_models.dart';
 
 class ReportsScreen extends ConsumerStatefulWidget {
   const ReportsScreen({super.key});
@@ -333,58 +335,66 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Status Card
+                            // Milk balance: every litre collected must be sold (coolers included) or spoiled.
                             Container(
                               width: double.infinity,
                               padding: const EdgeInsets.all(18),
                               decoration: BoxDecoration(
-                                color: ledger.isBalanced ? AppColors.accentMint : AppColors.errorContainer,
+                                color: BalanceBadge.colorFor(ledger.balanceStatus).withValues(alpha: 0.08),
                                 borderRadius: BorderRadius.circular(16),
-                                border: Border.all(
-                                  color: ledger.isBalanced ? AppColors.primary : AppColors.error,
-                                ),
+                                border: Border.all(color: BalanceBadge.colorFor(ledger.balanceStatus)),
                               ),
                               child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
-                                      Text(
-                                        'Mathematical Balancing Status',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: ledger.isBalanced ? AppColors.primary : AppColors.error,
-                                        ),
-                                      ),
-                                      StatusPill.fromStatusString(
-                                        ledger.isBalanced ? 'VERIFIED' : 'REJECTED',
+                                      const Text('Milk Balance', style: TextStyle(fontWeight: FontWeight.bold)),
+                                      BalanceBadge(
+                                        unaccountedLitres: ledger.unaccountedLitres,
+                                        status: ledger.balanceStatus,
+                                        large: true,
                                       ),
                                     ],
                                   ),
-                                  const SizedBox(height: 12),
+                                  const SizedBox(height: 10),
                                   Text(
-                                    ledger.isBalanced
-                                        ? 'All intakes, sales, and spoilage losses mathematically balance!'
-                                        : 'Discrepancy detected: ${ledger.discrepancyLitres.toStringAsFixed(1)} Litres variance!',
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      color: ledger.isBalanced ? AppColors.primary : AppColors.error,
-                                    ),
+                                    'Collected ${ledger.totalFarmerIntakeLitres.toStringAsFixed(1)} L − '
+                                    'sold ${ledger.totalSoldLitres.toStringAsFixed(1)} L − '
+                                    'spoiled ${ledger.totalSpoilageLitres.toStringAsFixed(1)} L = '
+                                    '${ledger.unaccountedLitres.toStringAsFixed(1)} L unaccounted '
+                                    '(tolerance ${ledger.allowanceLitres.toStringAsFixed(1)} L).',
+                                    style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
                                   ),
+                                  if (ledger.collectorsSummary.any((c) => c.balanceStatus != 'BALANCED')) ...[
+                                    const SizedBox(height: 10),
+                                    const Text('Collectors to check:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                                    const SizedBox(height: 4),
+                                    for (final c in ledger.collectorsSummary.where((c) => c.balanceStatus != 'BALANCED'))
+                                      Padding(
+                                        padding: const EdgeInsets.only(top: 4),
+                                        child: Row(
+                                          children: [
+                                            Expanded(child: Text(c.collectorName, style: const TextStyle(fontSize: 12))),
+                                            BalanceBadge(unaccountedLitres: c.unaccountedLitres, status: c.balanceStatus),
+                                          ],
+                                        ),
+                                      ),
+                                  ],
                                 ],
                               ),
                             ),
                             const SizedBox(height: 20),
 
                             Text(
-                              'Volume & Financial Balancing Ledger',
+                              'Milk Volumes',
                               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.textPrimary,
                                   ),
                             ),
                             const SizedBox(height: 10),
-
                             Container(
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
@@ -394,17 +404,51 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
                               ),
                               child: Column(
                                 children: [
-                                  _buildLedgerRow('Total Farmer Intake', '${ledger.totalFarmerIntakeLitres.toStringAsFixed(1)} L', AppColors.primary),
+                                  _buildLedgerRow('Collected from Farmers', '${ledger.totalFarmerIntakeLitres.toStringAsFixed(1)} L', AppColors.primary),
+                                  for (final t in ledger.salesByCustomerType) ...[
+                                    const Divider(height: 20, color: AppColors.cardBorder),
+                                    _buildLedgerRow('Sold to ${customerTypeLabel(t.customerType)}', '${t.litres.toStringAsFixed(1)} L', AppColors.secondary),
+                                  ],
                                   const Divider(height: 20, color: AppColors.cardBorder),
-                                  _buildLedgerRow('Farmer Payout Liability', 'KES ${ledger.totalFarmerLiabilityKes.toStringAsFixed(2)}', AppColors.warning),
-                                  const Divider(height: 20, color: AppColors.cardBorder),
-                                  _buildLedgerRow('Field Sales Volume', '${ledger.totalFieldSalesLitres.toStringAsFixed(1)} L', AppColors.secondary),
-                                  const Divider(height: 20, color: AppColors.cardBorder),
-                                  _buildLedgerRow('Field Sales Revenue', 'KES ${ledger.totalFieldSalesRevenueKes.toStringAsFixed(2)}', AppColors.success),
+                                  _buildLedgerRow('Total Sold', '${ledger.totalSoldLitres.toStringAsFixed(1)} L', AppColors.secondary),
                                   const Divider(height: 20, color: AppColors.cardBorder),
                                   _buildLedgerRow('Spoilage Loss', '${ledger.totalSpoilageLitres.toStringAsFixed(1)} L', AppColors.error),
                                   const Divider(height: 20, color: AppColors.cardBorder),
-                                  _buildLedgerRow('Net Coolant Station Handover', '${ledger.netCoolantStationLitres.toStringAsFixed(1)} L', AppColors.primary),
+                                  _buildLedgerRow('Unaccounted', '${ledger.unaccountedLitres.toStringAsFixed(1)} L', BalanceBadge.colorFor(ledger.balanceStatus)),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+
+                            Text(
+                              'Money',
+                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textPrimary,
+                                  ),
+                            ),
+                            const SizedBox(height: 10),
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: AppColors.cardBorder),
+                              ),
+                              child: Column(
+                                children: [
+                                  _buildLedgerRow('Owed to Farmers', 'KES ${ledger.totalFarmerLiabilityKes.toStringAsFixed(2)}', AppColors.warning),
+                                  const Divider(height: 20, color: AppColors.cardBorder),
+                                  _buildLedgerRow('Sales Revenue', 'KES ${ledger.totalSalesRevenueKes.toStringAsFixed(2)}', AppColors.success),
+                                  const Divider(height: 20, color: AppColors.cardBorder),
+                                  _buildLedgerRow('  Paid at Sale', 'KES ${ledger.cashReceivedKes.toStringAsFixed(2)}', AppColors.textSecondary),
+                                  const Divider(height: 20, color: AppColors.cardBorder),
+                                  _buildLedgerRow('  Sold on Credit', 'KES ${ledger.creditSalesKes.toStringAsFixed(2)}', AppColors.textSecondary),
+                                  const Divider(height: 20, color: AppColors.cardBorder),
+                                  _buildLedgerRow('Gross Margin', 'KES ${ledger.grossMarginKes.toStringAsFixed(2)}',
+                                      ledger.grossMarginKes >= 0 ? AppColors.success : AppColors.error),
+                                  const Divider(height: 20, color: AppColors.cardBorder),
+                                  _buildLedgerRow('Customers Owe (now)', 'KES ${ledger.receivablesKes.toStringAsFixed(2)}', AppColors.warning),
                                 ],
                               ),
                             ),
@@ -500,7 +544,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
                                         _buildAuditItem('Collected', '${item.totalCollectedLitres.toStringAsFixed(1)}L', AppColors.primary),
                                         _buildAuditItem('Sold', '${item.totalSoldLitres.toStringAsFixed(1)}L', AppColors.secondary),
                                         _buildAuditItem('Spoiled', '${item.totalSpoiledLitres.toStringAsFixed(1)}L', AppColors.warning),
-                                        _buildAuditItem('Net Handover', '${item.netDeliveredLitres.toStringAsFixed(1)}L', AppColors.success),
+                                        _buildAuditItem('Unaccounted', '${item.unaccountedLitres.toStringAsFixed(1)}L', BalanceBadge.colorFor(item.balanceStatus)),
                                       ],
                                     ),
                                   ],

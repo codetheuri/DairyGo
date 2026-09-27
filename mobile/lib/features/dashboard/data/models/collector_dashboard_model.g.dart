@@ -19,9 +19,11 @@ _$CollectorDashboardModelImpl _$$CollectorDashboardModelImplFromJson(
   todayFarmersServiced: (json['today_farmers_serviced'] as num?)?.toInt() ?? 0,
   todaySoldLitres: (json['today_sold_litres'] as num?)?.toDouble() ?? 0.0,
   todaySalesRevenue: (json['today_sales_revenue'] as num?)?.toDouble() ?? 0.0,
+  todayCashReceived: (json['today_cash_received'] as num?)?.toDouble() ?? 0.0,
   todaySpoiledLitres: (json['today_spoiled_litres'] as num?)?.toDouble() ?? 0.0,
-  todayNetStationDeliveryLitres:
-      (json['today_net_station_delivery_litres'] as num?)?.toDouble() ?? 0.0,
+  todayUnaccountedLitres:
+      (json['today_unaccounted_litres'] as num?)?.toDouble() ?? 0.0,
+  todayBalanceStatus: json['today_balance_status'] as String? ?? 'BALANCED',
 );
 
 Map<String, dynamic> _$$CollectorDashboardModelImplToJson(
@@ -35,6 +37,8 @@ Map<String, dynamic> _$$CollectorDashboardModelImplToJson(
   'today_farmers_serviced': instance.todayFarmersServiced,
   'today_sold_litres': instance.todaySoldLitres,
   'today_sales_revenue': instance.todaySalesRevenue,
+  'today_cash_received': instance.todayCashReceived,
   'today_spoiled_litres': instance.todaySpoiledLitres,
-  'today_net_station_delivery_litres': instance.todayNetStationDeliveryLitres,
+  'today_unaccounted_litres': instance.todayUnaccountedLitres,
+  'today_balance_status': instance.todayBalanceStatus,
 };

@@ -40,6 +40,8 @@ _$SaccoSettingsModelImpl _$$SaccoSettingsModelImplFromJson(
   milkUnit: json['milk_unit'] as String? ?? 'LITRES',
   morningCutoffTime: json['morning_cutoff_time'] as String?,
   eveningCutoffTime: json['evening_cutoff_time'] as String?,
+  reconciliationToleranceLitres:
+      (json['reconciliation_tolerance_litres'] as num?)?.toDouble() ?? 0.0,
 );
 
 Map<String, dynamic> _$$SaccoSettingsModelImplToJson(
@@ -50,6 +52,7 @@ Map<String, dynamic> _$$SaccoSettingsModelImplToJson(
   'milk_unit': instance.milkUnit,
   'morning_cutoff_time': instance.morningCutoffTime,
   'evening_cutoff_time': instance.eveningCutoffTime,
+  'reconciliation_tolerance_litres': instance.reconciliationToleranceLitres,
 };
 
 _$SetPriceRequestModelImpl _$$SetPriceRequestModelImplFromJson(

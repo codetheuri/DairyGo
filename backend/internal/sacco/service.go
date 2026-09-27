@@ -147,6 +147,12 @@ func (s *Service) UpdateSettings(ctx context.Context, saccoID string, req *Updat
 	if req.EveningCutoffTime != nil {
 		settings.EveningCutoffTime = req.EveningCutoffTime
 	}
+	if req.ReconciliationToleranceLitres != nil {
+		if *req.ReconciliationToleranceLitres < 0 {
+			return nil, fmt.Errorf("reconciliation_tolerance_litres cannot be negative")
+		}
+		settings.ReconciliationToleranceLitres = *req.ReconciliationToleranceLitres
+	}
 
 	if err := s.repo.UpdateSettings(ctx, settings); err != nil {
 		return nil, fmt.Errorf("failed to update settings: %w", err)

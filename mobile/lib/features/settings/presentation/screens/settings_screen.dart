@@ -375,6 +375,12 @@ class SettingsScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 24),
 
+              // Milk balance tolerance (admins): allowed measuring difference per collector per day.
+              if (canSetPrice) ...[
+                const _ToleranceCard(),
+                const SizedBox(height: 24),
+              ],
+
               // 3. Sacco Staff & User Management (Hiddne silently for non-Admins)
               if (canManageStaff) ...[
                 Row(
@@ -559,6 +565,78 @@ class SettingsScreen extends ConsumerWidget {
         Text('$label: ', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
         Text(value, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
       ],
+    );
+  }
+}
+
+/// Shows and edits the Sacco's milk balance tolerance.
+class _ToleranceCard extends ConsumerWidget {
+  const _ToleranceCard();
+
+  Future<void> _edit(BuildContext context, WidgetRef ref, double current) async {
+    final controller = TextEditingController(text: current.toStringAsFixed(1));
+    final value = await showDialog<double>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Milk balance tolerance'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Litres of measuring difference allowed per collector per day before milk is flagged as missing or oversold.',
+              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: controller,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              decoration: const InputDecoration(labelText: 'Litres', suffixText: 'L'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () {
+              final v = double.tryParse(controller.text.trim());
+              if (v != null && v >= 0) Navigator.of(ctx).pop(v);
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+    if (value == null) return;
+    try {
+      await ref.read(settingsRepositoryProvider).updateTolerance(value);
+      ref.invalidate(saccoSettingsProvider);
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))));
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(saccoSettingsProvider);
+    final tolerance = settings.valueOrNull?.reconciliationToleranceLitres ?? 0;
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.cardBorder),
+      ),
+      child: ListTile(
+        leading: const Icon(Icons.balance_rounded, color: AppColors.primary),
+        title: const Text('Milk balance tolerance', style: TextStyle(fontWeight: FontWeight.w600)),
+        subtitle: Text(
+          settings.isLoading ? 'Loading…' : '${tolerance.toStringAsFixed(1)} L per collector per day',
+          style: const TextStyle(fontSize: 12),
+        ),
+        trailing: const Icon(Icons.edit_outlined, size: 18),
+        onTap: settings.hasValue ? () => _edit(context, ref, tolerance) : null,
+      ),
     );
   }
 }

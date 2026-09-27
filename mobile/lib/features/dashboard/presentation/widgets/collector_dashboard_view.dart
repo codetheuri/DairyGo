@@ -4,8 +4,8 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/router/app_router.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/widgets/stat_card.dart';
-import '../../../../core/widgets/status_pill.dart';
 import '../../data/models/collector_dashboard_model.dart';
+import '../../../../core/widgets/balance_badge.dart';
 
 class CollectorDashboardView extends StatelessWidget {
   final CollectorDashboardModel data;
@@ -59,9 +59,12 @@ class CollectorDashboardView extends StatelessWidget {
                               fontWeight: FontWeight.w500,
                             ),
                       ),
-                      const StatusPill(
-                        status: 'SHIFT ACTIVE',
-                        type: StatusType.success,
+                      Container(
+                        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
+                        child: BalanceBadge(
+                          unaccountedLitres: data.todayUnaccountedLitres,
+                          status: data.todayBalanceStatus,
+                        ),
                       ),
                     ],
                   ),
@@ -71,7 +74,7 @@ class CollectorDashboardView extends StatelessWidget {
                     textBaseline: TextBaseline.alphabetic,
                     children: [
                       Text(
-                        data.todayNetStationDeliveryLitres.toStringAsFixed(1),
+                        data.todayUnaccountedLitres.toStringAsFixed(1),
                         style: Theme.of(context).textTheme.displayMedium?.copyWith(
                               color: Colors.white,
                               fontWeight: FontWeight.w800,
@@ -79,7 +82,7 @@ class CollectorDashboardView extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'Litres',
+                        'Litres unaccounted',
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
                               color: Colors.white.withValues(alpha: 0.9),
                               fontWeight: FontWeight.bold,
@@ -89,7 +92,8 @@ class CollectorDashboardView extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Formula: (Intake ${data.todayCollectedLitres}L) - (Sales ${data.todaySoldLitres}L + Spoilage ${data.todaySpoiledLitres}L)',
+                    'Collected ${data.todayCollectedLitres}L − Sold ${data.todaySoldLitres}L − Spoiled ${data.todaySpoiledLitres}L. '
+                    'Record every sale, coolers included, so this reaches 0.',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Colors.white.withValues(alpha: 0.8),
                         ),

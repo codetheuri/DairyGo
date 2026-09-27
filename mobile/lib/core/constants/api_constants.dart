@@ -23,6 +23,9 @@ abstract class ApiConstants {
   static const String spoilage = '/api/v1/sacco/milk-spoilage';
   static const String reconciliation = '/api/v1/sacco/reconciliation';
 
+  // Sacco Settings
+  static const String saccoSettings = '/api/v1/sacco/settings';
+
   // Customer & Ledger Routes
   static const String customers = '/api/v1/sacco/customers';
   static const String customerBalances = '/api/v1/sacco/customers/balances';

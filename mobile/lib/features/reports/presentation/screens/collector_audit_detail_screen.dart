@@ -6,6 +6,7 @@ import '../../../../core/widgets/empty_state_widget.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../data/models/report_models.dart';
 import '../controllers/report_controller.dart';
+import '../../../../core/widgets/balance_badge.dart';
 
 class CollectorDailyAuditItem {
   final String date;
@@ -116,7 +117,7 @@ class CollectorAuditDetailScreen extends ConsumerWidget {
                       _buildMetric('Intake', '${summary.totalCollectedLitres.toStringAsFixed(1)}L', AppColors.primary),
                       _buildMetric('Sold', '${summary.totalSoldLitres.toStringAsFixed(1)}L', AppColors.secondary),
                       _buildMetric('Spoiled', '${summary.totalSpoiledLitres.toStringAsFixed(1)}L', AppColors.warning),
-                      _buildMetric('Station', '${summary.netDeliveredLitres.toStringAsFixed(1)}L', AppColors.success, isBold: true),
+                      _buildMetric('Unaccounted', '${summary.unaccountedLitres.toStringAsFixed(1)}L', BalanceBadge.colorFor(summary.balanceStatus), isBold: true),
                     ],
                   ),
                 ),

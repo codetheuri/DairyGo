@@ -79,6 +79,8 @@ type UpdateSettingsRequest struct {
 	MilkUnit          *string `json:"milk_unit,omitempty" doc:"Unit of milk measurement (e.g. LITRES, KG)"`
 	MorningCutoffTime *string `json:"morning_cutoff_time,omitempty" doc:"Morning collection cutoff time (HH:MM:SS)"`
 	EveningCutoffTime *string `json:"evening_cutoff_time,omitempty" doc:"Evening collection cutoff time (HH:MM:SS)"`
+	// Allowed difference between collected and sold+spoiled milk, per collector per day.
+	ReconciliationToleranceLitres *float64 `json:"reconciliation_tolerance_litres,omitempty" minimum:"0" doc:"Litres of measuring difference tolerated per collector per day (default 0)"`
 }
 
 type UpdateSettingsInput struct {

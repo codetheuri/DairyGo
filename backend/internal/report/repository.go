@@ -3,10 +3,12 @@ package report
 import (
 	"context"
 	"math"
+	"sort"
 	"time"
 
 	"github.com/codetheuri/tusk/internal/middleware"
 	"github.com/codetheuri/tusk/pkg/query"
+	"github.com/codetheuri/tusk/pkg/reconcile"
 	"gorm.io/gorm"
 )
 
@@ -23,22 +25,22 @@ func (r *Repository) GetFarmerPayoutStatements(ctx context.Context, fromDate, to
 	saccoID, _ := middleware.GetSaccoID(ctx)
 
 	type queryResult struct {
-		MemberID             string  `gorm:"member_id"`
-		MembershipNumber     string  `gorm:"membership_number"`
-		FirstName            string  `gorm:"first_name"`
-		LastName             string  `gorm:"last_name"`
-		Phone                string  `gorm:"phone"`
-		MpesaNumber          *string `gorm:"mpesa_number"`
-		BankAccountNumber    *string `gorm:"bank_account_number"`
-		BankName             *string `gorm:"bank_name"`
-		TotalLitres          float64 `gorm:"total_litres"`
-		GrossAmountOwed      float64 `gorm:"gross_amount_owed"`
-		CollectionsCount     int64   `gorm:"collections_count"`
+		MemberID          string  `gorm:"member_id"`
+		MembershipNumber  string  `gorm:"membership_number"`
+		FirstName         string  `gorm:"first_name"`
+		LastName          string  `gorm:"last_name"`
+		Phone             string  `gorm:"phone"`
+		MpesaNumber       *string `gorm:"mpesa_number"`
+		BankAccountNumber *string `gorm:"bank_account_number"`
+		BankName          *string `gorm:"bank_name"`
+		TotalLitres       float64 `gorm:"total_litres"`
+		GrossAmountOwed   float64 `gorm:"gross_amount_owed"`
+		CollectionsCount  int64   `gorm:"collections_count"`
 	}
 
 	session := r.db.WithContext(ctx).Table("members").
 		Select("members.id as member_id, members.membership_number, members.first_name, members.last_name, members.phone, members.mpesa_number, members.bank_account_number, members.bank_name, COALESCE(SUM(milk_collections.quantity_litres), 0) as total_litres, COALESCE(SUM(milk_collections.total_amount), 0) as gross_amount_owed, COUNT(milk_collections.id) as collections_count").
-		Joins("JOIN milk_collections ON milk_collections.member_id = members.id AND milk_collections.deleted_at IS NULL AND milk_collections.status != 'REJECTED' AND DATE(milk_collections.collection_date) BETWEEN ? AND ?", fromDate.Format("2006-01-02"), toDate.Format("2006-01-02")).
+		Joins("JOIN milk_collections ON milk_collections.member_id = members.id AND milk_collections.deleted_at IS NULL AND milk_collections.status != 'REJECTED' AND milk_collections.collection_date BETWEEN ? AND ?", fromDate.Format("2006-01-02"), toDate.Format("2006-01-02")).
 		Where("members.sacco_id = ? AND members.deleted_at IS NULL", saccoID)
 
 	if memberID != "" {
@@ -51,7 +53,7 @@ func (r *Repository) GetFarmerPayoutStatements(ctx context.Context, fromDate, to
 	var totalRecords int64
 	var countResults []struct{ MemberID string }
 	r.db.WithContext(ctx).Table("members").
-		Joins("JOIN milk_collections ON milk_collections.member_id = members.id AND milk_collections.deleted_at IS NULL AND milk_collections.status != 'REJECTED' AND DATE(milk_collections.collection_date) BETWEEN ? AND ?", fromDate.Format("2006-01-02"), toDate.Format("2006-01-02")).
+		Joins("JOIN milk_collections ON milk_collections.member_id = members.id AND milk_collections.deleted_at IS NULL AND milk_collections.status != 'REJECTED' AND milk_collections.collection_date BETWEEN ? AND ?", fromDate.Format("2006-01-02"), toDate.Format("2006-01-02")).
 		Where("members.sacco_id = ? AND members.deleted_at IS NULL", saccoID).
 		Group("members.id").Scan(&countResults)
 	totalRecords = int64(len(countResults))
@@ -107,158 +109,176 @@ func (r *Repository) GetFarmerPayoutStatements(ctx context.Context, fromDate, to
 	return statements, meta, nil
 }
 
-// GetSaccoReconciliationLedger computes Sacco-wide intake, field sales, spoilage, and coolant station delivery.
+// GetSaccoReconciliationLedger balances the Sacco's milk and money over a period.
 func (r *Repository) GetSaccoReconciliationLedger(ctx context.Context, fromDateStr, toDateStr string) (*SaccoReconciliationLedger, error) {
 	saccoID, _ := middleware.GetSaccoID(ctx)
+	ledger := &SaccoReconciliationLedger{SaccoID: saccoID, FromDate: fromDateStr, ToDate: toDateStr}
 
-	ledger := &SaccoReconciliationLedger{
-		SaccoID:  saccoID,
-		FromDate: fromDateStr,
-		ToDate:   toDateStr,
+	collectors, err := r.collectorTotals(ctx, saccoID, fromDateStr, toDateStr, 0)
+	if err != nil {
+		return nil, err
 	}
 
-	// 1. Total Farmer Intake
-	var intakeResult struct {
-		TotalLitres    float64 `gorm:"total_litres"`
-		TotalLiability float64 `gorm:"total_liability"`
-	}
-	r.db.WithContext(ctx).Table("milk_collections").
-		Where("sacco_id = ? AND deleted_at IS NULL AND status != 'REJECTED' AND DATE(collection_date) BETWEEN ? AND ?", saccoID, fromDateStr, toDateStr).
-		Select("COALESCE(SUM(quantity_litres), 0) as total_litres, COALESCE(SUM(total_amount), 0) as total_liability").
-		Scan(&intakeResult)
-
-	ledger.TotalFarmerIntakeLitres = math.Round(intakeResult.TotalLitres*100) / 100
-	ledger.TotalFarmerLiabilityKES = math.Round(intakeResult.TotalLiability*100) / 100
-
-	// 2. Total Field Sales
-	var salesResult struct {
-		TotalLitres  float64 `gorm:"total_litres"`
-		TotalRevenue float64 `gorm:"total_revenue"`
-	}
-	r.db.WithContext(ctx).Table("milk_sales").
-		Where("sacco_id = ? AND deleted_at IS NULL AND voided_at IS NULL AND DATE(sale_date) BETWEEN ? AND ?", saccoID, fromDateStr, toDateStr).
-		Select("COALESCE(SUM(quantity_litres), 0) as total_litres, COALESCE(SUM(total_amount), 0) as total_revenue").
-		Scan(&salesResult)
-
-	ledger.TotalFieldSalesLitres = math.Round(salesResult.TotalLitres*100) / 100
-	ledger.TotalFieldSalesRevenueKES = math.Round(salesResult.TotalRevenue*100) / 100
-
-	// 3. Total Spoilage
-	var spoiledLitres float64
-	r.db.WithContext(ctx).Table("milk_spoilage").
-		Where("sacco_id = ? AND deleted_at IS NULL AND DATE(spoilage_date) BETWEEN ? AND ?", saccoID, fromDateStr, toDateStr).
-		Select("COALESCE(SUM(quantity_litres), 0)").
-		Scan(&spoiledLitres)
-
-	ledger.TotalSpoilageLitres = math.Round(spoiledLitres*100) / 100
-
-	// 4. Net Coolant Station Intake = Total Intake - Field Sales - Spoilage
-	netCoolant := ledger.TotalFarmerIntakeLitres - ledger.TotalFieldSalesLitres - ledger.TotalSpoilageLitres
-	if netCoolant < 0 {
-		netCoolant = 0
-	}
-	ledger.NetCoolantStationLitres = math.Round(netCoolant*100) / 100
-
-	// Mathematical Balancing Validation
-	discrepancy := math.Abs((ledger.TotalFieldSalesLitres + ledger.TotalSpoilageLitres + ledger.NetCoolantStationLitres) - ledger.TotalFarmerIntakeLitres)
-	ledger.DiscrepancyLitres = math.Round(discrepancy*100) / 100
-	ledger.IsBalanced = discrepancy < 0.01
-
-	// Fetch Collectors Audit Summaries for this period
-	collectors, _, err := r.GetCollectorAuditSummaries(ctx, fromDateStr, toDateStr, 0, 1, 100)
-	if err == nil {
-		ledger.CollectorsSummary = collectors
+	var collected, liability, sold, revenue, paid, spoiled float64
+	var collectorDays int64
+	for _, c := range collectors {
+		collected += c.TotalCollectedLitres
+		liability += c.TotalPurchasesAmount
+		sold += c.TotalSoldLitres
+		revenue += c.TotalSalesRevenue
+		paid += c.CashReceivedAmount
+		spoiled += c.TotalSpoiledLitres
+		collectorDays += c.ActiveDays
 	}
 
-	// Fetch Sacco Name
-	var saccoName string
-	r.db.WithContext(ctx).Table("saccos").Where("id = ?", saccoID).Select("name").Scan(&saccoName)
-	ledger.SaccoName = saccoName
+	ledger.TotalFarmerIntakeLitres = round2(collected)
+	ledger.TotalFarmerLiabilityKES = round2(liability)
+	ledger.TotalSoldLitres = round2(sold)
+	ledger.TotalSalesRevenueKES = round2(revenue)
+	ledger.CashReceivedKES = round2(paid)
+	ledger.CreditSalesKES = round2(revenue - paid)
+	ledger.TotalSpoilageLitres = round2(spoiled)
+	ledger.GrossMarginKES = round2(revenue - liability)
 
+	tolerance := reconcile.ToleranceLitres(ctx, r.db, saccoID)
+	ledger.Result = reconcile.Compute(collected, sold, spoiled, tolerance*float64(collectorDays))
+	ledger.ReceivablesKES = reconcile.Receivables(ctx, r.db, saccoID)
+	ledger.CollectorsSummary = collectors
+
+	from, _ := time.ParseInLocation(reconcile.DateLayout, fromDateStr, time.Local)
+	to, _ := time.ParseInLocation(reconcile.DateLayout, toDateStr, time.Local)
+	if ledger.SalesByCustomerType, err = reconcile.SalesByCustomerType(ctx, r.db, saccoID, from, to, 0); err != nil {
+		return nil, err
+	}
+
+	r.db.WithContext(ctx).Table("saccos").Where("id = ?", saccoID).Select("name").Scan(&ledger.SaccoName)
 	return ledger, nil
 }
 
-// GetCollectorAuditSummaries queries performance and transit metrics for collectors.
+// GetCollectorAuditSummaries balances each collector's milk over a period.
 func (r *Repository) GetCollectorAuditSummaries(ctx context.Context, fromDateStr, toDateStr string, collectorID uint, page, perPage int) ([]CollectorAuditSummary, query.Meta, error) {
 	saccoID, _ := middleware.GetSaccoID(ctx)
-
-	// Fetch active collectors in this Sacco
-	type collectorRow struct {
-		ID       uint   `gorm:"id"`
-		Username string `gorm:"username"`
-	}
-
-	session := r.db.WithContext(ctx).Table("users").Select("users.id, users.username").Where("users.sacco_id = ?", saccoID)
-	if collectorID > 0 {
-		session = session.Where("users.id = ?", collectorID)
-	}
-
-	var collectors []collectorRow
-	if err := session.Find(&collectors).Error; err != nil {
+	summaries, err := r.collectorTotals(ctx, saccoID, fromDateStr, toDateStr, collectorID)
+	if err != nil {
 		return nil, query.Meta{}, err
 	}
-
-	summaries := make([]CollectorAuditSummary, 0, len(collectors))
-
-	for _, c := range collectors {
-		// Sum intake
-		var intake struct {
-			Litres      float64 `gorm:"litres"`
-			Amount      float64 `gorm:"amount"`
-			FarmerCount int64   `gorm:"farmer_count"`
-		}
-		r.db.WithContext(ctx).Table("milk_collections").
-			Where("sacco_id = ? AND collector_id = ? AND status != 'REJECTED' AND deleted_at IS NULL AND DATE(collection_date) BETWEEN ? AND ?", saccoID, c.ID, fromDateStr, toDateStr).
-			Select("COALESCE(SUM(quantity_litres), 0) as litres, COALESCE(SUM(total_amount), 0) as amount, COUNT(DISTINCT member_id) as farmer_count").
-			Scan(&intake)
-
-		// Sum sales
-		var sales struct {
-			Litres  float64 `gorm:"litres"`
-			Revenue float64 `gorm:"revenue"`
-		}
-		r.db.WithContext(ctx).Table("milk_sales").
-			Where("sacco_id = ? AND collector_id = ? AND deleted_at IS NULL AND voided_at IS NULL AND DATE(sale_date) BETWEEN ? AND ?", saccoID, c.ID, fromDateStr, toDateStr).
-			Select("COALESCE(SUM(quantity_litres), 0) as litres, COALESCE(SUM(total_amount), 0) as revenue").
-			Scan(&sales)
-
-		// Sum spoilage
-		var spoiledLitres float64
-		r.db.WithContext(ctx).Table("milk_spoilage").
-			Where("sacco_id = ? AND collector_id = ? AND deleted_at IS NULL AND DATE(spoilage_date) BETWEEN ? AND ?", saccoID, c.ID, fromDateStr, toDateStr).
-			Select("COALESCE(SUM(quantity_litres), 0)").
-			Scan(&spoiledLitres)
-
-		netDelivered := intake.Litres - sales.Litres - spoiledLitres
-		if netDelivered < 0 {
-			netDelivered = 0
-		}
-
-		// Only include collectors who have activity or if specific collector requested
-		if intake.Litres > 0 || sales.Litres > 0 || spoiledLitres > 0 || collectorID > 0 {
-			summaries = append(summaries, CollectorAuditSummary{
-				CollectorID:          c.ID,
-				CollectorName:        c.Username,
-				TotalCollectedLitres: math.Round(intake.Litres*100) / 100,
-				TotalPurchasesAmount: math.Round(intake.Amount*100) / 100,
-				TotalSoldLitres:      math.Round(sales.Litres*100) / 100,
-				TotalSalesRevenue:    math.Round(sales.Revenue*100) / 100,
-				TotalSpoiledLitres:   math.Round(spoiledLitres*100) / 100,
-				NetDeliveredLitres:   math.Round(netDelivered*100) / 100,
-				FarmersServicedCount: intake.FarmerCount,
-			})
-		}
-	}
-
-	totalRecords := int64(len(summaries))
 	meta := query.Meta{
-		Page:        1,
-		PerPage:     len(summaries),
-		Total:       totalRecords,
-		TotalPages:  1,
-		HasNext:     false,
-		HasPrevious: false,
+		Page:       1,
+		PerPage:    len(summaries),
+		Total:      int64(len(summaries)),
+		TotalPages: 1,
+	}
+	return summaries, meta, nil
+}
+
+// collectorTotals builds per-collector summaries with three grouped queries
+// (collections, sales, spoilage) regardless of the number of collectors.
+// Only collectors with activity are returned, unless collectorID is given.
+func (r *Repository) collectorTotals(ctx context.Context, saccoID, fromDateStr, toDateStr string, collectorID uint) ([]CollectorAuditSummary, error) {
+	scope := func(table, dateCol string) *gorm.DB {
+		q := r.db.WithContext(ctx).Table(table).
+			Where("sacco_id = ? AND deleted_at IS NULL AND "+dateCol+" BETWEEN ? AND ?", saccoID, fromDateStr, toDateStr)
+		if collectorID > 0 {
+			q = q.Where("collector_id = ?", collectorID)
+		}
+		return q.Group("collector_id")
 	}
 
-	return summaries, meta, nil
+	var intake []struct {
+		CollectorID uint
+		Litres      float64
+		Amount      float64
+		Farmers     int64
+		Days        int64
+	}
+	if err := scope("milk_collections", "collection_date").
+		Select("collector_id, SUM(quantity_litres) AS litres, SUM(total_amount) AS amount, COUNT(DISTINCT member_id) AS farmers, COUNT(DISTINCT collection_date) AS days").
+		Where("status <> 'REJECTED'").
+		Scan(&intake).Error; err != nil {
+		return nil, err
+	}
+
+	var sales []struct {
+		CollectorID uint
+		Litres      float64
+		Revenue     float64
+		Paid        float64
+	}
+	if err := scope("milk_sales", "sale_date").
+		Select("collector_id, SUM(quantity_litres) AS litres, SUM(total_amount) AS revenue, SUM(amount_paid) AS paid").
+		Where("voided_at IS NULL").
+		Scan(&sales).Error; err != nil {
+		return nil, err
+	}
+
+	var spoilage []struct {
+		CollectorID uint
+		Litres      float64
+	}
+	if err := scope("milk_spoilage", "spoilage_date").
+		Select("collector_id, SUM(quantity_litres) AS litres").
+		Scan(&spoilage).Error; err != nil {
+		return nil, err
+	}
+
+	byID := map[uint]*CollectorAuditSummary{}
+	get := func(id uint) *CollectorAuditSummary {
+		if s, ok := byID[id]; ok {
+			return s
+		}
+		s := &CollectorAuditSummary{CollectorID: id}
+		byID[id] = s
+		return s
+	}
+	if collectorID > 0 {
+		get(collectorID)
+	}
+	for _, row := range intake {
+		s := get(row.CollectorID)
+		s.TotalCollectedLitres, s.TotalPurchasesAmount = round2(row.Litres), round2(row.Amount)
+		s.FarmersServicedCount, s.ActiveDays = row.Farmers, row.Days
+	}
+	for _, row := range sales {
+		s := get(row.CollectorID)
+		s.TotalSoldLitres, s.TotalSalesRevenue, s.CashReceivedAmount = round2(row.Litres), round2(row.Revenue), round2(row.Paid)
+	}
+	for _, row := range spoilage {
+		get(row.CollectorID).TotalSpoiledLitres = round2(row.Litres)
+	}
+
+	ids := make([]uint, 0, len(byID))
+	for id := range byID {
+		ids = append(ids, id)
+	}
+	names := map[uint]string{}
+	if len(ids) > 0 {
+		var users []struct {
+			ID       uint
+			Username string
+		}
+		r.db.WithContext(ctx).Table("users").Select("id, username").Where("id IN ?", ids).Scan(&users)
+		for _, u := range users {
+			names[u.ID] = u.Username
+		}
+	}
+
+	tolerance := reconcile.ToleranceLitres(ctx, r.db, saccoID)
+	summaries := make([]CollectorAuditSummary, 0, len(byID))
+	for _, s := range byID {
+		s.CollectorName = names[s.CollectorID]
+		days := s.ActiveDays
+		if days == 0 && (s.TotalSoldLitres > 0 || s.TotalSpoiledLitres > 0) {
+			days = 1 // sold or spoiled without collecting still gets one day's allowance
+		}
+		s.Result = reconcile.Compute(s.TotalCollectedLitres, s.TotalSoldLitres, s.TotalSpoiledLitres, tolerance*float64(days))
+		summaries = append(summaries, *s)
+	}
+	sort.Slice(summaries, func(i, j int) bool {
+		return summaries[i].TotalCollectedLitres > summaries[j].TotalCollectedLitres
+	})
+	return summaries, nil
+}
+
+func round2(v float64) float64 {
+	return math.Round(v*100) / 100
 }

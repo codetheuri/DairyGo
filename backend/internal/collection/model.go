@@ -3,6 +3,8 @@ package collection
 import (
 	"time"
 
+	"github.com/codetheuri/tusk/pkg/reconcile"
+
 	"gorm.io/gorm"
 )
 
@@ -114,7 +116,8 @@ func (MilkSpoilage) TableName() string {
 	return "milk_spoilage"
 }
 
-// CollectorReconciliation represents a daily summary for a collector.
+// CollectorReconciliation balances one collector's day: every litre collected
+// must be sold (coolers included) or logged as spoilage; the rest is unaccounted.
 type CollectorReconciliation struct {
 	CollectorID          uint    `json:"collector_id"`
 	CollectorName        string  `json:"collector_name,omitempty"`
@@ -122,7 +125,10 @@ type CollectorReconciliation struct {
 	TotalCollectedLitres float64 `json:"total_collected_litres"`
 	TotalSoldLitres      float64 `json:"total_sold_litres"`
 	TotalSpoiledLitres   float64 `json:"total_spoiled_litres"`
-	NetDeliveredLitres   float64 `json:"net_delivered_litres"` // Collected - Sold - Spoiled
-	TotalSalesAmount     float64 `json:"total_sales_amount"`
-	TotalPurchasesAmount float64 `json:"total_purchases_amount"`
+	reconcile.Result
+	TotalSalesAmount     float64               `json:"total_sales_amount"`
+	CashReceivedAmount   float64               `json:"cash_received_amount" doc:"Paid at the time of sale (cash, M-Pesa, bank)"`
+	CreditSalesAmount    float64               `json:"credit_sales_amount" doc:"Sold on credit; added to customer balances"`
+	TotalPurchasesAmount float64               `json:"total_purchases_amount"`
+	SalesByCustomerType  []reconcile.TypeTotal `json:"sales_by_customer_type"`
 }

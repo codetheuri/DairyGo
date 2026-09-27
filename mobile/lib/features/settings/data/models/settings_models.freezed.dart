@@ -350,7 +350,10 @@ mixin _$SaccoSettingsModel {
   @JsonKey(name: 'morning_cutoff_time')
   String? get morningCutoffTime => throw _privateConstructorUsedError;
   @JsonKey(name: 'evening_cutoff_time')
-  String? get eveningCutoffTime => throw _privateConstructorUsedError;
+  String? get eveningCutoffTime => throw _privateConstructorUsedError; // Litres of measuring difference tolerated per collector per day when balancing milk.
+  @JsonKey(name: 'reconciliation_tolerance_litres')
+  double get reconciliationToleranceLitres =>
+      throw _privateConstructorUsedError;
 
   /// Serializes this SaccoSettingsModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -375,6 +378,8 @@ abstract class $SaccoSettingsModelCopyWith<$Res> {
     @JsonKey(name: 'milk_unit') String milkUnit,
     @JsonKey(name: 'morning_cutoff_time') String? morningCutoffTime,
     @JsonKey(name: 'evening_cutoff_time') String? eveningCutoffTime,
+    @JsonKey(name: 'reconciliation_tolerance_litres')
+    double reconciliationToleranceLitres,
   });
 }
 
@@ -398,6 +403,7 @@ class _$SaccoSettingsModelCopyWithImpl<$Res, $Val extends SaccoSettingsModel>
     Object? milkUnit = null,
     Object? morningCutoffTime = freezed,
     Object? eveningCutoffTime = freezed,
+    Object? reconciliationToleranceLitres = null,
   }) {
     return _then(
       _value.copyWith(
@@ -421,6 +427,10 @@ class _$SaccoSettingsModelCopyWithImpl<$Res, $Val extends SaccoSettingsModel>
                 ? _value.eveningCutoffTime
                 : eveningCutoffTime // ignore: cast_nullable_to_non_nullable
                       as String?,
+            reconciliationToleranceLitres: null == reconciliationToleranceLitres
+                ? _value.reconciliationToleranceLitres
+                : reconciliationToleranceLitres // ignore: cast_nullable_to_non_nullable
+                      as double,
           )
           as $Val,
     );
@@ -442,6 +452,8 @@ abstract class _$$SaccoSettingsModelImplCopyWith<$Res>
     @JsonKey(name: 'milk_unit') String milkUnit,
     @JsonKey(name: 'morning_cutoff_time') String? morningCutoffTime,
     @JsonKey(name: 'evening_cutoff_time') String? eveningCutoffTime,
+    @JsonKey(name: 'reconciliation_tolerance_litres')
+    double reconciliationToleranceLitres,
   });
 }
 
@@ -464,6 +476,7 @@ class __$$SaccoSettingsModelImplCopyWithImpl<$Res>
     Object? milkUnit = null,
     Object? morningCutoffTime = freezed,
     Object? eveningCutoffTime = freezed,
+    Object? reconciliationToleranceLitres = null,
   }) {
     return _then(
       _$SaccoSettingsModelImpl(
@@ -487,6 +500,10 @@ class __$$SaccoSettingsModelImplCopyWithImpl<$Res>
             ? _value.eveningCutoffTime
             : eveningCutoffTime // ignore: cast_nullable_to_non_nullable
                   as String?,
+        reconciliationToleranceLitres: null == reconciliationToleranceLitres
+            ? _value.reconciliationToleranceLitres
+            : reconciliationToleranceLitres // ignore: cast_nullable_to_non_nullable
+                  as double,
       ),
     );
   }
@@ -501,6 +518,8 @@ class _$SaccoSettingsModelImpl implements _SaccoSettingsModel {
     @JsonKey(name: 'milk_unit') this.milkUnit = 'LITRES',
     @JsonKey(name: 'morning_cutoff_time') this.morningCutoffTime,
     @JsonKey(name: 'evening_cutoff_time') this.eveningCutoffTime,
+    @JsonKey(name: 'reconciliation_tolerance_litres')
+    this.reconciliationToleranceLitres = 0.0,
   });
 
   factory _$SaccoSettingsModelImpl.fromJson(Map<String, dynamic> json) =>
@@ -521,10 +540,14 @@ class _$SaccoSettingsModelImpl implements _SaccoSettingsModel {
   @override
   @JsonKey(name: 'evening_cutoff_time')
   final String? eveningCutoffTime;
+  // Litres of measuring difference tolerated per collector per day when balancing milk.
+  @override
+  @JsonKey(name: 'reconciliation_tolerance_litres')
+  final double reconciliationToleranceLitres;
 
   @override
   String toString() {
-    return 'SaccoSettingsModel(saccoId: $saccoId, currency: $currency, milkUnit: $milkUnit, morningCutoffTime: $morningCutoffTime, eveningCutoffTime: $eveningCutoffTime)';
+    return 'SaccoSettingsModel(saccoId: $saccoId, currency: $currency, milkUnit: $milkUnit, morningCutoffTime: $morningCutoffTime, eveningCutoffTime: $eveningCutoffTime, reconciliationToleranceLitres: $reconciliationToleranceLitres)';
   }
 
   @override
@@ -540,7 +563,13 @@ class _$SaccoSettingsModelImpl implements _SaccoSettingsModel {
             (identical(other.morningCutoffTime, morningCutoffTime) ||
                 other.morningCutoffTime == morningCutoffTime) &&
             (identical(other.eveningCutoffTime, eveningCutoffTime) ||
-                other.eveningCutoffTime == eveningCutoffTime));
+                other.eveningCutoffTime == eveningCutoffTime) &&
+            (identical(
+                  other.reconciliationToleranceLitres,
+                  reconciliationToleranceLitres,
+                ) ||
+                other.reconciliationToleranceLitres ==
+                    reconciliationToleranceLitres));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -552,6 +581,7 @@ class _$SaccoSettingsModelImpl implements _SaccoSettingsModel {
     milkUnit,
     morningCutoffTime,
     eveningCutoffTime,
+    reconciliationToleranceLitres,
   );
 
   /// Create a copy of SaccoSettingsModel
@@ -578,6 +608,8 @@ abstract class _SaccoSettingsModel implements SaccoSettingsModel {
     @JsonKey(name: 'milk_unit') final String milkUnit,
     @JsonKey(name: 'morning_cutoff_time') final String? morningCutoffTime,
     @JsonKey(name: 'evening_cutoff_time') final String? eveningCutoffTime,
+    @JsonKey(name: 'reconciliation_tolerance_litres')
+    final double reconciliationToleranceLitres,
   }) = _$SaccoSettingsModelImpl;
 
   factory _SaccoSettingsModel.fromJson(Map<String, dynamic> json) =
@@ -596,7 +628,10 @@ abstract class _SaccoSettingsModel implements SaccoSettingsModel {
   String? get morningCutoffTime;
   @override
   @JsonKey(name: 'evening_cutoff_time')
-  String? get eveningCutoffTime;
+  String? get eveningCutoffTime; // Litres of measuring difference tolerated per collector per day when balancing milk.
+  @override
+  @JsonKey(name: 'reconciliation_tolerance_litres')
+  double get reconciliationToleranceLitres;
 
   /// Create a copy of SaccoSettingsModel
   /// with the given fields replaced by the non-null parameter values.

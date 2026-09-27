@@ -54,8 +54,11 @@ _$CollectorAuditSummaryModelImpl _$$CollectorAuditSummaryModelImplFromJson(
       (json['total_purchases_amount'] as num?)?.toDouble() ?? 0.0,
   totalSoldLitres: (json['total_sold_litres'] as num?)?.toDouble() ?? 0.0,
   totalSalesRevenue: (json['total_sales_revenue'] as num?)?.toDouble() ?? 0.0,
+  cashReceivedAmount: (json['cash_received_amount'] as num?)?.toDouble() ?? 0.0,
   totalSpoiledLitres: (json['total_spoiled_litres'] as num?)?.toDouble() ?? 0.0,
-  netDeliveredLitres: (json['net_delivered_litres'] as num?)?.toDouble() ?? 0.0,
+  unaccountedLitres: (json['unaccounted_litres'] as num?)?.toDouble() ?? 0.0,
+  balanceStatus: json['balance_status'] as String? ?? 'BALANCED',
+  activeDays: (json['active_days'] as num?)?.toInt() ?? 0,
   farmersServicedCount: (json['farmers_serviced_count'] as num?)?.toInt() ?? 0,
 );
 
@@ -68,8 +71,11 @@ Map<String, dynamic> _$$CollectorAuditSummaryModelImplToJson(
   'total_purchases_amount': instance.totalPurchasesAmount,
   'total_sold_litres': instance.totalSoldLitres,
   'total_sales_revenue': instance.totalSalesRevenue,
+  'cash_received_amount': instance.cashReceivedAmount,
   'total_spoiled_litres': instance.totalSpoiledLitres,
-  'net_delivered_litres': instance.netDeliveredLitres,
+  'unaccounted_litres': instance.unaccountedLitres,
+  'balance_status': instance.balanceStatus,
+  'active_days': instance.activeDays,
   'farmers_serviced_count': instance.farmersServicedCount,
 };
 
@@ -85,16 +91,26 @@ _$$SaccoReconciliationLedgerModelImplFromJson(
       (json['total_farmer_intake_litres'] as num?)?.toDouble() ?? 0.0,
   totalFarmerLiabilityKes:
       (json['total_farmer_liability_kes'] as num?)?.toDouble() ?? 0.0,
-  totalFieldSalesLitres:
-      (json['total_field_sales_litres'] as num?)?.toDouble() ?? 0.0,
-  totalFieldSalesRevenueKes:
-      (json['total_field_sales_revenue_kes'] as num?)?.toDouble() ?? 0.0,
+  totalSoldLitres: (json['total_sold_litres'] as num?)?.toDouble() ?? 0.0,
+  totalSalesRevenueKes:
+      (json['total_sales_revenue_kes'] as num?)?.toDouble() ?? 0.0,
+  cashReceivedKes: (json['cash_received_kes'] as num?)?.toDouble() ?? 0.0,
+  creditSalesKes: (json['credit_sales_kes'] as num?)?.toDouble() ?? 0.0,
   totalSpoilageLitres:
       (json['total_spoilage_litres'] as num?)?.toDouble() ?? 0.0,
-  netCoolantStationLitres:
-      (json['net_coolant_station_litres'] as num?)?.toDouble() ?? 0.0,
+  unaccountedLitres: (json['unaccounted_litres'] as num?)?.toDouble() ?? 0.0,
+  allowanceLitres: (json['allowance_litres'] as num?)?.toDouble() ?? 0.0,
   isBalanced: json['is_balanced'] as bool? ?? true,
-  discrepancyLitres: (json['discrepancy_litres'] as num?)?.toDouble() ?? 0.0,
+  balanceStatus: json['balance_status'] as String? ?? 'BALANCED',
+  grossMarginKes: (json['gross_margin_kes'] as num?)?.toDouble() ?? 0.0,
+  receivablesKes: (json['receivables_kes'] as num?)?.toDouble() ?? 0.0,
+  salesByCustomerType:
+      (json['sales_by_customer_type'] as List<dynamic>?)
+          ?.map(
+            (e) => CustomerTypeTotalModel.fromJson(e as Map<String, dynamic>),
+          )
+          .toList() ??
+      const [],
   collectorsSummary:
       (json['collectors_summary'] as List<dynamic>?)
           ?.map(
@@ -114,11 +130,17 @@ Map<String, dynamic> _$$SaccoReconciliationLedgerModelImplToJson(
   'to_date': instance.toDate,
   'total_farmer_intake_litres': instance.totalFarmerIntakeLitres,
   'total_farmer_liability_kes': instance.totalFarmerLiabilityKes,
-  'total_field_sales_litres': instance.totalFieldSalesLitres,
-  'total_field_sales_revenue_kes': instance.totalFieldSalesRevenueKes,
+  'total_sold_litres': instance.totalSoldLitres,
+  'total_sales_revenue_kes': instance.totalSalesRevenueKes,
+  'cash_received_kes': instance.cashReceivedKes,
+  'credit_sales_kes': instance.creditSalesKes,
   'total_spoilage_litres': instance.totalSpoilageLitres,
-  'net_coolant_station_litres': instance.netCoolantStationLitres,
+  'unaccounted_litres': instance.unaccountedLitres,
+  'allowance_litres': instance.allowanceLitres,
   'is_balanced': instance.isBalanced,
-  'discrepancy_litres': instance.discrepancyLitres,
+  'balance_status': instance.balanceStatus,
+  'gross_margin_kes': instance.grossMarginKes,
+  'receivables_kes': instance.receivablesKes,
+  'sales_by_customer_type': instance.salesByCustomerType,
   'collectors_summary': instance.collectorsSummary,
 };

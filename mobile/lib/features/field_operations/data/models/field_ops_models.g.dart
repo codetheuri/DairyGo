@@ -11,14 +11,19 @@ _$MilkSaleModelImpl _$$MilkSaleModelImplFromJson(Map<String, dynamic> json) =>
       id: json['id'] as String,
       saccoId: json['sacco_id'] as String? ?? '',
       collectorId: (json['collector_id'] as num?)?.toInt() ?? 0,
+      customerId: json['customer_id'] as String? ?? '',
+      customerType: json['customer_type'] as String?,
       saleDate: json['sale_date'] as String,
       buyerName: json['buyer_name'] as String,
       buyerPhone: json['buyer_phone'] as String?,
       quantityLitres: (json['quantity_litres'] as num?)?.toDouble() ?? 0.0,
       unitPrice: (json['unit_price'] as num?)?.toDouble() ?? 0.0,
       totalAmount: (json['total_amount'] as num?)?.toDouble() ?? 0.0,
+      amountPaid: (json['amount_paid'] as num?)?.toDouble() ?? 0.0,
       paymentStatus: json['payment_status'] as String? ?? 'PAID',
       paymentMethod: json['payment_method'] as String? ?? 'CASH',
+      voidedAt: json['voided_at'] as String?,
+      voidReason: json['void_reason'] as String?,
       notes: json['notes'] as String?,
       createdAt: json['created_at'] as String?,
       collectorName: json['collector_name'] as String?,
@@ -29,14 +34,19 @@ Map<String, dynamic> _$$MilkSaleModelImplToJson(_$MilkSaleModelImpl instance) =>
       'id': instance.id,
       'sacco_id': instance.saccoId,
       'collector_id': instance.collectorId,
+      'customer_id': instance.customerId,
+      'customer_type': instance.customerType,
       'sale_date': instance.saleDate,
       'buyer_name': instance.buyerName,
       'buyer_phone': instance.buyerPhone,
       'quantity_litres': instance.quantityLitres,
       'unit_price': instance.unitPrice,
       'total_amount': instance.totalAmount,
+      'amount_paid': instance.amountPaid,
       'payment_status': instance.paymentStatus,
       'payment_method': instance.paymentMethod,
+      'voided_at': instance.voidedAt,
+      'void_reason': instance.voidReason,
       'notes': instance.notes,
       'created_at': instance.createdAt,
       'collector_name': instance.collectorName,
@@ -45,12 +55,11 @@ Map<String, dynamic> _$$MilkSaleModelImplToJson(_$MilkSaleModelImpl instance) =>
 _$RecordSaleRequestModelImpl _$$RecordSaleRequestModelImplFromJson(
   Map<String, dynamic> json,
 ) => _$RecordSaleRequestModelImpl(
-  saleDate: json['sale_date'] as String,
-  buyerName: json['buyer_name'] as String,
-  buyerPhone: json['buyer_phone'] as String?,
+  customerId: json['customer_id'] as String,
+  saleDate: json['sale_date'] as String?,
   quantityLitres: (json['quantity_litres'] as num).toDouble(),
   unitPrice: (json['unit_price'] as num).toDouble(),
-  paymentStatus: json['payment_status'] as String? ?? 'PAID',
+  amountPaid: (json['amount_paid'] as num).toDouble(),
   paymentMethod: json['payment_method'] as String? ?? 'CASH',
   notes: json['notes'] as String?,
 );
@@ -58,12 +67,11 @@ _$RecordSaleRequestModelImpl _$$RecordSaleRequestModelImplFromJson(
 Map<String, dynamic> _$$RecordSaleRequestModelImplToJson(
   _$RecordSaleRequestModelImpl instance,
 ) => <String, dynamic>{
+  'customer_id': instance.customerId,
   'sale_date': instance.saleDate,
-  'buyer_name': instance.buyerName,
-  'buyer_phone': instance.buyerPhone,
   'quantity_litres': instance.quantityLitres,
   'unit_price': instance.unitPrice,
-  'payment_status': instance.paymentStatus,
+  'amount_paid': instance.amountPaid,
   'payment_method': instance.paymentMethod,
   'notes': instance.notes,
 };
@@ -124,8 +132,18 @@ _$ReconciliationModelImpl _$$ReconciliationModelImplFromJson(
       (json['total_collected_litres'] as num?)?.toDouble() ?? 0.0,
   totalSoldLitres: (json['total_sold_litres'] as num?)?.toDouble() ?? 0.0,
   totalSpoiledLitres: (json['total_spoiled_litres'] as num?)?.toDouble() ?? 0.0,
-  netDeliveredLitres: (json['net_delivered_litres'] as num?)?.toDouble() ?? 0.0,
+  unaccountedLitres: (json['unaccounted_litres'] as num?)?.toDouble() ?? 0.0,
+  balanceStatus: json['balance_status'] as String? ?? 'BALANCED',
   totalSalesAmount: (json['total_sales_amount'] as num?)?.toDouble() ?? 0.0,
+  cashReceivedAmount: (json['cash_received_amount'] as num?)?.toDouble() ?? 0.0,
+  creditSalesAmount: (json['credit_sales_amount'] as num?)?.toDouble() ?? 0.0,
+  salesByCustomerType:
+      (json['sales_by_customer_type'] as List<dynamic>?)
+          ?.map(
+            (e) => CustomerTypeTotalModel.fromJson(e as Map<String, dynamic>),
+          )
+          .toList() ??
+      const [],
   totalPurchasesAmount:
       (json['total_purchases_amount'] as num?)?.toDouble() ?? 0.0,
 );
@@ -139,7 +157,11 @@ Map<String, dynamic> _$$ReconciliationModelImplToJson(
   'total_collected_litres': instance.totalCollectedLitres,
   'total_sold_litres': instance.totalSoldLitres,
   'total_spoiled_litres': instance.totalSpoiledLitres,
-  'net_delivered_litres': instance.netDeliveredLitres,
+  'unaccounted_litres': instance.unaccountedLitres,
+  'balance_status': instance.balanceStatus,
   'total_sales_amount': instance.totalSalesAmount,
+  'cash_received_amount': instance.cashReceivedAmount,
+  'credit_sales_amount': instance.creditSalesAmount,
+  'sales_by_customer_type': instance.salesByCustomerType,
   'total_purchases_amount': instance.totalPurchasesAmount,
 };

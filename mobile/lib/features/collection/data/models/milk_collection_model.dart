@@ -65,6 +65,8 @@ class UpdateCollectionRequestModel with _$UpdateCollectionRequestModel {
     @JsonKey(name: 'quantity_litres') double? quantityLitres,
     String? shift,
     String? notes,
+    // Why the record is changing; required by the API for admin edits.
+    String? reason,
   }) = _UpdateCollectionRequestModel;
 
   factory UpdateCollectionRequestModel.fromJson(Map<String, dynamic> json) =>

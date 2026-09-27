@@ -1115,7 +1115,9 @@ mixin _$UpdateCollectionRequestModel {
   @JsonKey(name: 'quantity_litres')
   double? get quantityLitres => throw _privateConstructorUsedError;
   String? get shift => throw _privateConstructorUsedError;
-  String? get notes => throw _privateConstructorUsedError;
+  String? get notes =>
+      throw _privateConstructorUsedError; // Why the record is changing; required by the API for admin edits.
+  String? get reason => throw _privateConstructorUsedError;
 
   /// Serializes this UpdateCollectionRequestModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -1142,6 +1144,7 @@ abstract class $UpdateCollectionRequestModelCopyWith<$Res> {
     @JsonKey(name: 'quantity_litres') double? quantityLitres,
     String? shift,
     String? notes,
+    String? reason,
   });
 }
 
@@ -1166,6 +1169,7 @@ class _$UpdateCollectionRequestModelCopyWithImpl<
     Object? quantityLitres = freezed,
     Object? shift = freezed,
     Object? notes = freezed,
+    Object? reason = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -1180,6 +1184,10 @@ class _$UpdateCollectionRequestModelCopyWithImpl<
             notes: freezed == notes
                 ? _value.notes
                 : notes // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            reason: freezed == reason
+                ? _value.reason
+                : reason // ignore: cast_nullable_to_non_nullable
                       as String?,
           )
           as $Val,
@@ -1200,6 +1208,7 @@ abstract class _$$UpdateCollectionRequestModelImplCopyWith<$Res>
     @JsonKey(name: 'quantity_litres') double? quantityLitres,
     String? shift,
     String? notes,
+    String? reason,
   });
 }
 
@@ -1224,6 +1233,7 @@ class __$$UpdateCollectionRequestModelImplCopyWithImpl<$Res>
     Object? quantityLitres = freezed,
     Object? shift = freezed,
     Object? notes = freezed,
+    Object? reason = freezed,
   }) {
     return _then(
       _$UpdateCollectionRequestModelImpl(
@@ -1239,6 +1249,10 @@ class __$$UpdateCollectionRequestModelImplCopyWithImpl<$Res>
             ? _value.notes
             : notes // ignore: cast_nullable_to_non_nullable
                   as String?,
+        reason: freezed == reason
+            ? _value.reason
+            : reason // ignore: cast_nullable_to_non_nullable
+                  as String?,
       ),
     );
   }
@@ -1252,6 +1266,7 @@ class _$UpdateCollectionRequestModelImpl
     @JsonKey(name: 'quantity_litres') this.quantityLitres,
     this.shift,
     this.notes,
+    this.reason,
   });
 
   factory _$UpdateCollectionRequestModelImpl.fromJson(
@@ -1265,10 +1280,13 @@ class _$UpdateCollectionRequestModelImpl
   final String? shift;
   @override
   final String? notes;
+  // Why the record is changing; required by the API for admin edits.
+  @override
+  final String? reason;
 
   @override
   String toString() {
-    return 'UpdateCollectionRequestModel(quantityLitres: $quantityLitres, shift: $shift, notes: $notes)';
+    return 'UpdateCollectionRequestModel(quantityLitres: $quantityLitres, shift: $shift, notes: $notes, reason: $reason)';
   }
 
   @override
@@ -1279,12 +1297,14 @@ class _$UpdateCollectionRequestModelImpl
             (identical(other.quantityLitres, quantityLitres) ||
                 other.quantityLitres == quantityLitres) &&
             (identical(other.shift, shift) || other.shift == shift) &&
-            (identical(other.notes, notes) || other.notes == notes));
+            (identical(other.notes, notes) || other.notes == notes) &&
+            (identical(other.reason, reason) || other.reason == reason));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, quantityLitres, shift, notes);
+  int get hashCode =>
+      Object.hash(runtimeType, quantityLitres, shift, notes, reason);
 
   /// Create a copy of UpdateCollectionRequestModel
   /// with the given fields replaced by the non-null parameter values.
@@ -1311,6 +1331,7 @@ abstract class _UpdateCollectionRequestModel
     @JsonKey(name: 'quantity_litres') final double? quantityLitres,
     final String? shift,
     final String? notes,
+    final String? reason,
   }) = _$UpdateCollectionRequestModelImpl;
 
   factory _UpdateCollectionRequestModel.fromJson(Map<String, dynamic> json) =
@@ -1322,7 +1343,9 @@ abstract class _UpdateCollectionRequestModel
   @override
   String? get shift;
   @override
-  String? get notes;
+  String? get notes; // Why the record is changing; required by the API for admin edits.
+  @override
+  String? get reason;
 
   /// Create a copy of UpdateCollectionRequestModel
   /// with the given fields replaced by the non-null parameter values.

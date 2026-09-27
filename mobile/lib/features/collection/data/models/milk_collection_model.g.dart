@@ -93,6 +93,7 @@ _$UpdateCollectionRequestModelImpl _$$UpdateCollectionRequestModelImplFromJson(
   quantityLitres: (json['quantity_litres'] as num?)?.toDouble(),
   shift: json['shift'] as String?,
   notes: json['notes'] as String?,
+  reason: json['reason'] as String?,
 );
 
 Map<String, dynamic> _$$UpdateCollectionRequestModelImplToJson(
@@ -101,4 +102,5 @@ Map<String, dynamic> _$$UpdateCollectionRequestModelImplToJson(
   'quantity_litres': instance.quantityLitres,
   'shift': instance.shift,
   'notes': instance.notes,
+  'reason': instance.reason,
 };

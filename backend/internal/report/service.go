@@ -50,7 +50,7 @@ func (s *Service) GetCollectorAuditReport(ctx context.Context, fromDateStr, toDa
 // Helper to resolve and validate date range parameters
 func parseDateRange(fromDateStr, toDateStr string) (time.Time, time.Time, error) {
 	now := time.Now()
-	
+
 	// Default fromDate: 1st day of current month
 	fromDate := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
 	if strings.TrimSpace(fromDateStr) != "" {

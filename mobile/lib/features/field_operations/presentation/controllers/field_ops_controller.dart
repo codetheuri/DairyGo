@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/models/audit_log_model.dart';
 import '../../../../core/network/dio_client.dart';
+import '../../../customers/presentation/controllers/customer_controller.dart';
 import '../../../collection/presentation/controllers/collection_controller.dart';
 import '../../../reports/presentation/controllers/report_controller.dart';
 import '../../data/datasources/field_ops_remote_data_source.dart';
@@ -26,6 +28,24 @@ final reconciliationProvider =
   return repository.getReconciliation(date: date);
 });
 
+final saleHistoryProvider = FutureProvider.autoDispose.family<List<AuditLogModel>, String>((ref, id) async {
+  return ref.watch(fieldOpsRepositoryProvider).getSaleHistory(id);
+});
+
+/// Voids a sale (admins only). Returns null on success or the error message.
+Future<String?> voidSale(WidgetRef ref, String id, String reason) async {
+  try {
+    await ref.read(fieldOpsRepositoryProvider).voidSale(id, reason);
+    ref.invalidate(saleHistoryProvider(id));
+    ref.invalidate(salesListProvider);
+    ref.invalidate(reconciliationProvider(null));
+    invalidateCustomerDataFromWidget(ref);
+    return null;
+  } catch (e) {
+    return e.toString().replaceAll('Exception: ', '');
+  }
+}
+
 final salesListProvider = FutureProvider<List<MilkSaleModel>>((ref) async {
   final repository = ref.watch(fieldOpsRepositoryProvider);
   final date = ref.watch(fieldOpsFilterDateProvider);
@@ -50,6 +70,7 @@ class RecordSaleController extends StateNotifier<AsyncValue<MilkSaleModel?>> {
       final sale = await _repository.recordSale(request);
       state = AsyncValue.data(sale);
       invalidateAllAppMetrics(_ref);
+      invalidateCustomerData(_ref);
       return true;
     } catch (e, st) {
       state = AsyncValue.error(e, st);

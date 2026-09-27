@@ -37,13 +37,16 @@ func (Sacco) TableName() string {
 
 // SaccoSettings contains operational and business parameters for a specific Sacco tenant.
 type SaccoSettings struct {
-	SaccoID           string    `json:"sacco_id" gorm:"primaryKey;type:varchar(36)"`
-	Currency          string    `json:"currency" gorm:"default:'KES'"`
-	MilkUnit          string    `json:"milk_unit" gorm:"default:'LITRES'"`
-	MorningCutoffTime *string   `json:"morning_cutoff_time,omitempty"`
-	EveningCutoffTime *string   `json:"evening_cutoff_time,omitempty"`
-	CreatedAt         time.Time `json:"created_at"`
-	UpdatedAt         time.Time `json:"updated_at"`
+	SaccoID           string  `json:"sacco_id" gorm:"primaryKey;type:varchar(36)"`
+	Currency          string  `json:"currency" gorm:"default:'KES'"`
+	MilkUnit          string  `json:"milk_unit" gorm:"default:'LITRES'"`
+	MorningCutoffTime *string `json:"morning_cutoff_time,omitempty"`
+	EveningCutoffTime *string `json:"evening_cutoff_time,omitempty"`
+	// ReconciliationToleranceLitres is the measuring difference allowed per
+	// collector per day before milk counts as missing or oversold.
+	ReconciliationToleranceLitres float64   `json:"reconciliation_tolerance_litres" gorm:"default:0"`
+	CreatedAt                     time.Time `json:"created_at"`
+	UpdatedAt                     time.Time `json:"updated_at"`
 }
 
 // TableName explicitly overrides table name.

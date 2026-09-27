@@ -5,4 +5,6 @@ abstract class SettingsRepository {
   Future<SaccoProfileModel> getSaccoProfile();
   Future<List<MilkPriceModel>> getPriceHistory();
   Future<MilkPriceModel> setMilkPrice(SetPriceRequestModel request);
+  Future<SaccoSettingsModel> getSettings();
+  Future<SaccoSettingsModel> updateTolerance(double litres);
 }

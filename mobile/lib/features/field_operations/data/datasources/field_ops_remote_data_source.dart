@@ -1,9 +1,12 @@
 import 'package:dio/dio.dart';
 import '../../../../core/constants/api_constants.dart';
+import '../../../../core/models/audit_log_model.dart';
 import '../models/field_ops_models.dart';
 
 abstract class FieldOpsRemoteDataSource {
   Future<MilkSaleModel> recordSale(RecordSaleRequestModel request);
+  Future<void> voidSale(String id, String reason);
+  Future<List<AuditLogModel>> getSaleHistory(String id);
   Future<List<MilkSaleModel>> listSales({String? fromDate, String? toDate, String? search});
   Future<MilkSpoilageModel> recordSpoilage(RecordSpoilageRequestModel request);
   Future<List<MilkSpoilageModel>> listSpoilage({String? fromDate, String? toDate});
@@ -30,6 +33,35 @@ class FieldOpsRemoteDataSourceImpl implements FieldOpsRemoteDataSource {
     } on DioException catch (e) {
       final serverMsg = e.response?.data is Map ? e.response?.data['message'] : null;
       throw Exception(serverMsg ?? e.message ?? 'Error recording direct field sale');
+    }
+  }
+
+  @override
+  Future<void> voidSale(String id, String reason) async {
+    try {
+      final response = await _dio.post('${ApiConstants.sales}/$id/void', data: {'reason': reason});
+      final data = response.data as Map<String, dynamic>;
+      if (data['success'] != true) throw Exception(data['message'] ?? 'Failed to void sale');
+    } on DioException catch (e) {
+      final serverMsg = e.response?.data is Map ? e.response?.data['message'] : null;
+      throw Exception(serverMsg ?? e.message ?? 'Error voiding sale');
+    }
+  }
+
+  @override
+  Future<List<AuditLogModel>> getSaleHistory(String id) async {
+    try {
+      final response = await _dio.get('${ApiConstants.sales}/$id/history');
+      final data = response.data as Map<String, dynamic>;
+      if (data['success'] == true && data['data'] != null) {
+        return (data['data']['history'] as List? ?? [])
+            .map((e) => AuditLogModel.fromJson(e as Map<String, dynamic>))
+            .toList();
+      }
+      throw Exception(data['message'] ?? 'Failed to load sale history');
+    } on DioException catch (e) {
+      final serverMsg = e.response?.data is Map ? e.response?.data['message'] : null;
+      throw Exception(serverMsg ?? e.message ?? 'Error loading sale history');
     }
   }
 

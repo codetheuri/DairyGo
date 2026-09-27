@@ -4,7 +4,23 @@ import (
 	"time"
 )
 
+// Seeded Sacco role IDs (see migration 00007). They are fixed so that
+// onboarding and staff registration can assign them without a name lookup.
+const (
+	RoleSaccoAdmin uint = 1
+	RoleCollector  uint = 2
+	RoleExecutive  uint = 3
+)
+
+// IsSaccoRole reports whether roleID is one of the roles a Sacco may assign to its own staff.
+func IsSaccoRole(roleID uint) bool {
+	return roleID == RoleSaccoAdmin || roleID == RoleCollector || roleID == RoleExecutive
+}
+
 // User handles core authentication data, credentials, and security state.
+//
+// IsSuperUser marks a platform operator. It is only honoured for accounts
+// with no SaccoID; see middleware.HumaAuthenticate.
 type User struct {
 	ID                  uint       `json:"id" gorm:"primaryKey"`
 	SaccoID             *string    `json:"sacco_id,omitempty" gorm:"index"`

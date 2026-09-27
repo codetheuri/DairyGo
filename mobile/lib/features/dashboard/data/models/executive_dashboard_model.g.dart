@@ -14,14 +14,18 @@ _$ExecutiveSummaryCardsImpl _$$ExecutiveSummaryCardsImplFromJson(
   todaySalesLitres: (json['today_sales_litres'] as num?)?.toDouble() ?? 0.0,
   todaySpoilageLitres:
       (json['today_spoilage_litres'] as num?)?.toDouble() ?? 0.0,
-  todayNetCoolantStationLitres:
-      (json['today_net_coolant_station_litres'] as num?)?.toDouble() ?? 0.0,
+  todayUnaccountedLitres:
+      (json['today_unaccounted_litres'] as num?)?.toDouble() ?? 0.0,
+  todayBalanceStatus: json['today_balance_status'] as String? ?? 'BALANCED',
   monthCollectedLitres:
       (json['month_collected_litres'] as num?)?.toDouble() ?? 0.0,
   monthPayoutLiabilityKes:
       (json['month_payout_liability_kes'] as num?)?.toDouble() ?? 0.0,
   monthSalesRevenueKes:
       (json['month_sales_revenue_kes'] as num?)?.toDouble() ?? 0.0,
+  monthGrossMarginKes:
+      (json['month_gross_margin_kes'] as num?)?.toDouble() ?? 0.0,
+  receivablesKes: (json['receivables_kes'] as num?)?.toDouble() ?? 0.0,
   activeMembersCount: (json['active_members_count'] as num?)?.toInt() ?? 0,
   activeCollectorsCount:
       (json['active_collectors_count'] as num?)?.toInt() ?? 0,
@@ -33,10 +37,13 @@ Map<String, dynamic> _$$ExecutiveSummaryCardsImplToJson(
   'today_collected_litres': instance.todayCollectedLitres,
   'today_sales_litres': instance.todaySalesLitres,
   'today_spoilage_litres': instance.todaySpoilageLitres,
-  'today_net_coolant_station_litres': instance.todayNetCoolantStationLitres,
+  'today_unaccounted_litres': instance.todayUnaccountedLitres,
+  'today_balance_status': instance.todayBalanceStatus,
   'month_collected_litres': instance.monthCollectedLitres,
   'month_payout_liability_kes': instance.monthPayoutLiabilityKes,
   'month_sales_revenue_kes': instance.monthSalesRevenueKes,
+  'month_gross_margin_kes': instance.monthGrossMarginKes,
+  'receivables_kes': instance.receivablesKes,
   'active_members_count': instance.activeMembersCount,
   'active_collectors_count': instance.activeCollectorsCount,
 };
@@ -48,7 +55,7 @@ _$DailyTrendPointImpl _$$DailyTrendPointImplFromJson(
   collectedLitres: (json['collected_litres'] as num?)?.toDouble() ?? 0.0,
   salesLitres: (json['sales_litres'] as num?)?.toDouble() ?? 0.0,
   spoilageLitres: (json['spoilage_litres'] as num?)?.toDouble() ?? 0.0,
-  netCoolantLitres: (json['net_coolant_litres'] as num?)?.toDouble() ?? 0.0,
+  unaccountedLitres: (json['unaccounted_litres'] as num?)?.toDouble() ?? 0.0,
 );
 
 Map<String, dynamic> _$$DailyTrendPointImplToJson(
@@ -58,7 +65,7 @@ Map<String, dynamic> _$$DailyTrendPointImplToJson(
   'collected_litres': instance.collectedLitres,
   'sales_litres': instance.salesLitres,
   'spoilage_litres': instance.spoilageLitres,
-  'net_coolant_litres': instance.netCoolantLitres,
+  'unaccounted_litres': instance.unaccountedLitres,
 };
 
 _$ExecutiveDashboardModelImpl _$$ExecutiveDashboardModelImplFromJson(

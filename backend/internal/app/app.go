@@ -17,12 +17,15 @@ import (
 	"github.com/codetheuri/tusk/config"
 	"github.com/codetheuri/tusk/internal/auth"
 	"github.com/codetheuri/tusk/internal/collection"
+	"github.com/codetheuri/tusk/internal/customer"
 	"github.com/codetheuri/tusk/internal/dashboard"
 	"github.com/codetheuri/tusk/internal/member"
 	"github.com/codetheuri/tusk/internal/middleware"
 	"github.com/codetheuri/tusk/internal/notification"
 	"github.com/codetheuri/tusk/internal/report"
 	"github.com/codetheuri/tusk/internal/sacco"
+	"github.com/codetheuri/tusk/internal/superadmin"
+	"github.com/codetheuri/tusk/web"
 
 	appDatabase "github.com/codetheuri/tusk/internal/platform/database"
 
@@ -31,9 +34,10 @@ import (
 )
 
 type App struct {
-	cfg    *config.Config
-	router *chi.Mux
-	log    logger.Logger
+	cfg      *config.Config
+	router   *chi.Mux
+	log      logger.Logger
+	platform *superadmin.Repository
 }
 
 func New(cfg *config.Config, log logger.Logger) (*App, error) {
@@ -43,10 +47,13 @@ func New(cfg *config.Config, log logger.Logger) (*App, error) {
 	}
 
 	r := chi.NewRouter()
+	platformRepo := superadmin.NewRepository(db)
 
-	// Middlewares
+	// Middlewares. RecordFailures sits outside Recovery so recovered panics
+	// (500s) are recorded too.
 	r.Use(middleware.RequestID())
 	r.Use(middleware.Logger(log))
+	r.Use(middleware.RecordFailures(platformRepo, cfg.JWTSecret))
 	r.Use(middleware.Recovery(log))
 	r.Use(middleware.CORS(cfg.CORSOrigins, log))
 	r.Use(middleware.SecurityHeaders)
@@ -69,6 +76,12 @@ func New(cfg *config.Config, log logger.Logger) (*App, error) {
 		w.Write([]byte(`{"status":"ready","database":"connected"}`))
 	})
 
+	// Platform console (static web app embedded in the binary).
+	r.Get("/platform", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/platform/", http.StatusMovedPermanently)
+	})
+	r.With(middleware.ConsoleSecurityHeaders).Handle("/platform/*", http.StripPrefix("/platform/", web.PlatformHandler()))
+
 	// Initialize Huma custom formatting
 	response.SetupHuma()
 
@@ -89,9 +102,11 @@ func New(cfg *config.Config, log logger.Logger) (*App, error) {
 		{Name: "Milk Collections", Description: "Farmer milk intake recording and status verification"},
 		{Name: "Milk Sales", Description: "Direct field sales to hotels, processors, or local buyers"},
 		{Name: "Milk Spoilage", Description: "Milk loss, acidity testing failure, and transport damage logging"},
+		{Name: "Customers & Ledger", Description: "Milk buyers (coolers, processors, hotels, shops, individuals), customer payments, statements and outstanding balances"},
 		{Name: "Collector Reconciliation", Description: "Collector daily intake, sales, spoilage, and net delivery overview"},
 		{Name: "Reports & Reconciliation", Description: "Farmer payroll statements, Sacco balancing ledgers, and collector audit reports"},
 		{Name: "Executive & Mobile Dashboards", Description: "Sacco summary cards, trend time series charts, and collector field shift metrics"},
+		{Name: "Platform Console", Description: "DairyGo operator console: overview of all Saccos, Sacco staff and farmers, audit trail, failed requests and SMS logs"},
 		{Name: "SMS Notifications", Description: "Pluggable SMS dispatching (httpSMS Android SIM Gateway, Africa's Talking) and audit logs"},
 	}
 
@@ -141,6 +156,7 @@ func New(cfg *config.Config, log logger.Logger) (*App, error) {
 		{
 			"name": "Sacco Platform",
 			"tags": []string{
+				"Platform Console",
 				"Sacco Management (Admin)",
 				"Sacco Tenant Profile",
 				"Member Management",
@@ -153,6 +169,7 @@ func New(cfg *config.Config, log logger.Logger) (*App, error) {
 				"Milk Collections",
 				"Milk Sales",
 				"Milk Spoilage",
+				"Customers & Ledger",
 				"Collector Reconciliation",
 				"Reports & Reconciliation",
 			},
@@ -179,14 +196,17 @@ func New(cfg *config.Config, log logger.Logger) (*App, error) {
 	sacco.RegisterRoutes(api, db, cfg, log)
 	member.RegisterRoutes(api, db, cfg, log)
 	collection.RegisterRoutes(api, db, cfg, log)
+	customer.RegisterRoutes(api, db, cfg, log)
 	report.RegisterRoutes(api, db, cfg, log)
 	dashboard.RegisterRoutes(api, db, cfg, log)
 	notification.RegisterRoutes(api, db, cfg, log)
+	superadmin.RegisterRoutes(api, db, cfg, log)
 
 	return &App{
-		cfg:    cfg,
-		router: r,
-		log:    log,
+		cfg:      cfg,
+		router:   r,
+		log:      log,
+		platform: platformRepo,
 	}, nil
 }
 
@@ -212,6 +232,13 @@ func (a *App) Run() error {
 			a.log.Fatal("Server failed to listen or serve", err)
 		}
 	}()
+
+	// Keep failed-request logs for 30 days.
+	retentionCtx, stopRetention := context.WithCancel(context.Background())
+	defer stopRetention()
+	go superadmin.RunLogRetention(retentionCtx, a.platform, 30*24*time.Hour, func(err error) {
+		a.log.Error("Failed to purge old system logs", err)
+	})
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)

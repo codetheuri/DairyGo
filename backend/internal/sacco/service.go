@@ -9,6 +9,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/codetheuri/tusk/internal/auth"
+	"github.com/codetheuri/tusk/internal/middleware"
+	"github.com/codetheuri/tusk/pkg/audit"
 	"github.com/codetheuri/tusk/pkg/query"
 )
 
@@ -61,7 +63,6 @@ func (s *Service) CreateSacco(ctx context.Context, req *CreateSaccoRequest) (*Sa
 		Email:       strings.TrimSpace(req.AdminUser.Email),
 		Phone:       req.AdminUser.Phone,
 		Password:    string(hash),
-		IsSuperUser: true,
 		IsActive:    true,
 		IsVerified:  true,
 	}
@@ -71,7 +72,7 @@ func (s *Service) CreateSacco(ctx context.Context, req *CreateSaccoRequest) (*Sa
 		LastName:  req.Name,
 	}
 
-	if err := s.repo.Create(ctx, sacco, adminUser, adminProfile, settings); err != nil {
+	if err := s.repo.Create(ctx, sacco, adminUser, adminProfile, settings, middleware.GetUserID(ctx)); err != nil {
 		return nil, nil, err
 	}
 
@@ -116,11 +117,17 @@ func (s *Service) UpdateSacco(ctx context.Context, id string, req *UpdateSaccoRe
 	return sacco, nil
 }
 
-func (s *Service) UpdateStatus(ctx context.Context, id string, status Status) error {
+// UpdateStatus activates, deactivates or suspends a Sacco. Users of a Sacco
+// that is not ACTIVE are refused at login and on every request.
+func (s *Service) UpdateStatus(ctx context.Context, id string, status Status, reason *string) error {
 	if status != StatusActive && status != StatusInactive && status != StatusSuspended {
 		return fmt.Errorf("invalid status: %s", status)
 	}
-	return s.repo.UpdateStatus(ctx, id, status)
+	entry := audit.Entry{
+		SaccoID: id, EntityType: "sacco", EntityID: id, Action: audit.ActionStatus,
+		ActorID: middleware.GetUserID(ctx), Reason: reason, NewValues: map[string]any{"status": status},
+	}
+	return s.repo.UpdateStatus(ctx, id, status, entry)
 }
 
 func (s *Service) GetSettings(ctx context.Context, saccoID string) (*SaccoSettings, error) {
@@ -147,6 +154,12 @@ func (s *Service) UpdateSettings(ctx context.Context, saccoID string, req *Updat
 	}
 	if req.EveningCutoffTime != nil {
 		settings.EveningCutoffTime = req.EveningCutoffTime
+	}
+	if req.ReconciliationToleranceLitres != nil {
+		if *req.ReconciliationToleranceLitres < 0 {
+			return nil, fmt.Errorf("reconciliation_tolerance_litres cannot be negative")
+		}
+		settings.ReconciliationToleranceLitres = *req.ReconciliationToleranceLitres
 	}
 
 	if err := s.repo.UpdateSettings(ctx, settings); err != nil {

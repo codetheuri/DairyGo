@@ -7,6 +7,7 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/status_pill.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
+import '../../../collection/data/models/milk_collection_model.dart';
 import '../../../collection/presentation/controllers/collection_controller.dart';
 import '../controllers/settings_controller.dart';
 import '../widgets/change_password_dialog.dart';
@@ -15,6 +16,20 @@ import '../widgets/set_price_dialog.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
+
+  bool _isFuture(String? dateStr) {
+    final parsed = DateTime.tryParse(dateStr ?? '')?.toLocal();
+    return parsed != null && parsed.isAfter(DateTime.now());
+  }
+
+  /// The price in force today: the latest non-voided price already in effect.
+  String? _currentPriceId(List<MilkPriceModel> prices) {
+    final inEffect = prices
+        .where((p) => p.isActive && !_isFuture(p.effectiveDate))
+        .toList()
+      ..sort((a, b) => (b.effectiveDate ?? '').compareTo(a.effectiveDate ?? ''));
+    return inEffect.isEmpty ? null : inEffect.first.id;
+  }
 
   String _formatDate(String? dateStr) {
     if (dateStr == null || dateStr.isEmpty) return 'N/A';
@@ -306,6 +321,7 @@ class SettingsScreen extends ConsumerWidget {
                   if (prices.isEmpty) {
                     return const Text('No price history entries recorded.', style: TextStyle(fontSize: 12, color: AppColors.textMuted));
                   }
+                  final currentPriceId = _currentPriceId(prices);
 
                   return Container(
                     decoration: BoxDecoration(
@@ -320,7 +336,9 @@ class SettingsScreen extends ConsumerWidget {
                       separatorBuilder: (_, __) => const Divider(height: 1, color: AppColors.cardBorder),
                       itemBuilder: (context, index) {
                         final item = prices[index];
-                        final isCurrentActive = item.isActive;
+                        // Prices form a schedule: the current one is the latest already in effect.
+                        final isCurrentActive = item.id == currentPriceId;
+                        final isScheduled = _isFuture(item.effectiveDate);
 
                         return ListTile(
                           contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
@@ -343,8 +361,10 @@ class SettingsScreen extends ConsumerWidget {
                             style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
                           ),
                           trailing: isCurrentActive
-                              ? const StatusPill(status: 'ACTIVE', type: StatusType.success)
-                              : const Text('HISTORICAL', style: TextStyle(fontSize: 10, color: AppColors.textMuted, fontWeight: FontWeight.bold)),
+                              ? const StatusPill(status: 'CURRENT', type: StatusType.success)
+                              : isScheduled
+                                  ? const StatusPill(status: 'SCHEDULED', type: StatusType.info)
+                                  : const Text('HISTORICAL', style: TextStyle(fontSize: 10, color: AppColors.textMuted, fontWeight: FontWeight.bold)),
                         );
                       },
                     ),
@@ -354,6 +374,12 @@ class SettingsScreen extends ConsumerWidget {
                 error: (err, stack) => const Text('No historical rates recorded.', style: TextStyle(fontSize: 12, color: AppColors.textMuted)),
               ),
               const SizedBox(height: 24),
+
+              // Milk balance tolerance (admins): allowed measuring difference per collector per day.
+              if (canSetPrice) ...[
+                const _ToleranceCard(),
+                const SizedBox(height: 24),
+              ],
 
               // 3. Sacco Staff & User Management (Hiddne silently for non-Admins)
               if (canManageStaff) ...[
@@ -539,6 +565,78 @@ class SettingsScreen extends ConsumerWidget {
         Text('$label: ', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
         Text(value, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
       ],
+    );
+  }
+}
+
+/// Shows and edits the Sacco's milk balance tolerance.
+class _ToleranceCard extends ConsumerWidget {
+  const _ToleranceCard();
+
+  Future<void> _edit(BuildContext context, WidgetRef ref, double current) async {
+    final controller = TextEditingController(text: current.toStringAsFixed(1));
+    final value = await showDialog<double>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Milk balance tolerance'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Litres of measuring difference allowed per collector per day before milk is flagged as missing or oversold.',
+              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: controller,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              decoration: const InputDecoration(labelText: 'Litres', suffixText: 'L'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () {
+              final v = double.tryParse(controller.text.trim());
+              if (v != null && v >= 0) Navigator.of(ctx).pop(v);
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+    if (value == null) return;
+    try {
+      await ref.read(settingsRepositoryProvider).updateTolerance(value);
+      ref.invalidate(saccoSettingsProvider);
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))));
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(saccoSettingsProvider);
+    final tolerance = settings.valueOrNull?.reconciliationToleranceLitres ?? 0;
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.cardBorder),
+      ),
+      child: ListTile(
+        leading: const Icon(Icons.balance_rounded, color: AppColors.primary),
+        title: const Text('Milk balance tolerance', style: TextStyle(fontWeight: FontWeight.w600)),
+        subtitle: Text(
+          settings.isLoading ? 'Loading…' : '${tolerance.toStringAsFixed(1)} L per collector per day',
+          style: const TextStyle(fontSize: 12),
+        ),
+        trailing: const Icon(Icons.edit_outlined, size: 18),
+        onTap: settings.hasValue ? () => _edit(context, ref, tolerance) : null,
+      ),
     );
   }
 }

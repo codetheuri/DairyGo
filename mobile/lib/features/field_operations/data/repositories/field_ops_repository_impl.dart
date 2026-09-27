@@ -1,3 +1,4 @@
+import '../../../../core/models/audit_log_model.dart';
 import '../datasources/field_ops_remote_data_source.dart';
 import '../models/field_ops_models.dart';
 import '../../domain/repositories/field_ops_repository.dart';
@@ -11,6 +12,12 @@ class FieldOpsRepositoryImpl implements FieldOpsRepository {
   Future<MilkSaleModel> recordSale(RecordSaleRequestModel request) {
     return _remoteDataSource.recordSale(request);
   }
+
+  @override
+  Future<void> voidSale(String id, String reason) => _remoteDataSource.voidSale(id, reason);
+
+  @override
+  Future<List<AuditLogModel>> getSaleHistory(String id) => _remoteDataSource.getSaleHistory(id);
 
   @override
   Future<List<MilkSaleModel>> listSales({String? fromDate, String? toDate, String? search}) {

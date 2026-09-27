@@ -62,20 +62,27 @@ graph TD
 
 ### 🥛 1. Field Milk Intake & Sales Operations
 * **Farmer Intake Log**: Fast farmer search by membership code/phone and instant litre recording.
-* **Direct Field Sales**: Record direct milk sales to local buyers and hotels with cash/M-Pesa payment tags.
+* **Customer Sales**: Every litre leaving a collector is a sale to a customer (coolers, processors, hotels, shops, individuals). Collectors search or add the customer on the spot; agreed prices prefill.
+* **Customer Ledger**: Credit and part-paid sales build a running balance per customer; admins record M-Pesa/cash/bank payments, and admins and board members see statements and who owes what.
 * **Spoilage Tracking**: Log transit milk loss and spoilage events to ensure daily intake balancing.
 
+* **Trustworthy Records**: Collections only for active farmers of the Sacco, priced by the rate in force on the collection date. Controlled edits (collectors same-day on their own entries, admins with a reason) and a full audit history of every change.
+
 ### 📊 2. Executive Board Analytics
-* **Real-time Overview Cards**: Total intake litres, sales revenue (KES), spoilage losses, active farmers count, and active collectors count.
+* **Milk Balance**: Every litre collected must be sold (coolers included) or logged as spoilage. Unaccounted milk is flagged as *missing* or *oversold* per collector and per Sacco, within a configurable tolerance.
+* **Real-time Overview Cards**: Intake, sales, spoilage, today's balance status, month gross margin, what customers owe, active farmers and collectors.
 * **Daily Trend Graphs**: Dynamic 7-day, 14-day, and 30-day milk volume time-series charts.
 
 ### 💰 3. Dynamic Sacco Milk Pricing Engine
-* **Per-Litre Buying Rates**: Define active milk buying prices per litre with effective start dates.
-* **Farmer Payout Statements**: Automated calculation of gross earnings, deductions, and net payout liability per farmer.
+* **Per-Litre Buying Rates**: A schedule of buying prices with effective dates; each collection is priced by the rate in force on its date, and future rates start automatically.
+* **Farmer Payout Statements**: Gross earnings per farmer over any period (litres × the rate in force on each collection date), with M-Pesa and bank payout details.
 
 ### 🏢 4. Multi-Tenant Sacco Architecture
 * **Tenant Isolation**: Independent Sacco configurations with isolated database records (`sacco_id` scope).
-* **Super Admin Provisioning**: Platform-level onboarding for new Dairy Sacco tenants.
+* **Super Admin Provisioning**: Platform-level onboarding for new Dairy Sacco tenants. Only platform super users (no `sacco_id`) can create or manage Saccos; each Sacco's own admin is a regular `Sacco Administrator` scoped to their Sacco.
+
+### 🖥️ Platform Console
+* **Web console at `/platform`** for DairyGo operators: all Saccos at a glance, onboarding, suspension, Sacco staff (add, deactivate, unlock, reset password), farmers, audit trail, error log and SMS logs. Served by the API, nothing extra to host.
 
 ### 🔐 5. Role-Based Access Control (RBAC)
 * **Pre-seeded Roles**:
@@ -100,14 +107,17 @@ Dairy/
 │   │   └── tusk/             # DairyGo CLI Permission Sync tool (dairy-cli)
 │   ├── config/               # App configuration & env loader
 │   ├── database/
-│   │   └── migrations/       # Goose SQL schema migrations (00001-00007)
+│   │   └── migrations/       # Goose SQL schema migrations (00001-00013)
 │   ├── internal/
 │   │   ├── auth/             # Authentication, Users, & Roles
 │   │   ├── collection/       # Milk Collections, Sales, Spoilage, Pricing
+│   │   ├── customer/         # Customers, payments, statements (ledger)
 │   │   ├── dashboard/        # Executive & Collector Dashboard Analytics
 │   │   ├── member/           # Sacco Farmer Directory
 │   │   ├── report/           # Payroll Payout & Audit Reports
-│   │   └── sacco/            # Sacco Tenant Profile & Settings
+│   │   ├── sacco/            # Sacco Tenant Profile & Settings
+│   │   └── superadmin/       # Platform console API (overview, staff, logs)
+│   ├── web/platform/         # Platform console web app (embedded, served at /platform)
 │   ├── Dockerfile            # Multi-stage production build
 │   └── docker-compose.yml    # Container orchestration configuration
 └── mobile/                   # Flutter Mobile Application
@@ -118,6 +128,7 @@ Dairy/
     │       ├── auth/         # Login, Auth Controller, State
     │       ├── collection/   # Intake, Field Sales, Spoilage UI & Controllers
     │       ├── dashboard/    # Collector Shift & Executive Dashboard Screens
+    │       ├── customers/    # Customers, picker, statements & payments
     │       ├── members/      # Farmers Directory UI & Profile Screens
     │       ├── reports/      # Payout Statements & Collector Audit UI
     │       └── settings/     # Staff Registration & Price Configuration
@@ -208,11 +219,19 @@ curl http://localhost:9002/health
 | `POST` | `/api/v1/auth/login` | Authenticate user & issue JWT | Public |
 | `GET` | `/api/v1/auth/me` | Current user profile & role name | Authenticated |
 | `POST` | `/api/v1/auth/me/change-password` | Change authenticated user password | Authenticated |
-| `POST` | `/api/v1/auth/register` | Register new staff member (Admin/Collector/Executive) | Sacco Admin |
+| `POST` | `/api/v1/auth/register` | Register new staff member (role 1/2/3) into the caller's own Sacco | `users.create` |
 | `GET` | `/api/v1/sacco/dashboard/collector` | Real-time collector shift metrics | `dashboard.collector.read` |
-| `GET` | `/api/v1/sacco/dashboard/executive` | Executive Sacco summary cards & trend graph | `dashboard.executive.read` |
+| `GET` | `/api/v1/sacco/dashboard/summary` | Executive Sacco summary cards & trend graph | `dashboard.executive.read` |
 | `POST` | `/api/v1/sacco/milk-collections` | Record farmer milk intake | `milk.collections.create` |
-| `POST` | `/api/v1/sacco/milk-sales` | Record direct field milk sale | `milk.sales.create` |
+| `PUT` | `/api/v1/sacco/milk-collections/{id}` | Edit an intake entry (edit rules apply) | `milk.collections.create` |
+| `GET` | `/api/v1/sacco/milk-collections/{id}/history` | Audit history of an intake entry | `milk.collections.read` |
+| `POST` | `/api/v1/sacco/milk-sales` | Record a milk sale to a customer | `milk.sales.create` |
+| `POST` | `/api/v1/sacco/milk-sales/{id}/void` | Void a sale recorded in error | `milk.sales.manage` |
+| `GET` | `/api/v1/sacco/customers` | Search customers | `customers.read` |
+| `POST` | `/api/v1/sacco/customers` | Add a customer | `customers.create` |
+| `POST` | `/api/v1/sacco/customers/{id}/payments` | Record a customer payment | `customers.payments.manage` |
+| `GET` | `/api/v1/sacco/customers/{id}/statement` | Customer statement (running balance) | `customers.statement.read` |
+| `GET` | `/api/v1/sacco/customers/balances` | Who owes what | `customers.statement.read` |
 | `POST` | `/api/v1/sacco/milk-spoilage` | Log transit milk loss | `milk.spoilage.create` |
 | `POST` | `/api/v1/sacco/milk-prices` | Set active per-litre milk buying price | `sacco.settings.manage` |
 | `GET` | `/api/v1/sacco/reports/farmer-payout` | Farmer payroll payout report statement | `reports.payout.read` |

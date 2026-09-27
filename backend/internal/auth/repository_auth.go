@@ -55,8 +55,8 @@ func (r *Repository) attachRoleName(ctx context.Context, user *User) {
 	if user == nil {
 		return
 	}
-	if user.IsSuperUser {
-		user.RoleName = "Sacco Administrator"
+	if user.IsSuperUser && user.SaccoID == nil {
+		user.RoleName = "Platform Administrator"
 		return
 	}
 	var roleName string
@@ -162,5 +162,20 @@ func (r *Repository) RevokeRefreshToken(ctx context.Context, tokenHash string) e
 	return r.db.WithContext(ctx).
 		Model(&RefreshToken{}).
 		Where("token_hash = ?", tokenHash).
+		Update("revoked_at", time.Now()).Error
+}
+
+// SaccoStatus returns the status of a Sacco (ACTIVE, INACTIVE, SUSPENDED).
+func (r *Repository) SaccoStatus(ctx context.Context, saccoID string) (string, error) {
+	var status string
+	err := r.db.WithContext(ctx).Table("saccos").Select("status").Where("id = ?", saccoID).Take(&status).Error
+	return status, err
+}
+
+// RevokeAllRefreshTokens ends every session of a user, e.g. after deactivation
+// or a password reset.
+func (r *Repository) RevokeAllRefreshTokens(ctx context.Context, userID uint) error {
+	return r.db.WithContext(ctx).Model(&RefreshToken{}).
+		Where("user_id = ? AND revoked_at IS NULL", userID).
 		Update("revoked_at", time.Now()).Error
 }

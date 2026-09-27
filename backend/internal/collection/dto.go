@@ -1,6 +1,7 @@
 package collection
 
 import (
+	"github.com/codetheuri/tusk/pkg/audit"
 	"github.com/codetheuri/tusk/pkg/query"
 	"github.com/codetheuri/tusk/pkg/response"
 )
@@ -59,6 +60,7 @@ type UpdateCollectionRequest struct {
 	QuantityLitres *float64 `json:"quantity_litres,omitempty" minimum:"0.01" doc:"Updated quantity of milk in litres"`
 	Shift          *Shift   `json:"shift,omitempty" doc:"Updated shift"`
 	Notes          *string  `json:"notes,omitempty" doc:"Updated notes"`
+	Reason         *string  `json:"reason,omitempty" doc:"Why the record is being changed (required for admin edits)"`
 }
 
 type UpdateCollectionInput struct {
@@ -72,7 +74,8 @@ type CollectionIDInput struct {
 
 type UpdateCollectionStatusRequest struct {
 	Status CollectionStatus `json:"status" enum:"SUBMITTED,VERIFIED,REJECTED,ADJUSTED" doc:"Updated status"`
-	Notes  *string          `json:"notes,omitempty" doc:"Reason for status update"`
+	Reason *string          `json:"reason,omitempty" doc:"Why the status is changing (required for REJECTED and ADJUSTED)"`
+	Notes  *string          `json:"notes,omitempty" doc:"Deprecated: use reason"`
 }
 
 type UpdateCollectionStatusInput struct {
@@ -101,6 +104,14 @@ type CollectionOutput struct {
 	Body response.Data[CollectionData]
 }
 
+type CollectionHistoryData struct {
+	History []audit.Log `json:"history"`
+}
+
+type CollectionHistoryOutput struct {
+	Body response.Data[CollectionHistoryData]
+}
+
 type ListCollectionsData struct {
 	Collections []MilkCollection `json:"collections"`
 	Meta        query.Meta       `json:"meta"`
@@ -113,14 +124,35 @@ type ListCollectionsOutput struct {
 // --- SALES DTOs ---
 
 type RecordSaleRequest struct {
-	SaleDate       string  `json:"sale_date" doc:"Sale date (YYYY-MM-DD)"`
-	BuyerName      string  `json:"buyer_name" minLength:"2" doc:"Buyer or Establishment name (e.g. Hotel B)"`
-	BuyerPhone     *string `json:"buyer_phone,omitempty" doc:"Buyer contact phone"`
-	QuantityLitres float64 `json:"quantity_litres" minimum:"0.01" doc:"Quantity sold in litres"`
-	UnitPrice      float64 `json:"unit_price" minimum:"0.01" doc:"Selling price per litre"`
-	PaymentStatus  *string `json:"payment_status,omitempty" enum:"PAID,PENDING,PARTIAL" doc:"Payment status"`
-	PaymentMethod  *string `json:"payment_method,omitempty" enum:"CASH,MPESA,BANK_TRANSFER,CREDIT" doc:"Payment method"`
-	Notes          *string `json:"notes,omitempty" doc:"Optional notes"`
+	CustomerID     string   `json:"customer_id" minLength:"1" doc:"Customer UUID (search or add the customer first)"`
+	SaleDate       *string  `json:"sale_date,omitempty" doc:"Sale date (YYYY-MM-DD), defaults to today"`
+	QuantityLitres float64  `json:"quantity_litres" minimum:"0.01" doc:"Quantity sold in litres"`
+	UnitPrice      *float64 `json:"unit_price,omitempty" doc:"Selling price per litre; defaults to the customer's agreed price"`
+	AmountPaid     *float64 `json:"amount_paid,omitempty" doc:"Amount paid at the time of sale; defaults to the full total, or 0 when payment_method is CREDIT"`
+	PaymentMethod  *string  `json:"payment_method,omitempty" enum:"CASH,MPESA,BANK_TRANSFER,CREDIT" doc:"How the amount paid was received; CREDIT when nothing was paid"`
+	Notes          *string  `json:"notes,omitempty" doc:"Optional notes"`
+}
+
+type UpdateSaleRequest struct {
+	CustomerID     *string  `json:"customer_id,omitempty" doc:"Correct the customer"`
+	QuantityLitres *float64 `json:"quantity_litres,omitempty" doc:"Corrected quantity in litres"`
+	UnitPrice      *float64 `json:"unit_price,omitempty" doc:"Corrected price per litre"`
+	AmountPaid     *float64 `json:"amount_paid,omitempty" doc:"Corrected amount paid at sale"`
+	PaymentMethod  *string  `json:"payment_method,omitempty" enum:"CASH,MPESA,BANK_TRANSFER,CREDIT" doc:"Corrected payment method"`
+	Notes          *string  `json:"notes,omitempty" doc:"Updated notes"`
+	Reason         *string  `json:"reason,omitempty" doc:"Why the sale is being changed (required for admin edits)"`
+}
+
+type UpdateSaleInput struct {
+	ID   string `path:"id" doc:"Sale UUID"`
+	Body UpdateSaleRequest
+}
+
+type VoidSaleInput struct {
+	ID   string `path:"id" doc:"Sale UUID"`
+	Body struct {
+		Reason string `json:"reason" minLength:"3" doc:"Why the sale is being voided"`
+	}
 }
 
 type RecordSaleInput struct {
@@ -132,13 +164,15 @@ type SaleIDInput struct {
 }
 
 type ListSalesInput struct {
-	Page        int    `query:"page" doc:"Page number (default 1)"`
-	PerPage     int    `query:"per_page" doc:"Items per page (default 20)"`
-	CollectorID uint   `query:"collector_id" doc:"Filter by Collector User ID"`
-	FromDate    string `query:"from_date" doc:"Filter from date"`
-	ToDate      string `query:"to_date" doc:"Filter to date"`
-	Search      string `query:"search" doc:"Search by buyer name or phone"`
-	Sort        string `query:"sort" doc:"Sort field"`
+	Page          int    `query:"page" doc:"Page number (default 1)"`
+	PerPage       int    `query:"per_page" doc:"Items per page (default 20)"`
+	CollectorID   uint   `query:"collector_id" doc:"Filter by Collector User ID"`
+	CustomerID    string `query:"customer_id" doc:"Filter by customer UUID"`
+	PaymentStatus string `query:"payment_status" doc:"Filter by payment status (PAID, PARTIAL, CREDIT)"`
+	FromDate      string `query:"from_date" doc:"Filter from date"`
+	ToDate        string `query:"to_date" doc:"Filter to date"`
+	Search        string `query:"search" doc:"Search by buyer name or phone"`
+	Sort          string `query:"sort" doc:"Sort field"`
 }
 
 type SaleData struct {

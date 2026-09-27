@@ -4,9 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
+	"time"
 
 	"github.com/codetheuri/tusk/internal/middleware"
+	"github.com/codetheuri/tusk/pkg/audit"
 	"github.com/codetheuri/tusk/pkg/query"
+	"github.com/codetheuri/tusk/pkg/reconcile"
 	"gorm.io/gorm"
 )
 
@@ -38,27 +42,61 @@ func (r *Repository) populateCollectorNames(ctx context.Context, collectorIDs []
 
 // --- PRICING REPOSITORY METHODS ---
 
+// CreatePrice adds a price to the Sacco's rate schedule. Older prices stay
+// active: the price for a date is chosen by effective_date (see GetPriceForDate).
 func (r *Repository) CreatePrice(ctx context.Context, p *MilkPrice) error {
-	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		// Deactivate current active price for this sacco
-		if err := tx.Model(&MilkPrice{}).Scopes(query.TenantScope(ctx)).Where("is_active = ?", true).Update("is_active", false).Error; err != nil {
-			return err
-		}
-		p.IsActive = true
-		return tx.Create(p).Error
-	})
+	p.IsActive = true
+	return r.db.WithContext(ctx).Create(p).Error
 }
 
-func (r *Repository) GetActivePrice(ctx context.Context) (*MilkPrice, error) {
+// GetPriceForDate returns the price in force on date (YYYY-MM-DD): the latest
+// non-voided price whose effective_date falls on or before that day.
+func (r *Repository) GetPriceForDate(ctx context.Context, date time.Time) (*MilkPrice, error) {
+	nextDay := date.AddDate(0, 0, 1).Format(dateLayout)
+
 	var p MilkPrice
-	err := r.db.WithContext(ctx).Scopes(query.TenantScope(ctx)).Where("is_active = ?", true).Order("effective_date DESC").First(&p).Error
+	err := r.db.WithContext(ctx).Scopes(query.TenantScope(ctx)).
+		Where("is_active = ? AND effective_date < ?", true, nextDay).
+		Order("effective_date DESC, created_at DESC").
+		First(&p).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, fmt.Errorf("no active milk price configured for this Sacco")
+			return nil, fmt.Errorf("no milk price configured for this Sacco on %s", date.Format(dateLayout))
 		}
 		return nil, err
 	}
 	return &p, nil
+}
+
+// GetActivePrice returns the price in force today.
+func (r *Repository) GetActivePrice(ctx context.Context) (*MilkPrice, error) {
+	return r.GetPriceForDate(ctx, time.Now())
+}
+
+// collectionMember is the subset of a farmer record needed to record a collection.
+type collectionMember struct {
+	ID        string
+	Status    string
+	Phone     string
+	FirstName string
+	LastName  string
+}
+
+// FindMemberForCollection loads a farmer from the caller's Sacco.
+func (r *Repository) FindMemberForCollection(ctx context.Context, memberID string) (*collectionMember, error) {
+	var m collectionMember
+	err := r.db.WithContext(ctx).Table("members").
+		Scopes(query.TenantScope(ctx)).
+		Select("id, status, phone, first_name, last_name").
+		Where("id = ? AND deleted_at IS NULL", memberID).
+		Take(&m).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("%w: member not found in this Sacco", ErrNotFound)
+		}
+		return nil, err
+	}
+	return &m, nil
 }
 
 func (r *Repository) ListPrices(ctx context.Context, q query.Query) ([]MilkPrice, query.Meta, error) {
@@ -77,8 +115,14 @@ func (r *Repository) ListPrices(ctx context.Context, q query.Query) ([]MilkPrice
 
 // --- COLLECTION REPOSITORY METHODS ---
 
-func (r *Repository) CreateCollection(ctx context.Context, c *MilkCollection) error {
-	return r.db.WithContext(ctx).Create(c).Error
+// CreateCollection saves a new collection and its CREATE audit entry atomically.
+func (r *Repository) CreateCollection(ctx context.Context, c *MilkCollection, entry audit.Entry) error {
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(c).Error; err != nil {
+			return err
+		}
+		return audit.Record(tx, entry)
+	})
 }
 
 func (r *Repository) FindCollectionByID(ctx context.Context, id string) (*MilkCollection, error) {
@@ -86,7 +130,7 @@ func (r *Repository) FindCollectionByID(ctx context.Context, id string) (*MilkCo
 	err := r.db.WithContext(ctx).Scopes(query.TenantScope(ctx)).Where("id = ?", id).First(&c).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, fmt.Errorf("milk collection record not found")
+			return nil, fmt.Errorf("%w: milk collection record not found", ErrNotFound)
 		}
 		return nil, err
 	}
@@ -105,8 +149,19 @@ func (r *Repository) FindByMemberAndDate(ctx context.Context, saccoID, memberID,
 	return &c, nil
 }
 
-func (r *Repository) UpdateCollection(ctx context.Context, c *MilkCollection) error {
-	return r.db.WithContext(ctx).Scopes(query.TenantScope(ctx)).Save(c).Error
+// UpdateCollection saves an edited collection and its audit entry atomically.
+func (r *Repository) UpdateCollection(ctx context.Context, c *MilkCollection, entry audit.Entry) error {
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Scopes(query.TenantScope(ctx)).Save(c).Error; err != nil {
+			return err
+		}
+		return audit.Record(tx, entry)
+	})
+}
+
+// CollectionHistory returns the audit trail of one collection, oldest first.
+func (r *Repository) CollectionHistory(ctx context.Context, c *MilkCollection) ([]audit.Log, error) {
+	return audit.List(ctx, r.db, c.SaccoID, auditEntityCollection, c.ID)
 }
 
 func (r *Repository) ListCollections(ctx context.Context, q query.Query) ([]MilkCollection, query.Meta, error) {
@@ -160,18 +215,68 @@ func (r *Repository) ListCollections(ctx context.Context, q query.Query) ([]Milk
 	return collections, meta, nil
 }
 
-func (r *Repository) UpdateCollectionStatus(ctx context.Context, id string, status CollectionStatus, notes *string) error {
-	updates := map[string]interface{}{"status": status}
-	if notes != nil {
-		updates["notes"] = *notes
-	}
-	return r.db.WithContext(ctx).Model(&MilkCollection{}).Scopes(query.TenantScope(ctx)).Where("id = ?", id).Updates(updates).Error
+// UpdateCollectionStatus changes a collection's status and saves the audit entry atomically.
+func (r *Repository) UpdateCollectionStatus(ctx context.Context, id string, status CollectionStatus, entry audit.Entry) error {
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Model(&MilkCollection{}).Scopes(query.TenantScope(ctx)).Where("id = ?", id).Update("status", status).Error; err != nil {
+			return err
+		}
+		return audit.Record(tx, entry)
+	})
 }
 
 // --- SALES REPOSITORY METHODS ---
 
-func (r *Repository) CreateSale(ctx context.Context, s *MilkSale) error {
-	return r.db.WithContext(ctx).Create(s).Error
+// saleCustomer is the subset of a customer record needed to record a sale.
+type saleCustomer struct {
+	ID                   string
+	Name                 string
+	Phone                *string
+	CustomerType         string
+	Status               string
+	DefaultPricePerLitre *float64
+}
+
+// FindCustomerForSale loads a customer from the caller's Sacco.
+func (r *Repository) FindCustomerForSale(ctx context.Context, customerID string) (*saleCustomer, error) {
+	var c saleCustomer
+	err := r.db.WithContext(ctx).Table("customers").
+		Scopes(query.TenantScope(ctx)).
+		Select("id, name, phone, customer_type, status, default_price_per_litre").
+		Where("id = ? AND deleted_at IS NULL", customerID).
+		Take(&c).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("%w: customer not found in this Sacco", ErrNotFound)
+		}
+		return nil, err
+	}
+	return &c, nil
+}
+
+// CreateSale saves a sale and its audit entry atomically.
+func (r *Repository) CreateSale(ctx context.Context, s *MilkSale, entry audit.Entry) error {
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(s).Error; err != nil {
+			return err
+		}
+		return audit.Record(tx, entry)
+	})
+}
+
+// UpdateSale saves an edited or voided sale and its audit entry atomically.
+func (r *Repository) UpdateSale(ctx context.Context, s *MilkSale, entry audit.Entry) error {
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Scopes(query.TenantScope(ctx)).Save(s).Error; err != nil {
+			return err
+		}
+		return audit.Record(tx, entry)
+	})
+}
+
+// SaleHistory returns the audit trail of one sale, oldest first.
+func (r *Repository) SaleHistory(ctx context.Context, s *MilkSale) ([]audit.Log, error) {
+	return audit.List(ctx, r.db, s.SaccoID, auditEntitySale, s.ID)
 }
 
 func (r *Repository) FindSaleByID(ctx context.Context, id string) (*MilkSale, error) {
@@ -179,7 +284,7 @@ func (r *Repository) FindSaleByID(ctx context.Context, id string) (*MilkSale, er
 	err := r.db.WithContext(ctx).Scopes(query.TenantScope(ctx)).Where("id = ?", id).First(&s).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, fmt.Errorf("milk sale record not found")
+			return nil, fmt.Errorf("%w: milk sale record not found", ErrNotFound)
 		}
 		return nil, err
 	}
@@ -200,6 +305,7 @@ func (r *Repository) ListSales(ctx context.Context, q query.Query) ([]MilkSale, 
 		AllowedSearches: []string{"milk_sales.buyer_name", "milk_sales.buyer_phone", "milk_sales.notes"},
 		AllowedFilters: map[string]string{
 			"collector_id":   "milk_sales.collector_id",
+			"customer_id":    "milk_sales.customer_id",
 			"payment_status": "milk_sales.payment_status",
 			"payment_method": "milk_sales.payment_method",
 			"sale_date":      "milk_sales.sale_date",
@@ -227,12 +333,33 @@ func (r *Repository) ListSales(ctx context.Context, q query.Query) ([]MilkSale, 
 			ids = append(ids, s.CollectorID)
 		}
 		namesMap := r.populateCollectorNames(ctx, ids)
+		customerIDs := make([]string, 0, len(sales))
+		for _, s := range sales {
+			customerIDs = append(customerIDs, s.CustomerID)
+		}
+		typesMap := r.customerTypes(ctx, customerIDs)
 		for i := range sales {
 			sales[i].CollectorName = namesMap[sales[i].CollectorID]
+			sales[i].CustomerType = typesMap[sales[i].CustomerID]
 		}
 	}
 
 	return sales, meta, nil
+}
+
+// customerTypes maps customer IDs to their type, for labelling sales in lists.
+func (r *Repository) customerTypes(ctx context.Context, ids []string) map[string]string {
+	types := make(map[string]string, len(ids))
+	var rows []struct {
+		ID           string
+		CustomerType string
+	}
+	if err := r.db.WithContext(ctx).Table("customers").Select("id, customer_type").Where("id IN ?", ids).Scan(&rows).Error; err == nil {
+		for _, row := range rows {
+			types[row.ID] = row.CustomerType
+		}
+	}
+	return types
 }
 
 // --- SPOILAGE REPOSITORY METHODS ---
@@ -288,69 +415,73 @@ func (r *Repository) ListSpoilage(ctx context.Context, q query.Query) ([]MilkSpo
 
 // --- RECONCILIATION SUMMARY METHOD ---
 
+// GetCollectorReconciliation balances one collector's day. Queries use plain
+// date equality (not DATE(col)) so the (sacco_id, collector_id, date) indexes apply.
 func (r *Repository) GetCollectorReconciliation(ctx context.Context, collectorID uint, dateStr string) (*CollectorReconciliation, error) {
-	recon := &CollectorReconciliation{
-		CollectorID: collectorID,
-		Date:        dateStr,
+	saccoID, _ := middleware.GetSaccoID(ctx)
+	day, err := time.ParseInLocation(dateLayout, dateStr, time.Local)
+	if err != nil {
+		return nil, fmt.Errorf("invalid date format, expected YYYY-MM-DD")
 	}
 
-	// 1. Sum Total Collected
-	var collectionResult struct {
-		TotalLitres float64 `gorm:"total_litres"`
-		TotalAmount float64 `gorm:"total_amount"`
+	recon := &CollectorReconciliation{CollectorID: collectorID, Date: dateStr}
+
+	var intake struct {
+		Litres float64
+		Amount float64
 	}
-	err := r.db.WithContext(ctx).Model(&MilkCollection{}).
-		Scopes(query.TenantScope(ctx)).
-		Where("collector_id = ? AND DATE(collection_date) = ? AND status != 'REJECTED'", collectorID, dateStr).
-		Select("COALESCE(SUM(quantity_litres), 0) as total_litres, COALESCE(SUM(total_amount), 0) as total_amount").
-		Scan(&collectionResult).Error
+	err = r.db.WithContext(ctx).Table("milk_collections").
+		Select("COALESCE(SUM(quantity_litres), 0) AS litres, COALESCE(SUM(total_amount), 0) AS amount").
+		Where("sacco_id = ? AND collector_id = ? AND collection_date = ? AND status <> 'REJECTED' AND deleted_at IS NULL", saccoID, collectorID, dateStr).
+		Scan(&intake).Error
 	if err != nil {
 		return nil, err
 	}
-	recon.TotalCollectedLitres = collectionResult.TotalLitres
-	recon.TotalPurchasesAmount = collectionResult.TotalAmount
 
-	// 2. Sum Total Sold
-	var salesResult struct {
-		TotalLitres float64 `gorm:"total_litres"`
-		TotalAmount float64 `gorm:"total_amount"`
+	var sales struct {
+		Litres  float64
+		Revenue float64
+		Paid    float64
 	}
-	err = r.db.WithContext(ctx).Model(&MilkSale{}).
-		Scopes(query.TenantScope(ctx)).
-		Where("collector_id = ? AND DATE(sale_date) = ?", collectorID, dateStr).
-		Select("COALESCE(SUM(quantity_litres), 0) as total_litres, COALESCE(SUM(total_amount), 0) as total_amount").
-		Scan(&salesResult).Error
+	err = r.db.WithContext(ctx).Table("milk_sales").
+		Select("COALESCE(SUM(quantity_litres), 0) AS litres, COALESCE(SUM(total_amount), 0) AS revenue, COALESCE(SUM(amount_paid), 0) AS paid").
+		Where("sacco_id = ? AND collector_id = ? AND sale_date = ? AND deleted_at IS NULL AND voided_at IS NULL", saccoID, collectorID, dateStr).
+		Scan(&sales).Error
 	if err != nil {
 		return nil, err
 	}
-	recon.TotalSoldLitres = salesResult.TotalLitres
-	recon.TotalSalesAmount = salesResult.TotalAmount
 
-	// 3. Sum Total Spoiled
-	var spoiledLitres float64
-	err = r.db.WithContext(ctx).Model(&MilkSpoilage{}).
-		Scopes(query.TenantScope(ctx)).
-		Where("collector_id = ? AND DATE(spoilage_date) = ?", collectorID, dateStr).
+	var spoiled float64
+	err = r.db.WithContext(ctx).Table("milk_spoilage").
 		Select("COALESCE(SUM(quantity_litres), 0)").
-		Scan(&spoiledLitres).Error
+		Where("sacco_id = ? AND collector_id = ? AND spoilage_date = ? AND deleted_at IS NULL", saccoID, collectorID, dateStr).
+		Scan(&spoiled).Error
 	if err != nil {
 		return nil, err
 	}
-	recon.TotalSpoiledLitres = spoiledLitres
 
-	// 4. Net Delivered to Station = Total Collected - Total Sold - Total Spoiled
-	recon.NetDeliveredLitres = recon.TotalCollectedLitres - recon.TotalSoldLitres - recon.TotalSpoiledLitres
-	if recon.NetDeliveredLitres < 0 {
-		recon.NetDeliveredLitres = 0
+	byType, err := reconcile.SalesByCustomerType(ctx, r.db, saccoID, day, day, collectorID)
+	if err != nil {
+		return nil, err
 	}
 
-	// Fetch collector user's username/name if available
-	var userStruct struct {
-		Username string `gorm:"username"`
-	}
-	if err := r.db.WithContext(ctx).Table("users").Where("id = ?", collectorID).Select("username").Take(&userStruct).Error; err == nil {
-		recon.CollectorName = userStruct.Username
-	}
+	recon.TotalCollectedLitres = round2(intake.Litres)
+	recon.TotalPurchasesAmount = round2(intake.Amount)
+	recon.TotalSoldLitres = round2(sales.Litres)
+	recon.TotalSalesAmount = round2(sales.Revenue)
+	recon.CashReceivedAmount = round2(sales.Paid)
+	recon.CreditSalesAmount = round2(sales.Revenue - sales.Paid)
+	recon.TotalSpoiledLitres = round2(spoiled)
+	recon.SalesByCustomerType = byType
+	recon.Result = reconcile.Compute(intake.Litres, sales.Litres, spoiled, reconcile.ToleranceLitres(ctx, r.db, saccoID))
+
+	var username string
+	r.db.WithContext(ctx).Table("users").Where("id = ?", collectorID).Select("username").Scan(&username)
+	recon.CollectorName = username
 
 	return recon, nil
+}
+
+func round2(v float64) float64 {
+	return math.Round(v*100) / 100
 }

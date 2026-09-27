@@ -1,4 +1,5 @@
 import '../datasources/milk_collection_remote_data_source.dart';
+import '../../../../core/models/audit_log_model.dart';
 import '../models/milk_collection_model.dart';
 import '../../domain/repositories/milk_collection_repository.dart';
 
@@ -43,5 +44,10 @@ class MilkCollectionRepositoryImpl implements MilkCollectionRepository {
   @override
   Future<MilkCollectionModel> updateCollection(String id, UpdateCollectionRequestModel request) {
     return _remoteDataSource.updateCollection(id, request);
+  }
+
+  @override
+  Future<List<AuditLogModel>> getCollectionHistory(String id) {
+    return _remoteDataSource.getCollectionHistory(id);
   }
 }

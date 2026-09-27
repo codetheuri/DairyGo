@@ -172,27 +172,46 @@ func HumaAuthenticate(api huma.API, jwtSecret string, db *gorm.DB) func(huma.Con
 
 			if err == nil && token.Valid {
 				reqCtx := ctx.Context()
-				reqCtx = context.WithValue(reqCtx, ContextKeyUserID, claims.UserID)
-				reqCtx = context.WithValue(reqCtx, "user_id", claims.UserID)
-				if claims.SaccoID != nil && *claims.SaccoID != "" {
-					reqCtx = context.WithValue(reqCtx, ContextKeySaccoID, *claims.SaccoID)
-					reqCtx = context.WithValue(reqCtx, "sacco_id", *claims.SaccoID)
-				}
-				reqCtx = context.WithValue(reqCtx, ContextKeyRole, claims.Role)
-				reqCtx = context.WithValue(reqCtx, "role", claims.Role)
 
-				var userStruct struct {
-					IsSuperUser bool    `gorm:"is_super_user"`
-					SaccoID     *string `gorm:"sacco_id"`
+				// The account must still be usable: an active user whose Sacco (if any) is
+				// ACTIVE. Checked on every request so deactivating a user or suspending a
+				// Sacco takes effect immediately, not when the access token expires.
+				var account struct {
+					IsSuperUser bool
+					SaccoID     *string
+					IsActive    bool
+					SaccoStatus *string
 				}
 				if db != nil {
-					if err := db.WithContext(reqCtx).Table("users").Where("id = ?", claims.UserID).Select("is_super_user", "sacco_id").Take(&userStruct).Error; err == nil {
-						reqCtx = context.WithValue(reqCtx, "is_super_user", userStruct.IsSuperUser)
-						if userStruct.SaccoID != nil && *userStruct.SaccoID != "" {
-							reqCtx = context.WithValue(reqCtx, ContextKeySaccoID, *userStruct.SaccoID)
-							reqCtx = context.WithValue(reqCtx, "sacco_id", *userStruct.SaccoID)
-						}
+					err := db.WithContext(reqCtx).Table("users").
+						Select("users.is_super_user, users.sacco_id, users.is_active, saccos.status AS sacco_status").
+						Joins("LEFT JOIN saccos ON saccos.id = users.sacco_id").
+						Where("users.id = ?", claims.UserID).
+						Take(&account).Error
+					if err != nil || !account.IsActive {
+						next(ctx) // unknown or deactivated account: treat as unauthenticated
+						return
 					}
+				} else {
+					account.IsActive, account.SaccoID = true, claims.SaccoID
+				}
+
+				boundToSacco := account.SaccoID != nil && *account.SaccoID != ""
+				if db != nil && boundToSacco && (account.SaccoStatus == nil || *account.SaccoStatus != "ACTIVE") {
+					next(ctx) // Sacco suspended or inactive: its users are locked out
+					return
+				}
+
+				reqCtx = context.WithValue(reqCtx, ContextKeyUserID, claims.UserID)
+				reqCtx = context.WithValue(reqCtx, "user_id", claims.UserID)
+				reqCtx = context.WithValue(reqCtx, ContextKeyRole, claims.Role)
+				reqCtx = context.WithValue(reqCtx, "role", claims.Role)
+				// A platform super user is never bound to a Sacco. Ignoring the flag on
+				// Sacco-bound accounts keeps a tenant admin inside its own tenant.
+				reqCtx = context.WithValue(reqCtx, "is_super_user", account.IsSuperUser && !boundToSacco)
+				if boundToSacco {
+					reqCtx = context.WithValue(reqCtx, ContextKeySaccoID, *account.SaccoID)
+					reqCtx = context.WithValue(reqCtx, "sacco_id", *account.SaccoID)
 				}
 
 				ctx = huma.WithContext(ctx, reqCtx)

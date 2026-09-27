@@ -5,9 +5,13 @@ import (
 	"math"
 	"time"
 
-	"github.com/codetheuri/tusk/internal/middleware"
 	"gorm.io/gorm"
+
+	"github.com/codetheuri/tusk/internal/middleware"
+	"github.com/codetheuri/tusk/pkg/reconcile"
 )
+
+const dateLayout = reconcile.DateLayout
 
 type Repository struct {
 	db *gorm.DB
@@ -17,189 +21,188 @@ func NewRepository(db *gorm.DB) *Repository {
 	return &Repository{db: db}
 }
 
-// GetExecutiveDashboard calculates executive metrics and daily trend chart data.
+// dailyTotals is one day of Sacco activity.
+type dailyTotals struct {
+	collected, liability, sold, revenue, spoiled float64
+	collectors                                   int64
+}
+
+// GetExecutiveDashboard computes the summary cards and the daily trend with one
+// grouped query per table over the whole range, instead of a query per day.
 func (r *Repository) GetExecutiveDashboard(ctx context.Context, days int) (*ExecutiveDashboardData, error) {
 	saccoID, _ := middleware.GetSaccoID(ctx)
 	now := time.Now()
-	todayStr := now.Format("2006-01-02")
-	monthStartStr := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location()).Format("2006-01-02")
+	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.Local)
+	monthStart := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.Local)
+	trendStart := today.AddDate(0, 0, -(days - 1))
 
+	rangeStart := trendStart
+	if monthStart.Before(rangeStart) {
+		rangeStart = monthStart
+	}
+
+	byDay, err := r.dailyTotals(ctx, saccoID, rangeStart, today)
+	if err != nil {
+		return nil, err
+	}
+
+	tolerance := reconcile.ToleranceLitres(ctx, r.db, saccoID)
 	cards := ExecutiveSummaryCards{}
 
-	// 1. Today's Collections
-	var todayIntake struct {
-		Litres float64 `gorm:"litres"`
+	t := byDay[today.Format(dateLayout)]
+	balance := reconcile.Compute(t.collected, t.sold, t.spoiled, tolerance*float64(t.collectors))
+	cards.TodayCollectedLitres = round2(t.collected)
+	cards.TodaySalesLitres = round2(t.sold)
+	cards.TodaySpoilageLitres = round2(t.spoiled)
+	cards.TodayUnaccountedLitres = balance.UnaccountedLitres
+	cards.TodayBalanceStatus = balance.Status
+
+	var monthRevenue, monthLiability, monthLitres float64
+	for d := monthStart; !d.After(today); d = d.AddDate(0, 0, 1) {
+		m := byDay[d.Format(dateLayout)]
+		monthLitres += m.collected
+		monthLiability += m.liability
+		monthRevenue += m.revenue
 	}
-	r.db.WithContext(ctx).Table("milk_collections").
-		Where("sacco_id = ? AND status != 'REJECTED' AND deleted_at IS NULL AND DATE(collection_date) = ?", saccoID, todayStr).
-		Select("COALESCE(SUM(quantity_litres), 0) as litres").
-		Scan(&todayIntake)
-	cards.TodayCollectedLitres = math.Round(todayIntake.Litres*100) / 100
+	cards.MonthCollectedLitres = round2(monthLitres)
+	cards.MonthPayoutLiabilityKES = round2(monthLiability)
+	cards.MonthSalesRevenueKES = round2(monthRevenue)
+	cards.MonthGrossMarginKES = round2(monthRevenue - monthLiability)
 
-	// 2. Today's Field Sales
-	var todaySales float64
-	r.db.WithContext(ctx).Table("milk_sales").
-		Where("sacco_id = ? AND deleted_at IS NULL AND DATE(sale_date) = ?", saccoID, todayStr).
-		Select("COALESCE(SUM(quantity_litres), 0)").
-		Scan(&todaySales)
-	cards.TodaySalesLitres = math.Round(todaySales*100) / 100
-
-	// 3. Today's Spoilage
-	var todaySpoilage float64
-	r.db.WithContext(ctx).Table("milk_spoilage").
-		Where("sacco_id = ? AND deleted_at IS NULL AND DATE(spoilage_date) = ?", saccoID, todayStr).
-		Select("COALESCE(SUM(quantity_litres), 0)").
-		Scan(&todaySpoilage)
-	cards.TodaySpoilageLitres = math.Round(todaySpoilage*100) / 100
-
-	// Net Station Intake today
-	netToday := cards.TodayCollectedLitres - cards.TodaySalesLitres - cards.TodaySpoilageLitres
-	if netToday < 0 {
-		netToday = 0
-	}
-	cards.TodayNetCoolantStationLitres = math.Round(netToday*100) / 100
-
-	// 4. Month-to-Date Collections & Payout Liability
-	var monthIntake struct {
-		Litres    float64 `gorm:"litres"`
-		Liability float64 `gorm:"liability"`
-	}
-	r.db.WithContext(ctx).Table("milk_collections").
-		Where("sacco_id = ? AND status != 'REJECTED' AND deleted_at IS NULL AND DATE(collection_date) BETWEEN ? AND ?", saccoID, monthStartStr, todayStr).
-		Select("COALESCE(SUM(quantity_litres), 0) as litres, COALESCE(SUM(total_amount), 0) as liability").
-		Scan(&monthIntake)
-	cards.MonthCollectedLitres = math.Round(monthIntake.Litres*100) / 100
-	cards.MonthPayoutLiabilityKES = math.Round(monthIntake.Liability*100) / 100
-
-	// 5. Month-to-Date Field Sales Revenue
-	var monthSalesRevenue float64
-	r.db.WithContext(ctx).Table("milk_sales").
-		Where("sacco_id = ? AND deleted_at IS NULL AND DATE(sale_date) BETWEEN ? AND ?", saccoID, monthStartStr, todayStr).
-		Select("COALESCE(SUM(total_amount), 0)").
-		Scan(&monthSalesRevenue)
-	cards.MonthSalesRevenueKES = math.Round(monthSalesRevenue*100) / 100
-
-	// 6. Active Members Count
-	var activeMembers int64
 	r.db.WithContext(ctx).Table("members").
 		Where("sacco_id = ? AND status = 'ACTIVE' AND deleted_at IS NULL", saccoID).
-		Count(&activeMembers)
-	cards.ActiveMembersCount = activeMembers
-
-	// 7. Active Collectors Count
-	var activeCollectors int64
+		Count(&cards.ActiveMembersCount)
 	r.db.WithContext(ctx).Table("user_roles").
 		Joins("JOIN users ON users.id = user_roles.user_id").
 		Where("users.sacco_id = ? AND user_roles.role_id = 2 AND users.is_active = true", saccoID).
-		Count(&activeCollectors)
-	cards.ActiveCollectorsCount = activeCollectors
+		Count(&cards.ActiveCollectorsCount)
+	cards.ReceivablesKES = reconcile.Receivables(ctx, r.db, saccoID)
 
-	// Generate Daily Trend Chart Series
-	if days <= 0 {
-		days = 7
-	}
-	if days > 30 {
-		days = 30
-	}
-
-	trendPoints := make([]DailyTrendPoint, 0, days)
-	for i := days - 1; i >= 0; i-- {
-		targetDateStr := now.AddDate(0, 0, -i).Format("2006-01-02")
-
-		var dIntake float64
-		r.db.WithContext(ctx).Table("milk_collections").
-			Where("sacco_id = ? AND status != 'REJECTED' AND deleted_at IS NULL AND DATE(collection_date) = ?", saccoID, targetDateStr).
-			Select("COALESCE(SUM(quantity_litres), 0)").
-			Scan(&dIntake)
-
-		var dSales float64
-		r.db.WithContext(ctx).Table("milk_sales").
-			Where("sacco_id = ? AND deleted_at IS NULL AND DATE(sale_date) = ?", saccoID, targetDateStr).
-			Select("COALESCE(SUM(quantity_litres), 0)").
-			Scan(&dSales)
-
-		var dSpoilage float64
-		r.db.WithContext(ctx).Table("milk_spoilage").
-			Where("sacco_id = ? AND deleted_at IS NULL AND DATE(spoilage_date) = ?", saccoID, targetDateStr).
-			Select("COALESCE(SUM(quantity_litres), 0)").
-			Scan(&dSpoilage)
-
-		net := dIntake - dSales - dSpoilage
-		if net < 0 {
-			net = 0
-		}
-
-		trendPoints = append(trendPoints, DailyTrendPoint{
-			Date:              targetDateStr,
-			CollectedLitres:   math.Round(dIntake*100) / 100,
-			SalesLitres:       math.Round(dSales*100) / 100,
-			SpoilageLitres:    math.Round(dSpoilage*100) / 100,
-			NetCoolantLitres: math.Round(net*100) / 100,
+	trend := make([]DailyTrendPoint, 0, days)
+	for d := trendStart; !d.After(today); d = d.AddDate(0, 0, 1) {
+		key := d.Format(dateLayout)
+		p := byDay[key]
+		trend = append(trend, DailyTrendPoint{
+			Date:              key,
+			CollectedLitres:   round2(p.collected),
+			SalesLitres:       round2(p.sold),
+			SpoilageLitres:    round2(p.spoiled),
+			UnaccountedLitres: round2(p.collected - p.sold - p.spoiled),
 		})
 	}
 
-	return &ExecutiveDashboardData{
-		SummaryCards: cards,
-		IntakeTrend:  trendPoints,
-	}, nil
+	return &ExecutiveDashboardData{SummaryCards: cards, IntakeTrend: trend}, nil
 }
 
-// GetCollectorDashboard computes real-time mobile dashboard metrics for a field collector.
+// dailyTotals returns Sacco activity per day in [from, to], keyed by YYYY-MM-DD.
+// Days without activity are absent (zero values).
+func (r *Repository) dailyTotals(ctx context.Context, saccoID string, from, to time.Time) (map[string]dailyTotals, error) {
+	fromStr, toStr := from.Format(dateLayout), to.Format(dateLayout)
+	result := map[string]dailyTotals{}
+
+	var intake []struct {
+		Day        time.Time
+		Litres     float64
+		Amount     float64
+		Collectors int64
+	}
+	if err := r.db.WithContext(ctx).Table("milk_collections").
+		Select("collection_date AS day, SUM(quantity_litres) AS litres, SUM(total_amount) AS amount, COUNT(DISTINCT collector_id) AS collectors").
+		Where("sacco_id = ? AND status <> 'REJECTED' AND deleted_at IS NULL AND collection_date BETWEEN ? AND ?", saccoID, fromStr, toStr).
+		Group("collection_date").Scan(&intake).Error; err != nil {
+		return nil, err
+	}
+	for _, row := range intake {
+		key := row.Day.Format(dateLayout)
+		d := result[key]
+		d.collected, d.liability, d.collectors = row.Litres, row.Amount, row.Collectors
+		result[key] = d
+	}
+
+	var sales []struct {
+		Day     time.Time
+		Litres  float64
+		Revenue float64
+	}
+	if err := r.db.WithContext(ctx).Table("milk_sales").
+		Select("sale_date AS day, SUM(quantity_litres) AS litres, SUM(total_amount) AS revenue").
+		Where("sacco_id = ? AND deleted_at IS NULL AND voided_at IS NULL AND sale_date BETWEEN ? AND ?", saccoID, fromStr, toStr).
+		Group("sale_date").Scan(&sales).Error; err != nil {
+		return nil, err
+	}
+	for _, row := range sales {
+		key := row.Day.Format(dateLayout)
+		d := result[key]
+		d.sold, d.revenue = row.Litres, row.Revenue
+		result[key] = d
+	}
+
+	var spoilage []struct {
+		Day    time.Time
+		Litres float64
+	}
+	if err := r.db.WithContext(ctx).Table("milk_spoilage").
+		Select("spoilage_date AS day, SUM(quantity_litres) AS litres").
+		Where("sacco_id = ? AND deleted_at IS NULL AND spoilage_date BETWEEN ? AND ?", saccoID, fromStr, toStr).
+		Group("spoilage_date").Scan(&spoilage).Error; err != nil {
+		return nil, err
+	}
+	for _, row := range spoilage {
+		key := row.Day.Format(dateLayout)
+		d := result[key]
+		d.spoiled = row.Litres
+		result[key] = d
+	}
+
+	return result, nil
+}
+
+// GetCollectorDashboard computes a collector's day on the new balancing rule.
 func (r *Repository) GetCollectorDashboard(ctx context.Context, collectorID uint, dateStr string) (*CollectorDashboardData, error) {
 	saccoID, _ := middleware.GetSaccoID(ctx)
+	data := &CollectorDashboardData{CollectorID: collectorID, Date: dateStr}
 
-	data := &CollectorDashboardData{
-		CollectorID: collectorID,
-		Date:        dateStr,
-	}
-
-	// 1. Intake
 	var intake struct {
-		Litres      float64 `gorm:"litres"`
-		Amount      float64 `gorm:"amount"`
-		FarmerCount int64   `gorm:"farmer_count"`
+		Litres      float64
+		Amount      float64
+		FarmerCount int64
 	}
 	r.db.WithContext(ctx).Table("milk_collections").
-		Where("sacco_id = ? AND collector_id = ? AND status != 'REJECTED' AND deleted_at IS NULL AND DATE(collection_date) = ?", saccoID, collectorID, dateStr).
-		Select("COALESCE(SUM(quantity_litres), 0) as litres, COALESCE(SUM(total_amount), 0) as amount, COUNT(DISTINCT member_id) as farmer_count").
+		Select("COALESCE(SUM(quantity_litres), 0) AS litres, COALESCE(SUM(total_amount), 0) AS amount, COUNT(DISTINCT member_id) AS farmer_count").
+		Where("sacco_id = ? AND collector_id = ? AND status <> 'REJECTED' AND deleted_at IS NULL AND collection_date = ?", saccoID, collectorID, dateStr).
 		Scan(&intake)
 
-	data.TodayCollectedLitres = math.Round(intake.Litres*100) / 100
-	data.TodayPurchasesAmount = math.Round(intake.Amount*100) / 100
-	data.TodayFarmersServiced = intake.FarmerCount
-
-	// 2. Field Sales
 	var sales struct {
-		Litres  float64 `gorm:"litres"`
-		Revenue float64 `gorm:"revenue"`
+		Litres  float64
+		Revenue float64
+		Paid    float64
 	}
 	r.db.WithContext(ctx).Table("milk_sales").
-		Where("sacco_id = ? AND collector_id = ? AND deleted_at IS NULL AND DATE(sale_date) = ?", saccoID, collectorID, dateStr).
-		Select("COALESCE(SUM(quantity_litres), 0) as litres, COALESCE(SUM(total_amount), 0) as revenue").
+		Select("COALESCE(SUM(quantity_litres), 0) AS litres, COALESCE(SUM(total_amount), 0) AS revenue, COALESCE(SUM(amount_paid), 0) AS paid").
+		Where("sacco_id = ? AND collector_id = ? AND deleted_at IS NULL AND voided_at IS NULL AND sale_date = ?", saccoID, collectorID, dateStr).
 		Scan(&sales)
 
-	data.TodaySoldLitres = math.Round(sales.Litres*100) / 100
-	data.TodaySalesRevenue = math.Round(sales.Revenue*100) / 100
-
-	// 3. Spoilage
-	var spoiledLitres float64
+	var spoiled float64
 	r.db.WithContext(ctx).Table("milk_spoilage").
-		Where("sacco_id = ? AND collector_id = ? AND deleted_at IS NULL AND DATE(spoilage_date) = ?", saccoID, collectorID, dateStr).
 		Select("COALESCE(SUM(quantity_litres), 0)").
-		Scan(&spoiledLitres)
+		Where("sacco_id = ? AND collector_id = ? AND deleted_at IS NULL AND spoilage_date = ?", saccoID, collectorID, dateStr).
+		Scan(&spoiled)
 
-	data.TodaySpoiledLitres = math.Round(spoiledLitres*100) / 100
+	balance := reconcile.Compute(intake.Litres, sales.Litres, spoiled, reconcile.ToleranceLitres(ctx, r.db, saccoID))
+	data.TodayCollectedLitres = round2(intake.Litres)
+	data.TodayPurchasesAmount = round2(intake.Amount)
+	data.TodayFarmersServiced = intake.FarmerCount
+	data.TodaySoldLitres = round2(sales.Litres)
+	data.TodaySalesRevenue = round2(sales.Revenue)
+	data.TodayCashReceived = round2(sales.Paid)
+	data.TodaySpoiledLitres = round2(spoiled)
+	data.TodayUnaccountedLitres = balance.UnaccountedLitres
+	data.TodayBalanceStatus = balance.Status
 
-	netStation := data.TodayCollectedLitres - data.TodaySoldLitres - data.TodaySpoiledLitres
-	if netStation < 0 {
-		netStation = 0
-	}
-	data.TodayNetStationDeliveryLitres = math.Round(netStation*100) / 100
-
-	// Collector username
-	var username string
-	r.db.WithContext(ctx).Table("users").Where("id = ?", collectorID).Select("username").Scan(&username)
-	data.CollectorName = username
-
+	r.db.WithContext(ctx).Table("users").Where("id = ?", collectorID).Select("username").Scan(&data.CollectorName)
 	return data, nil
+}
+
+func round2(v float64) float64 {
+	return math.Round(v*100) / 100
 }

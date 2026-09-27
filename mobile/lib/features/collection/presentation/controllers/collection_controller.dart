@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/models/audit_log_model.dart';
 
 import '../../../../core/network/dio_client.dart';
 import '../../../members/data/models/member_model.dart';
@@ -24,6 +25,13 @@ final milkCollectionRepositoryProvider =
 final activeMilkPriceProvider = FutureProvider<MilkPriceModel>((ref) async {
   final repository = ref.watch(milkCollectionRepositoryProvider);
   return repository.getActivePrice();
+});
+
+/// Audit history of one collection, oldest first.
+final collectionHistoryProvider = FutureProvider.autoDispose
+    .family<List<AuditLogModel>, String>((ref, id) async {
+  final repository = ref.watch(milkCollectionRepositoryProvider);
+  return repository.getCollectionHistory(id);
 });
 
 String getTodayDateString() {
@@ -115,6 +123,7 @@ class UpdateMilkCollectionController
       final collection = await _repository.updateCollection(id, request);
       state = AsyncValue.data(collection);
       invalidateAllAppMetrics(_ref);
+      _ref.invalidate(collectionHistoryProvider(id));
       return true;
     } catch (e, st) {
       state = AsyncValue.error(e, st);

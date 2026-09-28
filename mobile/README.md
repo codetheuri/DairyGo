@@ -1,17 +1,65 @@
-# dairy_sacco_mobile
+# DairyGo mobile app
 
-A new Flutter project.
+The Flutter app used by Sacco milk collectors, administrators and board
+members. It talks to the DairyGo API (`backend/`) at
+`https://apis.dairy.urizon.co.ke` (see `lib/core/constants/api_constants.dart`).
 
-## Getting Started
+## Run and build
 
-This project is a starting point for a Flutter application.
+The Flutter SDK is not on `PATH` on the development machine; use its full path
+(`/home/joseph/flutter/bin/flutter`) or add it to `PATH`.
 
-A few resources to get you started if this is your first Flutter project:
+```bash
+flutter pub get
+flutter run                       # on a connected phone or emulator
+flutter build apk --release --split-per-abi
+```
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+`--split-per-abi` builds one APK per phone type, about 17 MB each instead of
+one 56 MB file, which matters on slow connections. Almost every current phone
+needs `app-arm64-v8a-release.apk`; very old phones need
+`app-armeabi-v7a-release.apk`. The files are in
+`build/app/outputs/flutter-apk/`.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Raise `version:` in `pubspec.yaml` for every release, and release the app
+together with any backend change it depends on.
+
+## Code layout
+
+```text
+lib/
+  app/            router, shell (bottom bar / side rail), theme
+  core/           network (Dio + interceptors), cache, pagination, layout, widgets
+  features/<x>/   data (API + models) → domain → presentation (Riverpod + screens)
+```
+
+Models use freezed/json_serializable; after changing one run
+`dart run build_runner build --delete-conflicting-outputs`.
+Format with `dart format lib test` (generated `*.g.dart`/`*.freezed.dart`
+excluded: restore them with `git checkout` if a formatter touches them).
+
+## Tests
+
+```bash
+flutter analyze
+flutter test                      # unit tests and the layout test
+```
+
+`test/layout` opens every main screen for each role (collector, admin, board,
+and a Sacco with no price) on six screen sizes, from a 320 dp phone to a
+tablet in landscape, at normal and the largest text size, and fails on any
+layout error such as an overflow. It uses API responses captured from a test
+server in `test/layout/fixtures`.
+
+- Screenshots for review: `flutter test test/layout --update-goldens --dart-define=SCREENSHOTS=true`
+  writes them to `test/layout/screenshots/` (not committed).
+- New fixtures after an API change: run `test/layout/capture_fixtures.sh`
+  against a local API with test data.
+
+## Docs
+
+- [Navigation and layout](docs/navigation-and-layout.md): menus per role,
+  screen sizes, text size, the layout test.
+- [Speed and offline](docs/performance-and-offline.md): what makes the app
+  usable on a 100 kbps connection or with no signal.
+- Backend and business rules: `../backend/docs/`.

@@ -9,6 +9,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 
 ### Added
+- **Compressed responses**: JSON and console assets are gzip-compressed (`chi` `Compress`, outside `RecordFailures`); API responses shrink by about 85%, which matters on the slow connections collectors use.
+- **Collections carry farmer names**: list rows include `member_name` and `membership_number`, so the app no longer downloads the farmer directory to label them.
+- **Search collections by farmer**: `search` on `/sacco/milk-collections` matches the farmer's name and membership number, not only notes.
+- **Full-name farmer search**: `search` on `/sacco/members` also matches "first last", so "John Kamau" finds him.
 - **Platform console** at `/platform` (`internal/superadmin`, `web/platform`): overview across all Saccos, onboarding, suspend/reactivate, Sacco staff management (add, deactivate, unlock, reset password), registering farmers for a Sacco, and cross-Sacco audit trail, error log and SMS logs. See [docs/platform-console.md](docs/platform-console.md).
 - **Error log**: every failed API request (status ≥ 400) is stored in `system_logs` without request bodies, kept 30 days (migration `00013`).
 - **Sacco onboarding and status changes are audited**, with an optional reason.

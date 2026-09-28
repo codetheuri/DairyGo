@@ -1,9 +1,10 @@
 import 'package:dio/dio.dart';
 import '../../../../core/constants/api_constants.dart';
+import '../../../../core/pagination/page_result.dart';
 import '../models/member_model.dart';
 
 abstract class MemberRemoteDataSource {
-  Future<List<MemberModel>> listMembers({
+  Future<PageResult<MemberModel>> listMembers({
     String? search,
     int page = 1,
     int perPage = 50,
@@ -19,17 +20,14 @@ class MemberRemoteDataSourceImpl implements MemberRemoteDataSource {
   MemberRemoteDataSourceImpl(this._dio);
 
   @override
-  Future<List<MemberModel>> listMembers({
+  Future<PageResult<MemberModel>> listMembers({
     String? search,
     int page = 1,
     int perPage = 50,
     String? status,
   }) async {
     try {
-      final queryParams = <String, dynamic>{
-        'page': page,
-        'per_page': perPage,
-      };
+      final queryParams = <String, dynamic>{'page': page, 'per_page': perPage};
       if (search != null && search.trim().isNotEmpty) {
         queryParams['search'] = search.trim();
       }
@@ -44,15 +42,20 @@ class MemberRemoteDataSourceImpl implements MemberRemoteDataSource {
 
       final data = response.data as Map<String, dynamic>;
       if (data['success'] == true && data['data'] != null) {
-        final list = (data['data']['members'] as List? ?? [])
-            .map((e) => MemberModel.fromJson(e as Map<String, dynamic>))
-            .toList();
-        return list;
+        return PageResult.fromData(
+          data['data'] as Map<String, dynamic>,
+          'members',
+          MemberModel.fromJson,
+        );
       }
       throw Exception(data['message'] ?? 'Failed to load farmers directory');
     } on DioException catch (e) {
-      final serverMsg = e.response?.data is Map ? e.response?.data['message'] : null;
-      throw Exception(serverMsg ?? e.message ?? 'Error loading farmers directory');
+      final serverMsg = e.response?.data is Map
+          ? e.response?.data['message']
+          : null;
+      throw Exception(
+        serverMsg ?? e.message ?? 'Error loading farmers directory',
+      );
     }
   }
 
@@ -62,11 +65,15 @@ class MemberRemoteDataSourceImpl implements MemberRemoteDataSource {
       final response = await _dio.get('${ApiConstants.members}/$id');
       final data = response.data as Map<String, dynamic>;
       if (data['success'] == true && data['data'] != null) {
-        return MemberModel.fromJson(data['data']['member'] as Map<String, dynamic>);
+        return MemberModel.fromJson(
+          data['data']['member'] as Map<String, dynamic>,
+        );
       }
       throw Exception(data['message'] ?? 'Failed to load farmer details');
     } on DioException catch (e) {
-      final serverMsg = e.response?.data is Map ? e.response?.data['message'] : null;
+      final serverMsg = e.response?.data is Map
+          ? e.response?.data['message']
+          : null;
       throw Exception(serverMsg ?? e.message ?? 'Error loading farmer details');
     }
   }
@@ -81,14 +88,19 @@ class MemberRemoteDataSourceImpl implements MemberRemoteDataSource {
 
       final data = response.data as Map<String, dynamic>;
       if (data['success'] == true && data['data'] != null) {
-        return MemberModel.fromJson(data['data']['member'] as Map<String, dynamic>);
+        return MemberModel.fromJson(
+          data['data']['member'] as Map<String, dynamic>,
+        );
       }
       throw Exception(data['message'] ?? 'Failed to register farmer member');
     } on DioException catch (e) {
       final serverMsg = e.response?.data is Map
-          ? (e.response?.data['message'] ?? e.response?.data['errors']?['phone'])
+          ? (e.response?.data['message'] ??
+                e.response?.data['errors']?['phone'])
           : null;
-      throw Exception(serverMsg ?? e.message ?? 'Error registering farmer member');
+      throw Exception(
+        serverMsg ?? e.message ?? 'Error registering farmer member',
+      );
     }
   }
 }

@@ -6,11 +6,7 @@ class ErrorView extends StatelessWidget {
   final String message;
   final VoidCallback onRetry;
 
-  const ErrorView({
-    super.key,
-    required this.message,
-    required this.onRetry,
-  });
+  const ErrorView({super.key, required this.message, required this.onRetry});
 
   bool get _isNetworkError {
     final lower = message.toLowerCase();
@@ -33,11 +29,15 @@ class ErrorView extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: isNetwork ? AppColors.warning.withValues(alpha: 0.1) : AppColors.errorContainer,
+                color: isNetwork
+                    ? AppColors.warning.withValues(alpha: 0.1)
+                    : AppColors.errorContainer,
                 shape: BoxShape.circle,
               ),
               child: Icon(
-                isNetwork ? Icons.wifi_off_rounded : Icons.error_outline_rounded,
+                isNetwork
+                    ? Icons.wifi_off_rounded
+                    : Icons.error_outline_rounded,
                 size: 44,
                 color: isNetwork ? AppColors.warning : AppColors.error,
               ),
@@ -46,16 +46,16 @@ class ErrorView extends StatelessWidget {
             Text(
               isNetwork ? 'No Network Connection' : 'Something went wrong',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
               message,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),

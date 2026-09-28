@@ -44,10 +44,7 @@ class SplashScreen extends StatelessWidget {
             const SizedBox(height: 6),
             const Text(
               'Next-Gen Dairy Co-op Management',
-              style: TextStyle(
-                fontSize: 12,
-                color: AppColors.textSecondary,
-              ),
+              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
             ),
             const SizedBox(height: 32),
             const CircularProgressIndicator(color: AppColors.primary),

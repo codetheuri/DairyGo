@@ -26,7 +26,9 @@ class _SetPriceDialogState extends ConsumerState<SetPriceDialog> {
   void initState() {
     super.initState();
     _priceController = TextEditingController(
-      text: widget.currentPrice != null ? widget.currentPrice!.toStringAsFixed(2) : '50.00',
+      text: widget.currentPrice != null
+          ? widget.currentPrice!.toStringAsFixed(2)
+          : '50.00',
     );
     _effectiveDate = getTodayDateString();
   }
@@ -53,7 +55,9 @@ class _SetPriceDialogState extends ConsumerState<SetPriceDialog> {
     if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Active buying price set to KES ${newPrice.toStringAsFixed(2)}/L!'),
+          content: Text(
+            'Active buying price set to KES ${newPrice.toStringAsFixed(2)}/L!',
+          ),
           backgroundColor: AppColors.success,
         ),
       );
@@ -65,7 +69,9 @@ class _SetPriceDialogState extends ConsumerState<SetPriceDialog> {
   Widget build(BuildContext context) {
     final state = ref.watch(setMilkPriceControllerProvider);
     final isLoading = state.isLoading;
-    final errorMsg = state.hasError ? state.error.toString().replaceAll('Exception: ', '') : null;
+    final errorMsg = state.hasError
+        ? state.error.toString().replaceAll('Exception: ', '')
+        : null;
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -81,8 +87,14 @@ class _SetPriceDialogState extends ConsumerState<SetPriceDialog> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    widget.currentPrice != null ? 'Configure Buying Price' : 'Set Initial Milk Price',
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17, color: AppColors.textPrimary),
+                    widget.currentPrice != null
+                        ? 'Configure Buying Price'
+                        : 'Set Initial Milk Price',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 17,
+                      color: AppColors.textPrimary,
+                    ),
                   ),
                   IconButton(
                     icon: const Icon(Icons.close_rounded, size: 20),
@@ -99,7 +111,13 @@ class _SetPriceDialogState extends ConsumerState<SetPriceDialog> {
                     color: AppColors.errorContainer,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Text(errorMsg, style: const TextStyle(color: AppColors.error, fontSize: 12)),
+                  child: Text(
+                    errorMsg,
+                    style: const TextStyle(
+                      color: AppColors.error,
+                      fontSize: 12,
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 12),
               ],
@@ -107,10 +125,14 @@ class _SetPriceDialogState extends ConsumerState<SetPriceDialog> {
               AppTextField(
                 label: 'Price per Litre (KES) *',
                 controller: _priceController,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
                 prefixIcon: Icons.payments_outlined,
                 validator: (val) {
-                  if (val == null || val.trim().isEmpty) return 'Price is required';
+                  if (val == null || val.trim().isEmpty) {
+                    return 'Price is required';
+                  }
                   final d = double.tryParse(val.trim());
                   if (d == null || d <= 0) return 'Enter a valid price';
                   return null;
@@ -135,7 +157,10 @@ class _SetPriceDialogState extends ConsumerState<SetPriceDialog> {
                 },
                 borderRadius: BorderRadius.circular(10),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.background,
                     borderRadius: BorderRadius.circular(10),
@@ -146,14 +171,28 @@ class _SetPriceDialogState extends ConsumerState<SetPriceDialog> {
                     children: [
                       const Row(
                         children: [
-                          Icon(Icons.calendar_today_rounded, size: 18, color: AppColors.primary),
+                          Icon(
+                            Icons.calendar_today_rounded,
+                            size: 18,
+                            color: AppColors.primary,
+                          ),
                           SizedBox(width: 8),
-                          Text('Effective Date:', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+                          Text(
+                            'Effective Date:',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
                         ],
                       ),
                       Text(
                         _effectiveDate,
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.textPrimary),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                          color: AppColors.textPrimary,
+                        ),
                       ),
                     ],
                   ),
@@ -162,7 +201,9 @@ class _SetPriceDialogState extends ConsumerState<SetPriceDialog> {
               const SizedBox(height: 22),
 
               PrimaryButton(
-                label: isLoading ? 'Saving Price Rate...' : 'Set Active Price Rate',
+                label: isLoading
+                    ? 'Saving Price Rate...'
+                    : 'Set Active Price Rate',
                 icon: Icons.check_circle_rounded,
                 onPressed: isLoading ? null : _submit,
               ),

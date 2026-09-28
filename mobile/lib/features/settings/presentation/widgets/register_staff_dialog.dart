@@ -11,7 +11,8 @@ class RegisterStaffDialog extends ConsumerStatefulWidget {
   const RegisterStaffDialog({super.key});
 
   @override
-  ConsumerState<RegisterStaffDialog> createState() => _RegisterStaffDialogState();
+  ConsumerState<RegisterStaffDialog> createState() =>
+      _RegisterStaffDialogState();
 }
 
 class _RegisterStaffDialogState extends ConsumerState<RegisterStaffDialog> {
@@ -61,7 +62,9 @@ class _RegisterStaffDialogState extends ConsumerState<RegisterStaffDialog> {
         lastName: _lastNameController.text.trim(),
         username: _usernameController.text.trim(),
         email: _emailController.text.trim(),
-        phone: _phoneController.text.trim().isNotEmpty ? _phoneController.text.trim() : null,
+        phone: _phoneController.text.trim().isNotEmpty
+            ? _phoneController.text.trim()
+            : null,
         password: _passwordController.text,
         passwordConfirmation: _confirmPasswordController.text,
         roleId: roleId,
@@ -73,7 +76,9 @@ class _RegisterStaffDialogState extends ConsumerState<RegisterStaffDialog> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Staff member "${user.fullName}" registered successfully as $_selectedRole!'),
+            content: Text(
+              'Staff member "${user.fullName}" registered successfully as $_selectedRole!',
+            ),
             backgroundColor: AppColors.success,
           ),
         );
@@ -106,7 +111,11 @@ class _RegisterStaffDialogState extends ConsumerState<RegisterStaffDialog> {
                 children: [
                   const Text(
                     'Add Sacco Staff Member',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17, color: AppColors.textPrimary),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 17,
+                      color: AppColors.textPrimary,
+                    ),
                   ),
                   IconButton(
                     icon: const Icon(Icons.close_rounded, size: 20),
@@ -123,13 +132,26 @@ class _RegisterStaffDialogState extends ConsumerState<RegisterStaffDialog> {
                     color: AppColors.errorContainer,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Text(_errorMessage!, style: const TextStyle(color: AppColors.error, fontSize: 12)),
+                  child: Text(
+                    _errorMessage!,
+                    style: const TextStyle(
+                      color: AppColors.error,
+                      fontSize: 12,
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 12),
               ],
 
               // Role Selector Dropdown
-              const Text('Staff Role *', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+              const Text(
+                'Staff Role *',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textSecondary,
+                ),
+              ),
               const SizedBox(height: 6),
               DropdownButtonFormField<String>(
                 initialValue: _selectedRole,
@@ -137,21 +159,36 @@ class _RegisterStaffDialogState extends ConsumerState<RegisterStaffDialog> {
                 decoration: InputDecoration(
                   fillColor: AppColors.background,
                   filled: true,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.cardBorder)),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: AppColors.cardBorder),
+                  ),
                 ),
                 items: const [
                   DropdownMenuItem(
                     value: 'Milk Collector',
-                    child: Text('🥛 Milk Collector (Field Intake)', overflow: TextOverflow.ellipsis),
+                    child: Text(
+                      '🥛 Milk Collector (Field Intake)',
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                   DropdownMenuItem(
                     value: 'Board Member / Executive',
-                    child: Text('📊 Board Member / Executive', overflow: TextOverflow.ellipsis),
+                    child: Text(
+                      '📊 Board Member / Executive',
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                   DropdownMenuItem(
                     value: 'Sacco Administrator',
-                    child: Text('👑 Sacco Administrator', overflow: TextOverflow.ellipsis),
+                    child: Text(
+                      '👑 Sacco Administrator',
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                 ],
                 onChanged: (val) {
@@ -166,7 +203,8 @@ class _RegisterStaffDialogState extends ConsumerState<RegisterStaffDialog> {
                     child: AppTextField(
                       label: 'First Name *',
                       controller: _firstNameController,
-                      validator: (val) => val == null || val.trim().isEmpty ? 'Required' : null,
+                      validator: (val) =>
+                          val == null || val.trim().isEmpty ? 'Required' : null,
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -174,7 +212,8 @@ class _RegisterStaffDialogState extends ConsumerState<RegisterStaffDialog> {
                     child: AppTextField(
                       label: 'Last Name *',
                       controller: _lastNameController,
-                      validator: (val) => val == null || val.trim().isEmpty ? 'Required' : null,
+                      validator: (val) =>
+                          val == null || val.trim().isEmpty ? 'Required' : null,
                     ),
                   ),
                 ],
@@ -186,7 +225,9 @@ class _RegisterStaffDialogState extends ConsumerState<RegisterStaffDialog> {
                 hint: 'e.g. collector_john',
                 controller: _usernameController,
                 prefixIcon: Icons.badge_outlined,
-                validator: (val) => val == null || val.trim().isEmpty ? 'Enter a username' : null,
+                validator: (val) => val == null || val.trim().isEmpty
+                    ? 'Enter a username'
+                    : null,
               ),
               const SizedBox(height: 14),
 
@@ -197,7 +238,9 @@ class _RegisterStaffDialogState extends ConsumerState<RegisterStaffDialog> {
                 keyboardType: TextInputType.emailAddress,
                 prefixIcon: Icons.email_outlined,
                 validator: (val) {
-                  if (val == null || val.trim().isEmpty) return 'Enter email address';
+                  if (val == null || val.trim().isEmpty) {
+                    return 'Enter email address';
+                  }
                   if (!val.contains('@')) return 'Enter valid email';
                   return null;
                 },
@@ -220,7 +263,9 @@ class _RegisterStaffDialogState extends ConsumerState<RegisterStaffDialog> {
                 isPassword: true,
                 prefixIcon: Icons.lock_outline_rounded,
                 validator: (val) {
-                  if (val == null || val.length < 4) return 'Password must be at least 4 characters';
+                  if (val == null || val.length < 4) {
+                    return 'Password must be at least 4 characters';
+                  }
                   return null;
                 },
               ),
@@ -233,14 +278,18 @@ class _RegisterStaffDialogState extends ConsumerState<RegisterStaffDialog> {
                 isPassword: true,
                 prefixIcon: Icons.lock_outline_rounded,
                 validator: (val) {
-                  if (val != _passwordController.text) return 'Passwords do not match';
+                  if (val != _passwordController.text) {
+                    return 'Passwords do not match';
+                  }
                   return null;
                 },
               ),
               const SizedBox(height: 22),
 
               PrimaryButton(
-                label: _isLoading ? 'Creating Staff Account...' : 'Register Staff Member',
+                label: _isLoading
+                    ? 'Creating Staff Account...'
+                    : 'Register Staff Member',
                 icon: Icons.person_add_alt_1_rounded,
                 onPressed: _isLoading ? null : _submit,
               ),

@@ -5,8 +5,17 @@ abstract class FieldOpsRepository {
   Future<MilkSaleModel> recordSale(RecordSaleRequestModel request);
   Future<void> voidSale(String id, String reason);
   Future<List<AuditLogModel>> getSaleHistory(String id);
-  Future<List<MilkSaleModel>> listSales({String? fromDate, String? toDate, String? search});
+  Future<List<MilkSaleModel>> listSales({
+    String? fromDate,
+    String? toDate,
+    String? search,
+    int? collectorId,
+  });
   Future<MilkSpoilageModel> recordSpoilage(RecordSpoilageRequestModel request);
-  Future<List<MilkSpoilageModel>> listSpoilage({String? fromDate, String? toDate});
+  Future<List<MilkSpoilageModel>> listSpoilage({
+    String? fromDate,
+    String? toDate,
+    int? collectorId,
+  });
   Future<ReconciliationModel> getReconciliation({String? date});
 }

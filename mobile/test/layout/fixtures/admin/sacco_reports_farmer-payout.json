@@ -1,0 +1,259 @@
+{
+  "status": 200,
+  "body": {
+    "success": true,
+    "message": "Farmer payout report generated successfully",
+    "data": {
+      "statements": [
+        {
+          "member_id": "77bb4a2f-d166-4f96-8a18-d76059ad703f",
+          "membership_number": "MEM-0001",
+          "farmer_name": "John Kamau",
+          "phone": "0711000001",
+          "total_litres": 10,
+          "average_price_per_litre": 50,
+          "gross_amount_owed": 500,
+          "collections_count": 1,
+          "from_date": "2026-09-01T00:00:00Z",
+          "to_date": "2026-09-30T00:00:00Z"
+        },
+        {
+          "member_id": "21f8a355-9924-44a7-ae17-3e10ad29334a",
+          "membership_number": "MEM-0002",
+          "farmer_name": "Mary Wanjiru",
+          "phone": "0711000002",
+          "total_litres": 7,
+          "average_price_per_litre": 50,
+          "gross_amount_owed": 350,
+          "collections_count": 1,
+          "from_date": "2026-09-01T00:00:00Z",
+          "to_date": "2026-09-30T00:00:00Z"
+        },
+        {
+          "member_id": "5cff08f4-48f0-47f8-a6d0-ef0effa290a2",
+          "membership_number": "MEM-0004",
+          "farmer_name": "Farmer1 Test1",
+          "phone": "0722000001",
+          "total_litres": 6,
+          "average_price_per_litre": 50,
+          "gross_amount_owed": 300,
+          "collections_count": 1,
+          "from_date": "2026-09-01T00:00:00Z",
+          "to_date": "2026-09-30T00:00:00Z"
+        },
+        {
+          "member_id": "d7caf37c-4637-46ed-8515-bf6c689c46d0",
+          "membership_number": "MEM-0005",
+          "farmer_name": "Farmer2 Test2",
+          "phone": "0722000002",
+          "total_litres": 7,
+          "average_price_per_litre": 50,
+          "gross_amount_owed": 350,
+          "collections_count": 1,
+          "from_date": "2026-09-01T00:00:00Z",
+          "to_date": "2026-09-30T00:00:00Z"
+        },
+        {
+          "member_id": "7700fed5-45aa-4bc6-a374-1c187c1868ce",
+          "membership_number": "MEM-0006",
+          "farmer_name": "Farmer3 Test3",
+          "phone": "0722000003",
+          "total_litres": 8,
+          "average_price_per_litre": 50,
+          "gross_amount_owed": 400,
+          "collections_count": 1,
+          "from_date": "2026-09-01T00:00:00Z",
+          "to_date": "2026-09-30T00:00:00Z"
+        },
+        {
+          "member_id": "b5f5bb0c-be7c-424c-b45e-095bff4038ae",
+          "membership_number": "MEM-0007",
+          "farmer_name": "Farmer4 Test4",
+          "phone": "0722000004",
+          "total_litres": 9,
+          "average_price_per_litre": 50,
+          "gross_amount_owed": 450,
+          "collections_count": 1,
+          "from_date": "2026-09-01T00:00:00Z",
+          "to_date": "2026-09-30T00:00:00Z"
+        },
+        {
+          "member_id": "d255c4d0-7a07-4938-9a1c-f81dc1e63ae9",
+          "membership_number": "MEM-0008",
+          "farmer_name": "Farmer5 Test5",
+          "phone": "0722000005",
+          "total_litres": 10,
+          "average_price_per_litre": 50,
+          "gross_amount_owed": 500,
+          "collections_count": 1,
+          "from_date": "2026-09-01T00:00:00Z",
+          "to_date": "2026-09-30T00:00:00Z"
+        },
+        {
+          "member_id": "6e7f7208-11c5-40d2-bc41-36868083e329",
+          "membership_number": "MEM-0009",
+          "farmer_name": "Farmer6 Test6",
+          "phone": "0722000006",
+          "total_litres": 11,
+          "average_price_per_litre": 50,
+          "gross_amount_owed": 550,
+          "collections_count": 1,
+          "from_date": "2026-09-01T00:00:00Z",
+          "to_date": "2026-09-30T00:00:00Z"
+        },
+        {
+          "member_id": "7de70d4b-0f02-4a77-97d0-572f4ae1dd61",
+          "membership_number": "MEM-0010",
+          "farmer_name": "Farmer7 Test7",
+          "phone": "0722000007",
+          "total_litres": 12,
+          "average_price_per_litre": 50,
+          "gross_amount_owed": 600,
+          "collections_count": 1,
+          "from_date": "2026-09-01T00:00:00Z",
+          "to_date": "2026-09-30T00:00:00Z"
+        },
+        {
+          "member_id": "677e08c7-782b-47d0-a81e-d90019902c53",
+          "membership_number": "MEM-0011",
+          "farmer_name": "Farmer8 Test8",
+          "phone": "0722000008",
+          "total_litres": 13,
+          "average_price_per_litre": 50,
+          "gross_amount_owed": 650,
+          "collections_count": 1,
+          "from_date": "2026-09-01T00:00:00Z",
+          "to_date": "2026-09-30T00:00:00Z"
+        },
+        {
+          "member_id": "a214a9d5-236e-4c32-a883-c5e0f0bfe8f8",
+          "membership_number": "MEM-0012",
+          "farmer_name": "Farmer9 Test9",
+          "phone": "0722000009",
+          "total_litres": 14,
+          "average_price_per_litre": 50,
+          "gross_amount_owed": 700,
+          "collections_count": 1,
+          "from_date": "2026-09-01T00:00:00Z",
+          "to_date": "2026-09-30T00:00:00Z"
+        },
+        {
+          "member_id": "ed8274a5-1268-48c5-a8d8-b6240334dcb0",
+          "membership_number": "MEM-0013",
+          "farmer_name": "Farmer10 Test10",
+          "phone": "0722000010",
+          "total_litres": 15,
+          "average_price_per_litre": 50,
+          "gross_amount_owed": 750,
+          "collections_count": 1,
+          "from_date": "2026-09-01T00:00:00Z",
+          "to_date": "2026-09-30T00:00:00Z"
+        },
+        {
+          "member_id": "d051d06e-6069-41bd-b45e-c8251109efd9",
+          "membership_number": "MEM-0014",
+          "farmer_name": "Farmer11 Test11",
+          "phone": "0722000011",
+          "total_litres": 16,
+          "average_price_per_litre": 50,
+          "gross_amount_owed": 800,
+          "collections_count": 1,
+          "from_date": "2026-09-01T00:00:00Z",
+          "to_date": "2026-09-30T00:00:00Z"
+        },
+        {
+          "member_id": "9c04dad4-a1cf-4a91-ac59-1b1694492f5f",
+          "membership_number": "MEM-0015",
+          "farmer_name": "Farmer12 Test12",
+          "phone": "0722000012",
+          "total_litres": 17,
+          "average_price_per_litre": 50,
+          "gross_amount_owed": 850,
+          "collections_count": 1,
+          "from_date": "2026-09-01T00:00:00Z",
+          "to_date": "2026-09-30T00:00:00Z"
+        },
+        {
+          "member_id": "80f7192a-8c09-4d34-84e2-b4b2c3187cb3",
+          "membership_number": "MEM-0016",
+          "farmer_name": "Farmer13 Test13",
+          "phone": "0722000013",
+          "total_litres": 18,
+          "average_price_per_litre": 50,
+          "gross_amount_owed": 900,
+          "collections_count": 1,
+          "from_date": "2026-09-01T00:00:00Z",
+          "to_date": "2026-09-30T00:00:00Z"
+        },
+        {
+          "member_id": "fefa23a5-29bc-466d-a5c6-16c0c50c8334",
+          "membership_number": "MEM-0017",
+          "farmer_name": "Farmer14 Test14",
+          "phone": "0722000014",
+          "total_litres": 19,
+          "average_price_per_litre": 50,
+          "gross_amount_owed": 950,
+          "collections_count": 1,
+          "from_date": "2026-09-01T00:00:00Z",
+          "to_date": "2026-09-30T00:00:00Z"
+        },
+        {
+          "member_id": "7a9a3169-7988-41bd-b878-7a6a718e49c8",
+          "membership_number": "MEM-0018",
+          "farmer_name": "Farmer15 Test15",
+          "phone": "0722000015",
+          "total_litres": 20,
+          "average_price_per_litre": 50,
+          "gross_amount_owed": 1000,
+          "collections_count": 1,
+          "from_date": "2026-09-01T00:00:00Z",
+          "to_date": "2026-09-30T00:00:00Z"
+        },
+        {
+          "member_id": "8e5016b7-3e17-4af0-a738-c4371145ae87",
+          "membership_number": "MEM-0019",
+          "farmer_name": "Farmer16 Test16",
+          "phone": "0722000016",
+          "total_litres": 21,
+          "average_price_per_litre": 50,
+          "gross_amount_owed": 1050,
+          "collections_count": 1,
+          "from_date": "2026-09-01T00:00:00Z",
+          "to_date": "2026-09-30T00:00:00Z"
+        },
+        {
+          "member_id": "e311e829-fceb-4746-95e1-c361f5bd0003",
+          "membership_number": "MEM-0020",
+          "farmer_name": "Farmer17 Test17",
+          "phone": "0722000017",
+          "total_litres": 22,
+          "average_price_per_litre": 50,
+          "gross_amount_owed": 1100,
+          "collections_count": 1,
+          "from_date": "2026-09-01T00:00:00Z",
+          "to_date": "2026-09-30T00:00:00Z"
+        },
+        {
+          "member_id": "e7aeb90c-4635-4e30-b586-ac3ff7ed0608",
+          "membership_number": "MEM-0021",
+          "farmer_name": "Farmer18 Test18",
+          "phone": "0722000018",
+          "total_litres": 23,
+          "average_price_per_litre": 50,
+          "gross_amount_owed": 1150,
+          "collections_count": 1,
+          "from_date": "2026-09-01T00:00:00Z",
+          "to_date": "2026-09-30T00:00:00Z"
+        }
+      ],
+      "meta": {
+        "page": 1,
+        "per_page": 20,
+        "total": 0,
+        "total_pages": 0,
+        "has_next": false,
+        "has_previous": false
+      }
+    }
+  }
+}

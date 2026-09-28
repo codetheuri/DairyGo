@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_router.dart';
 import '../../../../app/theme/app_colors.dart';
+import '../../../../core/layout/breakpoints.dart';
 import '../../../../core/widgets/stat_card.dart';
 import '../../data/models/collector_dashboard_model.dart';
 import '../../../../core/widgets/balance_badge.dart';
@@ -49,18 +50,25 @@ class CollectorDashboardView extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  // The balance badge moves under the title when they do not fit on one line.
+                  Wrap(
+                    alignment: WrapAlignment.spaceBetween,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 8,
+                    runSpacing: 6,
                     children: [
                       Text(
                         'Shift Overview (${data.date.isNotEmpty ? data.date : "Today"})',
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              color: Colors.white.withValues(alpha: 0.9),
-                              fontWeight: FontWeight.w500,
-                            ),
+                          color: Colors.white.withValues(alpha: 0.9),
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                       Container(
-                        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
                         child: BalanceBadge(
                           unaccountedLitres: data.todayUnaccountedLitres,
                           status: data.todayBalanceStatus,
@@ -69,21 +77,22 @@ class CollectorDashboardView extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.baseline,
-                    textBaseline: TextBaseline.alphabetic,
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.end,
+                    spacing: 8,
                     children: [
                       Text(
                         data.todayUnaccountedLitres.toStringAsFixed(1),
-                        style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                        style: Theme.of(context).textTheme.displayMedium
+                            ?.copyWith(
                               color: Colors.white,
                               fontWeight: FontWeight.w800,
                             ),
                       ),
-                      const SizedBox(width: 8),
                       Text(
                         'Litres unaccounted',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
                               color: Colors.white.withValues(alpha: 0.9),
                               fontWeight: FontWeight.bold,
                             ),
@@ -95,8 +104,8 @@ class CollectorDashboardView extends StatelessWidget {
                     'Collected ${data.todayCollectedLitres}L − Sold ${data.todaySoldLitres}L − Spoiled ${data.todaySpoiledLitres}L. '
                     'Record every sale, coolers included, so this reaches 0.',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.white.withValues(alpha: 0.8),
-                        ),
+                      color: Colors.white.withValues(alpha: 0.8),
+                    ),
                   ),
                 ],
               ),
@@ -106,47 +115,46 @@ class CollectorDashboardView extends StatelessWidget {
             Text(
               'Today\'s Field Shift Metrics',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
             ),
             const SizedBox(height: 12),
 
             // Stat Cards Grid
-            GridView.count(
-              crossAxisCount: 2,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              childAspectRatio: 1.3,
+            ResponsiveGrid(
+              // Two per row on phones (one with large text), more on wider screens.
+              minItemWidth: 160,
+              minColumns: 1,
               children: [
                 InkWell(
-                  onTap: () => context.push(AppRoutes.collections),
+                  onTap: () => context.go(AppRoutes.collections),
                   borderRadius: BorderRadius.circular(16),
                   child: StatCard(
                     title: 'Total Intake',
                     value: '${data.todayCollectedLitres.toStringAsFixed(1)} L',
-                    subtitle: '${data.todayFarmersServiced} farmers serviced (Tap to view)',
+                    subtitle:
+                        '${data.todayFarmersServiced} farmers serviced (Tap to view)',
                     icon: Icons.water_drop_rounded,
                     iconColor: AppColors.primary,
                     backgroundColor: AppColors.accentMint,
                   ),
                 ),
                 InkWell(
-                  onTap: () => context.push(AppRoutes.fieldOperations),
+                  onTap: () => context.go(AppRoutes.fieldOperations),
                   borderRadius: BorderRadius.circular(16),
                   child: StatCard(
                     title: 'Field Sales',
                     value: '${data.todaySoldLitres.toStringAsFixed(1)} L',
-                    subtitle: 'KES ${data.todaySalesRevenue.toStringAsFixed(0)} (Tap to view)',
+                    subtitle:
+                        'KES ${data.todaySalesRevenue.toStringAsFixed(0)} (Tap to view)',
                     icon: Icons.point_of_sale_rounded,
                     iconColor: AppColors.secondary,
                     backgroundColor: AppColors.accentMint,
                   ),
                 ),
                 InkWell(
-                  onTap: () => context.push(AppRoutes.fieldOperations),
+                  onTap: () => context.go(AppRoutes.fieldOperations),
                   borderRadius: BorderRadius.circular(16),
                   child: StatCard(
                     title: 'Spoilage Loss',
@@ -173,9 +181,9 @@ class CollectorDashboardView extends StatelessWidget {
             Text(
               'Field Collector Actions',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
             ),
             const SizedBox(height: 12),
 
@@ -256,12 +264,16 @@ class CollectorDashboardView extends StatelessWidget {
             children: [
               Icon(icon, color: color, size: 22),
               const SizedBox(width: 8),
-              Text(
-                label,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                  fontSize: 13,
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                    fontSize: 13,
+                  ),
                 ),
               ),
             ],

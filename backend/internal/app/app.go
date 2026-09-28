@@ -13,6 +13,7 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humachi"
 	"github.com/go-chi/chi/v5"
+	chimw "github.com/go-chi/chi/v5/middleware"
 
 	"github.com/codetheuri/tusk/config"
 	"github.com/codetheuri/tusk/internal/auth"
@@ -53,6 +54,11 @@ func New(cfg *config.Config, log logger.Logger) (*App, error) {
 	// (500s) are recorded too.
 	r.Use(middleware.RequestID())
 	r.Use(middleware.Logger(log))
+	// Compress JSON and console assets: API responses shrink by about 85%,
+	// which matters most on the slow rural connections collectors work on.
+	// It sits outside RecordFailures so that middleware reads plain bodies.
+	r.Use(chimw.Compress(5, "application/json", "application/problem+json",
+		"text/html", "text/css", "text/javascript", "application/javascript"))
 	r.Use(middleware.RecordFailures(platformRepo, cfg.JWTSecret))
 	r.Use(middleware.Recovery(log))
 	r.Use(middleware.CORS(cfg.CORSOrigins, log))

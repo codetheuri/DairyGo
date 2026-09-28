@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"strings"
 	"time"
 
 	"github.com/codetheuri/tusk/internal/middleware"
@@ -38,6 +39,34 @@ func (r *Repository) populateCollectorNames(ctx context.Context, collectorIDs []
 		}
 	}
 	return nameMap
+}
+
+// collectionFarmerSearch matches a collection by its farmer's full name or
+// membership number. || is standard SQL concatenation on Postgres and SQLite.
+const collectionFarmerSearch = "(SELECT m.first_name || ' ' || m.last_name || ' ' || m.membership_number " +
+	"FROM members m WHERE m.id = milk_collections.member_id)"
+
+type memberLabel struct {
+	ID               string
+	FirstName        string
+	LastName         string
+	MembershipNumber string
+}
+
+// memberLabels loads the names of the given farmers in one query.
+func (r *Repository) memberLabels(ctx context.Context, memberIDs []string) map[string]memberLabel {
+	labels := make(map[string]memberLabel, len(memberIDs))
+	var rows []memberLabel
+	err := r.db.WithContext(ctx).Table("members").Scopes(query.TenantScope(ctx)).
+		Where("id IN ?", memberIDs).
+		Select("id", "first_name", "last_name", "membership_number").
+		Scan(&rows).Error
+	if err == nil {
+		for _, m := range rows {
+			labels[m.ID] = m
+		}
+	}
+	return labels
 }
 
 // --- PRICING REPOSITORY METHODS ---
@@ -176,7 +205,8 @@ func (r *Repository) ListCollections(ctx context.Context, q query.Query) ([]Milk
 			"total_amount":    "milk_collections.total_amount",
 			"created_at":      "milk_collections.created_at",
 		},
-		AllowedSearches: []string{"milk_collections.notes"},
+		// Search by the farmer's name or membership number as well as notes.
+		AllowedSearches: []string{"milk_collections.notes", collectionFarmerSearch},
 		AllowedFilters: map[string]string{
 			"member_id":       "milk_collections.member_id",
 			"collector_id":    "milk_collections.collector_id",
@@ -200,15 +230,21 @@ func (r *Repository) ListCollections(ctx context.Context, q query.Query) ([]Milk
 		return nil, meta, err
 	}
 
-	// Populate collector_name for each item
+	// Populate collector and farmer names for each item
 	if len(collections) > 0 {
 		ids := make([]uint, 0, len(collections))
+		memberIDs := make([]string, 0, len(collections))
 		for _, c := range collections {
 			ids = append(ids, c.CollectorID)
+			memberIDs = append(memberIDs, c.MemberID)
 		}
 		namesMap := r.populateCollectorNames(ctx, ids)
+		members := r.memberLabels(ctx, memberIDs)
 		for i := range collections {
 			collections[i].CollectorName = namesMap[collections[i].CollectorID]
+			m := members[collections[i].MemberID]
+			collections[i].MemberName = strings.TrimSpace(m.FirstName + " " + m.LastName)
+			collections[i].MembershipNumber = m.MembershipNumber
 		}
 	}
 

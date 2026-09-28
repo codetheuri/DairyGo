@@ -27,7 +27,8 @@ String? collectionEditBlockReason(
 
   final created = DateTime.tryParse(collection.createdAt ?? '')?.toLocal();
   final today = now ?? DateTime.now();
-  final sameDay = created != null &&
+  final sameDay =
+      created != null &&
       created.year == today.year &&
       created.month == today.month &&
       created.day == today.day;

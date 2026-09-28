@@ -4,7 +4,14 @@ part 'customer_models.freezed.dart';
 part 'customer_models.g.dart';
 
 /// Customer types. Coolers are customers like any other buyer.
-const customerTypes = ['COOLER', 'PROCESSOR', 'HOTEL', 'SHOP', 'INDIVIDUAL', 'OTHER'];
+const customerTypes = [
+  'COOLER',
+  'PROCESSOR',
+  'HOTEL',
+  'SHOP',
+  'INDIVIDUAL',
+  'OTHER',
+];
 
 String customerTypeLabel(String type) {
   switch (type) {
@@ -42,7 +49,8 @@ class CustomerModel with _$CustomerModel {
 
   bool get isActive => status == 'ACTIVE';
 
-  factory CustomerModel.fromJson(Map<String, dynamic> json) => _$CustomerModelFromJson(json);
+  factory CustomerModel.fromJson(Map<String, dynamic> json) =>
+      _$CustomerModelFromJson(json);
 }
 
 @freezed
@@ -74,7 +82,8 @@ class StatementLineModel with _$StatementLineModel {
     @Default(0.0) double balance,
   }) = _StatementLineModel;
 
-  factory StatementLineModel.fromJson(Map<String, dynamic> json) => _$StatementLineModelFromJson(json);
+  factory StatementLineModel.fromJson(Map<String, dynamic> json) =>
+      _$StatementLineModelFromJson(json);
 }
 
 @freezed

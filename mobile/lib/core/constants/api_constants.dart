@@ -1,12 +1,13 @@
 /// ApiConstants holds all API routes and base URL configurations.
-/// 
+///
 /// Senior Architect Note:
 /// For local Android Emulator development, use `http://10.0.2.2:8081`.
 /// For physical mobile device testing on local network, update to your local LAN IP (e.g. `http://192.168.x.x:8081`).
 abstract class ApiConstants {
   static const String baseUrl = 'https://apis.dairy.urizon.co.ke';
-  static const Duration connectionTimeout = Duration(seconds: 15);
-  static const Duration receiveTimeout = Duration(seconds: 15);
+  static const Duration connectionTimeout = Duration(seconds: 20);
+  // Generous so a page still arrives on a ~100 kbps rural connection.
+  static const Duration receiveTimeout = Duration(seconds: 45);
 
   // Auth Routes
   static const String login = '/api/v1/auth/login';
@@ -32,9 +33,12 @@ abstract class ApiConstants {
   static const String customerPayments = '/api/v1/sacco/customer-payments';
 
   // Report Routes
-  static const String farmerPayoutReport = '/api/v1/sacco/reports/farmer-payout';
-  static const String saccoReconciliationReport = '/api/v1/sacco/reports/reconciliation';
-  static const String collectorAuditReport = '/api/v1/sacco/reports/collector-audit';
+  static const String farmerPayoutReport =
+      '/api/v1/sacco/reports/farmer-payout';
+  static const String saccoReconciliationReport =
+      '/api/v1/sacco/reports/reconciliation';
+  static const String collectorAuditReport =
+      '/api/v1/sacco/reports/collector-audit';
 
   // Dashboard Routes
   static const String executiveDashboard = '/api/v1/sacco/dashboard/summary';

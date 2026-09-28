@@ -23,7 +23,8 @@ class CustomerPickerSheet extends ConsumerStatefulWidget {
   }
 
   @override
-  ConsumerState<CustomerPickerSheet> createState() => _CustomerPickerSheetState();
+  ConsumerState<CustomerPickerSheet> createState() =>
+      _CustomerPickerSheetState();
 }
 
 class _CustomerPickerSheetState extends ConsumerState<CustomerPickerSheet> {
@@ -46,7 +47,10 @@ class _CustomerPickerSheetState extends ConsumerState<CustomerPickerSheet> {
   }
 
   Future<void> _addNew() async {
-    final created = await AddCustomerDialog.show(context, initialName: _searchController.text.trim());
+    final created = await AddCustomerDialog.show(
+      context,
+      initialName: _searchController.text.trim(),
+    );
     if (created != null && mounted) Navigator.of(context).pop(created);
   }
 
@@ -62,7 +66,10 @@ class _CustomerPickerSheetState extends ConsumerState<CustomerPickerSheet> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Select Customer', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            const Text(
+              'Select Customer',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
             const SizedBox(height: 10),
             TextField(
               controller: _searchController,
@@ -71,7 +78,9 @@ class _CustomerPickerSheetState extends ConsumerState<CustomerPickerSheet> {
               decoration: InputDecoration(
                 hintText: 'Search by name or phone',
                 prefixIcon: const Icon(Icons.search_rounded),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 isDense: true,
               ),
             ),
@@ -79,9 +88,11 @@ class _CustomerPickerSheetState extends ConsumerState<CustomerPickerSheet> {
             OutlinedButton.icon(
               onPressed: _addNew,
               icon: const Icon(Icons.person_add_alt_1_rounded),
-              label: Text(_searchController.text.trim().isEmpty
-                  ? 'Add new customer'
-                  : 'Add "${_searchController.text.trim()}" as new customer'),
+              label: Text(
+                _searchController.text.trim().isEmpty
+                    ? 'Add new customer'
+                    : 'Add "${_searchController.text.trim()}" as new customer',
+              ),
             ),
             const SizedBox(height: 8),
             Expanded(
@@ -89,28 +100,45 @@ class _CustomerPickerSheetState extends ConsumerState<CustomerPickerSheet> {
                 data: (customers) {
                   if (customers.isEmpty) {
                     return const Center(
-                      child: Text('No matching customers. Add a new one above.',
-                          style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
+                      child: Text(
+                        'No matching customers. Add a new one above.',
+                        style: TextStyle(
+                          color: AppColors.textMuted,
+                          fontSize: 12,
+                        ),
+                      ),
                     );
                   }
                   return ListView.separated(
                     itemCount: customers.length,
-                    separatorBuilder: (_, __) => const Divider(height: 1, color: AppColors.cardBorder),
+                    separatorBuilder: (_, __) =>
+                        const Divider(height: 1, color: AppColors.cardBorder),
                     itemBuilder: (_, i) {
                       final c = customers[i];
                       return ListTile(
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 4),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 4,
+                        ),
                         leading: CircleAvatar(
                           backgroundColor: AppColors.accentMint,
                           foregroundColor: AppColors.primary,
-                          child: Icon(c.customerType == 'COOLER' ? Icons.ac_unit_rounded : Icons.storefront_rounded, size: 18),
+                          child: Icon(
+                            c.customerType == 'COOLER'
+                                ? Icons.ac_unit_rounded
+                                : Icons.storefront_rounded,
+                            size: 18,
+                          ),
                         ),
-                        title: Text(c.name, style: const TextStyle(fontWeight: FontWeight.w600)),
+                        title: Text(
+                          c.name,
+                          style: const TextStyle(fontWeight: FontWeight.w600),
+                        ),
                         subtitle: Text(
                           [
                             customerTypeLabel(c.customerType),
                             if (c.phone != null) c.phone!,
-                            if (c.defaultPricePerLitre != null) 'KES ${c.defaultPricePerLitre!.toStringAsFixed(2)}/L',
+                            if (c.defaultPricePerLitre != null)
+                              'KES ${c.defaultPricePerLitre!.toStringAsFixed(2)}/L',
                           ].join(' • '),
                           style: const TextStyle(fontSize: 12),
                         ),
@@ -119,10 +147,17 @@ class _CustomerPickerSheetState extends ConsumerState<CustomerPickerSheet> {
                     },
                   );
                 },
-                loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+                loading: () => const Center(
+                  child: CircularProgressIndicator(color: AppColors.primary),
+                ),
                 error: (e, _) => Center(
-                  child: Text(e.toString().replaceAll('Exception: ', ''),
-                      style: const TextStyle(color: AppColors.error, fontSize: 12)),
+                  child: Text(
+                    e.toString().replaceAll('Exception: ', ''),
+                    style: const TextStyle(
+                      color: AppColors.error,
+                      fontSize: 12,
+                    ),
+                  ),
                 ),
               ),
             ),

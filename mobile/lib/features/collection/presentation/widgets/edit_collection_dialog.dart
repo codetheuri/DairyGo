@@ -12,10 +12,15 @@ class EditCollectionDialog extends ConsumerStatefulWidget {
   /// Admin edits require a reason, which is stored in the entry's audit history.
   final bool isAdmin;
 
-  const EditCollectionDialog({super.key, required this.collection, this.isAdmin = false});
+  const EditCollectionDialog({
+    super.key,
+    required this.collection,
+    this.isAdmin = false,
+  });
 
   @override
-  ConsumerState<EditCollectionDialog> createState() => _EditCollectionDialogState();
+  ConsumerState<EditCollectionDialog> createState() =>
+      _EditCollectionDialogState();
 }
 
 class _EditCollectionDialogState extends ConsumerState<EditCollectionDialog> {
@@ -28,8 +33,12 @@ class _EditCollectionDialogState extends ConsumerState<EditCollectionDialog> {
   @override
   void initState() {
     super.initState();
-    _litresController = TextEditingController(text: widget.collection.quantityLitres.toString());
-    _notesController = TextEditingController(text: widget.collection.notes ?? '');
+    _litresController = TextEditingController(
+      text: widget.collection.quantityLitres.toString(),
+    );
+    _notesController = TextEditingController(
+      text: widget.collection.notes ?? '',
+    );
     _shift = widget.collection.shift;
   }
 
@@ -50,8 +59,12 @@ class _EditCollectionDialogState extends ConsumerState<EditCollectionDialog> {
     final request = UpdateCollectionRequestModel(
       quantityLitres: litres,
       shift: _shift,
-      notes: _notesController.text.trim().isNotEmpty ? _notesController.text.trim() : null,
-      reason: _reasonController.text.trim().isNotEmpty ? _reasonController.text.trim() : null,
+      notes: _notesController.text.trim().isNotEmpty
+          ? _notesController.text.trim()
+          : null,
+      reason: _reasonController.text.trim().isNotEmpty
+          ? _reasonController.text.trim()
+          : null,
     );
 
     final success = await ref
@@ -78,7 +91,10 @@ class _EditCollectionDialogState extends ConsumerState<EditCollectionDialog> {
         : null;
 
     return AlertDialog(
-      title: const Text('Edit Milk Intake Entry', style: TextStyle(fontWeight: FontWeight.bold)),
+      title: const Text(
+        'Edit Milk Intake Entry',
+        style: TextStyle(fontWeight: FontWeight.bold),
+      ),
       content: SingleChildScrollView(
         child: Form(
           key: _formKey,
@@ -87,29 +103,49 @@ class _EditCollectionDialogState extends ConsumerState<EditCollectionDialog> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (errorMessage != null) ...[
-                Text(errorMessage, style: const TextStyle(color: AppColors.error, fontSize: 12)),
+                Text(
+                  errorMessage,
+                  style: const TextStyle(color: AppColors.error, fontSize: 12),
+                ),
                 const SizedBox(height: 10),
               ],
               AppTextField(
                 label: 'Quantity (Litres) *',
                 controller: _litresController,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
                 prefixIcon: Icons.water_drop_rounded,
                 validator: (val) {
-                  if (val == null || val.trim().isEmpty) return 'Litres is required';
+                  if (val == null || val.trim().isEmpty) {
+                    return 'Litres is required';
+                  }
                   final d = double.tryParse(val.trim());
-                  if (d == null || d <= 0) return 'Enter a valid positive number';
+                  if (d == null || d <= 0) {
+                    return 'Enter a valid positive number';
+                  }
                   return null;
                 },
               ),
               const SizedBox(height: 14),
 
-              Text('Shift', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
+              Text(
+                'Shift',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+              ),
               const SizedBox(height: 6),
               SegmentedButton<String>(
                 segments: const [
-                  ButtonSegment(value: 'MORNING', label: Text('Morning', style: TextStyle(fontSize: 12))),
-                  ButtonSegment(value: 'EVENING', label: Text('Evening', style: TextStyle(fontSize: 12))),
+                  ButtonSegment(
+                    value: 'MORNING',
+                    label: Text('Morning', style: TextStyle(fontSize: 12)),
+                  ),
+                  ButtonSegment(
+                    value: 'EVENING',
+                    label: Text('Evening', style: TextStyle(fontSize: 12)),
+                  ),
                 ],
                 selected: {_shift},
                 onSelectionChanged: (set) => setState(() => _shift = set.first),
@@ -154,7 +190,10 @@ class _EditCollectionDialogState extends ConsumerState<EditCollectionDialog> {
               ? const SizedBox(
                   width: 16,
                   height: 16,
-                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 2,
+                  ),
                 )
               : const Text('Save Changes'),
         ),

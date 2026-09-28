@@ -6,19 +6,37 @@ part 'executive_dashboard_model.g.dart';
 @freezed
 class ExecutiveSummaryCards with _$ExecutiveSummaryCards {
   const factory ExecutiveSummaryCards({
-    @JsonKey(name: 'today_collected_litres') @Default(0.0) double todayCollectedLitres,
+    @JsonKey(name: 'today_collected_litres')
+    @Default(0.0)
+    double todayCollectedLitres,
     @JsonKey(name: 'today_sales_litres') @Default(0.0) double todaySalesLitres,
-    @JsonKey(name: 'today_spoilage_litres') @Default(0.0) double todaySpoilageLitres,
+    @JsonKey(name: 'today_spoilage_litres')
+    @Default(0.0)
+    double todaySpoilageLitres,
     // collected - sold - spoiled today; > 0 missing, < 0 oversold
-    @JsonKey(name: 'today_unaccounted_litres') @Default(0.0) double todayUnaccountedLitres,
-    @JsonKey(name: 'today_balance_status') @Default('BALANCED') String todayBalanceStatus,
-    @JsonKey(name: 'month_collected_litres') @Default(0.0) double monthCollectedLitres,
-    @JsonKey(name: 'month_payout_liability_kes') @Default(0.0) double monthPayoutLiabilityKes,
-    @JsonKey(name: 'month_sales_revenue_kes') @Default(0.0) double monthSalesRevenueKes,
-    @JsonKey(name: 'month_gross_margin_kes') @Default(0.0) double monthGrossMarginKes,
+    @JsonKey(name: 'today_unaccounted_litres')
+    @Default(0.0)
+    double todayUnaccountedLitres,
+    @JsonKey(name: 'today_balance_status')
+    @Default('BALANCED')
+    String todayBalanceStatus,
+    @JsonKey(name: 'month_collected_litres')
+    @Default(0.0)
+    double monthCollectedLitres,
+    @JsonKey(name: 'month_payout_liability_kes')
+    @Default(0.0)
+    double monthPayoutLiabilityKes,
+    @JsonKey(name: 'month_sales_revenue_kes')
+    @Default(0.0)
+    double monthSalesRevenueKes,
+    @JsonKey(name: 'month_gross_margin_kes')
+    @Default(0.0)
+    double monthGrossMarginKes,
     @JsonKey(name: 'receivables_kes') @Default(0.0) double receivablesKes,
     @JsonKey(name: 'active_members_count') @Default(0) int activeMembersCount,
-    @JsonKey(name: 'active_collectors_count') @Default(0) int activeCollectorsCount,
+    @JsonKey(name: 'active_collectors_count')
+    @Default(0)
+    int activeCollectorsCount,
   }) = _ExecutiveSummaryCards;
 
   factory ExecutiveSummaryCards.fromJson(Map<String, dynamic> json) =>
@@ -43,7 +61,9 @@ class DailyTrendPoint with _$DailyTrendPoint {
 class ExecutiveDashboardModel with _$ExecutiveDashboardModel {
   const factory ExecutiveDashboardModel({
     @JsonKey(name: 'summary_cards') required ExecutiveSummaryCards summaryCards,
-    @JsonKey(name: 'intake_trend') @Default([]) List<DailyTrendPoint> intakeTrend,
+    @JsonKey(name: 'intake_trend')
+    @Default([])
+    List<DailyTrendPoint> intakeTrend,
   }) = _ExecutiveDashboardModel;
 
   factory ExecutiveDashboardModel.fromJson(Map<String, dynamic> json) =>

@@ -1,0 +1,48 @@
+{
+  "status": 200,
+  "body": {
+    "success": true,
+    "message": "Profile retrieved successfully",
+    "data": {
+      "user": {
+        "id": 30,
+        "sacco_id": "ee937809-8894-4f7c-8fe0-6bd7d2890fa8",
+        "username": "uxboard",
+        "email": "b@ux.io",
+        "is_super_user": false,
+        "is_active": true,
+        "is_verified": false,
+        "failed_login_attempts": 0,
+        "last_login_at": "2026-09-28T09:02:12.369642+03:00",
+        "created_at": "2026-09-28T09:02:11.989655+03:00",
+        "updated_at": "2026-09-28T09:02:12.370096+03:00",
+        "role_name": "Board Member / Executive",
+        "profile": {
+          "user_id": 30,
+          "first_name": "Grace",
+          "last_name": "Muthoni",
+          "avatar": "",
+          "bio": "",
+          "created_at": "2026-09-28T09:02:11.990721+03:00",
+          "updated_at": "2026-09-28T09:02:11.990721+03:00"
+        }
+      },
+      "permissions": [
+        "dashboard.executive.read",
+        "dashboard.collector.read",
+        "milk.prices.read",
+        "reports.payout.read",
+        "reports.reconciliation.read",
+        "reports.collector.read",
+        "members.read",
+        "milk.collections.read",
+        "milk.sales.read",
+        "milk.spoilage.read",
+        "milk.reconciliation.read",
+        "sacco.settings.read",
+        "customers.read",
+        "customers.statement.read"
+      ]
+    }
+  }
+}

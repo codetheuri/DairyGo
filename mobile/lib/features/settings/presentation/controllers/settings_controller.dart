@@ -9,7 +9,9 @@ import '../../data/models/settings_models.dart';
 import '../../data/repositories/settings_repository_impl.dart';
 import '../../domain/repositories/settings_repository.dart';
 
-final settingsRemoteDataSourceProvider = Provider<SettingsRemoteDataSource>((ref) {
+final settingsRemoteDataSourceProvider = Provider<SettingsRemoteDataSource>((
+  ref,
+) {
   final dio = ref.watch(dioClientProvider);
   return SettingsRemoteDataSourceImpl(dio);
 });
@@ -24,20 +26,26 @@ final saccoProfileProvider = FutureProvider<SaccoProfileModel>((ref) async {
   return repository.getSaccoProfile();
 });
 
-final saccoSettingsProvider = FutureProvider.autoDispose<SaccoSettingsModel>((ref) async {
+final saccoSettingsProvider = FutureProvider.autoDispose<SaccoSettingsModel>((
+  ref,
+) async {
   return ref.watch(settingsRepositoryProvider).getSettings();
 });
 
-final milkPriceHistoryProvider = FutureProvider<List<MilkPriceModel>>((ref) async {
+final milkPriceHistoryProvider = FutureProvider<List<MilkPriceModel>>((
+  ref,
+) async {
   final repository = ref.watch(settingsRepositoryProvider);
   return repository.getPriceHistory();
 });
 
-class SetMilkPriceController extends StateNotifier<AsyncValue<MilkPriceModel?>> {
+class SetMilkPriceController
+    extends StateNotifier<AsyncValue<MilkPriceModel?>> {
   final SettingsRepository _repository;
   final Ref _ref;
 
-  SetMilkPriceController(this._repository, this._ref) : super(const AsyncValue.data(null));
+  SetMilkPriceController(this._repository, this._ref)
+    : super(const AsyncValue.data(null));
 
   Future<bool> setMilkPrice(SetPriceRequestModel request) async {
     state = const AsyncValue.loading();
@@ -56,7 +64,10 @@ class SetMilkPriceController extends StateNotifier<AsyncValue<MilkPriceModel?>> 
 }
 
 final setMilkPriceControllerProvider =
-    StateNotifierProvider.autoDispose<SetMilkPriceController, AsyncValue<MilkPriceModel?>>((ref) {
-  final repository = ref.watch(settingsRepositoryProvider);
-  return SetMilkPriceController(repository, ref);
-});
+    StateNotifierProvider.autoDispose<
+      SetMilkPriceController,
+      AsyncValue<MilkPriceModel?>
+    >((ref) {
+      final repository = ref.watch(settingsRepositoryProvider);
+      return SetMilkPriceController(repository, ref);
+    });

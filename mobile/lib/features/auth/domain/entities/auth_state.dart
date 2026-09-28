@@ -14,22 +14,21 @@ class AuthState with _$AuthState {
   }) = _AuthState;
 
   factory AuthState.unauthenticated([String? errorMessage]) => AuthState(
-        isAuthenticated: false,
-        user: null,
-        token: null,
-        isLoading: false,
-        errorMessage: errorMessage,
-      );
+    isAuthenticated: false,
+    user: null,
+    token: null,
+    isLoading: false,
+    errorMessage: errorMessage,
+  );
 
   factory AuthState.authenticated({
     required UserEntity user,
     required String token,
-  }) =>
-      AuthState(
-        isAuthenticated: true,
-        user: user,
-        token: token,
-        isLoading: false,
-        errorMessage: null,
-      );
+  }) => AuthState(
+    isAuthenticated: true,
+    user: user,
+    token: token,
+    isLoading: false,
+    errorMessage: null,
+  );
 }

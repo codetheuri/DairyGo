@@ -42,7 +42,9 @@ class UserEntity with _$UserEntity {
   bool get isExecutive {
     if (isSuperUser) return true;
     final lower = roleName.toLowerCase();
-    return lower.contains('board') || lower.contains('executive') || lower.contains('admin');
+    return lower.contains('board') ||
+        lower.contains('executive') ||
+        lower.contains('admin');
   }
 
   bool get isSaccoAdmin {

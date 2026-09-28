@@ -16,32 +16,36 @@ class TrendChartWidget extends StatelessWidget {
         alignment: Alignment.center,
         child: Text(
           'No trend data available for this period',
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: AppColors.textMuted,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(color: AppColors.textMuted),
         ),
       );
     }
 
-    final maxVal = points.map((e) => e.collectedLitres).fold<double>(
-          1.0,
-          (prev, curr) => curr > prev ? curr : prev,
-        );
+    final maxVal = points
+        .map((e) => e.collectedLitres)
+        .fold<double>(1.0, (prev, curr) => curr > prev ? curr : prev);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        // The legend moves under the title when they do not fit on one line.
+        Wrap(
+          alignment: WrapAlignment.spaceBetween,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 12,
+          runSpacing: 6,
           children: [
             Text(
               '7-Day Collection & Sales Trend',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
             ),
             Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 _buildLegendIndicator('Intake', AppColors.primary),
                 const SizedBox(width: 12),
@@ -70,51 +74,73 @@ class TrendChartWidget extends StatelessWidget {
               SizedBox(
                 height: 160,
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: points.map((point) {
-                    final intakeHeightRatio = (point.collectedLitres / maxVal).clamp(0.05, 1.0);
-                    final salesHeightRatio = (point.salesLitres / maxVal).clamp(0.0, 1.0);
-                    final dateLabel = point.date.length >= 5 ? point.date.substring(point.date.length - 5) : point.date;
+                    final intakeHeightRatio = (point.collectedLitres / maxVal)
+                        .clamp(0.05, 1.0);
+                    final salesHeightRatio = (point.salesLitres / maxVal).clamp(
+                      0.0,
+                      1.0,
+                    );
+                    final dateLabel = point.date.length >= 5
+                        ? point.date.substring(point.date.length - 5)
+                        : point.date;
 
-                    return Column(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            // Intake Bar
-                            AnimatedContainer(
-                              duration: const Duration(milliseconds: 500),
-                              width: 14,
-                              height: 120 * intakeHeightRatio,
-                              decoration: const BoxDecoration(
-                                color: AppColors.primary,
-                                borderRadius: BorderRadius.vertical(top: Radius.circular(4)),
+                    // Each day gets an equal share of the width; bars narrow on small screens.
+                    return Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              // Intake Bar
+                              Flexible(
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 500),
+                                  width: 14,
+                                  height: 120 * intakeHeightRatio,
+                                  decoration: const BoxDecoration(
+                                    color: AppColors.primary,
+                                    borderRadius: BorderRadius.vertical(
+                                      top: Radius.circular(4),
+                                    ),
+                                  ),
+                                ),
                               ),
+                              const SizedBox(width: 3),
+                              // Sales Bar
+                              Flexible(
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 500),
+                                  width: 14,
+                                  height: 120 * salesHeightRatio,
+                                  decoration: const BoxDecoration(
+                                    color: AppColors.secondary,
+                                    borderRadius: BorderRadius.vertical(
+                                      top: Radius.circular(4),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              dateLabel,
+                              maxLines: 1,
+                              style: Theme.of(context).textTheme.labelSmall
+                                  ?.copyWith(
+                                    color: AppColors.textSecondary,
+                                    fontSize: 10,
+                                  ),
                             ),
-                            const SizedBox(width: 4),
-                            // Sales Bar
-                            AnimatedContainer(
-                              duration: const Duration(milliseconds: 500),
-                              width: 14,
-                              height: 120 * salesHeightRatio,
-                              decoration: const BoxDecoration(
-                                color: AppColors.secondary,
-                                borderRadius: BorderRadius.vertical(top: Radius.circular(4)),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          dateLabel,
-                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                color: AppColors.textSecondary,
-                                fontSize: 10,
-                              ),
-                        ),
-                      ],
+                          ),
+                        ],
+                      ),
                     );
                   }).toList(),
                 ),
@@ -132,7 +158,10 @@ class TrendChartWidget extends StatelessWidget {
         Container(
           width: 10,
           height: 10,
-          decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(2)),
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(2),
+          ),
         ),
         const SizedBox(width: 4),
         Text(

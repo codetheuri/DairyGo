@@ -36,12 +36,16 @@ class SaleDetailSheet extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isAdmin = ref.watch(authControllerProvider).valueOrNull?.user?.isSaccoAdmin ?? false;
+    final isAdmin =
+        ref.watch(authControllerProvider).valueOrNull?.user?.isSaccoAdmin ??
+        false;
     final historyAsync = ref.watch(saleHistoryProvider(sale.id));
 
     return SafeArea(
       child: ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.8),
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.8,
+        ),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
           child: Column(
@@ -51,10 +55,19 @@ class SaleDetailSheet extends ConsumerWidget {
               Row(
                 children: [
                   Expanded(
-                    child: Text(sale.buyerName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    child: Text(
+                      sale.buyerName,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
                   ),
                   sale.isVoided
-                      ? const StatusPill(status: 'VOIDED', type: StatusType.error)
+                      ? const StatusPill(
+                          status: 'VOIDED',
+                          type: StatusType.error,
+                        )
                       : StatusPill.fromStatusString(sale.paymentStatus),
                 ],
               ),
@@ -62,30 +75,49 @@ class SaleDetailSheet extends ConsumerWidget {
               Text(
                 '${sale.quantityLitres.toStringAsFixed(1)} L @ KES ${sale.unitPrice.toStringAsFixed(2)} = '
                 'KES ${sale.totalAmount.toStringAsFixed(2)} • paid ${sale.amountPaid.toStringAsFixed(2)} (${sale.paymentMethod})',
-                style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppColors.textSecondary,
+                ),
               ),
               if (sale.isVoided && sale.voidReason != null)
-                Text('Voided: ${sale.voidReason}', style: const TextStyle(fontSize: 12, color: AppColors.error)),
+                Text(
+                  'Voided: ${sale.voidReason}',
+                  style: const TextStyle(fontSize: 12, color: AppColors.error),
+                ),
               if (isAdmin && !sale.isVoided) ...[
                 const SizedBox(height: 8),
                 OutlinedButton.icon(
-                  style: OutlinedButton.styleFrom(foregroundColor: AppColors.error),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.error,
+                  ),
                   icon: const Icon(Icons.block_rounded, size: 18),
                   label: const Text('Void this sale'),
                   onPressed: () async {
-                    final reason = await askVoidReason(context, title: 'Void sale to ${sale.buyerName}?');
+                    final reason = await askVoidReason(
+                      context,
+                      title: 'Void sale to ${sale.buyerName}?',
+                    );
                     if (reason == null || !context.mounted) return;
                     final error = await voidSale(ref, sale.id, reason);
                     if (!context.mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(error ?? 'Sale voided'), backgroundColor: error == null ? AppColors.success : null),
+                      SnackBar(
+                        content: Text(error ?? 'Sale voided'),
+                        backgroundColor: error == null
+                            ? AppColors.success
+                            : null,
+                      ),
                     );
                     if (error == null) Navigator.of(context).pop();
                   },
                 ),
               ],
               const SizedBox(height: 16),
-              const Text('History', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+              const Text(
+                'History',
+                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+              ),
               const SizedBox(height: 8),
               Flexible(
                 child: historyAsync.when(
@@ -93,13 +125,22 @@ class SaleDetailSheet extends ConsumerWidget {
                     entries: entries,
                     fieldLabels: _fieldLabels,
                     createdSummary: (v) => [
-                      if (v['quantity_litres'] != null) 'Litres: ${v['quantity_litres']} @ KES ${v['unit_price']}/L',
-                      if (v['amount_paid'] != null) 'Paid at sale: KES ${v['amount_paid']}',
+                      if (v['quantity_litres'] != null)
+                        'Litres: ${v['quantity_litres']} @ KES ${v['unit_price']}/L',
+                      if (v['amount_paid'] != null)
+                        'Paid at sale: KES ${v['amount_paid']}',
                     ],
                   ),
-                  loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
-                  error: (e, _) => Text(e.toString().replaceAll('Exception: ', ''),
-                      style: const TextStyle(fontSize: 12, color: AppColors.error)),
+                  loading: () => const Center(
+                    child: CircularProgressIndicator(color: AppColors.primary),
+                  ),
+                  error: (e, _) => Text(
+                    e.toString().replaceAll('Exception: ', ''),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.error,
+                    ),
+                  ),
                 ),
               ),
             ],

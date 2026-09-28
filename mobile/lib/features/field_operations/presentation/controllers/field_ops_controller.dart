@@ -10,7 +10,9 @@ import '../../data/models/field_ops_models.dart';
 import '../../data/repositories/field_ops_repository_impl.dart';
 import '../../domain/repositories/field_ops_repository.dart';
 
-final fieldOpsRemoteDataSourceProvider = Provider<FieldOpsRemoteDataSource>((ref) {
+final fieldOpsRemoteDataSourceProvider = Provider<FieldOpsRemoteDataSource>((
+  ref,
+) {
   final dio = ref.watch(dioClientProvider);
   return FieldOpsRemoteDataSourceImpl(dio);
 });
@@ -20,17 +22,21 @@ final fieldOpsRepositoryProvider = Provider<FieldOpsRepository>((ref) {
   return FieldOpsRepositoryImpl(dataSource);
 });
 
-final fieldOpsFilterDateProvider = StateProvider.autoDispose<String>((ref) => getTodayDateString());
+final fieldOpsFilterDateProvider = StateProvider.autoDispose<String>(
+  (ref) => getTodayDateString(),
+);
 
 final reconciliationProvider =
     FutureProvider.family<ReconciliationModel, String?>((ref, date) async {
-  final repository = ref.watch(fieldOpsRepositoryProvider);
-  return repository.getReconciliation(date: date);
-});
+      ref.reloadWhenNewerDataArrives();
+      final repository = ref.watch(fieldOpsRepositoryProvider);
+      return repository.getReconciliation(date: date);
+    });
 
-final saleHistoryProvider = FutureProvider.autoDispose.family<List<AuditLogModel>, String>((ref, id) async {
-  return ref.watch(fieldOpsRepositoryProvider).getSaleHistory(id);
-});
+final saleHistoryProvider = FutureProvider.autoDispose
+    .family<List<AuditLogModel>, String>((ref, id) async {
+      return ref.watch(fieldOpsRepositoryProvider).getSaleHistory(id);
+    });
 
 /// Voids a sale (admins only). Returns null on success or the error message.
 Future<String?> voidSale(WidgetRef ref, String id, String reason) async {
@@ -47,12 +53,16 @@ Future<String?> voidSale(WidgetRef ref, String id, String reason) async {
 }
 
 final salesListProvider = FutureProvider<List<MilkSaleModel>>((ref) async {
+  ref.reloadWhenNewerDataArrives();
   final repository = ref.watch(fieldOpsRepositoryProvider);
   final date = ref.watch(fieldOpsFilterDateProvider);
   return repository.listSales(fromDate: date, toDate: date);
 });
 
-final spoilageListProvider = FutureProvider<List<MilkSpoilageModel>>((ref) async {
+final spoilageListProvider = FutureProvider<List<MilkSpoilageModel>>((
+  ref,
+) async {
+  ref.reloadWhenNewerDataArrives();
   final repository = ref.watch(fieldOpsRepositoryProvider);
   final date = ref.watch(fieldOpsFilterDateProvider);
   return repository.listSpoilage(fromDate: date, toDate: date);
@@ -62,7 +72,8 @@ class RecordSaleController extends StateNotifier<AsyncValue<MilkSaleModel?>> {
   final FieldOpsRepository _repository;
   final Ref _ref;
 
-  RecordSaleController(this._repository, this._ref) : super(const AsyncValue.data(null));
+  RecordSaleController(this._repository, this._ref)
+    : super(const AsyncValue.data(null));
 
   Future<bool> recordSale(RecordSaleRequestModel request) async {
     state = const AsyncValue.loading();
@@ -80,16 +91,21 @@ class RecordSaleController extends StateNotifier<AsyncValue<MilkSaleModel?>> {
 }
 
 final recordSaleControllerProvider =
-    StateNotifierProvider.autoDispose<RecordSaleController, AsyncValue<MilkSaleModel?>>((ref) {
-  final repository = ref.watch(fieldOpsRepositoryProvider);
-  return RecordSaleController(repository, ref);
-});
+    StateNotifierProvider.autoDispose<
+      RecordSaleController,
+      AsyncValue<MilkSaleModel?>
+    >((ref) {
+      final repository = ref.watch(fieldOpsRepositoryProvider);
+      return RecordSaleController(repository, ref);
+    });
 
-class RecordSpoilageController extends StateNotifier<AsyncValue<MilkSpoilageModel?>> {
+class RecordSpoilageController
+    extends StateNotifier<AsyncValue<MilkSpoilageModel?>> {
   final FieldOpsRepository _repository;
   final Ref _ref;
 
-  RecordSpoilageController(this._repository, this._ref) : super(const AsyncValue.data(null));
+  RecordSpoilageController(this._repository, this._ref)
+    : super(const AsyncValue.data(null));
 
   Future<bool> recordSpoilage(RecordSpoilageRequestModel request) async {
     state = const AsyncValue.loading();
@@ -106,7 +122,10 @@ class RecordSpoilageController extends StateNotifier<AsyncValue<MilkSpoilageMode
 }
 
 final recordSpoilageControllerProvider =
-    StateNotifierProvider.autoDispose<RecordSpoilageController, AsyncValue<MilkSpoilageModel?>>((ref) {
-  final repository = ref.watch(fieldOpsRepositoryProvider);
-  return RecordSpoilageController(repository, ref);
-});
+    StateNotifierProvider.autoDispose<
+      RecordSpoilageController,
+      AsyncValue<MilkSpoilageModel?>
+    >((ref) {
+      final repository = ref.watch(fieldOpsRepositoryProvider);
+      return RecordSpoilageController(repository, ref);
+    });

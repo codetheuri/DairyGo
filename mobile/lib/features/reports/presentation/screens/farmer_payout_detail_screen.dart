@@ -18,11 +18,26 @@ class FarmerPayoutDetailScreen extends ConsumerWidget {
     if (parsed == null) return dateTimeStr;
     final local = parsed.toLocal();
     final day = local.day.toString().padLeft(2, '0');
-    final monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    final monthNames = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
     final month = monthNames[local.month - 1];
     final year = local.year;
 
-    final hour = local.hour > 12 ? local.hour - 12 : (local.hour == 0 ? 12 : local.hour);
+    final hour = local.hour > 12
+        ? local.hour - 12
+        : (local.hour == 0 ? 12 : local.hour);
     final minute = local.minute.toString().padLeft(2, '0');
     final period = local.hour >= 12 ? 'PM' : 'AM';
 
@@ -34,7 +49,20 @@ class FarmerPayoutDetailScreen extends ConsumerWidget {
     final parsed = DateTime.tryParse(dateStr);
     if (parsed == null) return dateStr.split('T').first;
     final day = parsed.day.toString().padLeft(2, '0');
-    final monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    final monthNames = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
     final month = monthNames[parsed.month - 1];
     return '$day $month';
   }
@@ -57,7 +85,10 @@ class FarmerPayoutDetailScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('${statement.farmerName} Statement', style: const TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(
+          '${statement.farmerName} Statement',
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
       ),
       body: Column(
         children: [
@@ -75,8 +106,13 @@ class FarmerPayoutDetailScreen extends ConsumerWidget {
                       backgroundColor: AppColors.accentMint,
                       foregroundColor: AppColors.primary,
                       child: Text(
-                        statement.farmerName.isNotEmpty ? statement.farmerName[0].toUpperCase() : 'F',
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                        statement.farmerName.isNotEmpty
+                            ? statement.farmerName[0].toUpperCase()
+                            : 'F',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 14),
@@ -95,12 +131,20 @@ class FarmerPayoutDetailScreen extends ConsumerWidget {
                           const SizedBox(height: 2),
                           Text(
                             'Member #: ${statement.membershipNumber} • ${statement.phone}',
-                            style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textSecondary,
+                            ),
                           ),
-                          if (statement.mpesaNumber != null && statement.mpesaNumber!.isNotEmpty)
+                          if (statement.mpesaNumber != null &&
+                              statement.mpesaNumber!.isNotEmpty)
                             Text(
                               'M-Pesa: ${statement.mpesaNumber}',
-                              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.primary),
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.primary,
+                              ),
                             ),
                         ],
                       ),
@@ -115,7 +159,9 @@ class FarmerPayoutDetailScreen extends ConsumerWidget {
                   decoration: BoxDecoration(
                     color: AppColors.accentMint,
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+                    border: Border.all(
+                      color: AppColors.primary.withValues(alpha: 0.2),
+                    ),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -157,12 +203,19 @@ class FarmerPayoutDetailScreen extends ConsumerWidget {
               children: [
                 const Text(
                   'Itemized Milk Intakes',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.textPrimary),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
                 Flexible(
                   child: Text(
                     'Period: $startShort - $endShort',
-                    style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textMuted,
+                    ),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -177,13 +230,17 @@ class FarmerPayoutDetailScreen extends ConsumerWidget {
                 if (collections.isEmpty) {
                   return const EmptyStateWidget(
                     title: 'No Intake Entries Found',
-                    description: 'No individual milk intake records for this farmer in selected period.',
+                    description:
+                        'No individual milk intake records for this farmer in selected period.',
                     icon: Icons.water_drop_outlined,
                   );
                 }
 
                 return ListView.separated(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                   itemCount: collections.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 8),
                   itemBuilder: (context, index) {
@@ -205,7 +262,11 @@ class FarmerPayoutDetailScreen extends ConsumerWidget {
                               color: AppColors.accentMint,
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: const Icon(Icons.water_drop_rounded, color: AppColors.primary, size: 20),
+                            child: const Icon(
+                              Icons.water_drop_rounded,
+                              color: AppColors.primary,
+                              size: 20,
+                            ),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
@@ -223,7 +284,10 @@ class FarmerPayoutDetailScreen extends ConsumerWidget {
                                 const SizedBox(height: 2),
                                 Text(
                                   'Shift: ${item.shift} • Rate: KES ${item.pricePerLitre.toStringAsFixed(0)}/L',
-                                  style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    color: AppColors.textSecondary,
+                                  ),
                                 ),
                               ],
                             ),
@@ -255,7 +319,9 @@ class FarmerPayoutDetailScreen extends ConsumerWidget {
                   },
                 );
               },
-              loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+              loading: () => const Center(
+                child: CircularProgressIndicator(color: AppColors.primary),
+              ),
               error: (err, stack) => ErrorView(
                 message: err.toString().replaceAll('Exception: ', ''),
                 onRetry: () => ref.refresh(
@@ -273,7 +339,12 @@ class FarmerPayoutDetailScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSummaryStat(String label, String value, Color color, {bool isBold = false}) {
+  Widget _buildSummaryStat(
+    String label,
+    String value,
+    Color color, {
+    bool isBold = false,
+  }) {
     return Column(
       children: [
         Text(
@@ -285,7 +356,10 @@ class FarmerPayoutDetailScreen extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: 2),
-        Text(label, style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+        ),
       ],
     );
   }

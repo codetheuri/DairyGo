@@ -7,6 +7,10 @@ abstract class AuthRepository {
   Future<UserEntity?> getCurrentUser();
   Future<UserEntity> register(RegisterRequest request);
   Future<List<UserEntity>> listUsers();
-  Future<void> changePassword(String currentPassword, String newPassword, String confirmPassword);
+  Future<void> changePassword(
+    String currentPassword,
+    String newPassword,
+    String confirmPassword,
+  );
   Future<void> logout();
 }

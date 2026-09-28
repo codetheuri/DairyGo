@@ -18,5 +18,6 @@ class AuditLogModel with _$AuditLogModel {
     @JsonKey(name: 'created_at') String? createdAt,
   }) = _AuditLogModel;
 
-  factory AuditLogModel.fromJson(Map<String, dynamic> json) => _$AuditLogModelFromJson(json);
+  factory AuditLogModel.fromJson(Map<String, dynamic> json) =>
+      _$AuditLogModelFromJson(json);
 }

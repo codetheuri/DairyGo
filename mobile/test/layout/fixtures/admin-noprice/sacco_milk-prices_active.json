@@ -1,0 +1,10 @@
+{
+  "status": 404,
+  "body": {
+    "success": false,
+    "message": "no milk price configured for this Sacco on 2026-09-28",
+    "errors": {
+      "server": "no milk price configured for this Sacco on 2026-09-28"
+    }
+  }
+}

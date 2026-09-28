@@ -13,11 +13,15 @@ class RecordPaymentDialog extends ConsumerStatefulWidget {
   const RecordPaymentDialog({super.key, required this.customer});
 
   static Future<bool?> show(BuildContext context, CustomerModel customer) {
-    return showDialog<bool>(context: context, builder: (_) => RecordPaymentDialog(customer: customer));
+    return showDialog<bool>(
+      context: context,
+      builder: (_) => RecordPaymentDialog(customer: customer),
+    );
   }
 
   @override
-  ConsumerState<RecordPaymentDialog> createState() => _RecordPaymentDialogState();
+  ConsumerState<RecordPaymentDialog> createState() =>
+      _RecordPaymentDialogState();
 }
 
 class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
@@ -36,12 +40,16 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    final error = await ref.read(customerActionsProvider.notifier).recordPayment(
+    final error = await ref
+        .read(customerActionsProvider.notifier)
+        .recordPayment(
           widget.customer.id,
           RecordPaymentRequestModel(
             amount: double.parse(_amountController.text.trim()),
             method: _method,
-            reference: _referenceController.text.trim().isEmpty ? null : _referenceController.text.trim(),
+            reference: _referenceController.text.trim().isEmpty
+                ? null
+                : _referenceController.text.trim(),
           ),
         );
     if (!mounted) return;
@@ -58,7 +66,10 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
     final balance = widget.customer.balance;
 
     return AlertDialog(
-      title: Text('Payment from ${widget.customer.name}', style: const TextStyle(fontWeight: FontWeight.bold)),
+      title: Text(
+        'Payment from ${widget.customer.name}',
+        style: const TextStyle(fontWeight: FontWeight.bold),
+      ),
       content: SingleChildScrollView(
         child: Form(
           key: _formKey,
@@ -67,21 +78,33 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (balance != null)
-                Text('Currently owes KES ${balance.toStringAsFixed(2)}',
-                    style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                Text(
+                  'Currently owes KES ${balance.toStringAsFixed(2)}',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
               if (_error != null) ...[
                 const SizedBox(height: 8),
-                Text(_error!, style: const TextStyle(color: AppColors.error, fontSize: 12)),
+                Text(
+                  _error!,
+                  style: const TextStyle(color: AppColors.error, fontSize: 12),
+                ),
               ],
               const SizedBox(height: 12),
               AppTextField(
                 label: 'Amount received (KES) *',
                 controller: _amountController,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
                 prefixIcon: Icons.payments_rounded,
                 validator: (v) {
                   final d = double.tryParse(v?.trim() ?? '');
-                  return (d == null || d <= 0) ? 'Enter a positive amount' : null;
+                  return (d == null || d <= 0)
+                      ? 'Enter a positive amount'
+                      : null;
                 },
               ),
               const SizedBox(height: 12),
@@ -91,7 +114,10 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
                 items: const [
                   DropdownMenuItem(value: 'MPESA', child: Text('M-Pesa')),
                   DropdownMenuItem(value: 'CASH', child: Text('Cash')),
-                  DropdownMenuItem(value: 'BANK_TRANSFER', child: Text('Bank Transfer')),
+                  DropdownMenuItem(
+                    value: 'BANK_TRANSFER',
+                    child: Text('Bank Transfer'),
+                  ),
                   DropdownMenuItem(value: 'CHEQUE', child: Text('Cheque')),
                 ],
                 onChanged: (v) => setState(() => _method = v ?? 'CASH'),
@@ -107,9 +133,15 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
         ),
       ),
       actions: [
-        TextButton(onPressed: isLoading ? null : () => Navigator.of(context).pop(), child: const Text('Cancel')),
+        TextButton(
+          onPressed: isLoading ? null : () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
         ElevatedButton(
-          style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primary,
+            foregroundColor: Colors.white,
+          ),
           onPressed: isLoading ? null : _submit,
           child: const Text('Record Payment'),
         ),
@@ -128,10 +160,16 @@ Future<String?> askVoidReason(BuildContext context, {required String title}) {
       content: TextField(
         controller: controller,
         autofocus: true,
-        decoration: const InputDecoration(labelText: 'Reason *', hintText: 'e.g. recorded twice'),
+        decoration: const InputDecoration(
+          labelText: 'Reason *',
+          hintText: 'e.g. recorded twice',
+        ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancel')),
+        TextButton(
+          onPressed: () => Navigator.of(ctx).pop(),
+          child: const Text('Cancel'),
+        ),
         TextButton(
           onPressed: () {
             final reason = controller.text.trim();

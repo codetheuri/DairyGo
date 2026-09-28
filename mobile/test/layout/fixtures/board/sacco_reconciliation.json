@@ -1,0 +1,26 @@
+{
+  "status": 200,
+  "body": {
+    "success": true,
+    "message": "Collector daily reconciliation summary retrieved",
+    "data": {
+      "reconciliation": {
+        "collector_id": 30,
+        "collector_name": "uxboard",
+        "date": "2026-09-28",
+        "total_collected_litres": 0,
+        "total_sold_litres": 0,
+        "total_spoiled_litres": 0,
+        "unaccounted_litres": 0,
+        "allowance_litres": 0,
+        "is_balanced": true,
+        "balance_status": "BALANCED",
+        "total_sales_amount": 0,
+        "cash_received_amount": 0,
+        "credit_sales_amount": 0,
+        "total_purchases_amount": 0,
+        "sales_by_customer_type": null
+      }
+    }
+  }
+}

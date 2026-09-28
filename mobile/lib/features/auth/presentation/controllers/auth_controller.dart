@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/cache/response_cache.dart';
 import '../../../../core/network/dio_client.dart';
 import '../../../../core/storage/secure_storage_service.dart';
 import '../../data/datasources/auth_remote_data_source.dart';
@@ -8,22 +11,31 @@ import '../../domain/entities/auth_state.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
 
-import '../../../reports/presentation/controllers/report_controller.dart';
-
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
-  final dio = ref.watch(dioClientProvider);
+  final dio = ref.watch(authDioProvider);
   final storageService = ref.watch(secureStorageServiceProvider);
   final remoteDS = AuthRemoteDataSourceImpl(dio);
   return AuthRepositoryImpl(remoteDS, storageService);
 });
 
-final saccoStaffListProvider = FutureProvider.autoDispose<List<UserEntity>>((ref) async {
+final saccoStaffListProvider = FutureProvider.autoDispose<List<UserEntity>>((
+  ref,
+) async {
   final repo = ref.watch(authRepositoryProvider);
   return repo.listUsers();
 });
 
-final authControllerProvider =
-    AsyncNotifierProvider<AuthController, AuthState>(AuthController.new);
+final authControllerProvider = AsyncNotifierProvider<AuthController, AuthState>(
+  AuthController.new,
+);
+
+/// The signed-in user's id, or null when signed out. Data providers depend on
+/// it through [dioClientProvider], so they all reload when the user changes.
+final sessionUserIdProvider = Provider<int?>((ref) {
+  return ref.watch(
+    authControllerProvider.select((s) => s.valueOrNull?.user?.id),
+  );
+});
 
 class AuthController extends AsyncNotifier<AuthState> {
   @override
@@ -38,18 +50,30 @@ class AuthController extends AsyncNotifier<AuthState> {
   }
 
   Future<void> login(String identity, String password) async {
-    state = const AsyncValue.loading();
+    // Keep the previous (signed-out) state while loading, so the router
+    // leaves the login screen up with its spinner.
+    state = const AsyncLoading<AuthState>().copyWithPrevious(state);
     final repo = ref.read(authRepositoryProvider);
     final result = await repo.login(identity: identity, password: password);
-
-    invalidateAllAppMetrics(ref);
     state = AsyncValue.data(result);
   }
 
   Future<void> logout() async {
     final repo = ref.read(authRepositoryProvider);
     await repo.logout();
-    invalidateAllAppMetrics(ref);
+    await ResponseCache.clearAll(); // no saved data left for the next user
     state = AsyncValue.data(AuthState.unauthenticated());
+  }
+
+  /// Called when the server rejects the token (expired, user deactivated or
+  /// Sacco suspended). Several requests can fail at once, so only the first
+  /// one signs the user out.
+  void expireSession() {
+    if (state.valueOrNull?.isAuthenticated != true) return;
+    unawaited(ref.read(authRepositoryProvider).logout());
+    unawaited(ResponseCache.clearAll());
+    state = AsyncValue.data(
+      AuthState.unauthenticated('Your session has ended. Please log in again.'),
+    );
   }
 }

@@ -12,5 +12,6 @@ class CustomerTypeTotalModel with _$CustomerTypeTotalModel {
     @Default(0.0) double revenue,
   }) = _CustomerTypeTotalModel;
 
-  factory CustomerTypeTotalModel.fromJson(Map<String, dynamic> json) => _$CustomerTypeTotalModelFromJson(json);
+  factory CustomerTypeTotalModel.fromJson(Map<String, dynamic> json) =>
+      _$CustomerTypeTotalModelFromJson(json);
 }

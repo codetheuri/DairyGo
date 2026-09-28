@@ -1,0 +1,30 @@
+{
+  "status": 200,
+  "body": {
+    "success": true,
+    "message": "Customer balances retrieved",
+    "data": {
+      "balances": [
+        {
+          "customer_id": "214628a3-9562-4c8a-b844-343584aa8abe",
+          "name": "Githunguri Dairy Farmers Cooperative Cooler Number Two",
+          "phone": "0733000001",
+          "customer_type": "COOLER",
+          "total_sales": 93000,
+          "total_paid": 0,
+          "balance": 93000
+        },
+        {
+          "customer_id": "cf623959-71f2-4fd4-a77d-65ac7198ca37",
+          "name": "Mama Njeri Hotel",
+          "phone": "0733000002",
+          "customer_type": "HOTEL",
+          "total_sales": 2800,
+          "total_paid": 1000,
+          "balance": 1800
+        }
+      ],
+      "total_owed": 94800
+    }
+  }
+}

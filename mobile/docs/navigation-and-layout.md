@@ -69,7 +69,7 @@ for each role and main screen, on these sizes, at 1.0x and the largest text:
 It fails on any layout error and reports the widget's file and line, for
 example `RenderFlex overflowed by 24 pixels [features/.../screen.dart:314]`.
 It also checks key text, such as the set-price button for a Sacco with no
-price. When adding a screen, add its route to `_routesByRole`.
+price. When adding a screen, add its route to `routesByRole` in `harness.dart`; both tests use it.
 
 ## Safe-area test
 

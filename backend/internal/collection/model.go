@@ -45,21 +45,25 @@ func (MilkPrice) TableName() string {
 
 // MilkCollection represents a single farmer milk intake entry.
 type MilkCollection struct {
-	ID             string           `json:"id" gorm:"primaryKey;type:varchar(36)"`
-	SaccoID        string           `json:"sacco_id" gorm:"index;type:varchar(36);not null"`
-	MemberID       string           `json:"member_id" gorm:"index;type:varchar(36);not null"`
-	CollectorID    uint             `json:"collector_id" gorm:"index;not null"`
-	CollectorName  string           `json:"collector_name,omitempty" gorm:"-"`
-	CollectionDate time.Time        `json:"collection_date" gorm:"type:date;not null;index"`
-	Shift          Shift            `json:"shift" gorm:"default:'MORNING';not null"`
-	QuantityLitres float64          `json:"quantity_litres" gorm:"type:decimal(10,2);not null"`
-	PricePerLitre  float64          `json:"price_per_litre" gorm:"type:decimal(10,2);not null"` // Snapshot price
-	TotalAmount    float64          `json:"total_amount" gorm:"type:decimal(12,2);not null"`    // Snapshot total
-	Status         CollectionStatus `json:"status" gorm:"default:'SUBMITTED';index"`
-	Notes          *string          `json:"notes,omitempty"`
-	CreatedAt      time.Time        `json:"created_at"`
-	UpdatedAt      time.Time        `json:"updated_at"`
-	DeletedAt      gorm.DeletedAt   `json:"deleted_at,omitempty" gorm:"index"`
+	ID            string `json:"id" gorm:"primaryKey;type:varchar(36)"`
+	SaccoID       string `json:"sacco_id" gorm:"index;type:varchar(36);not null"`
+	MemberID      string `json:"member_id" gorm:"index;type:varchar(36);not null"`
+	CollectorID   uint   `json:"collector_id" gorm:"index;not null"`
+	CollectorName string `json:"collector_name,omitempty" gorm:"-"`
+	// MemberName and MembershipNumber are filled in on lists so the app does
+	// not have to download the farmer directory to label each row.
+	MemberName       string           `json:"member_name,omitempty" gorm:"-"`
+	MembershipNumber string           `json:"membership_number,omitempty" gorm:"-"`
+	CollectionDate   time.Time        `json:"collection_date" gorm:"type:date;not null;index"`
+	Shift            Shift            `json:"shift" gorm:"default:'MORNING';not null"`
+	QuantityLitres   float64          `json:"quantity_litres" gorm:"type:decimal(10,2);not null"`
+	PricePerLitre    float64          `json:"price_per_litre" gorm:"type:decimal(10,2);not null"` // Snapshot price
+	TotalAmount      float64          `json:"total_amount" gorm:"type:decimal(12,2);not null"`    // Snapshot total
+	Status           CollectionStatus `json:"status" gorm:"default:'SUBMITTED';index"`
+	Notes            *string          `json:"notes,omitempty"`
+	CreatedAt        time.Time        `json:"created_at"`
+	UpdatedAt        time.Time        `json:"updated_at"`
+	DeletedAt        gorm.DeletedAt   `json:"deleted_at,omitempty" gorm:"index"`
 }
 
 func (MilkCollection) TableName() string {

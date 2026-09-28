@@ -5,8 +5,9 @@
 /// For physical mobile device testing on local network, update to your local LAN IP (e.g. `http://192.168.x.x:8081`).
 abstract class ApiConstants {
   static const String baseUrl = 'https://apis.dairy.urizon.co.ke';
-  static const Duration connectionTimeout = Duration(seconds: 15);
-  static const Duration receiveTimeout = Duration(seconds: 15);
+  static const Duration connectionTimeout = Duration(seconds: 20);
+  // Generous so a page still arrives on a ~100 kbps rural connection.
+  static const Duration receiveTimeout = Duration(seconds: 45);
 
   // Auth Routes
   static const String login = '/api/v1/auth/login';

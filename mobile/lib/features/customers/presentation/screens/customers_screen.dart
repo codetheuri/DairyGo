@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../core/pagination/paged_list_notifier.dart';
 import '../../../../core/widgets/empty_state_widget.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
@@ -56,7 +57,9 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
           Container(
             color: Colors.white,
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
-            child: TextField(
+            child: TextFormField(
+              // The list remembers its search between visits, so show it.
+              initialValue: ref.read(customerSearchProvider),
               decoration: InputDecoration(
                 hintText: 'Search by name or phone',
                 prefixIcon: const Icon(Icons.search_rounded),
@@ -74,7 +77,8 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
           if (seesBalances) const _TotalOwedBanner(),
           Expanded(
             child: customersAsync.when(
-              data: (customers) {
+              data: (paged) {
+                final customers = paged.items;
                 if (customers.isEmpty) {
                   return const EmptyStateWidget(
                     title: 'No customers yet',
@@ -86,9 +90,14 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                   onRefresh: () async => ref.refresh(customersListProvider),
                   child: ListView.separated(
                     padding: const EdgeInsets.all(12),
-                    itemCount: customers.length,
+                    itemCount: customers.length + (paged.showFooter ? 1 : 0),
                     separatorBuilder: (_, __) => const SizedBox(height: 6),
-                    itemBuilder: (_, i) => _CustomerTile(customer: customers[i]),
+                    itemBuilder: (_, i) => i == customers.length
+                        ? PagedListFooter(
+                            list: paged,
+                            onLoadMore: () => ref.read(customersListProvider.notifier).loadMore(),
+                          )
+                        : _CustomerTile(customer: customers[i]),
                   ),
                 );
               },

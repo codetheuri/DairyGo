@@ -45,13 +45,13 @@ class CollectorAuditDetailScreen extends ConsumerWidget {
     final toDate = ref.watch(reportFilterToDateProvider);
 
     final collectionsAsync = ref.watch(
-      collectorMonthCollectionsProvider((fromDate: fromDate, toDate: toDate)),
+      collectorMonthCollectionsProvider((collectorId: summary.collectorId, fromDate: fromDate, toDate: toDate)),
     );
     final salesAsync = ref.watch(
-      collectorMonthSalesProvider((fromDate: fromDate, toDate: toDate)),
+      collectorMonthSalesProvider((collectorId: summary.collectorId, fromDate: fromDate, toDate: toDate)),
     );
     final spoilageAsync = ref.watch(
-      collectorMonthSpoilageProvider((fromDate: fromDate, toDate: toDate)),
+      collectorMonthSpoilageProvider((collectorId: summary.collectorId, fromDate: fromDate, toDate: toDate)),
     );
 
     return Scaffold(
@@ -266,21 +266,21 @@ class CollectorAuditDetailScreen extends ConsumerWidget {
                       loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
                       error: (e, s) => ErrorView(
                         message: e.toString(),
-                        onRetry: () => ref.refresh(collectorMonthSpoilageProvider((fromDate: fromDate, toDate: toDate))),
+                        onRetry: () => ref.refresh(collectorMonthSpoilageProvider((collectorId: summary.collectorId, fromDate: fromDate, toDate: toDate))),
                       ),
                     );
                   },
                   loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
                   error: (e, s) => ErrorView(
                     message: e.toString(),
-                    onRetry: () => ref.refresh(collectorMonthSalesProvider((fromDate: fromDate, toDate: toDate))),
+                    onRetry: () => ref.refresh(collectorMonthSalesProvider((collectorId: summary.collectorId, fromDate: fromDate, toDate: toDate))),
                   ),
                 );
               },
               loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
               error: (e, s) => ErrorView(
                 message: e.toString(),
-                onRetry: () => ref.refresh(collectorMonthCollectionsProvider((fromDate: fromDate, toDate: toDate))),
+                onRetry: () => ref.refresh(collectorMonthCollectionsProvider((collectorId: summary.collectorId, fromDate: fromDate, toDate: toDate))),
               ),
             ),
           ),

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_router.dart';
 import '../../../../app/theme/app_colors.dart';
+import '../../../../core/pagination/paged_list_notifier.dart';
 import '../../../../core/widgets/empty_state_widget.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/status_pill.dart';
@@ -115,7 +116,8 @@ class FarmerDirectoryScreen extends ConsumerWidget {
           // Member List View
           Expanded(
             child: membersAsync.when(
-              data: (members) {
+              data: (paged) {
+                final members = paged.items;
                 if (members.isEmpty) {
                   return EmptyStateWidget(
                     title: 'No Farmers Found',
@@ -132,9 +134,15 @@ class FarmerDirectoryScreen extends ConsumerWidget {
                   onRefresh: () async => ref.refresh(membersListProvider),
                   child: ListView.separated(
                     padding: const EdgeInsets.all(16),
-                    itemCount: members.length,
+                    itemCount: members.length + (paged.showFooter ? 1 : 0),
                     separatorBuilder: (_, __) => const SizedBox(height: 12),
                     itemBuilder: (context, index) {
+                      if (index == members.length) {
+                        return PagedListFooter(
+                          list: paged,
+                          onLoadMore: () => ref.read(membersListProvider.notifier).loadMore(),
+                        );
+                      }
                       final member = members[index];
                       return Material(
                         color: Colors.white,

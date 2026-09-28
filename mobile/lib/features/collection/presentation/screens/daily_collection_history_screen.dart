@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_router.dart';
 import '../../../../app/theme/app_colors.dart';
+import '../../../../core/pagination/paged_list_notifier.dart';
 import '../../../../core/widgets/empty_state_widget.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
@@ -224,7 +225,8 @@ class DailyCollectionHistoryScreen extends ConsumerWidget {
           // High-Density Populated Collections List
           Expanded(
             child: collectionsAsync.when(
-              data: (collections) {
+              data: (paged) {
+                final collections = paged.items;
                 if (collections.isEmpty) {
                   return RefreshIndicator(
                     onRefresh: () async => ref.refresh(milkCollectionsListProvider),
@@ -250,9 +252,15 @@ class DailyCollectionHistoryScreen extends ConsumerWidget {
                   onRefresh: () async => ref.refresh(milkCollectionsListProvider),
                   child: ListView.separated(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    itemCount: collections.length,
+                    itemCount: collections.length + (paged.showFooter ? 1 : 0),
                     separatorBuilder: (_, __) => const SizedBox(height: 6),
                     itemBuilder: (context, index) {
+                      if (index == collections.length) {
+                        return PagedListFooter(
+                          list: paged,
+                          onLoadMore: () => ref.read(milkCollectionsListProvider.notifier).loadMore(),
+                        );
+                      }
                       final item = collections[index];
                       final farmerName = item.memberName ?? 'Farmer';
                       final timeLabel = _formatCollectedTime(item.createdAt, item.shift);

@@ -1,5 +1,6 @@
 import '../datasources/milk_collection_remote_data_source.dart';
 import '../../../../core/models/audit_log_model.dart';
+import '../../../../core/pagination/page_result.dart';
 import '../models/milk_collection_model.dart';
 import '../../domain/repositories/milk_collection_repository.dart';
 
@@ -14,8 +15,9 @@ class MilkCollectionRepositoryImpl implements MilkCollectionRepository {
   }
 
   @override
-  Future<List<MilkCollectionModel>> listCollections({
+  Future<PageResult<MilkCollectionModel>> listCollections({
     String? memberId,
+    int? collectorId,
     String? fromDate,
     String? toDate,
     String? shift,
@@ -26,6 +28,7 @@ class MilkCollectionRepositoryImpl implements MilkCollectionRepository {
   }) {
     return _remoteDataSource.listCollections(
       memberId: memberId,
+      collectorId: collectorId,
       fromDate: fromDate,
       toDate: toDate,
       shift: shift,

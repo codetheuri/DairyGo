@@ -1,12 +1,14 @@
 import 'package:dio/dio.dart';
 import '../../../../core/models/audit_log_model.dart';
+import '../../../../core/pagination/page_result.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../models/milk_collection_model.dart';
 
 abstract class MilkCollectionRemoteDataSource {
   Future<MilkPriceModel> getActivePrice();
-  Future<List<MilkCollectionModel>> listCollections({
+  Future<PageResult<MilkCollectionModel>> listCollections({
     String? memberId,
+    int? collectorId,
     String? fromDate,
     String? toDate,
     String? shift,
@@ -45,8 +47,9 @@ class MilkCollectionRemoteDataSourceImpl implements MilkCollectionRemoteDataSour
   }
 
   @override
-  Future<List<MilkCollectionModel>> listCollections({
+  Future<PageResult<MilkCollectionModel>> listCollections({
     String? memberId,
+    int? collectorId,
     String? fromDate,
     String? toDate,
     String? shift,
@@ -61,6 +64,7 @@ class MilkCollectionRemoteDataSourceImpl implements MilkCollectionRemoteDataSour
         'per_page': perPage,
       };
       if (memberId != null && memberId.isNotEmpty) queryParams['member_id'] = memberId;
+      if (collectorId != null) queryParams['collector_id'] = collectorId;
       if (fromDate != null && fromDate.isNotEmpty) queryParams['from_date'] = fromDate;
       if (toDate != null && toDate.isNotEmpty) queryParams['to_date'] = toDate;
       if (shift != null && shift.isNotEmpty) queryParams['shift'] = shift;
@@ -74,10 +78,7 @@ class MilkCollectionRemoteDataSourceImpl implements MilkCollectionRemoteDataSour
 
       final data = response.data as Map<String, dynamic>;
       if (data['success'] == true && data['data'] != null) {
-        final list = (data['data']['collections'] as List? ?? [])
-            .map((e) => MilkCollectionModel.fromJson(e as Map<String, dynamic>))
-            .toList();
-        return list;
+        return PageResult.fromData(data['data'] as Map<String, dynamic>, 'collections', MilkCollectionModel.fromJson);
       }
       throw Exception(data['message'] ?? 'Failed to load milk collections');
     } on DioException catch (e) {

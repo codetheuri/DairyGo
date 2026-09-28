@@ -8,6 +8,7 @@ import '../storage/secure_storage_service.dart';
 import 'auth_interceptor.dart';
 import 'network_connectivity_interceptor.dart';
 import 'network_connectivity_service.dart';
+import 'retry_interceptor.dart';
 
 /// Dio for the auth endpoints (login, current user, staff). The session is
 /// built from these calls, so this client must not depend on it.
@@ -53,6 +54,7 @@ class DioClient {
 
     dio.interceptors.add(NetworkConnectivityInterceptor(connectivityService));
     dio.interceptors.add(AuthInterceptor(storageService, onSessionExpired: onSessionExpired));
+    dio.interceptors.add(RetryInterceptor(dio));
 
     if (kDebugMode) {
       dio.interceptors.add(

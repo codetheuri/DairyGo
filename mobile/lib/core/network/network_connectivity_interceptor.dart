@@ -34,7 +34,9 @@ class NetworkConnectivityInterceptor extends Interceptor {
         requestOptions: err.requestOptions,
         type: err.type,
         response: err.response,
-        error: 'No internet connection. Please verify your mobile data or Wi-Fi.',
+        error: err.type == DioExceptionType.connectionError
+            ? 'No internet connection. Please verify your mobile data or Wi-Fi.'
+            : 'The network is too slow right now and the server did not answer in time. Please try again.',
       );
       return super.onError(customError, handler);
     }

@@ -1,7 +1,8 @@
+import '../../../../core/pagination/page_result.dart';
 import '../../data/models/customer_models.dart';
 
 abstract class CustomerRepository {
-  Future<List<CustomerModel>> listCustomers({String? search, String? status, int perPage = 50});
+  Future<PageResult<CustomerModel>> listCustomers({String? search, String? status, int page = 1, int perPage = 50});
   Future<CustomerModel> getCustomer(String id);
   Future<CustomerModel> createCustomer(CreateCustomerRequestModel request);
   Future<CustomerModel> setStatus(String id, String status);

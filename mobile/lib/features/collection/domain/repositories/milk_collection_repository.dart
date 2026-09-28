@@ -1,10 +1,12 @@
 import '../../data/models/milk_collection_model.dart';
 import '../../../../core/models/audit_log_model.dart';
+import '../../../../core/pagination/page_result.dart';
 
 abstract class MilkCollectionRepository {
   Future<MilkPriceModel> getActivePrice();
-  Future<List<MilkCollectionModel>> listCollections({
+  Future<PageResult<MilkCollectionModel>> listCollections({
     String? memberId,
+    int? collectorId,
     String? fromDate,
     String? toDate,
     String? shift,

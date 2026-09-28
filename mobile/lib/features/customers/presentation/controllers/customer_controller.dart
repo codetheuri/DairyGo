@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/network/dio_client.dart';
+import '../../../../core/pagination/paged_list_notifier.dart';
 import '../../data/datasources/customer_remote_data_source.dart';
 import '../../data/models/customer_models.dart';
 import '../../data/repositories/customer_repository_impl.dart';
@@ -14,15 +15,29 @@ final customerRepositoryProvider = Provider<CustomerRepository>((ref) {
 /// Search text for the customers list screen.
 final customerSearchProvider = StateProvider.autoDispose<String>((ref) => '');
 
-final customersListProvider = FutureProvider.autoDispose<List<CustomerModel>>((ref) async {
-  final search = ref.watch(customerSearchProvider);
-  return ref.watch(customerRepositoryProvider).listCustomers(search: search, perPage: 100);
-});
+/// The customers list, loaded page by page as the user scrolls. The screen
+/// already waits for a pause in typing before changing the search.
+final customersListProvider =
+    AsyncNotifierProvider<CustomersListNotifier, PagedList<CustomerModel>>(CustomersListNotifier.new);
+
+class CustomersListNotifier extends PagedListNotifier<CustomerModel> {
+  @override
+  Future<PagedList<CustomerModel>> build() {
+    final repository = ref.watch(customerRepositoryProvider);
+    final search = ref.watch(customerSearchProvider);
+    return loadFirstPage((page) => repository.listCustomers(
+          search: search,
+          page: page,
+          perPage: PagedListNotifier.pageSize,
+        ));
+  }
+}
 
 /// Active customers matching a search, used by the sale customer picker.
 final customerPickerResultsProvider =
     FutureProvider.autoDispose.family<List<CustomerModel>, String>((ref, search) async {
-  return ref.watch(customerRepositoryProvider).listCustomers(search: search, status: 'ACTIVE', perPage: 30);
+  final result = await ref.watch(customerRepositoryProvider).listCustomers(search: search, status: 'ACTIVE', perPage: 30);
+  return result.items;
 });
 
 final customerDetailProvider = FutureProvider.autoDispose.family<CustomerModel, String>((ref, id) async {

@@ -1,9 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../core/pagination/page_result.dart';
+import '../../../../core/pagination/paged_list_notifier.dart';
 import '../../../../core/models/audit_log_model.dart';
 
 import '../../../../core/network/dio_client.dart';
-import '../../../members/data/models/member_model.dart';
-import '../../../members/presentation/controllers/member_controller.dart';
 import '../../../reports/presentation/controllers/report_controller.dart';
 import '../../data/datasources/milk_collection_remote_data_source.dart';
 import '../../data/models/milk_collection_model.dart';
@@ -43,40 +44,39 @@ final collectionFilterShiftProvider = StateProvider.autoDispose<String?>((ref) =
 final collectionFilterDateProvider = StateProvider.autoDispose<String>((ref) => getTodayDateString());
 final collectionSearchProvider = StateProvider.autoDispose<String>((ref) => '');
 
+/// One day's collections, loaded page by page as the user scrolls. The server
+/// sends each row's farmer name, so no farmer list is downloaded.
 final milkCollectionsListProvider =
-    FutureProvider<List<MilkCollectionModel>>((ref) async {
-  final repository = ref.watch(milkCollectionRepositoryProvider);
-  final memberRepo = ref.watch(memberRepositoryProvider);
-  final shift = ref.watch(collectionFilterShiftProvider);
-  final date = ref.watch(collectionFilterDateProvider);
-  final search = ref.watch(collectionSearchProvider);
+    AsyncNotifierProvider<MilkCollectionsListNotifier, PagedList<MilkCollectionModel>>(
+        MilkCollectionsListNotifier.new);
 
-  final collections = await repository.listCollections(
-    shift: shift,
-    fromDate: date,
-    toDate: date,
-    search: search,
-    perPage: 100,
-  );
+class MilkCollectionsListNotifier extends PagedListNotifier<MilkCollectionModel> {
+  @override
+  Future<PagedList<MilkCollectionModel>> build() async {
+    final repository = ref.watch(milkCollectionRepositoryProvider);
+    final shift = ref.watch(collectionFilterShiftProvider);
+    final date = ref.watch(collectionFilterDateProvider);
+    final search = ref.watch(collectionSearchProvider).trim();
+    await debounce(search);
 
-  // Cross-reference members to populate farmer full name & membership number
-  final members = await memberRepo.listMembers(perPage: 200).catchError((_) => <MemberModel>[]);
-  final memberMap = {for (var m in members) m.id: m};
+    return loadFirstPage((page) async {
+      final result = await repository.listCollections(
+        shift: shift,
+        fromDate: date,
+        toDate: date,
+        search: search,
+        page: page,
+        perPage: PagedListNotifier.pageSize,
+      );
+      return PageResult(result.items.map(_withCollectorLabel).toList(), hasMore: result.hasMore);
+    });
+  }
 
-  return collections.map((c) {
-    final member = memberMap[c.memberId];
-    final backendCollectorName = c.collectorName;
-    final fallbackCollectorName = backendCollectorName != null && backendCollectorName.isNotEmpty
-        ? backendCollectorName
-        : 'Staff #${c.collectorId}';
-
-    return c.copyWith(
-      memberName: member?.fullName ?? c.memberName,
-      membershipNumber: member?.membershipNumber ?? c.membershipNumber,
-      collectorName: fallbackCollectorName,
-    );
-  }).toList();
-});
+  static MilkCollectionModel _withCollectorLabel(MilkCollectionModel c) {
+    final name = c.collectorName;
+    return name != null && name.isNotEmpty ? c : c.copyWith(collectorName: 'Staff #${c.collectorId}');
+  }
+}
 
 class RecordMilkCollectionController
     extends StateNotifier<AsyncValue<MilkCollectionModel?>> {

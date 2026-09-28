@@ -20,8 +20,8 @@ class FieldOpsRepositoryImpl implements FieldOpsRepository {
   Future<List<AuditLogModel>> getSaleHistory(String id) => _remoteDataSource.getSaleHistory(id);
 
   @override
-  Future<List<MilkSaleModel>> listSales({String? fromDate, String? toDate, String? search}) {
-    return _remoteDataSource.listSales(fromDate: fromDate, toDate: toDate, search: search);
+  Future<List<MilkSaleModel>> listSales({String? fromDate, String? toDate, String? search, int? collectorId}) {
+    return _remoteDataSource.listSales(fromDate: fromDate, toDate: toDate, search: search, collectorId: collectorId);
   }
 
   @override
@@ -30,8 +30,8 @@ class FieldOpsRepositoryImpl implements FieldOpsRepository {
   }
 
   @override
-  Future<List<MilkSpoilageModel>> listSpoilage({String? fromDate, String? toDate}) {
-    return _remoteDataSource.listSpoilage(fromDate: fromDate, toDate: toDate);
+  Future<List<MilkSpoilageModel>> listSpoilage({String? fromDate, String? toDate, int? collectorId}) {
+    return _remoteDataSource.listSpoilage(fromDate: fromDate, toDate: toDate, collectorId: collectorId);
   }
 
   @override

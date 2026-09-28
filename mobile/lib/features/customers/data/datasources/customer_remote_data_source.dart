@@ -1,10 +1,11 @@
 import 'package:dio/dio.dart';
+import '../../../../core/pagination/page_result.dart';
 
 import '../../../../core/constants/api_constants.dart';
 import '../models/customer_models.dart';
 
 abstract class CustomerRemoteDataSource {
-  Future<List<CustomerModel>> listCustomers({String? search, String? status, int perPage = 50});
+  Future<PageResult<CustomerModel>> listCustomers({String? search, String? status, int page = 1, int perPage = 50});
   Future<CustomerModel> getCustomer(String id);
   Future<CustomerModel> createCustomer(CreateCustomerRequestModel request);
   Future<CustomerModel> setStatus(String id, String status);
@@ -36,17 +37,15 @@ class CustomerRemoteDataSourceImpl implements CustomerRemoteDataSource {
   }
 
   @override
-  Future<List<CustomerModel>> listCustomers({String? search, String? status, int perPage = 50}) async {
-    final params = <String, dynamic>{'per_page': perPage};
+  Future<PageResult<CustomerModel>> listCustomers({String? search, String? status, int page = 1, int perPage = 50}) async {
+    final params = <String, dynamic>{'page': page, 'per_page': perPage};
     if (search != null && search.trim().isNotEmpty) params['search'] = search.trim();
     if (status != null) params['status'] = status;
     final data = await _send(
       () => _dio.get(ApiConstants.customers, queryParameters: params),
       'Failed to load customers',
     );
-    return (data['customers'] as List? ?? [])
-        .map((e) => CustomerModel.fromJson(e as Map<String, dynamic>))
-        .toList();
+    return PageResult.fromData(data, 'customers', CustomerModel.fromJson);
   }
 
   @override

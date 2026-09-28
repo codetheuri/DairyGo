@@ -1,9 +1,10 @@
 import 'package:dio/dio.dart';
 import '../../../../core/constants/api_constants.dart';
+import '../../../../core/pagination/page_result.dart';
 import '../models/member_model.dart';
 
 abstract class MemberRemoteDataSource {
-  Future<List<MemberModel>> listMembers({
+  Future<PageResult<MemberModel>> listMembers({
     String? search,
     int page = 1,
     int perPage = 50,
@@ -19,7 +20,7 @@ class MemberRemoteDataSourceImpl implements MemberRemoteDataSource {
   MemberRemoteDataSourceImpl(this._dio);
 
   @override
-  Future<List<MemberModel>> listMembers({
+  Future<PageResult<MemberModel>> listMembers({
     String? search,
     int page = 1,
     int perPage = 50,
@@ -44,10 +45,7 @@ class MemberRemoteDataSourceImpl implements MemberRemoteDataSource {
 
       final data = response.data as Map<String, dynamic>;
       if (data['success'] == true && data['data'] != null) {
-        final list = (data['data']['members'] as List? ?? [])
-            .map((e) => MemberModel.fromJson(e as Map<String, dynamic>))
-            .toList();
-        return list;
+        return PageResult.fromData(data['data'] as Map<String, dynamic>, 'members', MemberModel.fromJson);
       }
       throw Exception(data['message'] ?? 'Failed to load farmers directory');
     } on DioException catch (e) {

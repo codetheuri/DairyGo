@@ -10,7 +10,12 @@ class BalanceBadge extends StatelessWidget {
   final String status;
   final bool large;
 
-  const BalanceBadge({super.key, required this.unaccountedLitres, required this.status, this.large = false});
+  const BalanceBadge({
+    super.key,
+    required this.unaccountedLitres,
+    required this.status,
+    this.large = false,
+  });
 
   static Color colorFor(String status) {
     switch (status) {
@@ -30,7 +35,9 @@ class BalanceBadge extends StatelessWidget {
       case 'OVERSOLD':
         return '${(-unaccountedLitres).toStringAsFixed(1)} L oversold';
       default:
-        return unaccountedLitres == 0 ? 'Balanced' : 'Balanced (${unaccountedLitres.toStringAsFixed(1)} L)';
+        return unaccountedLitres == 0
+            ? 'Balanced'
+            : 'Balanced (${unaccountedLitres.toStringAsFixed(1)} L)';
     }
   }
 
@@ -38,7 +45,10 @@ class BalanceBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = colorFor(status);
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: large ? 12 : 8, vertical: large ? 6 : 3),
+      padding: EdgeInsets.symmetric(
+        horizontal: large ? 12 : 8,
+        vertical: large ? 6 : 3,
+      ),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(20),
@@ -47,14 +57,20 @@ class BalanceBadge extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            status == 'BALANCED' ? Icons.check_circle_rounded : Icons.warning_amber_rounded,
+            status == 'BALANCED'
+                ? Icons.check_circle_rounded
+                : Icons.warning_amber_rounded,
             size: large ? 18 : 13,
             color: color,
           ),
           const SizedBox(width: 4),
           Text(
             labelFor(unaccountedLitres, status),
-            style: TextStyle(color: color, fontWeight: FontWeight.w700, fontSize: large ? 14 : 11),
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.w700,
+              fontSize: large ? 14 : 11,
+            ),
           ),
         ],
       ),

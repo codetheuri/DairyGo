@@ -24,10 +24,11 @@ class SettingsScreen extends ConsumerWidget {
 
   /// The price in force today: the latest non-voided price already in effect.
   String? _currentPriceId(List<MilkPriceModel> prices) {
-    final inEffect = prices
-        .where((p) => p.isActive && !_isFuture(p.effectiveDate))
-        .toList()
-      ..sort((a, b) => (b.effectiveDate ?? '').compareTo(a.effectiveDate ?? ''));
+    final inEffect =
+        prices.where((p) => p.isActive && !_isFuture(p.effectiveDate)).toList()
+          ..sort(
+            (a, b) => (b.effectiveDate ?? '').compareTo(a.effectiveDate ?? ''),
+          );
     return inEffect.isEmpty ? null : inEffect.first.id;
   }
 
@@ -36,7 +37,20 @@ class SettingsScreen extends ConsumerWidget {
     final parsed = DateTime.tryParse(dateStr);
     if (parsed == null) return dateStr.split('T').first;
     final day = parsed.day.toString().padLeft(2, '0');
-    final monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    final monthNames = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
     final month = monthNames[parsed.month - 1];
     final year = parsed.year;
     return '$day $month $year';
@@ -57,10 +71,20 @@ class SettingsScreen extends ConsumerWidget {
           const SizedBox(
             width: 18,
             height: 18,
-            child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: AppColors.primary,
+            ),
           ),
           const SizedBox(width: 12),
-          Text(message, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary, fontWeight: FontWeight.w500)),
+          Text(
+            message,
+            style: const TextStyle(
+              fontSize: 13,
+              color: AppColors.textSecondary,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         ],
       ),
     );
@@ -79,7 +103,10 @@ class SettingsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Settings & Sacco Profile', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Settings & Sacco Profile',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
       ),
       body: RefreshIndicator(
         onRefresh: () async {
@@ -97,9 +124,9 @@ class SettingsScreen extends ConsumerWidget {
               Text(
                 'Dairy Sacco Organization Profile',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
               ),
               const SizedBox(height: 8),
 
@@ -140,7 +167,11 @@ class SettingsScreen extends ConsumerWidget {
                                   const SizedBox(height: 2),
                                   Text(
                                     'Code: ${sacco.code}',
-                                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.primary),
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.primary,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -150,20 +181,33 @@ class SettingsScreen extends ConsumerWidget {
                         ),
                         const Divider(height: 20, color: AppColors.cardBorder),
 
-                        _buildInfoRow(Icons.calendar_today_rounded, 'Registration Date', _formatDate(sacco.createdAt)),
+                        _buildInfoRow(
+                          Icons.calendar_today_rounded,
+                          'Registration Date',
+                          _formatDate(sacco.createdAt),
+                        ),
                         if (sacco.email != null && sacco.email!.isNotEmpty) ...[
                           const SizedBox(height: 8),
-                          _buildInfoRow(Icons.email_outlined, 'Email Address', sacco.email!),
+                          _buildInfoRow(
+                            Icons.email_outlined,
+                            'Email Address',
+                            sacco.email!,
+                          ),
                         ],
                         if (sacco.phone != null && sacco.phone!.isNotEmpty) ...[
                           const SizedBox(height: 8),
-                          _buildInfoRow(Icons.phone_outlined, 'Contact Phone', sacco.phone!),
+                          _buildInfoRow(
+                            Icons.phone_outlined,
+                            'Contact Phone',
+                            sacco.phone!,
+                          ),
                         ],
                       ],
                     ),
                   );
                 },
-                loading: () => _buildLoadingCard('Loading organization profile...'),
+                loading: () =>
+                    _buildLoadingCard('Loading organization profile...'),
                 error: (err, stack) => ErrorView(
                   message: err.toString().replaceAll('Exception: ', ''),
                   onRetry: () => ref.refresh(saccoProfileProvider),
@@ -178,9 +222,9 @@ class SettingsScreen extends ConsumerWidget {
                   Text(
                     'Milk Buying Price Configuration',
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
-                        ),
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
                   ),
                   if (canSetPrice)
                     activePriceAsync.when(
@@ -190,11 +234,19 @@ class SettingsScreen extends ConsumerWidget {
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
                         icon: const Icon(Icons.edit_outlined, size: 16),
-                        label: const Text('Change Rate', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                        label: const Text(
+                          'Change Rate',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
                         onPressed: () {
                           showDialog(
                             context: context,
-                            builder: (_) => SetPriceDialog(currentPrice: activePrice.pricePerLitre),
+                            builder: (_) => SetPriceDialog(
+                              currentPrice: activePrice.pricePerLitre,
+                            ),
                           );
                         },
                       ),
@@ -214,7 +266,9 @@ class SettingsScreen extends ConsumerWidget {
                     decoration: BoxDecoration(
                       color: AppColors.accentMint,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+                      border: Border.all(
+                        color: AppColors.primary.withValues(alpha: 0.3),
+                      ),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -224,7 +278,11 @@ class SettingsScreen extends ConsumerWidget {
                           children: [
                             const Text(
                               'Active Intake Price Rate:',
-                              style: TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppColors.textSecondary,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                             const SizedBox(height: 2),
                             Text(
@@ -237,15 +295,21 @@ class SettingsScreen extends ConsumerWidget {
                             ),
                           ],
                         ),
-                        const StatusPill(status: 'ACTIVE RATE', type: StatusType.success),
+                        const StatusPill(
+                          status: 'ACTIVE RATE',
+                          type: StatusType.success,
+                        ),
                       ],
                     ),
                   );
                 },
-                loading: () => _buildLoadingCard('Loading milk price configuration...'),
+                loading: () =>
+                    _buildLoadingCard('Loading milk price configuration...'),
                 error: (err, stack) {
                   final msg = err.toString().replaceAll('Exception: ', '');
-                  final isNoPriceConfigured = msg.toLowerCase().contains('no active milk price');
+                  final isNoPriceConfigured = msg.toLowerCase().contains(
+                    'no active milk price',
+                  );
 
                   if (isNoPriceConfigured) {
                     return Container(
@@ -261,18 +325,29 @@ class SettingsScreen extends ConsumerWidget {
                         children: [
                           Row(
                             children: const [
-                              Icon(Icons.info_outline_rounded, color: Colors.amber, size: 22),
+                              Icon(
+                                Icons.info_outline_rounded,
+                                color: Colors.amber,
+                                size: 22,
+                              ),
                               SizedBox(width: 8),
                               Text(
                                 'No Active Milk Price Configured',
-                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textPrimary),
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                  color: AppColors.textPrimary,
+                                ),
                               ),
                             ],
                           ),
                           const SizedBox(height: 6),
                           const Text(
                             'Set the initial milk buying price per litre for Sacco milk intake operations.',
-                            style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textSecondary,
+                            ),
                           ),
                           if (canSetPrice) ...[
                             const SizedBox(height: 14),
@@ -280,14 +355,17 @@ class SettingsScreen extends ConsumerWidget {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColors.primary,
                                 foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
                               ),
                               icon: const Icon(Icons.add_rounded, size: 18),
                               label: const Text('Set Initial Buying Price'),
                               onPressed: () {
                                 showDialog(
                                   context: context,
-                                  builder: (_) => const SetPriceDialog(currentPrice: null),
+                                  builder: (_) =>
+                                      const SetPriceDialog(currentPrice: null),
                                 );
                               },
                             ),
@@ -309,17 +387,23 @@ class SettingsScreen extends ConsumerWidget {
               Text(
                 'Price Rate History Log',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textSecondary,
-                    ),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textSecondary,
+                ),
               ),
               const SizedBox(height: 8),
 
               priceHistoryAsync.when(
                 data: (prices) {
                   if (prices.isEmpty) {
-                    return const Text('No price history entries recorded.', style: TextStyle(fontSize: 12, color: AppColors.textMuted));
+                    return const Text(
+                      'No price history entries recorded.',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textMuted,
+                      ),
+                    );
                   }
                   final currentPriceId = _currentPriceId(prices);
 
@@ -333,7 +417,8 @@ class SettingsScreen extends ConsumerWidget {
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       itemCount: prices.length,
-                      separatorBuilder: (_, __) => const Divider(height: 1, color: AppColors.cardBorder),
+                      separatorBuilder: (_, __) =>
+                          const Divider(height: 1, color: AppColors.cardBorder),
                       itemBuilder: (context, index) {
                         final item = prices[index];
                         // Prices form a schedule: the current one is the latest already in effect.
@@ -341,11 +426,18 @@ class SettingsScreen extends ConsumerWidget {
                         final isScheduled = _isFuture(item.effectiveDate);
 
                         return ListTile(
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 2,
+                          ),
                           leading: CircleAvatar(
                             radius: 16,
-                            backgroundColor: isCurrentActive ? AppColors.accentMint : AppColors.background,
-                            foregroundColor: isCurrentActive ? AppColors.primary : AppColors.textMuted,
+                            backgroundColor: isCurrentActive
+                                ? AppColors.accentMint
+                                : AppColors.background,
+                            foregroundColor: isCurrentActive
+                                ? AppColors.primary
+                                : AppColors.textMuted,
                             child: const Icon(Icons.payments_rounded, size: 16),
                           ),
                           title: Text(
@@ -353,25 +445,47 @@ class SettingsScreen extends ConsumerWidget {
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 14,
-                              color: isCurrentActive ? AppColors.primary : AppColors.textPrimary,
+                              color: isCurrentActive
+                                  ? AppColors.primary
+                                  : AppColors.textPrimary,
                             ),
                           ),
                           subtitle: Text(
                             'Effective Date: ${_formatDate(item.effectiveDate)}',
-                            style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: AppColors.textMuted,
+                            ),
                           ),
                           trailing: isCurrentActive
-                              ? const StatusPill(status: 'CURRENT', type: StatusType.success)
+                              ? const StatusPill(
+                                  status: 'CURRENT',
+                                  type: StatusType.success,
+                                )
                               : isScheduled
-                                  ? const StatusPill(status: 'SCHEDULED', type: StatusType.info)
-                                  : const Text('HISTORICAL', style: TextStyle(fontSize: 10, color: AppColors.textMuted, fontWeight: FontWeight.bold)),
+                              ? const StatusPill(
+                                  status: 'SCHEDULED',
+                                  type: StatusType.info,
+                                )
+                              : const Text(
+                                  'HISTORICAL',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: AppColors.textMuted,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                         );
                       },
                     ),
                   );
                 },
-                loading: () => _buildLoadingCard('Loading price rate history...'),
-                error: (err, stack) => const Text('No historical rates recorded.', style: TextStyle(fontSize: 12, color: AppColors.textMuted)),
+                loading: () =>
+                    _buildLoadingCard('Loading price rate history...'),
+                error: (err, stack) => const Text(
+                  'No historical rates recorded.',
+                  style: TextStyle(fontSize: 12, color: AppColors.textMuted),
+                ),
               ),
               const SizedBox(height: 24),
 
@@ -389,17 +503,26 @@ class SettingsScreen extends ConsumerWidget {
                     Text(
                       'Sacco Staff & User Management',
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
-                          ),
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
                     ),
                     TextButton.icon(
                       style: TextButton.styleFrom(
                         padding: const EdgeInsets.symmetric(horizontal: 8),
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
-                      icon: const Icon(Icons.person_add_alt_1_outlined, size: 16),
-                      label: const Text('Add Staff', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                      icon: const Icon(
+                        Icons.person_add_alt_1_outlined,
+                        size: 16,
+                      ),
+                      label: const Text(
+                        'Add Staff',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
                       onPressed: () {
                         showDialog(
                           context: context,
@@ -424,19 +547,29 @@ class SettingsScreen extends ConsumerWidget {
                     children: [
                       const Text(
                         'Staff Registration & Role Assignment',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textPrimary),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          color: AppColors.textPrimary,
+                        ),
                       ),
                       const SizedBox(height: 4),
                       const Text(
                         'Add and provision user accounts for Milk Collectors, Board Members, Executives, and Sacco Admins.',
-                        style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textSecondary,
+                        ),
                       ),
                       const SizedBox(height: 14),
                       Row(
                         children: [
                           Expanded(
                             child: OutlinedButton.icon(
-                              icon: const Icon(Icons.people_outline_rounded, size: 18),
+                              icon: const Icon(
+                                Icons.people_outline_rounded,
+                                size: 18,
+                              ),
                               label: const Text('Staff Roster'),
                               onPressed: () => context.push(AppRoutes.staff),
                             ),
@@ -447,9 +580,14 @@ class SettingsScreen extends ConsumerWidget {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColors.primary,
                                 foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
                               ),
-                              icon: const Icon(Icons.person_add_rounded, size: 18),
+                              icon: const Icon(
+                                Icons.person_add_rounded,
+                                size: 18,
+                              ),
                               label: const Text('Add Staff'),
                               onPressed: () {
                                 showDialog(
@@ -471,9 +609,9 @@ class SettingsScreen extends ConsumerWidget {
               Text(
                 'User Session & Account',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
               ),
               const SizedBox(height: 8),
 
@@ -500,7 +638,9 @@ class SettingsScreen extends ConsumerWidget {
                                 user?.fullName.isNotEmpty == true
                                     ? user!.fullName[0].toUpperCase()
                                     : 'U',
-                                style: const TextStyle(fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                             const SizedBox(width: 12),
@@ -517,14 +657,20 @@ class SettingsScreen extends ConsumerWidget {
                                 ),
                                 Text(
                                   user?.email ?? 'User Account',
-                                  style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    color: AppColors.textSecondary,
+                                  ),
                                 ),
                               ],
                             ),
                           ],
                         ),
                         IconButton(
-                          icon: const Icon(Icons.logout_rounded, color: AppColors.error),
+                          icon: const Icon(
+                            Icons.logout_rounded,
+                            color: AppColors.error,
+                          ),
                           tooltip: 'Sign Out',
                           onPressed: () {
                             ref.read(authControllerProvider.notifier).logout();
@@ -562,8 +708,18 @@ class SettingsScreen extends ConsumerWidget {
       children: [
         Icon(icon, size: 16, color: AppColors.textMuted),
         const SizedBox(width: 8),
-        Text('$label: ', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-        Text(value, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+        Text(
+          '$label: ',
+          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+        ),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+          ),
+        ),
       ],
     );
   }
@@ -573,7 +729,11 @@ class SettingsScreen extends ConsumerWidget {
 class _ToleranceCard extends ConsumerWidget {
   const _ToleranceCard();
 
-  Future<void> _edit(BuildContext context, WidgetRef ref, double current) async {
+  Future<void> _edit(
+    BuildContext context,
+    WidgetRef ref,
+    double current,
+  ) async {
     final controller = TextEditingController(text: current.toStringAsFixed(1));
     final value = await showDialog<double>(
       context: context,
@@ -589,13 +749,21 @@ class _ToleranceCard extends ConsumerWidget {
             const SizedBox(height: 12),
             TextField(
               controller: controller,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              decoration: const InputDecoration(labelText: 'Litres', suffixText: 'L'),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              decoration: const InputDecoration(
+                labelText: 'Litres',
+                suffixText: 'L',
+              ),
             ),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Cancel'),
+          ),
           TextButton(
             onPressed: () {
               final v = double.tryParse(controller.text.trim());
@@ -612,7 +780,9 @@ class _ToleranceCard extends ConsumerWidget {
       ref.invalidate(saccoSettingsProvider);
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
+        );
       }
     }
   }
@@ -629,9 +799,14 @@ class _ToleranceCard extends ConsumerWidget {
       ),
       child: ListTile(
         leading: const Icon(Icons.balance_rounded, color: AppColors.primary),
-        title: const Text('Milk balance tolerance', style: TextStyle(fontWeight: FontWeight.w600)),
+        title: const Text(
+          'Milk balance tolerance',
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
         subtitle: Text(
-          settings.isLoading ? 'Loading…' : '${tolerance.toStringAsFixed(1)} L per collector per day',
+          settings.isLoading
+              ? 'Loading…'
+              : '${tolerance.toStringAsFixed(1)} L per collector per day',
           style: const TextStyle(fontSize: 12),
         ),
         trailing: const Icon(Icons.edit_outlined, size: 18),

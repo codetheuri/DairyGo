@@ -14,7 +14,10 @@ class CollectionHistorySheet extends ConsumerWidget {
 
   const CollectionHistorySheet({super.key, required this.collection});
 
-  static Future<void> show(BuildContext context, MilkCollectionModel collection) {
+  static Future<void> show(
+    BuildContext context,
+    MilkCollectionModel collection,
+  ) {
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -37,7 +40,9 @@ class CollectionHistorySheet extends ConsumerWidget {
 
     return SafeArea(
       child: ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.75),
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.75,
+        ),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
           child: Column(
@@ -49,7 +54,10 @@ class CollectionHistorySheet extends ConsumerWidget {
                   Expanded(
                     child: Text(
                       collection.memberName ?? 'Milk intake entry',
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
                     ),
                   ),
                   StatusPill.fromStatusString(collection.status),
@@ -59,10 +67,16 @@ class CollectionHistorySheet extends ConsumerWidget {
               Text(
                 '${collection.quantityLitres.toStringAsFixed(1)} L • ${collection.shift} • ${collection.collectionDate.split('T').first}'
                 ' • KES ${collection.totalAmount.toStringAsFixed(2)}',
-                style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppColors.textSecondary,
+                ),
               ),
               const SizedBox(height: 16),
-              const Text('History', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+              const Text(
+                'History',
+                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+              ),
               const SizedBox(height: 8),
               Flexible(
                 child: historyAsync.when(
@@ -70,17 +84,26 @@ class CollectionHistorySheet extends ConsumerWidget {
                     entries: entries,
                     fieldLabels: _fieldLabels,
                     createdSummary: (v) => [
-                      if (v['quantity_litres'] != null) 'Litres: ${v['quantity_litres']}',
-                      if (v['price_per_litre'] != null) 'Rate: KES ${v['price_per_litre']}/L',
+                      if (v['quantity_litres'] != null)
+                        'Litres: ${v['quantity_litres']}',
+                      if (v['price_per_litre'] != null)
+                        'Rate: KES ${v['price_per_litre']}/L',
                     ],
                   ),
                   loading: () => const Padding(
                     padding: EdgeInsets.all(16),
-                    child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.primary,
+                      ),
+                    ),
                   ),
                   error: (err, _) => Text(
                     err.toString().replaceAll('Exception: ', ''),
-                    style: const TextStyle(fontSize: 12, color: AppColors.error),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.error,
+                    ),
                   ),
                 ),
               ),

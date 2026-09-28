@@ -35,20 +35,32 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
   Widget build(BuildContext context) {
     final user = ref.watch(authControllerProvider).valueOrNull?.user;
     final seesBalances = user?.isExecutive ?? false; // admins and board members
-    final canAdd = (user?.isSaccoAdmin ?? false) || !(user?.isExecutive ?? false); // not board
+    final canAdd =
+        (user?.isSaccoAdmin ?? false) ||
+        !(user?.isExecutive ?? false); // not board
     final customersAsync = ref.watch(customersListProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Customers', style: TextStyle(fontWeight: FontWeight.bold))),
+      appBar: AppBar(
+        title: const Text(
+          'Customers',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+      ),
       floatingActionButton: canAdd
           ? FloatingActionButton.extended(
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
               icon: const Icon(Icons.person_add_alt_1_rounded),
-              label: const Text('Add Customer', style: TextStyle(fontWeight: FontWeight.bold)),
+              label: const Text(
+                'Add Customer',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
               onPressed: () async {
                 final created = await AddCustomerDialog.show(context);
-                if (created != null && context.mounted) context.push('/customers/${created.id}');
+                if (created != null && context.mounted) {
+                  context.push('/customers/${created.id}');
+                }
               },
             )
           : null,
@@ -64,7 +76,9 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                 hintText: 'Search by name or phone',
                 prefixIcon: const Icon(Icons.search_rounded),
                 isDense: true,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               onChanged: (v) {
                 _debounce?.cancel();
@@ -82,7 +96,8 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                 if (customers.isEmpty) {
                   return const EmptyStateWidget(
                     title: 'No customers yet',
-                    description: 'Customers are added when recording a sale, or with the button below.',
+                    description:
+                        'Customers are added when recording a sale, or with the button below.',
                     icon: Icons.storefront_outlined,
                   );
                 }
@@ -95,13 +110,17 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                     itemBuilder: (_, i) => i == customers.length
                         ? PagedListFooter(
                             list: paged,
-                            onLoadMore: () => ref.read(customersListProvider.notifier).loadMore(),
+                            onLoadMore: () => ref
+                                .read(customersListProvider.notifier)
+                                .loadMore(),
                           )
                         : _CustomerTile(customer: customers[i]),
                   ),
                 );
               },
-              loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+              loading: () => const Center(
+                child: CircularProgressIndicator(color: AppColors.primary),
+              ),
               error: (e, _) => ErrorView(
                 message: e.toString().replaceAll('Exception: ', ''),
                 onRetry: () => ref.refresh(customersListProvider),
@@ -132,7 +151,10 @@ class _TotalOwedBanner extends ConsumerWidget {
       child: Text(
         'Customers owe KES ${balances.totalOwed.toStringAsFixed(2)} '
         '(${balances.balances.where((b) => b.balance > 0).length} with a balance)',
-        style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+        style: const TextStyle(
+          fontWeight: FontWeight.w700,
+          color: AppColors.textPrimary,
+        ),
       ),
     );
   }
@@ -164,21 +186,35 @@ class _CustomerTile extends StatelessWidget {
                 radius: 18,
                 backgroundColor: AppColors.accentMint,
                 foregroundColor: AppColors.primary,
-                child: Icon(customer.customerType == 'COOLER' ? Icons.ac_unit_rounded : Icons.storefront_rounded, size: 18),
+                child: Icon(
+                  customer.customerType == 'COOLER'
+                      ? Icons.ac_unit_rounded
+                      : Icons.storefront_rounded,
+                  size: 18,
+                ),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(customer.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                    Text(
+                      customer.name,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
                     Text(
                       [
                         customerTypeLabel(customer.customerType),
                         if (customer.phone != null) customer.phone!,
                         if (!customer.isActive) 'INACTIVE',
                       ].join(' • '),
-                      style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                   ],
                 ),
@@ -191,11 +227,20 @@ class _CustomerTile extends StatelessWidget {
                       'KES ${balance.toStringAsFixed(2)}',
                       style: TextStyle(
                         fontWeight: FontWeight.w800,
-                        color: balance > 0 ? AppColors.error : AppColors.success,
+                        color: balance > 0
+                            ? AppColors.error
+                            : AppColors.success,
                       ),
                     ),
-                    Text(balance > 0 ? 'owes' : (balance < 0 ? 'in credit' : 'settled'),
-                        style: const TextStyle(fontSize: 10, color: AppColors.textMuted)),
+                    Text(
+                      balance > 0
+                          ? 'owes'
+                          : (balance < 0 ? 'in credit' : 'settled'),
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: AppColors.textMuted,
+                      ),
+                    ),
                   ],
                 ),
             ],

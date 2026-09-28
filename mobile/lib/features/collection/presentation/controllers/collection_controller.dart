@@ -13,12 +13,13 @@ import '../../domain/repositories/milk_collection_repository.dart';
 
 final milkCollectionRemoteDataSourceProvider =
     Provider<MilkCollectionRemoteDataSource>((ref) {
-  final dio = ref.watch(dioClientProvider);
-  return MilkCollectionRemoteDataSourceImpl(dio);
-});
+      final dio = ref.watch(dioClientProvider);
+      return MilkCollectionRemoteDataSourceImpl(dio);
+    });
 
-final milkCollectionRepositoryProvider =
-    Provider<MilkCollectionRepository>((ref) {
+final milkCollectionRepositoryProvider = Provider<MilkCollectionRepository>((
+  ref,
+) {
   final dataSource = ref.watch(milkCollectionRemoteDataSourceProvider);
   return MilkCollectionRepositoryImpl(dataSource);
 });
@@ -31,26 +32,33 @@ final activeMilkPriceProvider = FutureProvider<MilkPriceModel>((ref) async {
 /// Audit history of one collection, oldest first.
 final collectionHistoryProvider = FutureProvider.autoDispose
     .family<List<AuditLogModel>, String>((ref, id) async {
-  final repository = ref.watch(milkCollectionRepositoryProvider);
-  return repository.getCollectionHistory(id);
-});
+      final repository = ref.watch(milkCollectionRepositoryProvider);
+      return repository.getCollectionHistory(id);
+    });
 
 String getTodayDateString() {
   final now = DateTime.now();
   return "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
 }
 
-final collectionFilterShiftProvider = StateProvider.autoDispose<String?>((ref) => null);
-final collectionFilterDateProvider = StateProvider.autoDispose<String>((ref) => getTodayDateString());
+final collectionFilterShiftProvider = StateProvider.autoDispose<String?>(
+  (ref) => null,
+);
+final collectionFilterDateProvider = StateProvider.autoDispose<String>(
+  (ref) => getTodayDateString(),
+);
 final collectionSearchProvider = StateProvider.autoDispose<String>((ref) => '');
 
 /// One day's collections, loaded page by page as the user scrolls. The server
 /// sends each row's farmer name, so no farmer list is downloaded.
 final milkCollectionsListProvider =
-    AsyncNotifierProvider<MilkCollectionsListNotifier, PagedList<MilkCollectionModel>>(
-        MilkCollectionsListNotifier.new);
+    AsyncNotifierProvider<
+      MilkCollectionsListNotifier,
+      PagedList<MilkCollectionModel>
+    >(MilkCollectionsListNotifier.new);
 
-class MilkCollectionsListNotifier extends PagedListNotifier<MilkCollectionModel> {
+class MilkCollectionsListNotifier
+    extends PagedListNotifier<MilkCollectionModel> {
   @override
   Future<PagedList<MilkCollectionModel>> build() async {
     final repository = ref.watch(milkCollectionRepositoryProvider);
@@ -68,13 +76,18 @@ class MilkCollectionsListNotifier extends PagedListNotifier<MilkCollectionModel>
         page: page,
         perPage: PagedListNotifier.pageSize,
       );
-      return PageResult(result.items.map(_withCollectorLabel).toList(), hasMore: result.hasMore);
+      return PageResult(
+        result.items.map(_withCollectorLabel).toList(),
+        hasMore: result.hasMore,
+      );
     });
   }
 
   static MilkCollectionModel _withCollectorLabel(MilkCollectionModel c) {
     final name = c.collectorName;
-    return name != null && name.isNotEmpty ? c : c.copyWith(collectorName: 'Staff #${c.collectorId}');
+    return name != null && name.isNotEmpty
+        ? c
+        : c.copyWith(collectorName: 'Staff #${c.collectorId}');
   }
 }
 
@@ -84,7 +97,7 @@ class RecordMilkCollectionController
   final Ref _ref;
 
   RecordMilkCollectionController(this._repository, this._ref)
-      : super(const AsyncValue.data(null));
+    : super(const AsyncValue.data(null));
 
   Future<bool> recordCollection(RecordCollectionRequestModel request) async {
     state = const AsyncValue.loading();
@@ -100,11 +113,14 @@ class RecordMilkCollectionController
   }
 }
 
-final recordMilkCollectionControllerProvider = StateNotifierProvider.autoDispose<
-    RecordMilkCollectionController, AsyncValue<MilkCollectionModel?>>((ref) {
-  final repository = ref.watch(milkCollectionRepositoryProvider);
-  return RecordMilkCollectionController(repository, ref);
-});
+final recordMilkCollectionControllerProvider =
+    StateNotifierProvider.autoDispose<
+      RecordMilkCollectionController,
+      AsyncValue<MilkCollectionModel?>
+    >((ref) {
+      final repository = ref.watch(milkCollectionRepositoryProvider);
+      return RecordMilkCollectionController(repository, ref);
+    });
 
 class UpdateMilkCollectionController
     extends StateNotifier<AsyncValue<MilkCollectionModel?>> {
@@ -112,7 +128,7 @@ class UpdateMilkCollectionController
   final Ref _ref;
 
   UpdateMilkCollectionController(this._repository, this._ref)
-      : super(const AsyncValue.data(null));
+    : super(const AsyncValue.data(null));
 
   Future<bool> updateCollection(
     String id,
@@ -132,8 +148,11 @@ class UpdateMilkCollectionController
   }
 }
 
-final updateMilkCollectionControllerProvider = StateNotifierProvider.autoDispose<
-    UpdateMilkCollectionController, AsyncValue<MilkCollectionModel?>>((ref) {
-  final repository = ref.watch(milkCollectionRepositoryProvider);
-  return UpdateMilkCollectionController(repository, ref);
-});
+final updateMilkCollectionControllerProvider =
+    StateNotifierProvider.autoDispose<
+      UpdateMilkCollectionController,
+      AsyncValue<MilkCollectionModel?>
+    >((ref) {
+      final repository = ref.watch(milkCollectionRepositoryProvider);
+      return UpdateMilkCollectionController(repository, ref);
+    });

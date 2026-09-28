@@ -41,7 +41,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
 
     final collectorAsync = ref.watch(collectorDashboardProvider(null));
     // Only executives may read the Sacco-wide summary; collectors would get 403.
-    final executiveAsync = isExecutive ? ref.watch(executiveDashboardProvider(7)) : null;
+    final executiveAsync = isExecutive
+        ? ref.watch(executiveDashboardProvider(7))
+        : null;
 
     return Scaffold(
       appBar: AppBar(
@@ -55,7 +57,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
             ),
             Text(
               user?.displayRole ?? 'Field Milk Collector',
-              style: const TextStyle(fontSize: 11, color: AppColors.primary, fontWeight: FontWeight.w600),
+              style: const TextStyle(
+                fontSize: 11,
+                color: AppColors.primary,
+                fontWeight: FontWeight.w600,
+              ),
               overflow: TextOverflow.ellipsis,
             ),
           ],
@@ -77,7 +83,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                     indicatorColor: AppColors.primary,
                     labelColor: AppColors.primary,
                     unselectedLabelColor: AppColors.textSecondary,
-                    labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                    labelStyle: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                    ),
                     tabs: const [
                       Tab(
                         iconMargin: EdgeInsets.only(bottom: 2),
@@ -103,30 +112,43 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                 collectorAsync.when(
                   data: (data) => CollectorDashboardView(
                     data: data,
-                    onRefresh: () => ref.refresh(collectorDashboardProvider(null)),
+                    onRefresh: () =>
+                        ref.refresh(collectorDashboardProvider(null)),
                   ),
                   loading: () => const Center(
                     child: CircularProgressIndicator(color: AppColors.primary),
                   ),
                   error: (err, stack) {
                     final msg = err.toString().replaceAll('Exception: ', '');
-                    if (msg.toLowerCase().contains('forbidden') || msg.toLowerCase().contains('permissions')) {
+                    if (msg.toLowerCase().contains('forbidden') ||
+                        msg.toLowerCase().contains('permissions')) {
                       return SingleChildScrollView(
                         padding: const EdgeInsets.all(24),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             const SizedBox(height: 40),
-                            Icon(Icons.insights_rounded, size: 54, color: AppColors.primary.withValues(alpha: 0.5)),
+                            Icon(
+                              Icons.insights_rounded,
+                              size: 54,
+                              color: AppColors.primary.withValues(alpha: 0.5),
+                            ),
                             const SizedBox(height: 16),
                             const Text(
                               'Field Collector Shift Data',
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textPrimary),
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                color: AppColors.textPrimary,
+                              ),
                             ),
                             const SizedBox(height: 6),
                             const Text(
                               'You are logged in as a Sacco Executive / Board Member. Switch to Executive Overview tab for Sacco-wide analytics.',
-                              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppColors.textSecondary,
+                              ),
                               textAlign: TextAlign.center,
                             ),
                           ],
@@ -135,7 +157,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                     }
                     return ErrorView(
                       message: msg,
-                      onRetry: () => ref.refresh(collectorDashboardProvider(null)),
+                      onRetry: () =>
+                          ref.refresh(collectorDashboardProvider(null)),
                     );
                   },
                 ),

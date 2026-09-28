@@ -12,15 +12,26 @@ class _FlakyAdapter implements HttpClientAdapter {
   _FlakyAdapter(this.failures);
 
   @override
-  Future<ResponseBody> fetch(RequestOptions options, Stream<Uint8List>? requestStream, Future<void>? cancelFuture) async {
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
     calls++;
     if (failures > 0) {
       failures--;
-      throw DioException(requestOptions: options, type: DioExceptionType.connectionError);
+      throw DioException(
+        requestOptions: options,
+        type: DioExceptionType.connectionError,
+      );
     }
-    return ResponseBody.fromString(jsonEncode({'ok': true}), 200, headers: {
-      Headers.contentTypeHeader: [Headers.jsonContentType],
-    });
+    return ResponseBody.fromString(
+      jsonEncode({'ok': true}),
+      200,
+      headers: {
+        Headers.contentTypeHeader: [Headers.jsonContentType],
+      },
+    );
   }
 
   @override
@@ -29,7 +40,9 @@ class _FlakyAdapter implements HttpClientAdapter {
 
 Dio _dio(_FlakyAdapter adapter) {
   final dio = Dio()..httpClientAdapter = adapter;
-  dio.interceptors.add(RetryInterceptor(dio, delays: const [Duration.zero, Duration.zero]));
+  dio.interceptors.add(
+    RetryInterceptor(dio, delays: const [Duration.zero, Duration.zero]),
+  );
   return dio;
 }
 
@@ -43,13 +56,19 @@ void main() {
 
   test('a GET gives up after the configured retries', () async {
     final adapter = _FlakyAdapter(5);
-    await expectLater(_dio(adapter).get('http://x/api'), throwsA(isA<DioException>()));
+    await expectLater(
+      _dio(adapter).get('http://x/api'),
+      throwsA(isA<DioException>()),
+    );
     expect(adapter.calls, 3);
   });
 
   test('a POST is never retried, so milk is not recorded twice', () async {
     final adapter = _FlakyAdapter(1);
-    await expectLater(_dio(adapter).post('http://x/api', data: {}), throwsA(isA<DioException>()));
+    await expectLater(
+      _dio(adapter).post('http://x/api', data: {}),
+      throwsA(isA<DioException>()),
+    );
     expect(adapter.calls, 1);
   });
 }

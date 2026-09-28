@@ -10,7 +10,10 @@ class RetryInterceptor extends Interceptor {
   /// Waits before each retry; the list length is the number of retries.
   final List<Duration> delays;
 
-  RetryInterceptor(this._dio, {this.delays = const [Duration(seconds: 1), Duration(seconds: 3)]});
+  RetryInterceptor(
+    this._dio, {
+    this.delays = const [Duration(seconds: 1), Duration(seconds: 3)],
+  });
 
   static const _attemptKey = 'retry_attempt';
 
@@ -26,10 +29,15 @@ class RetryInterceptor extends Interceptor {
   }
 
   @override
-  Future<void> onError(DioException err, ErrorInterceptorHandler handler) async {
+  Future<void> onError(
+    DioException err,
+    ErrorInterceptorHandler handler,
+  ) async {
     final options = err.requestOptions;
     final attempt = (options.extra[_attemptKey] as int?) ?? 0;
-    if (options.method != 'GET' || !_isTransient(err) || attempt >= delays.length) {
+    if (options.method != 'GET' ||
+        !_isTransient(err) ||
+        attempt >= delays.length) {
       return handler.next(err);
     }
 

@@ -10,11 +10,13 @@ class RegisterRequest with _$RegisterRequest {
     required String email,
     String? phone,
     required String password,
-    @JsonKey(name: 'password_confirmation') required String passwordConfirmation,
+    @JsonKey(name: 'password_confirmation')
+    required String passwordConfirmation,
     @JsonKey(name: 'first_name') String? firstName,
     @JsonKey(name: 'last_name') String? lastName,
     @JsonKey(name: 'role_id') int? roleId,
   }) = _RegisterRequest;
 
-  factory RegisterRequest.fromJson(Map<String, dynamic> json) => _$RegisterRequestFromJson(json);
+  factory RegisterRequest.fromJson(Map<String, dynamic> json) =>
+      _$RegisterRequestFromJson(json);
 }

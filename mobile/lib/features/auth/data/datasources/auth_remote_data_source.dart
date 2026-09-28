@@ -8,7 +8,11 @@ abstract class AuthRemoteDataSource {
   Future<UserEntity> getMe();
   Future<UserEntity> register(RegisterRequest request);
   Future<List<UserEntity>> listUsers();
-  Future<void> changePassword(String currentPassword, String newPassword, String confirmPassword);
+  Future<void> changePassword(
+    String currentPassword,
+    String newPassword,
+    String confirmPassword,
+  );
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -41,10 +45,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     try {
       final response = await _dio.post(
         ApiConstants.login,
-        data: {
-          'login': identity,
-          'password': password,
-        },
+        data: {'login': identity, 'password': password},
       );
 
       final data = response.data as Map<String, dynamic>;
@@ -75,7 +76,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       }
       throw Exception(data['message'] ?? 'Failed to retrieve profile');
     } on DioException catch (e) {
-      throw Exception(_extractErrorMessage(e, 'Failed to retrieve user profile'));
+      throw Exception(
+        _extractErrorMessage(e, 'Failed to retrieve user profile'),
+      );
     }
   }
 
@@ -103,7 +106,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<List<UserEntity>> listUsers() async {
     try {
-      final response = await _dio.get('/api/v1/auth/users', queryParameters: {'per_page': 100});
+      final response = await _dio.get(
+        '/api/v1/auth/users',
+        queryParameters: {'per_page': 100},
+      );
       final data = response.data as Map<String, dynamic>;
       if (data['success'] == true && data['data'] != null) {
         final list = (data['data']['users'] as List? ?? [])
@@ -118,7 +124,11 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   @override
-  Future<void> changePassword(String currentPassword, String newPassword, String confirmPassword) async {
+  Future<void> changePassword(
+    String currentPassword,
+    String newPassword,
+    String confirmPassword,
+  ) async {
     try {
       final response = await _dio.post(
         '/api/v1/auth/me/change-password',
@@ -133,7 +143,12 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         throw Exception(data['message'] ?? 'Failed to change password');
       }
     } on DioException catch (e) {
-      throw Exception(_extractErrorMessage(e, 'Incorrect current password or invalid request'));
+      throw Exception(
+        _extractErrorMessage(
+          e,
+          'Incorrect current password or invalid request',
+        ),
+      );
     }
   }
 }

@@ -23,12 +23,18 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
 
       final data = response.data as Map<String, dynamic>;
       if (data['success'] == true && data['data'] != null) {
-        return CollectorDashboardModel.fromJson(data['data'] as Map<String, dynamic>);
+        return CollectorDashboardModel.fromJson(
+          data['data'] as Map<String, dynamic>,
+        );
       }
       throw Exception(data['message'] ?? 'Failed to load collector dashboard');
     } on DioException catch (e) {
-      final serverMsg = e.response?.data is Map ? e.response?.data['message'] : null;
-      throw Exception(serverMsg ?? e.message ?? 'Error fetching collector shift data');
+      final serverMsg = e.response?.data is Map
+          ? e.response?.data['message']
+          : null;
+      throw Exception(
+        serverMsg ?? e.message ?? 'Error fetching collector shift data',
+      );
     }
   }
 
@@ -42,12 +48,18 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
 
       final data = response.data as Map<String, dynamic>;
       if (data['success'] == true && data['data'] != null) {
-        return ExecutiveDashboardModel.fromJson(data['data'] as Map<String, dynamic>);
+        return ExecutiveDashboardModel.fromJson(
+          data['data'] as Map<String, dynamic>,
+        );
       }
       throw Exception(data['message'] ?? 'Failed to load executive dashboard');
     } on DioException catch (e) {
-      final serverMsg = e.response?.data is Map ? e.response?.data['message'] : null;
-      throw Exception(serverMsg ?? e.message ?? 'Error fetching executive summary data');
+      final serverMsg = e.response?.data is Map
+          ? e.response?.data['message']
+          : null;
+      throw Exception(
+        serverMsg ?? e.message ?? 'Error fetching executive summary data',
+      );
     }
   }
 }

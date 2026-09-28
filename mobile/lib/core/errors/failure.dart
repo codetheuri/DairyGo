@@ -1,5 +1,5 @@
 /// Failure represents domain-level error representations in Clean Architecture.
-/// 
+///
 /// Senior Architect Note:
 /// UI widgets should NEVER catch raw DioException or HTTP status codes directly.
 /// The Data Layer maps HTTP/Dio errors into structured Failure objects,
@@ -16,11 +16,16 @@ class ServerFailure extends Failure {
 }
 
 class NetworkFailure extends Failure {
-  const NetworkFailure([super.message = 'No Internet connection. Please check your network setting and try again.']);
+  const NetworkFailure([
+    super.message =
+        'No Internet connection. Please check your network setting and try again.',
+  ]);
 }
 
 class UnauthorizedFailure extends Failure {
-  const UnauthorizedFailure([super.message = 'Session expired. Please log in again.']);
+  const UnauthorizedFailure([
+    super.message = 'Session expired. Please log in again.',
+  ]);
 }
 
 class ValidationFailure extends Failure {
@@ -30,5 +35,7 @@ class ValidationFailure extends Failure {
 }
 
 class UnknownFailure extends Failure {
-  const UnknownFailure([super.message = 'An unexpected error occurred. Please try again later.']);
+  const UnknownFailure([
+    super.message = 'An unexpected error occurred. Please try again later.',
+  ]);
 }

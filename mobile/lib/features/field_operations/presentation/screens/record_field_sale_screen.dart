@@ -24,7 +24,8 @@ class RecordFieldSaleScreen extends ConsumerStatefulWidget {
   const RecordFieldSaleScreen({super.key, this.initialCustomer});
 
   @override
-  ConsumerState<RecordFieldSaleScreen> createState() => _RecordFieldSaleScreenState();
+  ConsumerState<RecordFieldSaleScreen> createState() =>
+      _RecordFieldSaleScreenState();
 }
 
 class _RecordFieldSaleScreenState extends ConsumerState<RecordFieldSaleScreen> {
@@ -46,7 +47,9 @@ class _RecordFieldSaleScreenState extends ConsumerState<RecordFieldSaleScreen> {
     super.initState();
     _litresController.addListener(_recalculateTotal);
     _unitPriceController.addListener(_recalculateTotal);
-    if (widget.initialCustomer != null) _selectCustomer(widget.initialCustomer!);
+    if (widget.initialCustomer != null) {
+      _selectCustomer(widget.initialCustomer!);
+    }
   }
 
   @override
@@ -68,10 +71,12 @@ class _RecordFieldSaleScreenState extends ConsumerState<RecordFieldSaleScreen> {
     _customer = customer;
     _customerError = null;
     if (customer.defaultPricePerLitre != null) {
-      _unitPriceController.text = customer.defaultPricePerLitre!.toStringAsFixed(2);
+      _unitPriceController.text = customer.defaultPricePerLitre!
+          .toStringAsFixed(2);
     }
     // Coolers and processors usually buy on credit and settle later.
-    if (customer.customerType == 'COOLER' || customer.customerType == 'PROCESSOR') {
+    if (customer.customerType == 'COOLER' ||
+        customer.customerType == 'PROCESSOR') {
       _settlement = _Settlement.credit;
     }
     _recalculateTotal();
@@ -106,16 +111,24 @@ class _RecordFieldSaleScreenState extends ConsumerState<RecordFieldSaleScreen> {
       quantityLitres: double.parse(_litresController.text.trim()),
       unitPrice: double.parse(_unitPriceController.text.trim()),
       amountPaid: _amountPaid,
-      paymentMethod: _settlement == _Settlement.credit ? 'CREDIT' : _paymentMethod,
-      notes: _notesController.text.trim().isNotEmpty ? _notesController.text.trim() : null,
+      paymentMethod: _settlement == _Settlement.credit
+          ? 'CREDIT'
+          : _paymentMethod,
+      notes: _notesController.text.trim().isNotEmpty
+          ? _notesController.text.trim()
+          : null,
     );
 
-    final success = await ref.read(recordSaleControllerProvider.notifier).recordSale(request);
+    final success = await ref
+        .read(recordSaleControllerProvider.notifier)
+        .recordSale(request);
 
     if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Sale of ${request.quantityLitres.toStringAsFixed(1)}L to ${_customer!.name} recorded!'),
+          content: Text(
+            'Sale of ${request.quantityLitres.toStringAsFixed(1)}L to ${_customer!.name} recorded!',
+          ),
           backgroundColor: AppColors.success,
         ),
       );
@@ -127,11 +140,18 @@ class _RecordFieldSaleScreenState extends ConsumerState<RecordFieldSaleScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(recordSaleControllerProvider);
     final isLoading = state.isLoading;
-    final errorMessage = state.hasError ? state.error.toString().replaceAll('Exception: ', '') : null;
+    final errorMessage = state.hasError
+        ? state.error.toString().replaceAll('Exception: ', '')
+        : null;
     final onCredit = (_total - _amountPaid).clamp(0, double.infinity);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Record Milk Sale', style: TextStyle(fontWeight: FontWeight.bold))),
+      appBar: AppBar(
+        title: const Text(
+          'Record Milk Sale',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+      ),
       body: Stack(
         children: [
           SingleChildScrollView(
@@ -150,13 +170,24 @@ class _RecordFieldSaleScreenState extends ConsumerState<RecordFieldSaleScreen> {
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: AppColors.error),
                       ),
-                      child: Text(errorMessage, style: const TextStyle(color: AppColors.error, fontSize: 13)),
+                      child: Text(
+                        errorMessage,
+                        style: const TextStyle(
+                          color: AppColors.error,
+                          fontSize: 13,
+                        ),
+                      ),
                     ),
                     const SizedBox(height: 16),
                   ],
 
                   // Customer
-                  Text('Customer *', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
+                  Text(
+                    'Customer *',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                   const SizedBox(height: 6),
                   InkWell(
                     borderRadius: BorderRadius.circular(12),
@@ -167,34 +198,59 @@ class _RecordFieldSaleScreenState extends ConsumerState<RecordFieldSaleScreen> {
                       decoration: BoxDecoration(
                         color: AppColors.surface,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: _customerError != null ? AppColors.error : AppColors.cardBorder),
+                        border: Border.all(
+                          color: _customerError != null
+                              ? AppColors.error
+                              : AppColors.cardBorder,
+                        ),
                       ),
                       child: Row(
                         children: [
                           Icon(
-                            _customer?.customerType == 'COOLER' ? Icons.ac_unit_rounded : Icons.storefront_rounded,
+                            _customer?.customerType == 'COOLER'
+                                ? Icons.ac_unit_rounded
+                                : Icons.storefront_rounded,
                             color: AppColors.primary,
                           ),
                           const SizedBox(width: 10),
                           Expanded(
                             child: _customer == null
-                                ? const Text('Search or add customer (cooler, hotel, buyer…)',
-                                    style: TextStyle(color: AppColors.textMuted))
+                                ? const Text(
+                                    'Search or add customer (cooler, hotel, buyer…)',
+                                    style: TextStyle(
+                                      color: AppColors.textMuted,
+                                    ),
+                                  )
                                 : Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      Text(_customer!.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                      Text(
+                                        _customer!.name,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
                                       Text(
                                         [
-                                          customerTypeLabel(_customer!.customerType),
-                                          if (_customer!.phone != null) _customer!.phone!,
+                                          customerTypeLabel(
+                                            _customer!.customerType,
+                                          ),
+                                          if (_customer!.phone != null)
+                                            _customer!.phone!,
                                         ].join(' • '),
-                                        style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          color: AppColors.textSecondary,
+                                        ),
                                       ),
                                     ],
                                   ),
                           ),
-                          const Icon(Icons.chevron_right_rounded, color: AppColors.textMuted),
+                          const Icon(
+                            Icons.chevron_right_rounded,
+                            color: AppColors.textMuted,
+                          ),
                         ],
                       ),
                     ),
@@ -202,7 +258,13 @@ class _RecordFieldSaleScreenState extends ConsumerState<RecordFieldSaleScreen> {
                   if (_customerError != null)
                     Padding(
                       padding: const EdgeInsets.only(top: 6, left: 4),
-                      child: Text(_customerError!, style: const TextStyle(color: AppColors.error, fontSize: 12)),
+                      child: Text(
+                        _customerError!,
+                        style: const TextStyle(
+                          color: AppColors.error,
+                          fontSize: 12,
+                        ),
+                      ),
                     ),
                   const SizedBox(height: 16),
 
@@ -213,11 +275,15 @@ class _RecordFieldSaleScreenState extends ConsumerState<RecordFieldSaleScreen> {
                           label: 'Quantity (Litres) *',
                           controller: _litresController,
                           hint: 'e.g. 20.0',
-                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
                           prefixIcon: Icons.water_drop_rounded,
                           validator: (val) {
                             final d = double.tryParse(val?.trim() ?? '');
-                            return (d == null || d <= 0) ? 'Invalid litres' : null;
+                            return (d == null || d <= 0)
+                                ? 'Invalid litres'
+                                : null;
                           },
                         ),
                       ),
@@ -227,11 +293,15 @@ class _RecordFieldSaleScreenState extends ConsumerState<RecordFieldSaleScreen> {
                           label: 'Unit Price (KES/L) *',
                           controller: _unitPriceController,
                           hint: 'e.g. 60.00',
-                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
                           prefixIcon: Icons.payments_outlined,
                           validator: (val) {
                             final d = double.tryParse(val?.trim() ?? '');
-                            return (d == null || d <= 0) ? 'Invalid price' : null;
+                            return (d == null || d <= 0)
+                                ? 'Invalid price'
+                                : null;
                           },
                         ),
                       ),
@@ -245,15 +315,27 @@ class _RecordFieldSaleScreenState extends ConsumerState<RecordFieldSaleScreen> {
                     decoration: BoxDecoration(
                       color: AppColors.accentMint,
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+                      border: Border.all(
+                        color: AppColors.primary.withValues(alpha: 0.2),
+                      ),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Sale Total:', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
+                        const Text(
+                          'Sale Total:',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
                         Text(
                           'KES ${_total.toStringAsFixed(2)}',
-                          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 18, color: AppColors.primary),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 18,
+                            color: AppColors.primary,
+                          ),
                         ),
                       ],
                     ),
@@ -261,29 +343,54 @@ class _RecordFieldSaleScreenState extends ConsumerState<RecordFieldSaleScreen> {
                   const SizedBox(height: 20),
 
                   // Settlement
-                  Text('Payment', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
+                  Text(
+                    'Payment',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                   const SizedBox(height: 6),
                   SegmentedButton<_Settlement>(
                     segments: const [
-                      ButtonSegment(value: _Settlement.full, label: Text('Paid in full', style: TextStyle(fontSize: 12))),
-                      ButtonSegment(value: _Settlement.partial, label: Text('Part paid', style: TextStyle(fontSize: 12))),
-                      ButtonSegment(value: _Settlement.credit, label: Text('Credit', style: TextStyle(fontSize: 12))),
+                      ButtonSegment(
+                        value: _Settlement.full,
+                        label: Text(
+                          'Paid in full',
+                          style: TextStyle(fontSize: 12),
+                        ),
+                      ),
+                      ButtonSegment(
+                        value: _Settlement.partial,
+                        label: Text(
+                          'Part paid',
+                          style: TextStyle(fontSize: 12),
+                        ),
+                      ),
+                      ButtonSegment(
+                        value: _Settlement.credit,
+                        label: Text('Credit', style: TextStyle(fontSize: 12)),
+                      ),
                     ],
                     selected: {_settlement},
-                    onSelectionChanged: (s) => setState(() => _settlement = s.first),
+                    onSelectionChanged: (s) =>
+                        setState(() => _settlement = s.first),
                   ),
                   const SizedBox(height: 12),
                   if (_settlement == _Settlement.partial) ...[
                     AppTextField(
                       label: 'Amount paid now (KES) *',
                       controller: _amountPaidController,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
                       prefixIcon: Icons.account_balance_wallet_outlined,
                       onChanged: (_) => setState(() {}),
                       validator: (val) {
                         final d = double.tryParse(val?.trim() ?? '');
                         if (d == null || d <= 0) return 'Enter the amount paid';
-                        if (d >= _total) return 'Less than the total, or choose "Paid in full"';
+                        if (d >= _total) {
+                          return 'Less than the total, or choose "Paid in full"';
+                        }
                         return null;
                       },
                     ),
@@ -296,15 +403,23 @@ class _RecordFieldSaleScreenState extends ConsumerState<RecordFieldSaleScreen> {
                       items: const [
                         DropdownMenuItem(value: 'CASH', child: Text('Cash')),
                         DropdownMenuItem(value: 'MPESA', child: Text('M-Pesa')),
-                        DropdownMenuItem(value: 'BANK_TRANSFER', child: Text('Bank Transfer')),
+                        DropdownMenuItem(
+                          value: 'BANK_TRANSFER',
+                          child: Text('Bank Transfer'),
+                        ),
                       ],
-                      onChanged: (val) => setState(() => _paymentMethod = val ?? 'CASH'),
+                      onChanged: (val) =>
+                          setState(() => _paymentMethod = val ?? 'CASH'),
                     ),
                   if (onCredit > 0 && _total > 0) ...[
                     const SizedBox(height: 10),
                     Text(
                       'KES ${onCredit.toStringAsFixed(2)} will be added to ${_customer?.name ?? 'the customer'}\'s balance.',
-                      style: const TextStyle(fontSize: 12, color: AppColors.warning, fontWeight: FontWeight.w600),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.warning,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ],
                   const SizedBox(height: 16),

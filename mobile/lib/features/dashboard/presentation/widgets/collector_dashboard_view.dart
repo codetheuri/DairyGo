@@ -55,12 +55,15 @@ class CollectorDashboardView extends StatelessWidget {
                       Text(
                         'Shift Overview (${data.date.isNotEmpty ? data.date : "Today"})',
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              color: Colors.white.withValues(alpha: 0.9),
-                              fontWeight: FontWeight.w500,
-                            ),
+                          color: Colors.white.withValues(alpha: 0.9),
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                       Container(
-                        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
                         child: BalanceBadge(
                           unaccountedLitres: data.todayUnaccountedLitres,
                           status: data.todayBalanceStatus,
@@ -75,7 +78,8 @@ class CollectorDashboardView extends StatelessWidget {
                     children: [
                       Text(
                         data.todayUnaccountedLitres.toStringAsFixed(1),
-                        style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                        style: Theme.of(context).textTheme.displayMedium
+                            ?.copyWith(
                               color: Colors.white,
                               fontWeight: FontWeight.w800,
                             ),
@@ -83,7 +87,8 @@ class CollectorDashboardView extends StatelessWidget {
                       const SizedBox(width: 8),
                       Text(
                         'Litres unaccounted',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
                               color: Colors.white.withValues(alpha: 0.9),
                               fontWeight: FontWeight.bold,
                             ),
@@ -95,8 +100,8 @@ class CollectorDashboardView extends StatelessWidget {
                     'Collected ${data.todayCollectedLitres}L − Sold ${data.todaySoldLitres}L − Spoiled ${data.todaySpoiledLitres}L. '
                     'Record every sale, coolers included, so this reaches 0.',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.white.withValues(alpha: 0.8),
-                        ),
+                      color: Colors.white.withValues(alpha: 0.8),
+                    ),
                   ),
                 ],
               ),
@@ -106,9 +111,9 @@ class CollectorDashboardView extends StatelessWidget {
             Text(
               'Today\'s Field Shift Metrics',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
             ),
             const SizedBox(height: 12),
 
@@ -127,7 +132,8 @@ class CollectorDashboardView extends StatelessWidget {
                   child: StatCard(
                     title: 'Total Intake',
                     value: '${data.todayCollectedLitres.toStringAsFixed(1)} L',
-                    subtitle: '${data.todayFarmersServiced} farmers serviced (Tap to view)',
+                    subtitle:
+                        '${data.todayFarmersServiced} farmers serviced (Tap to view)',
                     icon: Icons.water_drop_rounded,
                     iconColor: AppColors.primary,
                     backgroundColor: AppColors.accentMint,
@@ -139,7 +145,8 @@ class CollectorDashboardView extends StatelessWidget {
                   child: StatCard(
                     title: 'Field Sales',
                     value: '${data.todaySoldLitres.toStringAsFixed(1)} L',
-                    subtitle: 'KES ${data.todaySalesRevenue.toStringAsFixed(0)} (Tap to view)',
+                    subtitle:
+                        'KES ${data.todaySalesRevenue.toStringAsFixed(0)} (Tap to view)',
                     icon: Icons.point_of_sale_rounded,
                     iconColor: AppColors.secondary,
                     backgroundColor: AppColors.accentMint,
@@ -173,9 +180,9 @@ class CollectorDashboardView extends StatelessWidget {
             Text(
               'Field Collector Actions',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
             ),
             const SizedBox(height: 12),
 

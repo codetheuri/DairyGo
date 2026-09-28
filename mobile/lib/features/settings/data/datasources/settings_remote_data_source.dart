@@ -22,11 +22,15 @@ class SettingsRemoteDataSourceImpl implements SettingsRemoteDataSource {
       final response = await _dio.get('/api/v1/sacco/profile');
       final data = response.data as Map<String, dynamic>;
       if (data['success'] == true && data['data'] != null) {
-        return SaccoProfileModel.fromJson(data['data']['sacco'] as Map<String, dynamic>);
+        return SaccoProfileModel.fromJson(
+          data['data']['sacco'] as Map<String, dynamic>,
+        );
       }
       throw Exception(data['message'] ?? 'Failed to load Sacco profile');
     } on DioException catch (e) {
-      final serverMsg = e.response?.data is Map ? e.response?.data['message'] : null;
+      final serverMsg = e.response?.data is Map
+          ? e.response?.data['message']
+          : null;
       throw Exception(serverMsg ?? e.message ?? 'Error loading Sacco details');
     }
   }
@@ -34,7 +38,10 @@ class SettingsRemoteDataSourceImpl implements SettingsRemoteDataSource {
   @override
   Future<List<MilkPriceModel>> getPriceHistory() async {
     try {
-      final response = await _dio.get(ApiConstants.milkPrices, queryParameters: {'per_page': 50});
+      final response = await _dio.get(
+        ApiConstants.milkPrices,
+        queryParameters: {'per_page': 50},
+      );
       final data = response.data as Map<String, dynamic>;
       if (data['success'] == true && data['data'] != null) {
         final list = (data['data']['prices'] as List? ?? [])
@@ -44,8 +51,12 @@ class SettingsRemoteDataSourceImpl implements SettingsRemoteDataSource {
       }
       throw Exception(data['message'] ?? 'Failed to load milk price history');
     } on DioException catch (e) {
-      final serverMsg = e.response?.data is Map ? e.response?.data['message'] : null;
-      throw Exception(serverMsg ?? e.message ?? 'Error fetching milk price history');
+      final serverMsg = e.response?.data is Map
+          ? e.response?.data['message']
+          : null;
+      throw Exception(
+        serverMsg ?? e.message ?? 'Error fetching milk price history',
+      );
     }
   }
 
@@ -58,12 +69,18 @@ class SettingsRemoteDataSourceImpl implements SettingsRemoteDataSource {
       );
       final data = response.data as Map<String, dynamic>;
       if (data['success'] == true && data['data'] != null) {
-        return MilkPriceModel.fromJson(data['data']['price'] as Map<String, dynamic>);
+        return MilkPriceModel.fromJson(
+          data['data']['price'] as Map<String, dynamic>,
+        );
       }
       throw Exception(data['message'] ?? 'Failed to update milk price rate');
     } on DioException catch (e) {
-      final serverMsg = e.response?.data is Map ? e.response?.data['message'] : null;
-      throw Exception(serverMsg ?? e.message ?? 'Error updating milk price rate');
+      final serverMsg = e.response?.data is Map
+          ? e.response?.data['message']
+          : null;
+      throw Exception(
+        serverMsg ?? e.message ?? 'Error updating milk price rate',
+      );
     }
   }
 
@@ -73,11 +90,15 @@ class SettingsRemoteDataSourceImpl implements SettingsRemoteDataSource {
       final response = await _dio.get(ApiConstants.saccoSettings);
       final data = response.data as Map<String, dynamic>;
       if (data['success'] == true && data['data'] != null) {
-        return SaccoSettingsModel.fromJson(data['data']['settings'] as Map<String, dynamic>);
+        return SaccoSettingsModel.fromJson(
+          data['data']['settings'] as Map<String, dynamic>,
+        );
       }
       throw Exception(data['message'] ?? 'Failed to load Sacco settings');
     } on DioException catch (e) {
-      final serverMsg = e.response?.data is Map ? e.response?.data['message'] : null;
+      final serverMsg = e.response?.data is Map
+          ? e.response?.data['message']
+          : null;
       throw Exception(serverMsg ?? e.message ?? 'Error loading Sacco settings');
     }
   }
@@ -85,14 +106,21 @@ class SettingsRemoteDataSourceImpl implements SettingsRemoteDataSource {
   @override
   Future<SaccoSettingsModel> updateTolerance(double litres) async {
     try {
-      final response = await _dio.put(ApiConstants.saccoSettings, data: {'reconciliation_tolerance_litres': litres});
+      final response = await _dio.put(
+        ApiConstants.saccoSettings,
+        data: {'reconciliation_tolerance_litres': litres},
+      );
       final data = response.data as Map<String, dynamic>;
       if (data['success'] == true && data['data'] != null) {
-        return SaccoSettingsModel.fromJson(data['data']['settings'] as Map<String, dynamic>);
+        return SaccoSettingsModel.fromJson(
+          data['data']['settings'] as Map<String, dynamic>,
+        );
       }
       throw Exception(data['message'] ?? 'Failed to update tolerance');
     } on DioException catch (e) {
-      final serverMsg = e.response?.data is Map ? e.response?.data['message'] : null;
+      final serverMsg = e.response?.data is Map
+          ? e.response?.data['message']
+          : null;
       throw Exception(serverMsg ?? e.message ?? 'Error updating tolerance');
     }
   }

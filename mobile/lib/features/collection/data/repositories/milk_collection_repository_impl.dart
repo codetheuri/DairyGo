@@ -40,12 +40,17 @@ class MilkCollectionRepositoryImpl implements MilkCollectionRepository {
   }
 
   @override
-  Future<MilkCollectionModel> recordCollection(RecordCollectionRequestModel request) {
+  Future<MilkCollectionModel> recordCollection(
+    RecordCollectionRequestModel request,
+  ) {
     return _remoteDataSource.recordCollection(request);
   }
 
   @override
-  Future<MilkCollectionModel> updateCollection(String id, UpdateCollectionRequestModel request) {
+  Future<MilkCollectionModel> updateCollection(
+    String id,
+    UpdateCollectionRequestModel request,
+  ) {
     return _remoteDataSource.updateCollection(id, request);
   }
 

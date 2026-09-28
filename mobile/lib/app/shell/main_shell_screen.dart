@@ -48,7 +48,10 @@ class MainShellScreen extends ConsumerWidget {
       if (isExecutive)
         const NavigationDestination(
           icon: Icon(Icons.description_outlined),
-          selectedIcon: Icon(Icons.description_rounded, color: AppColors.primary),
+          selectedIcon: Icon(
+            Icons.description_rounded,
+            color: AppColors.primary,
+          ),
           label: 'Reports',
         ),
     ];

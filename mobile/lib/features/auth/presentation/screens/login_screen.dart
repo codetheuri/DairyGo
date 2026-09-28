@@ -28,10 +28,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   void _onLogin() {
     if (_formKey.currentState?.validate() ?? false) {
-      ref.read(authControllerProvider.notifier).login(
-            _identityController.text.trim(),
-            _passwordController.text,
-          );
+      ref
+          .read(authControllerProvider.notifier)
+          .login(_identityController.text.trim(), _passwordController.text);
     }
   }
 
@@ -72,7 +71,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: AppColors.primaryLight, width: 2),
+                        border: Border.all(
+                          color: AppColors.primaryLight,
+                          width: 2,
+                        ),
                         boxShadow: [
                           BoxShadow(
                             color: AppColors.primary.withValues(alpha: 0.08),
@@ -92,17 +94,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   Text(
                     'Maru Dairy Co-op ',
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
-                        ),
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 6),
                   Text(
                     'Sign in to manage Sacco milk collection & sales',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
+                      color: AppColors.textSecondary,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 32),
@@ -122,22 +124,35 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            if (authState.valueOrNull?.errorMessage != null) ...[
+                            if (authState.valueOrNull?.errorMessage !=
+                                null) ...[
                               Container(
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
                                   color: AppColors.errorContainer,
                                   borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
+                                  border: Border.all(
+                                    color: AppColors.error.withValues(
+                                      alpha: 0.3,
+                                    ),
+                                  ),
                                 ),
                                 child: Row(
                                   children: [
-                                    const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 20),
+                                    const Icon(
+                                      Icons.error_outline_rounded,
+                                      color: AppColors.error,
+                                      size: 20,
+                                    ),
                                     const SizedBox(width: 10),
                                     Expanded(
                                       child: Text(
                                         authState.valueOrNull!.errorMessage!,
-                                        style: const TextStyle(color: AppColors.error, fontSize: 13, fontWeight: FontWeight.w600),
+                                        style: const TextStyle(
+                                          color: AppColors.error,
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w600,
+                                        ),
                                       ),
                                     ),
                                   ],

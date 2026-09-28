@@ -92,7 +92,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: AppRoutes.collections,
-                builder: (context, state) => const DailyCollectionHistoryScreen(),
+                builder: (context, state) =>
+                    const DailyCollectionHistoryScreen(),
               ),
             ],
           ),
@@ -101,7 +102,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: AppRoutes.fieldOperations,
-                builder: (context, state) => const FieldOperationsHistoryScreen(),
+                builder: (context, state) =>
+                    const FieldOperationsHistoryScreen(),
               ),
             ],
           ),
@@ -156,7 +158,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.recordSale,
         builder: (context, state) => RecordFieldSaleScreen(
-          initialCustomer: state.extra is CustomerModel ? state.extra as CustomerModel : null,
+          initialCustomer: state.extra is CustomerModel
+              ? state.extra as CustomerModel
+              : null,
         ),
       ),
       GoRoute(
@@ -165,7 +169,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/customers/:id',
-        builder: (context, state) => CustomerDetailScreen(customerId: state.pathParameters['id'] ?? ''),
+        builder: (context, state) =>
+            CustomerDetailScreen(customerId: state.pathParameters['id'] ?? ''),
       ),
       GoRoute(
         path: AppRoutes.recordSpoilage,

@@ -29,7 +29,9 @@ class SaccoSettingsModel with _$SaccoSettingsModel {
     @JsonKey(name: 'morning_cutoff_time') String? morningCutoffTime,
     @JsonKey(name: 'evening_cutoff_time') String? eveningCutoffTime,
     // Litres of measuring difference tolerated per collector per day when balancing milk.
-    @JsonKey(name: 'reconciliation_tolerance_litres') @Default(0.0) double reconciliationToleranceLitres,
+    @JsonKey(name: 'reconciliation_tolerance_litres')
+    @Default(0.0)
+    double reconciliationToleranceLitres,
   }) = _SaccoSettingsModel;
 
   factory SaccoSettingsModel.fromJson(Map<String, dynamic> json) =>

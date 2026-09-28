@@ -8,9 +8,18 @@ abstract class FieldOpsRemoteDataSource {
   Future<MilkSaleModel> recordSale(RecordSaleRequestModel request);
   Future<void> voidSale(String id, String reason);
   Future<List<AuditLogModel>> getSaleHistory(String id);
-  Future<List<MilkSaleModel>> listSales({String? fromDate, String? toDate, String? search, int? collectorId});
+  Future<List<MilkSaleModel>> listSales({
+    String? fromDate,
+    String? toDate,
+    String? search,
+    int? collectorId,
+  });
   Future<MilkSpoilageModel> recordSpoilage(RecordSpoilageRequestModel request);
-  Future<List<MilkSpoilageModel>> listSpoilage({String? fromDate, String? toDate, int? collectorId});
+  Future<List<MilkSpoilageModel>> listSpoilage({
+    String? fromDate,
+    String? toDate,
+    int? collectorId,
+  });
   Future<ReconciliationModel> getReconciliation({String? date});
 }
 
@@ -28,23 +37,36 @@ class FieldOpsRemoteDataSourceImpl implements FieldOpsRemoteDataSource {
       );
       final data = response.data as Map<String, dynamic>;
       if (data['success'] == true && data['data'] != null) {
-        return MilkSaleModel.fromJson(data['data']['sale'] as Map<String, dynamic>);
+        return MilkSaleModel.fromJson(
+          data['data']['sale'] as Map<String, dynamic>,
+        );
       }
       throw Exception(data['message'] ?? 'Failed to record direct field sale');
     } on DioException catch (e) {
-      final serverMsg = e.response?.data is Map ? e.response?.data['message'] : null;
-      throw Exception(serverMsg ?? e.message ?? 'Error recording direct field sale');
+      final serverMsg = e.response?.data is Map
+          ? e.response?.data['message']
+          : null;
+      throw Exception(
+        serverMsg ?? e.message ?? 'Error recording direct field sale',
+      );
     }
   }
 
   @override
   Future<void> voidSale(String id, String reason) async {
     try {
-      final response = await _dio.post('${ApiConstants.sales}/$id/void', data: {'reason': reason});
+      final response = await _dio.post(
+        '${ApiConstants.sales}/$id/void',
+        data: {'reason': reason},
+      );
       final data = response.data as Map<String, dynamic>;
-      if (data['success'] != true) throw Exception(data['message'] ?? 'Failed to void sale');
+      if (data['success'] != true) {
+        throw Exception(data['message'] ?? 'Failed to void sale');
+      }
     } on DioException catch (e) {
-      final serverMsg = e.response?.data is Map ? e.response?.data['message'] : null;
+      final serverMsg = e.response?.data is Map
+          ? e.response?.data['message']
+          : null;
       throw Exception(serverMsg ?? e.message ?? 'Error voiding sale');
     }
   }
@@ -61,22 +83,41 @@ class FieldOpsRemoteDataSourceImpl implements FieldOpsRemoteDataSource {
       }
       throw Exception(data['message'] ?? 'Failed to load sale history');
     } on DioException catch (e) {
-      final serverMsg = e.response?.data is Map ? e.response?.data['message'] : null;
+      final serverMsg = e.response?.data is Map
+          ? e.response?.data['message']
+          : null;
       throw Exception(serverMsg ?? e.message ?? 'Error loading sale history');
     }
   }
 
   @override
-  Future<List<MilkSaleModel>> listSales({String? fromDate, String? toDate, String? search, int? collectorId}) {
+  Future<List<MilkSaleModel>> listSales({
+    String? fromDate,
+    String? toDate,
+    String? search,
+    int? collectorId,
+  }) {
     // Callers filter to a day or one collector's month, so every page is loaded.
-    return fetchAllPages((page) => _salesPage(page, fromDate, toDate, search, collectorId));
+    return fetchAllPages(
+      (page) => _salesPage(page, fromDate, toDate, search, collectorId),
+    );
   }
 
   Future<PageResult<MilkSaleModel>> _salesPage(
-      int page, String? fromDate, String? toDate, String? search, int? collectorId) async {
+    int page,
+    String? fromDate,
+    String? toDate,
+    String? search,
+    int? collectorId,
+  ) async {
     try {
-      final queryParams = <String, dynamic>{'page': page, 'per_page': maxPageSize};
-      if (fromDate != null && fromDate.isNotEmpty) queryParams['from_date'] = fromDate;
+      final queryParams = <String, dynamic>{
+        'page': page,
+        'per_page': maxPageSize,
+      };
+      if (fromDate != null && fromDate.isNotEmpty) {
+        queryParams['from_date'] = fromDate;
+      }
       if (toDate != null && toDate.isNotEmpty) queryParams['to_date'] = toDate;
       if (search != null && search.isNotEmpty) queryParams['search'] = search;
       if (collectorId != null) queryParams['collector_id'] = collectorId;
@@ -87,17 +128,25 @@ class FieldOpsRemoteDataSourceImpl implements FieldOpsRemoteDataSource {
       );
       final data = response.data as Map<String, dynamic>;
       if (data['success'] == true && data['data'] != null) {
-        return PageResult.fromData(data['data'] as Map<String, dynamic>, 'sales', MilkSaleModel.fromJson);
+        return PageResult.fromData(
+          data['data'] as Map<String, dynamic>,
+          'sales',
+          MilkSaleModel.fromJson,
+        );
       }
       throw Exception(data['message'] ?? 'Failed to load field sales');
     } on DioException catch (e) {
-      final serverMsg = e.response?.data is Map ? e.response?.data['message'] : null;
+      final serverMsg = e.response?.data is Map
+          ? e.response?.data['message']
+          : null;
       throw Exception(serverMsg ?? e.message ?? 'Error loading field sales');
     }
   }
 
   @override
-  Future<MilkSpoilageModel> recordSpoilage(RecordSpoilageRequestModel request) async {
+  Future<MilkSpoilageModel> recordSpoilage(
+    RecordSpoilageRequestModel request,
+  ) async {
     try {
       final response = await _dio.post(
         ApiConstants.spoilage,
@@ -105,25 +154,44 @@ class FieldOpsRemoteDataSourceImpl implements FieldOpsRemoteDataSource {
       );
       final data = response.data as Map<String, dynamic>;
       if (data['success'] == true && data['data'] != null) {
-        return MilkSpoilageModel.fromJson(data['data']['spoilage'] as Map<String, dynamic>);
+        return MilkSpoilageModel.fromJson(
+          data['data']['spoilage'] as Map<String, dynamic>,
+        );
       }
       throw Exception(data['message'] ?? 'Failed to log milk spoilage');
     } on DioException catch (e) {
-      final serverMsg = e.response?.data is Map ? e.response?.data['message'] : null;
+      final serverMsg = e.response?.data is Map
+          ? e.response?.data['message']
+          : null;
       throw Exception(serverMsg ?? e.message ?? 'Error logging milk spoilage');
     }
   }
 
   @override
-  Future<List<MilkSpoilageModel>> listSpoilage({String? fromDate, String? toDate, int? collectorId}) {
-    return fetchAllPages((page) => _spoilagePage(page, fromDate, toDate, collectorId));
+  Future<List<MilkSpoilageModel>> listSpoilage({
+    String? fromDate,
+    String? toDate,
+    int? collectorId,
+  }) {
+    return fetchAllPages(
+      (page) => _spoilagePage(page, fromDate, toDate, collectorId),
+    );
   }
 
   Future<PageResult<MilkSpoilageModel>> _spoilagePage(
-      int page, String? fromDate, String? toDate, int? collectorId) async {
+    int page,
+    String? fromDate,
+    String? toDate,
+    int? collectorId,
+  ) async {
     try {
-      final queryParams = <String, dynamic>{'page': page, 'per_page': maxPageSize};
-      if (fromDate != null && fromDate.isNotEmpty) queryParams['from_date'] = fromDate;
+      final queryParams = <String, dynamic>{
+        'page': page,
+        'per_page': maxPageSize,
+      };
+      if (fromDate != null && fromDate.isNotEmpty) {
+        queryParams['from_date'] = fromDate;
+      }
       if (toDate != null && toDate.isNotEmpty) queryParams['to_date'] = toDate;
       if (collectorId != null) queryParams['collector_id'] = collectorId;
 
@@ -133,11 +201,17 @@ class FieldOpsRemoteDataSourceImpl implements FieldOpsRemoteDataSource {
       );
       final data = response.data as Map<String, dynamic>;
       if (data['success'] == true && data['data'] != null) {
-        return PageResult.fromData(data['data'] as Map<String, dynamic>, 'spoilages', MilkSpoilageModel.fromJson);
+        return PageResult.fromData(
+          data['data'] as Map<String, dynamic>,
+          'spoilages',
+          MilkSpoilageModel.fromJson,
+        );
       }
       throw Exception(data['message'] ?? 'Failed to load spoilage logs');
     } on DioException catch (e) {
-      final serverMsg = e.response?.data is Map ? e.response?.data['message'] : null;
+      final serverMsg = e.response?.data is Map
+          ? e.response?.data['message']
+          : null;
       throw Exception(serverMsg ?? e.message ?? 'Error loading spoilage logs');
     }
   }
@@ -151,12 +225,18 @@ class FieldOpsRemoteDataSourceImpl implements FieldOpsRemoteDataSource {
       );
       final data = response.data as Map<String, dynamic>;
       if (data['success'] == true && data['data'] != null) {
-        return ReconciliationModel.fromJson(data['data']['reconciliation'] as Map<String, dynamic>);
+        return ReconciliationModel.fromJson(
+          data['data']['reconciliation'] as Map<String, dynamic>,
+        );
       }
       throw Exception(data['message'] ?? 'Failed to load reconciliation data');
     } on DioException catch (e) {
-      final serverMsg = e.response?.data is Map ? e.response?.data['message'] : null;
-      throw Exception(serverMsg ?? e.message ?? 'Error fetching reconciliation status');
+      final serverMsg = e.response?.data is Map
+          ? e.response?.data['message']
+          : null;
+      throw Exception(
+        serverMsg ?? e.message ?? 'Error fetching reconciliation status',
+      );
     }
   }
 }

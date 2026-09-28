@@ -17,7 +17,8 @@ class NetworkConnectivityInterceptor extends Interceptor {
         DioException(
           requestOptions: options,
           type: DioExceptionType.connectionError,
-          error: 'No Internet Connection. Please check your network connection.',
+          error:
+              'No Internet Connection. Please check your network connection.',
         ),
       );
     }

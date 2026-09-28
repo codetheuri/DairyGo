@@ -13,7 +13,8 @@ class RecordSpoilageScreen extends ConsumerStatefulWidget {
   const RecordSpoilageScreen({super.key});
 
   @override
-  ConsumerState<RecordSpoilageScreen> createState() => _RecordSpoilageScreenState();
+  ConsumerState<RecordSpoilageScreen> createState() =>
+      _RecordSpoilageScreenState();
 }
 
 class _RecordSpoilageScreenState extends ConsumerState<RecordSpoilageScreen> {
@@ -52,7 +53,9 @@ class _RecordSpoilageScreenState extends ConsumerState<RecordSpoilageScreen> {
       spoilageDate: todayStr,
       quantityLitres: litres,
       reason: _selectedReason,
-      notes: _notesController.text.trim().isNotEmpty ? _notesController.text.trim() : null,
+      notes: _notesController.text.trim().isNotEmpty
+          ? _notesController.text.trim()
+          : null,
     );
 
     final success = await ref
@@ -82,7 +85,10 @@ class _RecordSpoilageScreenState extends ConsumerState<RecordSpoilageScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Log Transit Spoilage / Loss', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Log Transit Spoilage / Loss',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
       ),
       body: Stack(
         children: [
@@ -104,7 +110,10 @@ class _RecordSpoilageScreenState extends ConsumerState<RecordSpoilageScreen> {
                       ),
                       child: Text(
                         errorMessage,
-                        style: const TextStyle(color: AppColors.error, fontSize: 13),
+                        style: const TextStyle(
+                          color: AppColors.error,
+                          fontSize: 13,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -114,10 +123,14 @@ class _RecordSpoilageScreenState extends ConsumerState<RecordSpoilageScreen> {
                     label: 'Spoiled / Lost Quantity (Litres) *',
                     controller: _litresController,
                     hint: 'e.g. 2.5',
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     prefixIcon: Icons.warning_amber_rounded,
                     validator: (val) {
-                      if (val == null || val.trim().isEmpty) return 'Litres required';
+                      if (val == null || val.trim().isEmpty) {
+                        return 'Litres required';
+                      }
                       final d = double.tryParse(val.trim());
                       if (d == null || d <= 0) return 'Enter a valid quantity';
                       return null;
@@ -127,23 +140,33 @@ class _RecordSpoilageScreenState extends ConsumerState<RecordSpoilageScreen> {
 
                   Text(
                     'Spoilage / Loss Reason *',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   const SizedBox(height: 6),
 
                   DropdownButtonFormField<String>(
                     initialValue: _selectedReason,
                     decoration: InputDecoration(
-                      prefixIcon: const Icon(Icons.report_problem_outlined, color: AppColors.warning),
+                      prefixIcon: const Icon(
+                        Icons.report_problem_outlined,
+                        color: AppColors.warning,
+                      ),
                       filled: true,
                       fillColor: AppColors.surface,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: AppColors.cardBorder),
+                        borderSide: const BorderSide(
+                          color: AppColors.cardBorder,
+                        ),
                       ),
                     ),
                     items: _reasonsList.map((r) {
-                      return DropdownMenuItem(value: r, child: Text(r, style: const TextStyle(fontSize: 14)));
+                      return DropdownMenuItem(
+                        value: r,
+                        child: Text(r, style: const TextStyle(fontSize: 14)),
+                      );
                     }).toList(),
                     onChanged: (val) => setState(() => _selectedReason = val!),
                   ),

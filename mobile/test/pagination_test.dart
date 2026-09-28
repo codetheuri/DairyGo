@@ -11,18 +11,20 @@ class _Numbers extends PagedListNotifier<int> {
 
   @override
   Future<PagedList<int>> build() => loadFirstPage((page) async {
-        requested.add(page);
-        if (page == failPage) {
-          failPage = null;
-          throw Exception('network down');
-        }
-        final start = (page - 1) * 3;
-        final items = [for (var i = start; i < start + 3 && i < total; i++) i];
-        return PageResult(items, hasMore: start + 3 < total);
-      });
+    requested.add(page);
+    if (page == failPage) {
+      failPage = null;
+      throw Exception('network down');
+    }
+    final start = (page - 1) * 3;
+    final items = [for (var i = start; i < start + 3 && i < total; i++) i];
+    return PageResult(items, hasMore: start + 3 < total);
+  });
 }
 
-final _numbersProvider = AsyncNotifierProvider<_Numbers, PagedList<int>>(_Numbers.new);
+final _numbersProvider = AsyncNotifierProvider<_Numbers, PagedList<int>>(
+  _Numbers.new,
+);
 
 void main() {
   setUp(() {
@@ -36,9 +38,9 @@ void main() {
       {
         'members': [
           {'n': 1},
-          {'n': 2}
+          {'n': 2},
         ],
-        'meta': {'has_next': true}
+        'meta': {'has_next': true},
       },
       'members',
       (j) => j['n'] as int,

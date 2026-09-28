@@ -56,13 +56,16 @@ class ExecutiveDashboardView extends StatelessWidget {
                       Text(
                         'Sacco Executive Overview',
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              color: Colors.white.withValues(alpha: 0.9),
-                              fontWeight: FontWeight.w500,
-                            ),
+                          color: Colors.white.withValues(alpha: 0.9),
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                       // Today's milk balance: collected vs sold (coolers included) + spoiled.
                       Container(
-                        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
                         child: BalanceBadge(
                           unaccountedLitres: cards.todayUnaccountedLitres,
                           status: cards.todayBalanceStatus,
@@ -79,14 +82,18 @@ class ExecutiveDashboardView extends StatelessWidget {
                         children: [
                           Text(
                             '${cards.todayCollectedLitres.toStringAsFixed(0)} L',
-                            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                            style: Theme.of(context).textTheme.headlineMedium
+                                ?.copyWith(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w800,
                                 ),
                           ),
                           Text(
                             'Today Intake',
-                            style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 11),
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.8),
+                              fontSize: 11,
+                            ),
                           ),
                         ],
                       ),
@@ -96,14 +103,18 @@ class ExecutiveDashboardView extends StatelessWidget {
                         children: [
                           Text(
                             '${cards.activeMembersCount}',
-                            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                            style: Theme.of(context).textTheme.headlineMedium
+                                ?.copyWith(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w800,
                                 ),
                           ),
                           Text(
                             'Farmers',
-                            style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 11),
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.8),
+                              fontSize: 11,
+                            ),
                           ),
                         ],
                       ),
@@ -113,14 +124,18 @@ class ExecutiveDashboardView extends StatelessWidget {
                         children: [
                           Text(
                             '${cards.activeCollectorsCount}',
-                            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                            style: Theme.of(context).textTheme.headlineMedium
+                                ?.copyWith(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w800,
                                 ),
                           ),
                           Text(
                             'Collectors',
-                            style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 11),
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.8),
+                              fontSize: 11,
+                            ),
                           ),
                         ],
                       ),
@@ -135,9 +150,9 @@ class ExecutiveDashboardView extends StatelessWidget {
             Text(
               'Month-to-Date Performance',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
             ),
             const SizedBox(height: 12),
 
@@ -159,7 +174,8 @@ class ExecutiveDashboardView extends StatelessWidget {
                 ),
                 StatCard(
                   title: 'Payout Liability',
-                  value: 'KES ${cards.monthPayoutLiabilityKes.toStringAsFixed(0)}',
+                  value:
+                      'KES ${cards.monthPayoutLiabilityKes.toStringAsFixed(0)}',
                   subtitle: 'Owed to members',
                   icon: Icons.account_balance_wallet_rounded,
                   iconColor: AppColors.warning,
@@ -178,9 +194,14 @@ class ExecutiveDashboardView extends StatelessWidget {
                   value: 'KES ${cards.monthGrossMarginKes.toStringAsFixed(0)}',
                   subtitle: 'Sales minus farmer payouts',
                   icon: Icons.savings_rounded,
-                  iconColor: cards.monthGrossMarginKes >= 0 ? AppColors.success : AppColors.error,
-                  backgroundColor: (cards.monthGrossMarginKes >= 0 ? AppColors.success : AppColors.error)
-                      .withValues(alpha: 0.1),
+                  iconColor: cards.monthGrossMarginKes >= 0
+                      ? AppColors.success
+                      : AppColors.error,
+                  backgroundColor:
+                      (cards.monthGrossMarginKes >= 0
+                              ? AppColors.success
+                              : AppColors.error)
+                          .withValues(alpha: 0.1),
                 ),
                 StatCard(
                   title: 'Customers Owe',

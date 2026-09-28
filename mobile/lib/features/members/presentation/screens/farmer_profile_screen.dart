@@ -20,7 +20,10 @@ class FarmerProfileScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Farmer Member Profile', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Farmer Member Profile',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
       ),
       body: memberAsync.when(
         data: (member) {
@@ -52,28 +55,38 @@ class FarmerProfileScreen extends ConsumerWidget {
                         backgroundColor: AppColors.accentMint,
                         foregroundColor: AppColors.primary,
                         child: Text(
-                          member.firstName.isNotEmpty ? member.firstName[0].toUpperCase() : 'F',
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 28),
+                          member.firstName.isNotEmpty
+                              ? member.firstName[0].toUpperCase()
+                              : 'F',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 28,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 12),
                       Text(
                         member.fullName,
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.textPrimary,
-                            ),
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
                       ),
                       const SizedBox(height: 6),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
                               color: AppColors.accentMint,
                               borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+                              border: Border.all(
+                                color: AppColors.primary.withValues(alpha: 0.2),
+                              ),
                             ),
                             child: Text(
                               member.membershipNumber,
@@ -97,9 +110,9 @@ class FarmerProfileScreen extends ConsumerWidget {
                 Text(
                   'Contact & Personal Information',
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primary,
-                      ),
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primary,
+                  ),
                 ),
                 const SizedBox(height: 10),
 
@@ -112,7 +125,11 @@ class FarmerProfileScreen extends ConsumerWidget {
                   ),
                   child: Column(
                     children: [
-                      _buildInfoRow(Icons.phone_outlined, 'Phone Number', member.phone),
+                      _buildInfoRow(
+                        Icons.phone_outlined,
+                        'Phone Number',
+                        member.phone,
+                      ),
                       const Divider(height: 20, color: AppColors.cardBorder),
                       _buildInfoRow(
                         Icons.credit_card_outlined,
@@ -127,7 +144,11 @@ class FarmerProfileScreen extends ConsumerWidget {
                       ),
                       if (member.gender != null) ...[
                         const Divider(height: 20, color: AppColors.cardBorder),
-                        _buildInfoRow(Icons.wc_outlined, 'Gender', member.gender!),
+                        _buildInfoRow(
+                          Icons.wc_outlined,
+                          'Gender',
+                          member.gender!,
+                        ),
                       ],
                     ],
                   ),
@@ -138,9 +159,9 @@ class FarmerProfileScreen extends ConsumerWidget {
                 Text(
                   'Payout & Mobile Money Information',
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primary,
-                      ),
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primary,
+                  ),
                 ),
                 const SizedBox(height: 10),
 
@@ -158,9 +179,14 @@ class FarmerProfileScreen extends ConsumerWidget {
                         'M-Pesa Number',
                         member.mpesaNumber ?? member.phone,
                       ),
-                      if (member.mpesaName != null && member.mpesaName!.isNotEmpty) ...[
+                      if (member.mpesaName != null &&
+                          member.mpesaName!.isNotEmpty) ...[
                         const Divider(height: 20, color: AppColors.cardBorder),
-                        _buildInfoRow(Icons.badge_outlined, 'M-Pesa Account Name', member.mpesaName!),
+                        _buildInfoRow(
+                          Icons.badge_outlined,
+                          'M-Pesa Account Name',
+                          member.mpesaName!,
+                        ),
                       ],
                     ],
                   ),
@@ -175,15 +201,22 @@ class FarmerProfileScreen extends ConsumerWidget {
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
                     ),
                     icon: const Icon(Icons.add_circle_outline_rounded),
                     label: Text(
                       'Record Milk Intake for ${member.firstName}',
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
                     ),
                     onPressed: () {
-                      context.push('${AppRoutes.recordCollection}?memberId=${member.id}');
+                      context.push(
+                        '${AppRoutes.recordCollection}?memberId=${member.id}',
+                      );
                     },
                   ),
                 ),
@@ -191,7 +224,9 @@ class FarmerProfileScreen extends ConsumerWidget {
             ),
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+        loading: () => const Center(
+          child: CircularProgressIndicator(color: AppColors.primary),
+        ),
         error: (err, stack) => ErrorView(
           message: err.toString().replaceAll('Exception: ', ''),
           onRetry: () => ref.refresh(memberDetailsProvider(memberId)),

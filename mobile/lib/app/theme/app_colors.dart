@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 /// AppColors defines the Material 3 color palette for the Dairy Sacco Platform.
-/// 
+///
 /// Senior Architect Note:
 /// We use tailored HSL / Hex brand tokens instead of default Material colors:
 /// - Primary Green: Represents agriculture, growth, and trust.

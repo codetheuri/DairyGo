@@ -13,7 +13,8 @@ class RegisterFarmerScreen extends ConsumerStatefulWidget {
   const RegisterFarmerScreen({super.key});
 
   @override
-  ConsumerState<RegisterFarmerScreen> createState() => _RegisterFarmerScreenState();
+  ConsumerState<RegisterFarmerScreen> createState() =>
+      _RegisterFarmerScreenState();
 }
 
 class _RegisterFarmerScreenState extends ConsumerState<RegisterFarmerScreen> {
@@ -69,7 +70,9 @@ class _RegisterFarmerScreenState extends ConsumerState<RegisterFarmerScreen> {
     if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Farmer ${_firstNameController.text} registered successfully!'),
+          content: Text(
+            'Farmer ${_firstNameController.text} registered successfully!',
+          ),
           backgroundColor: AppColors.success,
         ),
       );
@@ -87,7 +90,10 @@ class _RegisterFarmerScreenState extends ConsumerState<RegisterFarmerScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Register New Farmer', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Register New Farmer',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
       ),
       body: Stack(
         children: [
@@ -109,7 +115,10 @@ class _RegisterFarmerScreenState extends ConsumerState<RegisterFarmerScreen> {
                       ),
                       child: Text(
                         errorMessage,
-                        style: const TextStyle(color: AppColors.error, fontSize: 13),
+                        style: const TextStyle(
+                          color: AppColors.error,
+                          fontSize: 13,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -118,9 +127,9 @@ class _RegisterFarmerScreenState extends ConsumerState<RegisterFarmerScreen> {
                   Text(
                     'Farmer Identity',
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
-                        ),
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
+                    ),
                   ),
                   const SizedBox(height: 12),
 
@@ -204,9 +213,9 @@ class _RegisterFarmerScreenState extends ConsumerState<RegisterFarmerScreen> {
                   Text(
                     'Location & Payment Information',
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
-                        ),
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
+                    ),
                   ),
                   const SizedBox(height: 12),
 
@@ -232,16 +241,23 @@ class _RegisterFarmerScreenState extends ConsumerState<RegisterFarmerScreen> {
                     initialValue: _selectedGender,
                     decoration: InputDecoration(
                       labelText: 'Gender (Optional)',
-                      prefixIcon: const Icon(Icons.wc_rounded, color: AppColors.textSecondary),
+                      prefixIcon: const Icon(
+                        Icons.wc_rounded,
+                        color: AppColors.textSecondary,
+                      ),
                       filled: true,
                       fillColor: AppColors.surface,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: AppColors.cardBorder),
+                        borderSide: const BorderSide(
+                          color: AppColors.cardBorder,
+                        ),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: AppColors.cardBorder),
+                        borderSide: const BorderSide(
+                          color: AppColors.cardBorder,
+                        ),
                       ),
                     ),
                     items: const [
@@ -262,7 +278,8 @@ class _RegisterFarmerScreenState extends ConsumerState<RegisterFarmerScreen> {
               ),
             ),
           ),
-          if (isLoading) const LoadingOverlay(message: 'Registering farmer member...'),
+          if (isLoading)
+            const LoadingOverlay(message: 'Registering farmer member...'),
         ],
       ),
     );

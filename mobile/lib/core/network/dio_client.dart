@@ -53,7 +53,9 @@ class DioClient {
     );
 
     dio.interceptors.add(NetworkConnectivityInterceptor(connectivityService));
-    dio.interceptors.add(AuthInterceptor(storageService, onSessionExpired: onSessionExpired));
+    dio.interceptors.add(
+      AuthInterceptor(storageService, onSessionExpired: onSessionExpired),
+    );
     dio.interceptors.add(RetryInterceptor(dio));
 
     if (kDebugMode) {

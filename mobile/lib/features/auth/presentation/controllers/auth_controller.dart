@@ -15,18 +15,23 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
   return AuthRepositoryImpl(remoteDS, storageService);
 });
 
-final saccoStaffListProvider = FutureProvider.autoDispose<List<UserEntity>>((ref) async {
+final saccoStaffListProvider = FutureProvider.autoDispose<List<UserEntity>>((
+  ref,
+) async {
   final repo = ref.watch(authRepositoryProvider);
   return repo.listUsers();
 });
 
-final authControllerProvider =
-    AsyncNotifierProvider<AuthController, AuthState>(AuthController.new);
+final authControllerProvider = AsyncNotifierProvider<AuthController, AuthState>(
+  AuthController.new,
+);
 
 /// The signed-in user's id, or null when signed out. Data providers depend on
 /// it through [dioClientProvider], so they all reload when the user changes.
 final sessionUserIdProvider = Provider<int?>((ref) {
-  return ref.watch(authControllerProvider.select((s) => s.valueOrNull?.user?.id));
+  return ref.watch(
+    authControllerProvider.select((s) => s.valueOrNull?.user?.id),
+  );
 });
 
 class AuthController extends AsyncNotifier<AuthState> {

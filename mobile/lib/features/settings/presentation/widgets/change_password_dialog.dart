@@ -10,7 +10,8 @@ class ChangePasswordDialog extends ConsumerStatefulWidget {
   const ChangePasswordDialog({super.key});
 
   @override
-  ConsumerState<ChangePasswordDialog> createState() => _ChangePasswordDialogState();
+  ConsumerState<ChangePasswordDialog> createState() =>
+      _ChangePasswordDialogState();
 }
 
 class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
@@ -82,7 +83,11 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
                 children: [
                   const Text(
                     'Change Password / PIN',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17, color: AppColors.textPrimary),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 17,
+                      color: AppColors.textPrimary,
+                    ),
                   ),
                   IconButton(
                     icon: const Icon(Icons.close_rounded, size: 20),
@@ -99,7 +104,13 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
                     color: AppColors.errorContainer,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Text(_errorMessage!, style: const TextStyle(color: AppColors.error, fontSize: 12)),
+                  child: Text(
+                    _errorMessage!,
+                    style: const TextStyle(
+                      color: AppColors.error,
+                      fontSize: 12,
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 12),
               ],
@@ -111,7 +122,9 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
                 isPassword: true,
                 prefixIcon: Icons.lock_outline_rounded,
                 validator: (val) {
-                  if (val == null || val.isEmpty) return 'Enter current password';
+                  if (val == null || val.isEmpty) {
+                    return 'Enter current password';
+                  }
                   return null;
                 },
               ),
@@ -124,7 +137,9 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
                 isPassword: true,
                 prefixIcon: Icons.lock_reset_rounded,
                 validator: (val) {
-                  if (val == null || val.length < 4) return 'Password must be at least 4 characters';
+                  if (val == null || val.length < 4) {
+                    return 'Password must be at least 4 characters';
+                  }
                   return null;
                 },
               ),
@@ -137,7 +152,9 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
                 isPassword: true,
                 prefixIcon: Icons.lock_reset_rounded,
                 validator: (val) {
-                  if (val != _newPasswordController.text) return 'Passwords do not match';
+                  if (val != _newPasswordController.text) {
+                    return 'Passwords do not match';
+                  }
                   return null;
                 },
               ),

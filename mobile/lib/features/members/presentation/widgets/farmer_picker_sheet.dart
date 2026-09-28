@@ -17,7 +17,10 @@ class FarmerPickerSheet extends ConsumerStatefulWidget {
 
   const FarmerPickerSheet({super.key, this.selectedMemberId});
 
-  static Future<MemberModel?> show(BuildContext context, {String? selectedMemberId}) {
+  static Future<MemberModel?> show(
+    BuildContext context, {
+    String? selectedMemberId,
+  }) {
     return showModalBottomSheet<MemberModel>(
       context: context,
       isScrollControlled: true,
@@ -54,7 +57,10 @@ class _FarmerPickerSheetState extends ConsumerState<FarmerPickerSheet> {
   }
 
   Future<void> _registerNew() async {
-    final created = await QuickAddFarmerDialog.show(context, initialText: _searchController.text);
+    final created = await QuickAddFarmerDialog.show(
+      context,
+      initialText: _searchController.text,
+    );
     if (created != null && mounted) Navigator.of(context).pop(created);
   }
 
@@ -64,13 +70,21 @@ class _FarmerPickerSheetState extends ConsumerState<FarmerPickerSheet> {
     final typed = _searchController.text.trim();
 
     return Padding(
-      padding: EdgeInsets.fromLTRB(16, 0, 16, 16 + MediaQuery.viewInsetsOf(context).bottom),
+      padding: EdgeInsets.fromLTRB(
+        16,
+        0,
+        16,
+        16 + MediaQuery.viewInsetsOf(context).bottom,
+      ),
       child: SizedBox(
         height: MediaQuery.sizeOf(context).height * 0.75,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text('Select farmer', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            const Text(
+              'Select farmer',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
             const SizedBox(height: 10),
             TextField(
               controller: _searchController,
@@ -79,7 +93,10 @@ class _FarmerPickerSheetState extends ConsumerState<FarmerPickerSheet> {
               textInputAction: TextInputAction.search,
               decoration: InputDecoration(
                 hintText: 'Name, phone or membership no.',
-                prefixIcon: const Icon(Icons.search_rounded, color: AppColors.primary),
+                prefixIcon: const Icon(
+                  Icons.search_rounded,
+                  color: AppColors.primary,
+                ),
                 suffixIcon: typed.isEmpty
                     ? null
                     : IconButton(
@@ -90,7 +107,9 @@ class _FarmerPickerSheetState extends ConsumerState<FarmerPickerSheet> {
                           _onChanged('');
                         },
                       ),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 isDense: true,
               ),
             ),
@@ -99,7 +118,9 @@ class _FarmerPickerSheetState extends ConsumerState<FarmerPickerSheet> {
               onPressed: _registerNew,
               icon: const Icon(Icons.person_add_alt_1_rounded),
               label: Text(
-                typed.isEmpty ? 'Register new farmer' : 'Register "$typed" as new farmer',
+                typed.isEmpty
+                    ? 'Register new farmer'
+                    : 'Register "$typed" as new farmer',
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -110,21 +131,31 @@ class _FarmerPickerSheetState extends ConsumerState<FarmerPickerSheet> {
                 data: (members) => members.isEmpty
                     ? Center(
                         child: Text(
-                          typed.isEmpty ? 'No active farmers yet. Register one above.' : 'No farmer matches "$typed".',
+                          typed.isEmpty
+                              ? 'No active farmers yet. Register one above.'
+                              : 'No farmer matches "$typed".',
                           textAlign: TextAlign.center,
-                          style: const TextStyle(color: AppColors.textMuted, fontSize: 13),
+                          style: const TextStyle(
+                            color: AppColors.textMuted,
+                            fontSize: 13,
+                          ),
                         ),
                       )
                     : ListView.separated(
                         itemCount: members.length,
-                        separatorBuilder: (_, __) => const Divider(height: 1, color: AppColors.cardBorder),
+                        separatorBuilder: (_, __) => const Divider(
+                          height: 1,
+                          color: AppColors.cardBorder,
+                        ),
                         itemBuilder: (_, i) => _FarmerTile(
                           member: members[i],
                           selected: members[i].id == widget.selectedMemberId,
                           onTap: () => Navigator.of(context).pop(members[i]),
                         ),
                       ),
-                loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+                loading: () => const Center(
+                  child: CircularProgressIndicator(color: AppColors.primary),
+                ),
                 error: (e, _) => Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -132,10 +163,14 @@ class _FarmerPickerSheetState extends ConsumerState<FarmerPickerSheet> {
                       Text(
                         e.toString().replaceAll('Exception: ', ''),
                         textAlign: TextAlign.center,
-                        style: const TextStyle(color: AppColors.error, fontSize: 13),
+                        style: const TextStyle(
+                          color: AppColors.error,
+                          fontSize: 13,
+                        ),
                       ),
                       TextButton.icon(
-                        onPressed: () => ref.invalidate(farmerPickerResultsProvider(_query)),
+                        onPressed: () =>
+                            ref.invalidate(farmerPickerResultsProvider(_query)),
                         icon: const Icon(Icons.refresh_rounded),
                         label: const Text('Try again'),
                       ),
@@ -156,14 +191,19 @@ class _FarmerTile extends StatelessWidget {
   final bool selected;
   final VoidCallback onTap;
 
-  const _FarmerTile({required this.member, required this.selected, required this.onTap});
+  const _FarmerTile({
+    required this.member,
+    required this.selected,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     final details = [
       member.membershipNumber,
       member.phone,
-      if (member.location != null && member.location!.isNotEmpty) member.location!,
+      if (member.location != null && member.location!.isNotEmpty)
+        member.location!,
     ].where((s) => s.isNotEmpty).join(' • ');
 
     return ListTile(
@@ -177,9 +217,19 @@ class _FarmerTile extends StatelessWidget {
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
-      title: Text(member.fullName, style: const TextStyle(fontWeight: FontWeight.w600)),
-      subtitle: Text(details, style: const TextStyle(fontSize: 12), maxLines: 1, overflow: TextOverflow.ellipsis),
-      trailing: selected ? const Icon(Icons.check_circle_rounded, color: AppColors.primary) : null,
+      title: Text(
+        member.fullName,
+        style: const TextStyle(fontWeight: FontWeight.w600),
+      ),
+      subtitle: Text(
+        details,
+        style: const TextStyle(fontSize: 12),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      trailing: selected
+          ? const Icon(Icons.check_circle_rounded, color: AppColors.primary)
+          : null,
     );
   }
 }

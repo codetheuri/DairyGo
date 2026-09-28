@@ -15,7 +15,12 @@ abstract class MilkCollectionRepository {
     int page = 1,
     int perPage = 50,
   });
-  Future<MilkCollectionModel> recordCollection(RecordCollectionRequestModel request);
-  Future<MilkCollectionModel> updateCollection(String id, UpdateCollectionRequestModel request);
+  Future<MilkCollectionModel> recordCollection(
+    RecordCollectionRequestModel request,
+  );
+  Future<MilkCollectionModel> updateCollection(
+    String id,
+    UpdateCollectionRequestModel request,
+  );
   Future<List<AuditLogModel>> getCollectionHistory(String id);
 }

@@ -68,7 +68,9 @@ class _FieldOperationsHistoryScreenState
     final parsed = DateTime.tryParse(createdAt);
     if (parsed == null) return '';
     final local = parsed.isUtc ? parsed.toLocal() : parsed;
-    final hour = local.hour > 12 ? local.hour - 12 : (local.hour == 0 ? 12 : local.hour);
+    final hour = local.hour > 12
+        ? local.hour - 12
+        : (local.hour == 0 ? 12 : local.hour);
     final minute = local.minute.toString().padLeft(2, '0');
     final period = local.hour >= 12 ? 'PM' : 'AM';
     return '$hour:$minute $period';
@@ -88,7 +90,10 @@ class _FieldOperationsHistoryScreenState
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Field Operations & Sales', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Field Operations & Sales',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.groups_2_rounded, color: AppColors.primary),
@@ -96,12 +101,18 @@ class _FieldOperationsHistoryScreenState
             onPressed: () => context.push(AppRoutes.customers),
           ),
           IconButton(
-            icon: const Icon(Icons.add_shopping_cart_rounded, color: AppColors.primary),
+            icon: const Icon(
+              Icons.add_shopping_cart_rounded,
+              color: AppColors.primary,
+            ),
             tooltip: 'Record Sale',
             onPressed: () => context.push(AppRoutes.recordSale),
           ),
           IconButton(
-            icon: const Icon(Icons.warning_amber_rounded, color: AppColors.warning),
+            icon: const Icon(
+              Icons.warning_amber_rounded,
+              color: AppColors.warning,
+            ),
             tooltip: 'Log Spoilage',
             onPressed: () => context.push(AppRoutes.recordSpoilage),
           ),
@@ -115,7 +126,10 @@ class _FieldOperationsHistoryScreenState
               indicatorColor: AppColors.primary,
               labelColor: AppColors.primary,
               unselectedLabelColor: AppColors.textSecondary,
-              labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+              labelStyle: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+              ),
               tabs: const [
                 Tab(
                   iconMargin: EdgeInsets.only(bottom: 2),
@@ -149,7 +163,10 @@ class _FieldOperationsHistoryScreenState
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.chevron_left_rounded, color: AppColors.primary),
+                    icon: const Icon(
+                      Icons.chevron_left_rounded,
+                      color: AppColors.primary,
+                    ),
                     tooltip: 'Previous Day',
                     constraints: const BoxConstraints(),
                     padding: const EdgeInsets.all(8),
@@ -178,10 +195,17 @@ class _FieldOperationsHistoryScreenState
                     },
                     borderRadius: BorderRadius.circular(8),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
                       child: Row(
                         children: [
-                          const Icon(Icons.calendar_today_rounded, size: 16, color: AppColors.primary),
+                          const Icon(
+                            Icons.calendar_today_rounded,
+                            size: 16,
+                            color: AppColors.primary,
+                          ),
                           const SizedBox(width: 6),
                           Text(
                             _formatDisplayDate(selectedDateStr),
@@ -205,13 +229,24 @@ class _FieldOperationsHistoryScreenState
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           ),
                           onPressed: () {
-                            ref.read(fieldOpsFilterDateProvider.notifier).state =
+                            ref
+                                    .read(fieldOpsFilterDateProvider.notifier)
+                                    .state =
                                 getTodayDateString();
                           },
-                          child: const Text('Today', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
+                          child: const Text(
+                            'Today',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 11,
+                            ),
+                          ),
                         ),
                       IconButton(
-                        icon: const Icon(Icons.chevron_right_rounded, color: AppColors.primary),
+                        icon: const Icon(
+                          Icons.chevron_right_rounded,
+                          color: AppColors.primary,
+                        ),
                         tooltip: 'Next Day',
                         constraints: const BoxConstraints(),
                         padding: const EdgeInsets.all(8),
@@ -242,10 +277,12 @@ class _FieldOperationsHistoryScreenState
                           children: [
                             EmptyStateWidget(
                               title: 'No Direct Field Sales',
-                              description: 'No field sales entries recorded for $selectedDateStr.',
+                              description:
+                                  'No field sales entries recorded for $selectedDateStr.',
                               icon: Icons.storefront_outlined,
                               buttonLabel: 'Record Field Sale',
-                              onButtonPressed: () => context.push(AppRoutes.recordSale),
+                              onButtonPressed: () =>
+                                  context.push(AppRoutes.recordSale),
                             ),
                           ],
                         ),
@@ -267,92 +304,116 @@ class _FieldOperationsHistoryScreenState
                             borderRadius: BorderRadius.circular(12),
                             onTap: () => SaleDetailSheet.show(context, item),
                             child: Opacity(
-                            opacity: item.isVoided ? 0.55 : 1,
-                            child: Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: AppColors.cardBorder),
-                            ),
-                            child: Row(
-                              children: [
-                                CircleAvatar(
-                                  radius: 18,
-                                  backgroundColor: AppColors.accentMint,
-                                  foregroundColor: AppColors.primary,
-                                  child: Icon(
-                                    item.customerType == 'COOLER' ? Icons.ac_unit_rounded : Icons.storefront_rounded,
-                                    size: 18,
+                              opacity: item.isVoided ? 0.55 : 1,
+                              child: Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: AppColors.cardBorder,
                                   ),
                                 ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        item.buyerName,
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 14,
-                                          color: AppColors.textPrimary,
-                                          decoration: item.isVoided ? TextDecoration.lineThrough : null,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        '${item.quantityLitres.toStringAsFixed(1)} L @ KES ${item.unitPrice.toStringAsFixed(0)}/L • ${item.paymentMethod}${itemTime.isNotEmpty ? " • $itemTime" : ""}',
-                                        style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
-                                      ),
-                                      if (isExecutive && collectorName != null && collectorName.isNotEmpty) ...[
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          'By: $collectorName',
-                                          style: const TextStyle(
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.bold,
-                                            color: AppColors.secondary,
-                                          ),
-                                        ),
-                                      ],
-                                    ],
-                                  ),
-                                ),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                child: Row(
                                   children: [
-                                    Text(
-                                      'KES ${item.totalAmount.toStringAsFixed(2)}',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w800,
-                                        fontSize: 14,
-                                        color: AppColors.primary,
+                                    CircleAvatar(
+                                      radius: 18,
+                                      backgroundColor: AppColors.accentMint,
+                                      foregroundColor: AppColors.primary,
+                                      child: Icon(
+                                        item.customerType == 'COOLER'
+                                            ? Icons.ac_unit_rounded
+                                            : Icons.storefront_rounded,
+                                        size: 18,
                                       ),
                                     ),
-                                    const SizedBox(height: 2),
-                                    item.isVoided
-                                        ? const StatusPill(status: 'VOIDED', type: StatusType.error)
-                                        : StatusPill.fromStatusString(item.paymentStatus),
-                                    if (item.amountOnCredit > 0) ...[
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        'Owes ${item.amountOnCredit.toStringAsFixed(2)}',
-                                        style: const TextStyle(fontSize: 10, color: AppColors.warning, fontWeight: FontWeight.w700),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            item.buyerName,
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 14,
+                                              color: AppColors.textPrimary,
+                                              decoration: item.isVoided
+                                                  ? TextDecoration.lineThrough
+                                                  : null,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            '${item.quantityLitres.toStringAsFixed(1)} L @ KES ${item.unitPrice.toStringAsFixed(0)}/L • ${item.paymentMethod}${itemTime.isNotEmpty ? " • $itemTime" : ""}',
+                                            style: const TextStyle(
+                                              fontSize: 11,
+                                              color: AppColors.textSecondary,
+                                            ),
+                                          ),
+                                          if (isExecutive &&
+                                              collectorName != null &&
+                                              collectorName.isNotEmpty) ...[
+                                            const SizedBox(height: 2),
+                                            Text(
+                                              'By: $collectorName',
+                                              style: const TextStyle(
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.bold,
+                                                color: AppColors.secondary,
+                                              ),
+                                            ),
+                                          ],
+                                        ],
                                       ),
-                                    ],
+                                    ),
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.end,
+                                      children: [
+                                        Text(
+                                          'KES ${item.totalAmount.toStringAsFixed(2)}',
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.w800,
+                                            fontSize: 14,
+                                            color: AppColors.primary,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        item.isVoided
+                                            ? const StatusPill(
+                                                status: 'VOIDED',
+                                                type: StatusType.error,
+                                              )
+                                            : StatusPill.fromStatusString(
+                                                item.paymentStatus,
+                                              ),
+                                        if (item.amountOnCredit > 0) ...[
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            'Owes ${item.amountOnCredit.toStringAsFixed(2)}',
+                                            style: const TextStyle(
+                                              fontSize: 10,
+                                              color: AppColors.warning,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
                                   ],
                                 ),
-                              ],
+                              ),
                             ),
-                          ),
-                          ),
                           );
                         },
                       ),
                     );
                   },
-                  loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+                  loading: () => const Center(
+                    child: CircularProgressIndicator(color: AppColors.primary),
+                  ),
                   error: (err, stack) => ErrorView(
                     message: err.toString().replaceAll('Exception: ', ''),
                     onRetry: () => ref.refresh(salesListProvider),
@@ -364,17 +425,20 @@ class _FieldOperationsHistoryScreenState
                   data: (spoilages) {
                     if (spoilages.isEmpty) {
                       return RefreshIndicator(
-                        onRefresh: () async => ref.refresh(spoilageListProvider),
+                        onRefresh: () async =>
+                            ref.refresh(spoilageListProvider),
                         child: ListView(
                           physics: const AlwaysScrollableScrollPhysics(),
                           padding: const EdgeInsets.only(top: 40),
                           children: [
                             EmptyStateWidget(
                               title: 'No Spoilage Losses Logged',
-                              description: 'No transit loss or spoilage entries recorded for $selectedDateStr.',
+                              description:
+                                  'No transit loss or spoilage entries recorded for $selectedDateStr.',
                               icon: Icons.check_circle_outline_rounded,
                               buttonLabel: 'Log Spoilage',
-                              onButtonPressed: () => context.push(AppRoutes.recordSpoilage),
+                              onButtonPressed: () =>
+                                  context.push(AppRoutes.recordSpoilage),
                             ),
                           ],
                         ),
@@ -403,14 +467,20 @@ class _FieldOperationsHistoryScreenState
                               children: [
                                 CircleAvatar(
                                   radius: 18,
-                                  backgroundColor: AppColors.warning.withValues(alpha: 0.1),
+                                  backgroundColor: AppColors.warning.withValues(
+                                    alpha: 0.1,
+                                  ),
                                   foregroundColor: AppColors.warning,
-                                  child: const Icon(Icons.warning_amber_rounded, size: 18),
+                                  child: const Icon(
+                                    Icons.warning_amber_rounded,
+                                    size: 18,
+                                  ),
                                 ),
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         item.reason,
@@ -423,9 +493,14 @@ class _FieldOperationsHistoryScreenState
                                       const SizedBox(height: 2),
                                       Text(
                                         '${item.notes ?? "Transit Loss"}${itemTime.isNotEmpty ? " • $itemTime" : ""}',
-                                        style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+                                        style: const TextStyle(
+                                          fontSize: 11,
+                                          color: AppColors.textMuted,
+                                        ),
                                       ),
-                                      if (isExecutive && collectorName != null && collectorName.isNotEmpty) ...[
+                                      if (isExecutive &&
+                                          collectorName != null &&
+                                          collectorName.isNotEmpty) ...[
                                         const SizedBox(height: 2),
                                         Text(
                                           'By: $collectorName',
@@ -440,9 +515,14 @@ class _FieldOperationsHistoryScreenState
                                   ),
                                 ),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 6,
+                                  ),
                                   decoration: BoxDecoration(
-                                    color: AppColors.warning.withValues(alpha: 0.1),
+                                    color: AppColors.warning.withValues(
+                                      alpha: 0.1,
+                                    ),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Text(
@@ -461,7 +541,9 @@ class _FieldOperationsHistoryScreenState
                       ),
                     );
                   },
-                  loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+                  loading: () => const Center(
+                    child: CircularProgressIndicator(color: AppColors.primary),
+                  ),
                   error: (err, stack) => ErrorView(
                     message: err.toString().replaceAll('Exception: ', ''),
                     onRetry: () => ref.refresh(spoilageListProvider),

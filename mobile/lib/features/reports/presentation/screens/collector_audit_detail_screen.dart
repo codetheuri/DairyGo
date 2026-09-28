@@ -33,7 +33,20 @@ class CollectorAuditDetailScreen extends ConsumerWidget {
     final parsed = DateTime.tryParse(dateStr);
     if (parsed == null) return dateStr;
     final day = parsed.day.toString().padLeft(2, '0');
-    final monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    final monthNames = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
     final month = monthNames[parsed.month - 1];
     final year = parsed.year;
     return '$day $month $year';
@@ -45,18 +58,33 @@ class CollectorAuditDetailScreen extends ConsumerWidget {
     final toDate = ref.watch(reportFilterToDateProvider);
 
     final collectionsAsync = ref.watch(
-      collectorMonthCollectionsProvider((collectorId: summary.collectorId, fromDate: fromDate, toDate: toDate)),
+      collectorMonthCollectionsProvider((
+        collectorId: summary.collectorId,
+        fromDate: fromDate,
+        toDate: toDate,
+      )),
     );
     final salesAsync = ref.watch(
-      collectorMonthSalesProvider((collectorId: summary.collectorId, fromDate: fromDate, toDate: toDate)),
+      collectorMonthSalesProvider((
+        collectorId: summary.collectorId,
+        fromDate: fromDate,
+        toDate: toDate,
+      )),
     );
     final spoilageAsync = ref.watch(
-      collectorMonthSpoilageProvider((collectorId: summary.collectorId, fromDate: fromDate, toDate: toDate)),
+      collectorMonthSpoilageProvider((
+        collectorId: summary.collectorId,
+        fromDate: fromDate,
+        toDate: toDate,
+      )),
     );
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('${summary.collectorName} Audit', style: const TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(
+          '${summary.collectorName} Audit',
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
       ),
       body: Column(
         children: [
@@ -74,8 +102,13 @@ class CollectorAuditDetailScreen extends ConsumerWidget {
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
                       child: Text(
-                        summary.collectorName.isNotEmpty ? summary.collectorName[0].toUpperCase() : 'C',
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                        summary.collectorName.isNotEmpty
+                            ? summary.collectorName[0].toUpperCase()
+                            : 'C',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -94,7 +127,10 @@ class CollectorAuditDetailScreen extends ConsumerWidget {
                           const SizedBox(height: 2),
                           Text(
                             'Period: $fromDate to $toDate',
-                            style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textSecondary,
+                            ),
                           ),
                         ],
                       ),
@@ -109,15 +145,34 @@ class CollectorAuditDetailScreen extends ConsumerWidget {
                   decoration: BoxDecoration(
                     color: AppColors.accentMint,
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+                    border: Border.all(
+                      color: AppColors.primary.withValues(alpha: 0.2),
+                    ),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      _buildMetric('Intake', '${summary.totalCollectedLitres.toStringAsFixed(1)}L', AppColors.primary),
-                      _buildMetric('Sold', '${summary.totalSoldLitres.toStringAsFixed(1)}L', AppColors.secondary),
-                      _buildMetric('Spoiled', '${summary.totalSpoiledLitres.toStringAsFixed(1)}L', AppColors.warning),
-                      _buildMetric('Unaccounted', '${summary.unaccountedLitres.toStringAsFixed(1)}L', BalanceBadge.colorFor(summary.balanceStatus), isBold: true),
+                      _buildMetric(
+                        'Intake',
+                        '${summary.totalCollectedLitres.toStringAsFixed(1)}L',
+                        AppColors.primary,
+                      ),
+                      _buildMetric(
+                        'Sold',
+                        '${summary.totalSoldLitres.toStringAsFixed(1)}L',
+                        AppColors.secondary,
+                      ),
+                      _buildMetric(
+                        'Spoiled',
+                        '${summary.totalSpoiledLitres.toStringAsFixed(1)}L',
+                        AppColors.warning,
+                      ),
+                      _buildMetric(
+                        'Unaccounted',
+                        '${summary.unaccountedLitres.toStringAsFixed(1)}L',
+                        BalanceBadge.colorFor(summary.balanceStatus),
+                        isBold: true,
+                      ),
                     ],
                   ),
                 ),
@@ -133,7 +188,11 @@ class CollectorAuditDetailScreen extends ConsumerWidget {
               alignment: Alignment.centerLeft,
               child: Text(
                 'Daily Mathematical Reconciliation Log',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.textPrimary),
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                  color: AppColors.textPrimary,
+                ),
               ),
             ),
           ),
@@ -148,13 +207,26 @@ class CollectorAuditDetailScreen extends ConsumerWidget {
                       data: (spoilages) {
                         // Filter for this collector if collectorId is available
                         final filteredCollections = summary.collectorId > 0
-                            ? collections.where((c) => c.collectorId == summary.collectorId).toList()
+                            ? collections
+                                  .where(
+                                    (c) => c.collectorId == summary.collectorId,
+                                  )
+                                  .toList()
                             : collections;
                         final filteredSales = summary.collectorId > 0
-                            ? sales.where((s) => s.collectorId == summary.collectorId).toList()
+                            ? sales
+                                  .where(
+                                    (s) => s.collectorId == summary.collectorId,
+                                  )
+                                  .toList()
                             : sales;
                         final filteredSpoilage = summary.collectorId > 0
-                            ? spoilages.where((sp) => sp.collectorId == summary.collectorId).toList()
+                            ? spoilages
+                                  .where(
+                                    (sp) =>
+                                        sp.collectorId == summary.collectorId,
+                                  )
+                                  .toList()
                             : spoilages;
 
                         // Group by date
@@ -164,38 +236,45 @@ class CollectorAuditDetailScreen extends ConsumerWidget {
 
                         for (var c in filteredCollections) {
                           final dateKey = c.collectionDate.split('T').first;
-                          collectedMap[dateKey] = (collectedMap[dateKey] ?? 0.0) + c.quantityLitres;
+                          collectedMap[dateKey] =
+                              (collectedMap[dateKey] ?? 0.0) + c.quantityLitres;
                         }
 
                         for (var s in filteredSales) {
                           final dateKey = s.saleDate.split('T').first;
-                          soldMap[dateKey] = (soldMap[dateKey] ?? 0.0) + s.quantityLitres;
+                          soldMap[dateKey] =
+                              (soldMap[dateKey] ?? 0.0) + s.quantityLitres;
                         }
 
                         for (var sp in filteredSpoilage) {
                           final dateKey = sp.spoilageDate.split('T').first;
-                          spoiledMap[dateKey] = (spoiledMap[dateKey] ?? 0.0) + sp.quantityLitres;
+                          spoiledMap[dateKey] =
+                              (spoiledMap[dateKey] ?? 0.0) + sp.quantityLitres;
                         }
 
                         final allDates = {
                           ...collectedMap.keys,
                           ...soldMap.keys,
                           ...spoiledMap.keys,
-                        }.toList()
-                          ..sort((a, b) => b.compareTo(a));
+                        }.toList()..sort((a, b) => b.compareTo(a));
 
                         if (allDates.isEmpty) {
                           return const EmptyStateWidget(
                             title: 'No Operations Logged',
-                            description: 'No daily collection, sale, or spoilage entries found for this month.',
+                            description:
+                                'No daily collection, sale, or spoilage entries found for this month.',
                             icon: Icons.calendar_today_outlined,
                           );
                         }
 
                         return ListView.separated(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
                           itemCount: allDates.length,
-                          separatorBuilder: (_, __) => const SizedBox(height: 10),
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(height: 10),
                           itemBuilder: (context, index) {
                             final date = allDates[index];
                             final collected = collectedMap[date] ?? 0.0;
@@ -214,11 +293,16 @@ class CollectorAuditDetailScreen extends ConsumerWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
                                       Row(
                                         children: [
-                                          const Icon(Icons.calendar_today_rounded, size: 16, color: AppColors.primary),
+                                          const Icon(
+                                            Icons.calendar_today_rounded,
+                                            size: 16,
+                                            color: AppColors.primary,
+                                          ),
                                           const SizedBox(width: 8),
                                           Text(
                                             _formatDate(date),
@@ -231,10 +315,15 @@ class CollectorAuditDetailScreen extends ConsumerWidget {
                                         ],
                                       ),
                                       Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 4,
+                                        ),
                                         decoration: BoxDecoration(
                                           color: AppColors.accentMint,
-                                          borderRadius: BorderRadius.circular(6),
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
                                         ),
                                         child: Text(
                                           'Net Handover: ${netHandover.toStringAsFixed(1)} L',
@@ -247,14 +336,34 @@ class CollectorAuditDetailScreen extends ConsumerWidget {
                                       ),
                                     ],
                                   ),
-                                  const Divider(height: 16, color: AppColors.cardBorder),
+                                  const Divider(
+                                    height: 16,
+                                    color: AppColors.cardBorder,
+                                  ),
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceAround,
                                     children: [
-                                      _buildSubItem('Intake', '${collected.toStringAsFixed(1)}L', AppColors.primary),
-                                      _buildSubItem('Sales', '${sold.toStringAsFixed(1)}L', AppColors.secondary),
-                                      _buildSubItem('Spoiled', '${spoiled.toStringAsFixed(1)}L', AppColors.warning),
-                                      _buildSubItem('To Station', '${netHandover.toStringAsFixed(1)}L', AppColors.success),
+                                      _buildSubItem(
+                                        'Intake',
+                                        '${collected.toStringAsFixed(1)}L',
+                                        AppColors.primary,
+                                      ),
+                                      _buildSubItem(
+                                        'Sales',
+                                        '${sold.toStringAsFixed(1)}L',
+                                        AppColors.secondary,
+                                      ),
+                                      _buildSubItem(
+                                        'Spoiled',
+                                        '${spoiled.toStringAsFixed(1)}L',
+                                        AppColors.warning,
+                                      ),
+                                      _buildSubItem(
+                                        'To Station',
+                                        '${netHandover.toStringAsFixed(1)}L',
+                                        AppColors.success,
+                                      ),
                                     ],
                                   ),
                                 ],
@@ -263,24 +372,50 @@ class CollectorAuditDetailScreen extends ConsumerWidget {
                           },
                         );
                       },
-                      loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+                      loading: () => const Center(
+                        child: CircularProgressIndicator(
+                          color: AppColors.primary,
+                        ),
+                      ),
                       error: (e, s) => ErrorView(
                         message: e.toString(),
-                        onRetry: () => ref.refresh(collectorMonthSpoilageProvider((collectorId: summary.collectorId, fromDate: fromDate, toDate: toDate))),
+                        onRetry: () => ref.refresh(
+                          collectorMonthSpoilageProvider((
+                            collectorId: summary.collectorId,
+                            fromDate: fromDate,
+                            toDate: toDate,
+                          )),
+                        ),
                       ),
                     );
                   },
-                  loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+                  loading: () => const Center(
+                    child: CircularProgressIndicator(color: AppColors.primary),
+                  ),
                   error: (e, s) => ErrorView(
                     message: e.toString(),
-                    onRetry: () => ref.refresh(collectorMonthSalesProvider((collectorId: summary.collectorId, fromDate: fromDate, toDate: toDate))),
+                    onRetry: () => ref.refresh(
+                      collectorMonthSalesProvider((
+                        collectorId: summary.collectorId,
+                        fromDate: fromDate,
+                        toDate: toDate,
+                      )),
+                    ),
                   ),
                 );
               },
-              loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+              loading: () => const Center(
+                child: CircularProgressIndicator(color: AppColors.primary),
+              ),
               error: (e, s) => ErrorView(
                 message: e.toString(),
-                onRetry: () => ref.refresh(collectorMonthCollectionsProvider((collectorId: summary.collectorId, fromDate: fromDate, toDate: toDate))),
+                onRetry: () => ref.refresh(
+                  collectorMonthCollectionsProvider((
+                    collectorId: summary.collectorId,
+                    fromDate: fromDate,
+                    toDate: toDate,
+                  )),
+                ),
               ),
             ),
           ),
@@ -289,7 +424,12 @@ class CollectorAuditDetailScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildMetric(String label, String value, Color color, {bool isBold = false}) {
+  Widget _buildMetric(
+    String label,
+    String value,
+    Color color, {
+    bool isBold = false,
+  }) {
     return Column(
       children: [
         Text(
@@ -300,7 +440,10 @@ class CollectorAuditDetailScreen extends ConsumerWidget {
             color: color,
           ),
         ),
-        Text(label, style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+        ),
       ],
     );
   }
@@ -308,8 +451,18 @@ class CollectorAuditDetailScreen extends ConsumerWidget {
   Widget _buildSubItem(String label, String value, Color color) {
     return Column(
       children: [
-        Text(value, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: color)),
-        Text(label, style: const TextStyle(fontSize: 10, color: AppColors.textMuted)),
+        Text(
+          value,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 12,
+            color: color,
+          ),
+        ),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
+        ),
       ],
     );
   }

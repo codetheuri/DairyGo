@@ -9,35 +9,41 @@ class _FakeAuth extends AuthController {
   @override
   Future<AuthState> build() async => AuthState.unauthenticated();
 
-  void signIn(int id) => state = AsyncValue.data(AuthState.authenticated(
-        user: UserEntity(id: id, email: 'u$id@x', username: 'u$id'),
-        token: 't',
-      ));
+  void signIn(int id) => state = AsyncValue.data(
+    AuthState.authenticated(
+      user: UserEntity(id: id, email: 'u$id@x', username: 'u$id'),
+      token: 't',
+    ),
+  );
 }
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   test('data client is rebuilt when the signed-in user changes', () async {
-    final container = ProviderContainer(overrides: [
-      authControllerProvider.overrideWith(_FakeAuth.new),
-    ]);
+    final container = ProviderContainer(
+      overrides: [authControllerProvider.overrideWith(_FakeAuth.new)],
+    );
     addTearDown(container.dispose);
     await container.read(authControllerProvider.future);
     final auth = container.read(authControllerProvider.notifier) as _FakeAuth;
 
     auth.signIn(1);
     final first = container.read(dioClientProvider);
-    expect(container.read(dioClientProvider), same(first), reason: 'stable within a session');
+    expect(
+      container.read(dioClientProvider),
+      same(first),
+      reason: 'stable within a session',
+    );
 
     auth.signIn(2);
     expect(container.read(dioClientProvider), isNot(same(first)));
   });
 
   test('expireSession signs out once with a message', () async {
-    final container = ProviderContainer(overrides: [
-      authControllerProvider.overrideWith(_FakeAuth.new),
-    ]);
+    final container = ProviderContainer(
+      overrides: [authControllerProvider.overrideWith(_FakeAuth.new)],
+    );
     addTearDown(container.dispose);
     await container.read(authControllerProvider.future);
     final auth = container.read(authControllerProvider.notifier) as _FakeAuth;

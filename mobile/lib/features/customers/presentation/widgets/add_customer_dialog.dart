@@ -13,7 +13,10 @@ class AddCustomerDialog extends ConsumerStatefulWidget {
 
   const AddCustomerDialog({super.key, this.initialName = ''});
 
-  static Future<CustomerModel?> show(BuildContext context, {String initialName = ''}) {
+  static Future<CustomerModel?> show(
+    BuildContext context, {
+    String initialName = '',
+  }) {
     return showDialog<CustomerModel>(
       context: context,
       builder: (_) => AddCustomerDialog(initialName: initialName),
@@ -48,10 +51,14 @@ class _AddCustomerDialogState extends ConsumerState<AddCustomerDialog> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     final price = double.tryParse(_priceController.text.trim());
-    final customer = await ref.read(customerActionsProvider.notifier).create(
+    final customer = await ref
+        .read(customerActionsProvider.notifier)
+        .create(
           CreateCustomerRequestModel(
             name: _nameController.text.trim(),
-            phone: _phoneController.text.trim().isEmpty ? null : _phoneController.text.trim(),
+            phone: _phoneController.text.trim().isEmpty
+                ? null
+                : _phoneController.text.trim(),
             customerType: _type,
             defaultPricePerLitre: price != null && price > 0 ? price : null,
           ),
@@ -62,10 +69,15 @@ class _AddCustomerDialogState extends ConsumerState<AddCustomerDialog> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(customerActionsProvider);
-    final error = state.hasError ? state.error.toString().replaceAll('Exception: ', '') : null;
+    final error = state.hasError
+        ? state.error.toString().replaceAll('Exception: ', '')
+        : null;
 
     return AlertDialog(
-      title: const Text('Add Customer', style: TextStyle(fontWeight: FontWeight.bold)),
+      title: const Text(
+        'Add Customer',
+        style: TextStyle(fontWeight: FontWeight.bold),
+      ),
       content: SingleChildScrollView(
         child: Form(
           key: _formKey,
@@ -74,7 +86,10 @@ class _AddCustomerDialogState extends ConsumerState<AddCustomerDialog> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (error != null) ...[
-                Text(error, style: const TextStyle(color: AppColors.error, fontSize: 12)),
+                Text(
+                  error,
+                  style: const TextStyle(color: AppColors.error, fontSize: 12),
+                ),
                 const SizedBox(height: 10),
               ],
               AppTextField(
@@ -82,7 +97,8 @@ class _AddCustomerDialogState extends ConsumerState<AddCustomerDialog> {
                 controller: _nameController,
                 hint: 'e.g. Kiambu Cooler',
                 prefixIcon: Icons.storefront_rounded,
-                validator: (v) => (v == null || v.trim().length < 2) ? 'Enter a name' : null,
+                validator: (v) =>
+                    (v == null || v.trim().length < 2) ? 'Enter a name' : null,
               ),
               const SizedBox(height: 12),
               AppTextField(
@@ -98,7 +114,10 @@ class _AddCustomerDialogState extends ConsumerState<AddCustomerDialog> {
                 decoration: const InputDecoration(labelText: 'Customer type'),
                 items: [
                   for (final t in customerTypes)
-                    DropdownMenuItem(value: t, child: Text(customerTypeLabel(t))),
+                    DropdownMenuItem(
+                      value: t,
+                      child: Text(customerTypeLabel(t)),
+                    ),
                 ],
                 onChanged: (v) => setState(() => _type = v ?? 'OTHER'),
               ),
@@ -107,7 +126,9 @@ class _AddCustomerDialogState extends ConsumerState<AddCustomerDialog> {
                 label: 'Agreed price per litre (optional)',
                 controller: _priceController,
                 hint: 'Prefilled on sales to this customer',
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
                 prefixIcon: Icons.payments_outlined,
                 validator: (v) {
                   if (v == null || v.trim().isEmpty) return null;
@@ -125,10 +146,20 @@ class _AddCustomerDialogState extends ConsumerState<AddCustomerDialog> {
           child: const Text('Cancel'),
         ),
         ElevatedButton(
-          style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primary,
+            foregroundColor: Colors.white,
+          ),
           onPressed: state.isLoading ? null : _submit,
           child: state.isLoading
-              ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 2,
+                  ),
+                )
               : const Text('Add Customer'),
         ),
       ],

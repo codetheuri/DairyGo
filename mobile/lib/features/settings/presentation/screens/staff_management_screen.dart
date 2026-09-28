@@ -16,11 +16,17 @@ class StaffManagementScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Sacco Staff & Duty Roster', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Sacco Staff & Duty Roster',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         actions: [
           IconButton(
             tooltip: 'Add Staff Member',
-            icon: const Icon(Icons.person_add_alt_1_rounded, color: AppColors.primary),
+            icon: const Icon(
+              Icons.person_add_alt_1_rounded,
+              color: AppColors.primary,
+            ),
             onPressed: () {
               showDialog(
                 context: context,
@@ -39,7 +45,10 @@ class StaffManagementScreen extends ConsumerWidget {
         },
         backgroundColor: AppColors.primary,
         icon: const Icon(Icons.person_add_rounded, color: Colors.white),
-        label: const Text('Add Staff', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+        label: const Text(
+          'Add Staff',
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+        ),
       ),
       body: RefreshIndicator(
         onRefresh: () async {
@@ -56,16 +65,27 @@ class StaffManagementScreen extends ConsumerWidget {
                   Center(
                     child: Column(
                       children: [
-                        Icon(Icons.people_outline_rounded, size: 48, color: AppColors.textMuted),
+                        Icon(
+                          Icons.people_outline_rounded,
+                          size: 48,
+                          color: AppColors.textMuted,
+                        ),
                         SizedBox(height: 12),
                         Text(
                           'No Sacco Staff Registered Yet',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textPrimary),
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: AppColors.textPrimary,
+                          ),
                         ),
                         SizedBox(height: 4),
                         Text(
                           'Tap "+ Add Staff" to register Milk Collectors and Board Members.',
-                          style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                          ),
                         ),
                       ],
                     ),
@@ -94,11 +114,20 @@ class StaffManagementScreen extends ConsumerWidget {
                     children: [
                       CircleAvatar(
                         radius: 22,
-                        backgroundColor: isAdmin ? AppColors.accentMint : AppColors.background,
-                        foregroundColor: isAdmin ? AppColors.primary : AppColors.textSecondary,
+                        backgroundColor: isAdmin
+                            ? AppColors.accentMint
+                            : AppColors.background,
+                        foregroundColor: isAdmin
+                            ? AppColors.primary
+                            : AppColors.textSecondary,
                         child: Text(
-                          staff.fullName.isNotEmpty ? staff.fullName[0].toUpperCase() : 'U',
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                          staff.fullName.isNotEmpty
+                              ? staff.fullName[0].toUpperCase()
+                              : 'U',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -117,18 +146,28 @@ class StaffManagementScreen extends ConsumerWidget {
                             const SizedBox(height: 2),
                             Text(
                               'Username: @${staff.username}',
-                              style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: AppColors.textMuted,
+                              ),
                             ),
                             if (staff.email.isNotEmpty) ...[
                               Text(
                                 staff.email,
-                                style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.textSecondary,
+                                ),
                               ),
                             ],
-                            if (staff.phone != null && staff.phone!.isNotEmpty) ...[
+                            if (staff.phone != null &&
+                                staff.phone!.isNotEmpty) ...[
                               Text(
                                 'Phone: ${staff.phone}',
-                                style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.textSecondary,
+                                ),
                               ),
                             ],
                           ],
@@ -139,12 +178,20 @@ class StaffManagementScreen extends ConsumerWidget {
                         children: [
                           StatusPill(
                             status: staff.displayRole.toUpperCase(),
-                            type: isAdmin ? StatusType.success : (staff.isExecutive ? StatusType.warning : StatusType.info),
+                            type: isAdmin
+                                ? StatusType.success
+                                : (staff.isExecutive
+                                      ? StatusType.warning
+                                      : StatusType.info),
                           ),
                           const SizedBox(height: 6),
                           const Text(
                             'Active Duty',
-                            style: TextStyle(fontSize: 10, color: AppColors.success, fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: AppColors.success,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ],
                       ),
@@ -154,7 +201,9 @@ class StaffManagementScreen extends ConsumerWidget {
               },
             );
           },
-          loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+          loading: () => const Center(
+            child: CircularProgressIndicator(color: AppColors.primary),
+          ),
           error: (err, stack) => ErrorView(
             message: err.toString().replaceAll('Exception: ', ''),
             onRetry: () => ref.invalidate(saccoStaffListProvider),

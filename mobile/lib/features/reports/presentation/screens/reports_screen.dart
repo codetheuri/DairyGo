@@ -37,18 +37,34 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
   }
 
   void _stepMonth(int offset) {
-    final nextMonth = DateTime(_selectedMonth.year, _selectedMonth.month + offset, 1);
+    final nextMonth = DateTime(
+      _selectedMonth.year,
+      _selectedMonth.month + offset,
+      1,
+    );
     setState(() {
       _selectedMonth = nextMonth;
     });
-    ref.read(reportFilterFromDateProvider.notifier).state = getFirstDayOfMonthString(nextMonth);
-    ref.read(reportFilterToDateProvider.notifier).state = getLastDayOfMonthString(nextMonth);
+    ref.read(reportFilterFromDateProvider.notifier).state =
+        getFirstDayOfMonthString(nextMonth);
+    ref.read(reportFilterToDateProvider.notifier).state =
+        getLastDayOfMonthString(nextMonth);
   }
 
   String _formatMonthHeader(DateTime date) {
     final monthNames = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
     ];
     return '${monthNames[date.month - 1]} ${date.year}';
   }
@@ -69,7 +85,10 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
     if (!isExecutive) {
       return Scaffold(
         appBar: AppBar(
-          title: const Text('Reports & Audit Views', style: TextStyle(fontWeight: FontWeight.bold)),
+          title: const Text(
+            'Reports & Audit Views',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
         ),
         body: Center(
           child: Padding(
@@ -83,21 +102,36 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
                     color: AppColors.primary.withValues(alpha: 0.08),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.lock_outline_rounded, size: 54, color: AppColors.primary),
+                  child: const Icon(
+                    Icons.lock_outline_rounded,
+                    size: 54,
+                    color: AppColors.primary,
+                  ),
                 ),
                 const SizedBox(height: 20),
                 const Text(
                   'Executive Access Restricted',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.textPrimary),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 const Text(
                   'Full Sacco audit reports, collector reconciliations, and farmer payout ledgers are reserved for Sacco Administrators and Executive Board Members.',
-                  style: TextStyle(fontSize: 13, color: AppColors.textSecondary, height: 1.4),
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: AppColors.textSecondary,
+                    height: 1.4,
+                  ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 24),
-                const StatusPill(status: 'RESTRICTED VIEW', type: StatusType.warning),
+                const StatusPill(
+                  status: 'RESTRICTED VIEW',
+                  type: StatusType.warning,
+                ),
               ],
             ),
           ),
@@ -114,7 +148,10 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Reports & Audit Views', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Reports & Audit Views',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh_rounded, color: AppColors.primary),
@@ -132,7 +169,10 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
               indicatorColor: AppColors.primary,
               labelColor: AppColors.primary,
               unselectedLabelColor: AppColors.textSecondary,
-              labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+              labelStyle: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+              ),
               tabs: const [
                 Tab(
                   iconMargin: EdgeInsets.only(bottom: 2),
@@ -171,7 +211,10 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.chevron_left_rounded, color: AppColors.primary),
+                    icon: const Icon(
+                      Icons.chevron_left_rounded,
+                      color: AppColors.primary,
+                    ),
                     tooltip: 'Previous Month',
                     constraints: const BoxConstraints(),
                     padding: const EdgeInsets.all(6),
@@ -179,7 +222,11 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
                   ),
                   Row(
                     children: [
-                      const Icon(Icons.calendar_month_rounded, size: 18, color: AppColors.primary),
+                      const Icon(
+                        Icons.calendar_month_rounded,
+                        size: 18,
+                        color: AppColors.primary,
+                      ),
                       const SizedBox(width: 8),
                       Text(
                         _formatMonthHeader(_selectedMonth),
@@ -192,12 +239,18 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
                       const SizedBox(width: 6),
                       Text(
                         '($fromDate to $toDate)',
-                        style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
+                        style: const TextStyle(
+                          fontSize: 10,
+                          color: AppColors.textMuted,
+                        ),
                       ),
                     ],
                   ),
                   IconButton(
-                    icon: const Icon(Icons.chevron_right_rounded, color: AppColors.primary),
+                    icon: const Icon(
+                      Icons.chevron_right_rounded,
+                      color: AppColors.primary,
+                    ),
                     tooltip: 'Next Month',
                     constraints: const BoxConstraints(),
                     padding: const EdgeInsets.all(6),
@@ -220,13 +273,15 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
                     if (statements.isEmpty) {
                       return EmptyStateWidget(
                         title: 'No Payout Statements',
-                        description: 'No farmer payout records for ${_formatMonthHeader(_selectedMonth)}.',
+                        description:
+                            'No farmer payout records for ${_formatMonthHeader(_selectedMonth)}.',
                         icon: Icons.receipt_long_outlined,
                       );
                     }
 
                     return RefreshIndicator(
-                      onRefresh: () async => ref.refresh(farmerPayoutReportProvider),
+                      onRefresh: () async =>
+                          ref.refresh(farmerPayoutReportProvider),
                       child: ListView.separated(
                         padding: const EdgeInsets.all(16),
                         itemCount: statements.length,
@@ -243,7 +298,9 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (_) => FarmerPayoutDetailScreen(statement: item),
+                                    builder: (_) => FarmerPayoutDetailScreen(
+                                      statement: item,
+                                    ),
                                   ),
                                 );
                               },
@@ -251,7 +308,9 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
                                 padding: const EdgeInsets.all(14),
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(14),
-                                  border: Border.all(color: AppColors.cardBorder),
+                                  border: Border.all(
+                                    color: AppColors.cardBorder,
+                                  ),
                                 ),
                                 child: Row(
                                   children: [
@@ -260,14 +319,19 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
                                       backgroundColor: AppColors.accentMint,
                                       foregroundColor: AppColors.primary,
                                       child: Text(
-                                        item.farmerName.isNotEmpty ? item.farmerName[0].toUpperCase() : 'F',
-                                        style: const TextStyle(fontWeight: FontWeight.bold),
+                                        item.farmerName.isNotEmpty
+                                            ? item.farmerName[0].toUpperCase()
+                                            : 'F',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
                                     ),
                                     const SizedBox(width: 12),
                                     Expanded(
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Text(
                                             item.farmerName,
@@ -280,18 +344,26 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
                                           const SizedBox(height: 2),
                                           Text(
                                             '${item.membershipNumber} • ${item.totalLitres.toStringAsFixed(1)} L (${item.collectionsCount} Intakes)',
-                                            style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                                            style: const TextStyle(
+                                              fontSize: 11,
+                                              color: AppColors.textSecondary,
+                                            ),
                                           ),
                                           const SizedBox(height: 2),
                                           const Text(
                                             'Tap for itemized daily breakdown >',
-                                            style: TextStyle(fontSize: 10, color: AppColors.primary, fontWeight: FontWeight.w600),
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              color: AppColors.primary,
+                                              fontWeight: FontWeight.w600,
+                                            ),
                                           ),
                                         ],
                                       ),
                                     ),
                                     Column(
-                                      crossAxisAlignment: CrossAxisAlignment.end,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.end,
                                       children: [
                                         Text(
                                           'KES ${item.grossAmountOwed.toStringAsFixed(2)}',
@@ -304,7 +376,10 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
                                         const SizedBox(height: 2),
                                         Text(
                                           '@ KES ${item.averagePricePerLitre.toStringAsFixed(0)}/L',
-                                          style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
+                                          style: const TextStyle(
+                                            fontSize: 10,
+                                            color: AppColors.textMuted,
+                                          ),
                                         ),
                                       ],
                                     ),
@@ -317,7 +392,9 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
                       ),
                     );
                   },
-                  loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+                  loading: () => const Center(
+                    child: CircularProgressIndicator(color: AppColors.primary),
+                  ),
                   error: (err, stack) => ErrorView(
                     message: err.toString().replaceAll('Exception: ', ''),
                     onRetry: () => ref.refresh(farmerPayoutReportProvider),
@@ -328,7 +405,8 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
                 ledgerAsync.when(
                   data: (ledger) {
                     return RefreshIndicator(
-                      onRefresh: () async => ref.refresh(saccoLedgerReportProvider),
+                      onRefresh: () async =>
+                          ref.refresh(saccoLedgerReportProvider),
                       child: SingleChildScrollView(
                         physics: const AlwaysScrollableScrollPhysics(),
                         padding: const EdgeInsets.all(16),
@@ -340,19 +418,32 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
                               width: double.infinity,
                               padding: const EdgeInsets.all(18),
                               decoration: BoxDecoration(
-                                color: BalanceBadge.colorFor(ledger.balanceStatus).withValues(alpha: 0.08),
+                                color: BalanceBadge.colorFor(
+                                  ledger.balanceStatus,
+                                ).withValues(alpha: 0.08),
                                 borderRadius: BorderRadius.circular(16),
-                                border: Border.all(color: BalanceBadge.colorFor(ledger.balanceStatus)),
+                                border: Border.all(
+                                  color: BalanceBadge.colorFor(
+                                    ledger.balanceStatus,
+                                  ),
+                                ),
                               ),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
-                                      const Text('Milk Balance', style: TextStyle(fontWeight: FontWeight.bold)),
+                                      const Text(
+                                        'Milk Balance',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
                                       BalanceBadge(
-                                        unaccountedLitres: ledger.unaccountedLitres,
+                                        unaccountedLitres:
+                                            ledger.unaccountedLitres,
                                         status: ledger.balanceStatus,
                                         large: true,
                                       ),
@@ -365,19 +456,44 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
                                     'spoiled ${ledger.totalSpoilageLitres.toStringAsFixed(1)} L = '
                                     '${ledger.unaccountedLitres.toStringAsFixed(1)} L unaccounted '
                                     '(tolerance ${ledger.allowanceLitres.toStringAsFixed(1)} L).',
-                                    style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: AppColors.textSecondary,
+                                    ),
                                   ),
-                                  if (ledger.collectorsSummary.any((c) => c.balanceStatus != 'BALANCED')) ...[
+                                  if (ledger.collectorsSummary.any(
+                                    (c) => c.balanceStatus != 'BALANCED',
+                                  )) ...[
                                     const SizedBox(height: 10),
-                                    const Text('Collectors to check:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                                    const Text(
+                                      'Collectors to check:',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
                                     const SizedBox(height: 4),
-                                    for (final c in ledger.collectorsSummary.where((c) => c.balanceStatus != 'BALANCED'))
+                                    for (final c
+                                        in ledger.collectorsSummary.where(
+                                          (c) => c.balanceStatus != 'BALANCED',
+                                        ))
                                       Padding(
                                         padding: const EdgeInsets.only(top: 4),
                                         child: Row(
                                           children: [
-                                            Expanded(child: Text(c.collectorName, style: const TextStyle(fontSize: 12))),
-                                            BalanceBadge(unaccountedLitres: c.unaccountedLitres, status: c.balanceStatus),
+                                            Expanded(
+                                              child: Text(
+                                                c.collectorName,
+                                                style: const TextStyle(
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ),
+                                            BalanceBadge(
+                                              unaccountedLitres:
+                                                  c.unaccountedLitres,
+                                              status: c.balanceStatus,
+                                            ),
                                           ],
                                         ),
                                       ),
@@ -389,7 +505,8 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
 
                             Text(
                               'Milk Volumes',
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.textPrimary,
                                   ),
@@ -404,17 +521,50 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
                               ),
                               child: Column(
                                 children: [
-                                  _buildLedgerRow('Collected from Farmers', '${ledger.totalFarmerIntakeLitres.toStringAsFixed(1)} L', AppColors.primary),
-                                  for (final t in ledger.salesByCustomerType) ...[
-                                    const Divider(height: 20, color: AppColors.cardBorder),
-                                    _buildLedgerRow('Sold to ${customerTypeLabel(t.customerType)}', '${t.litres.toStringAsFixed(1)} L', AppColors.secondary),
+                                  _buildLedgerRow(
+                                    'Collected from Farmers',
+                                    '${ledger.totalFarmerIntakeLitres.toStringAsFixed(1)} L',
+                                    AppColors.primary,
+                                  ),
+                                  for (final t
+                                      in ledger.salesByCustomerType) ...[
+                                    const Divider(
+                                      height: 20,
+                                      color: AppColors.cardBorder,
+                                    ),
+                                    _buildLedgerRow(
+                                      'Sold to ${customerTypeLabel(t.customerType)}',
+                                      '${t.litres.toStringAsFixed(1)} L',
+                                      AppColors.secondary,
+                                    ),
                                   ],
-                                  const Divider(height: 20, color: AppColors.cardBorder),
-                                  _buildLedgerRow('Total Sold', '${ledger.totalSoldLitres.toStringAsFixed(1)} L', AppColors.secondary),
-                                  const Divider(height: 20, color: AppColors.cardBorder),
-                                  _buildLedgerRow('Spoilage Loss', '${ledger.totalSpoilageLitres.toStringAsFixed(1)} L', AppColors.error),
-                                  const Divider(height: 20, color: AppColors.cardBorder),
-                                  _buildLedgerRow('Unaccounted', '${ledger.unaccountedLitres.toStringAsFixed(1)} L', BalanceBadge.colorFor(ledger.balanceStatus)),
+                                  const Divider(
+                                    height: 20,
+                                    color: AppColors.cardBorder,
+                                  ),
+                                  _buildLedgerRow(
+                                    'Total Sold',
+                                    '${ledger.totalSoldLitres.toStringAsFixed(1)} L',
+                                    AppColors.secondary,
+                                  ),
+                                  const Divider(
+                                    height: 20,
+                                    color: AppColors.cardBorder,
+                                  ),
+                                  _buildLedgerRow(
+                                    'Spoilage Loss',
+                                    '${ledger.totalSpoilageLitres.toStringAsFixed(1)} L',
+                                    AppColors.error,
+                                  ),
+                                  const Divider(
+                                    height: 20,
+                                    color: AppColors.cardBorder,
+                                  ),
+                                  _buildLedgerRow(
+                                    'Unaccounted',
+                                    '${ledger.unaccountedLitres.toStringAsFixed(1)} L',
+                                    BalanceBadge.colorFor(ledger.balanceStatus),
+                                  ),
                                 ],
                               ),
                             ),
@@ -422,7 +572,8 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
 
                             Text(
                               'Money',
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.textPrimary,
                                   ),
@@ -437,18 +588,58 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
                               ),
                               child: Column(
                                 children: [
-                                  _buildLedgerRow('Owed to Farmers', 'KES ${ledger.totalFarmerLiabilityKes.toStringAsFixed(2)}', AppColors.warning),
-                                  const Divider(height: 20, color: AppColors.cardBorder),
-                                  _buildLedgerRow('Sales Revenue', 'KES ${ledger.totalSalesRevenueKes.toStringAsFixed(2)}', AppColors.success),
-                                  const Divider(height: 20, color: AppColors.cardBorder),
-                                  _buildLedgerRow('  Paid at Sale', 'KES ${ledger.cashReceivedKes.toStringAsFixed(2)}', AppColors.textSecondary),
-                                  const Divider(height: 20, color: AppColors.cardBorder),
-                                  _buildLedgerRow('  Sold on Credit', 'KES ${ledger.creditSalesKes.toStringAsFixed(2)}', AppColors.textSecondary),
-                                  const Divider(height: 20, color: AppColors.cardBorder),
-                                  _buildLedgerRow('Gross Margin', 'KES ${ledger.grossMarginKes.toStringAsFixed(2)}',
-                                      ledger.grossMarginKes >= 0 ? AppColors.success : AppColors.error),
-                                  const Divider(height: 20, color: AppColors.cardBorder),
-                                  _buildLedgerRow('Customers Owe (now)', 'KES ${ledger.receivablesKes.toStringAsFixed(2)}', AppColors.warning),
+                                  _buildLedgerRow(
+                                    'Owed to Farmers',
+                                    'KES ${ledger.totalFarmerLiabilityKes.toStringAsFixed(2)}',
+                                    AppColors.warning,
+                                  ),
+                                  const Divider(
+                                    height: 20,
+                                    color: AppColors.cardBorder,
+                                  ),
+                                  _buildLedgerRow(
+                                    'Sales Revenue',
+                                    'KES ${ledger.totalSalesRevenueKes.toStringAsFixed(2)}',
+                                    AppColors.success,
+                                  ),
+                                  const Divider(
+                                    height: 20,
+                                    color: AppColors.cardBorder,
+                                  ),
+                                  _buildLedgerRow(
+                                    '  Paid at Sale',
+                                    'KES ${ledger.cashReceivedKes.toStringAsFixed(2)}',
+                                    AppColors.textSecondary,
+                                  ),
+                                  const Divider(
+                                    height: 20,
+                                    color: AppColors.cardBorder,
+                                  ),
+                                  _buildLedgerRow(
+                                    '  Sold on Credit',
+                                    'KES ${ledger.creditSalesKes.toStringAsFixed(2)}',
+                                    AppColors.textSecondary,
+                                  ),
+                                  const Divider(
+                                    height: 20,
+                                    color: AppColors.cardBorder,
+                                  ),
+                                  _buildLedgerRow(
+                                    'Gross Margin',
+                                    'KES ${ledger.grossMarginKes.toStringAsFixed(2)}',
+                                    ledger.grossMarginKes >= 0
+                                        ? AppColors.success
+                                        : AppColors.error,
+                                  ),
+                                  const Divider(
+                                    height: 20,
+                                    color: AppColors.cardBorder,
+                                  ),
+                                  _buildLedgerRow(
+                                    'Customers Owe (now)',
+                                    'KES ${ledger.receivablesKes.toStringAsFixed(2)}',
+                                    AppColors.warning,
+                                  ),
                                 ],
                               ),
                             ),
@@ -457,7 +648,9 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
                       ),
                     );
                   },
-                  loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+                  loading: () => const Center(
+                    child: CircularProgressIndicator(color: AppColors.primary),
+                  ),
                   error: (err, stack) => ErrorView(
                     message: err.toString().replaceAll('Exception: ', ''),
                     onRetry: () => ref.refresh(saccoLedgerReportProvider),
@@ -470,13 +663,15 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
                     if (collectors.isEmpty) {
                       return EmptyStateWidget(
                         title: 'No Collector Audits',
-                        description: 'No field collector audits recorded for ${_formatMonthHeader(_selectedMonth)}.',
+                        description:
+                            'No field collector audits recorded for ${_formatMonthHeader(_selectedMonth)}.',
                         icon: Icons.badge_outlined,
                       );
                     }
 
                     return RefreshIndicator(
-                      onRefresh: () async => ref.refresh(collectorAuditReportProvider),
+                      onRefresh: () async =>
+                          ref.refresh(collectorAuditReportProvider),
                       child: ListView.separated(
                         padding: const EdgeInsets.all(16),
                         itemCount: collectors.length,
@@ -493,7 +688,9 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (_) => CollectorAuditDetailScreen(summary: item),
+                                    builder: (_) => CollectorAuditDetailScreen(
+                                      summary: item,
+                                    ),
                                   ),
                                 );
                               },
@@ -501,23 +698,32 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
                                 padding: const EdgeInsets.all(14),
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(14),
-                                  border: Border.all(color: AppColors.cardBorder),
+                                  border: Border.all(
+                                    color: AppColors.cardBorder,
+                                  ),
                                 ),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
                                       children: [
                                         Row(
                                           children: [
                                             CircleAvatar(
                                               radius: 18,
-                                              backgroundColor: AppColors.primary,
+                                              backgroundColor:
+                                                  AppColors.primary,
                                               foregroundColor: Colors.white,
                                               child: Text(
-                                                item.collectorName.isNotEmpty ? item.collectorName[0].toUpperCase() : 'C',
-                                                style: const TextStyle(fontWeight: FontWeight.bold),
+                                                item.collectorName.isNotEmpty
+                                                    ? item.collectorName[0]
+                                                          .toUpperCase()
+                                                    : 'C',
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                ),
                                               ),
                                             ),
                                             const SizedBox(width: 10),
@@ -533,18 +739,44 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
                                         ),
                                         const Text(
                                           'Tap for daily audit log >',
-                                          style: TextStyle(fontSize: 10, color: AppColors.primary, fontWeight: FontWeight.w600),
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            color: AppColors.primary,
+                                            fontWeight: FontWeight.w600,
+                                          ),
                                         ),
                                       ],
                                     ),
-                                    const Divider(height: 16, color: AppColors.cardBorder),
+                                    const Divider(
+                                      height: 16,
+                                      color: AppColors.cardBorder,
+                                    ),
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceAround,
                                       children: [
-                                        _buildAuditItem('Collected', '${item.totalCollectedLitres.toStringAsFixed(1)}L', AppColors.primary),
-                                        _buildAuditItem('Sold', '${item.totalSoldLitres.toStringAsFixed(1)}L', AppColors.secondary),
-                                        _buildAuditItem('Spoiled', '${item.totalSpoiledLitres.toStringAsFixed(1)}L', AppColors.warning),
-                                        _buildAuditItem('Unaccounted', '${item.unaccountedLitres.toStringAsFixed(1)}L', BalanceBadge.colorFor(item.balanceStatus)),
+                                        _buildAuditItem(
+                                          'Collected',
+                                          '${item.totalCollectedLitres.toStringAsFixed(1)}L',
+                                          AppColors.primary,
+                                        ),
+                                        _buildAuditItem(
+                                          'Sold',
+                                          '${item.totalSoldLitres.toStringAsFixed(1)}L',
+                                          AppColors.secondary,
+                                        ),
+                                        _buildAuditItem(
+                                          'Spoiled',
+                                          '${item.totalSpoiledLitres.toStringAsFixed(1)}L',
+                                          AppColors.warning,
+                                        ),
+                                        _buildAuditItem(
+                                          'Unaccounted',
+                                          '${item.unaccountedLitres.toStringAsFixed(1)}L',
+                                          BalanceBadge.colorFor(
+                                            item.balanceStatus,
+                                          ),
+                                        ),
                                       ],
                                     ),
                                   ],
@@ -556,7 +788,9 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
                       ),
                     );
                   },
-                  loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+                  loading: () => const Center(
+                    child: CircularProgressIndicator(color: AppColors.primary),
+                  ),
                   error: (err, stack) => ErrorView(
                     message: err.toString().replaceAll('Exception: ', ''),
                     onRetry: () => ref.refresh(collectorAuditReportProvider),
@@ -574,8 +808,18 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
-        Text(value, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: color)),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+        ),
+        Text(
+          value,
+          style: TextStyle(
+            fontWeight: FontWeight.w800,
+            fontSize: 14,
+            color: color,
+          ),
+        ),
       ],
     );
   }
@@ -583,8 +827,18 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
   Widget _buildAuditItem(String label, String value, Color color) {
     return Column(
       children: [
-        Text(value, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: color)),
-        Text(label, style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+        Text(
+          value,
+          style: TextStyle(
+            fontWeight: FontWeight.w800,
+            fontSize: 13,
+            color: color,
+          ),
+        ),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+        ),
       ],
     );
   }

@@ -6,11 +6,7 @@ import 'app/theme/app_theme.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(
-    const ProviderScope(
-      child: DairySaccoApp(),
-    ),
-  );
+  runApp(const ProviderScope(child: DairySaccoApp()));
 }
 
 class DairySaccoApp extends ConsumerWidget {

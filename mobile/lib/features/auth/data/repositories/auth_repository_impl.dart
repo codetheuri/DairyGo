@@ -54,8 +54,16 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<void> changePassword(String currentPassword, String newPassword, String confirmPassword) {
-    return _remoteDataSource.changePassword(currentPassword, newPassword, confirmPassword);
+  Future<void> changePassword(
+    String currentPassword,
+    String newPassword,
+    String confirmPassword,
+  ) {
+    return _remoteDataSource.changePassword(
+      currentPassword,
+      newPassword,
+      confirmPassword,
+    );
   }
 
   @override

@@ -50,47 +50,49 @@ final reportRepositoryProvider = Provider<ReportRepository>((ref) {
   return ReportRepositoryImpl(dataSource);
 });
 
-final reportFilterFromDateProvider =
-    StateProvider.autoDispose<String>((ref) => getFirstDayOfMonthString());
-final reportFilterToDateProvider =
-    StateProvider.autoDispose<String>((ref) => getLastDayOfMonthString());
+final reportFilterFromDateProvider = StateProvider.autoDispose<String>(
+  (ref) => getFirstDayOfMonthString(),
+);
+final reportFilterToDateProvider = StateProvider.autoDispose<String>(
+  (ref) => getLastDayOfMonthString(),
+);
 
 // Persistent cached providers (no autoDispose) for instant screen transitions
 final farmerPayoutReportProvider =
     FutureProvider<List<FarmerPayoutStatementModel>>((ref) async {
-  final repository = ref.watch(reportRepositoryProvider);
-  final fromDate = ref.watch(reportFilterFromDateProvider);
-  final toDate = ref.watch(reportFilterToDateProvider);
+      final repository = ref.watch(reportRepositoryProvider);
+      final fromDate = ref.watch(reportFilterFromDateProvider);
+      final toDate = ref.watch(reportFilterToDateProvider);
 
-  return repository.getFarmerPayoutReport(
-    fromDate: fromDate,
-    toDate: toDate,
-  );
-});
+      return repository.getFarmerPayoutReport(
+        fromDate: fromDate,
+        toDate: toDate,
+      );
+    });
 
 final saccoLedgerReportProvider =
     FutureProvider<SaccoReconciliationLedgerModel>((ref) async {
-  final repository = ref.watch(reportRepositoryProvider);
-  final fromDate = ref.watch(reportFilterFromDateProvider);
-  final toDate = ref.watch(reportFilterToDateProvider);
+      final repository = ref.watch(reportRepositoryProvider);
+      final fromDate = ref.watch(reportFilterFromDateProvider);
+      final toDate = ref.watch(reportFilterToDateProvider);
 
-  return repository.getReconciliationLedger(
-    fromDate: fromDate,
-    toDate: toDate,
-  );
-});
+      return repository.getReconciliationLedger(
+        fromDate: fromDate,
+        toDate: toDate,
+      );
+    });
 
 final collectorAuditReportProvider =
     FutureProvider<List<CollectorAuditSummaryModel>>((ref) async {
-  final repository = ref.watch(reportRepositoryProvider);
-  final fromDate = ref.watch(reportFilterFromDateProvider);
-  final toDate = ref.watch(reportFilterToDateProvider);
+      final repository = ref.watch(reportRepositoryProvider);
+      final fromDate = ref.watch(reportFilterFromDateProvider);
+      final toDate = ref.watch(reportFilterToDateProvider);
 
-  return repository.getCollectorAuditReport(
-    fromDate: fromDate,
-    toDate: toDate,
-  );
-});
+      return repository.getCollectorAuditReport(
+        fromDate: fromDate,
+        toDate: toDate,
+      );
+    });
 
 /// A report period for one farmer or one collector (YYYY-MM-DD, inclusive).
 typedef FarmerPeriod = ({String memberId, String fromDate, String toDate});
@@ -99,45 +101,65 @@ typedef CollectorPeriod = ({int collectorId, String fromDate, String toDate});
 /// One farmer's collections for a statement period. The server filters by
 /// farmer, and every page is loaded so the list matches the statement totals.
 final farmerIntakeHistoryProvider =
-    FutureProvider.family<List<MilkCollectionModel>, FarmerPeriod>((ref, arg) async {
-  final repository = ref.watch(milkCollectionRepositoryProvider);
-  return fetchAllPages((page) => repository.listCollections(
-        memberId: arg.memberId,
-        fromDate: arg.fromDate,
-        toDate: arg.toDate,
-        page: page,
-        perPage: maxPageSize,
-      ));
-});
+    FutureProvider.family<List<MilkCollectionModel>, FarmerPeriod>((
+      ref,
+      arg,
+    ) async {
+      final repository = ref.watch(milkCollectionRepositoryProvider);
+      return fetchAllPages(
+        (page) => repository.listCollections(
+          memberId: arg.memberId,
+          fromDate: arg.fromDate,
+          toDate: arg.toDate,
+          page: page,
+          perPage: maxPageSize,
+        ),
+      );
+    });
 
 /// One collector's collections, sales and spoilage for the audit detail.
 /// Filtered on the server rather than downloading every collector's rows.
 final collectorMonthCollectionsProvider =
-    FutureProvider.family<List<MilkCollectionModel>, CollectorPeriod>((ref, arg) async {
-  final repository = ref.watch(milkCollectionRepositoryProvider);
-  return fetchAllPages((page) => repository.listCollections(
-        collectorId: arg.collectorId,
-        fromDate: arg.fromDate,
-        toDate: arg.toDate,
-        page: page,
-        perPage: maxPageSize,
-      ));
-});
+    FutureProvider.family<List<MilkCollectionModel>, CollectorPeriod>((
+      ref,
+      arg,
+    ) async {
+      final repository = ref.watch(milkCollectionRepositoryProvider);
+      return fetchAllPages(
+        (page) => repository.listCollections(
+          collectorId: arg.collectorId,
+          fromDate: arg.fromDate,
+          toDate: arg.toDate,
+          page: page,
+          perPage: maxPageSize,
+        ),
+      );
+    });
 
 final collectorMonthSalesProvider =
-    FutureProvider.family<List<MilkSaleModel>, CollectorPeriod>((ref, arg) async {
-  return ref.watch(fieldOpsRepositoryProvider).listSales(
-        collectorId: arg.collectorId,
-        fromDate: arg.fromDate,
-        toDate: arg.toDate,
-      );
-});
+    FutureProvider.family<List<MilkSaleModel>, CollectorPeriod>((
+      ref,
+      arg,
+    ) async {
+      return ref
+          .watch(fieldOpsRepositoryProvider)
+          .listSales(
+            collectorId: arg.collectorId,
+            fromDate: arg.fromDate,
+            toDate: arg.toDate,
+          );
+    });
 
 final collectorMonthSpoilageProvider =
-    FutureProvider.family<List<MilkSpoilageModel>, CollectorPeriod>((ref, arg) async {
-  return ref.watch(fieldOpsRepositoryProvider).listSpoilage(
-        collectorId: arg.collectorId,
-        fromDate: arg.fromDate,
-        toDate: arg.toDate,
-      );
-});
+    FutureProvider.family<List<MilkSpoilageModel>, CollectorPeriod>((
+      ref,
+      arg,
+    ) async {
+      return ref
+          .watch(fieldOpsRepositoryProvider)
+          .listSpoilage(
+            collectorId: arg.collectorId,
+            fromDate: arg.fromDate,
+            toDate: arg.toDate,
+          );
+    });

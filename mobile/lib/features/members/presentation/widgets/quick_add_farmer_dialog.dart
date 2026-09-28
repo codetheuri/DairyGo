@@ -16,7 +16,10 @@ class QuickAddFarmerDialog extends ConsumerStatefulWidget {
 
   const QuickAddFarmerDialog({super.key, this.initialText = ''});
 
-  static Future<MemberModel?> show(BuildContext context, {String initialText = ''}) {
+  static Future<MemberModel?> show(
+    BuildContext context, {
+    String initialText = '',
+  }) {
     return showDialog<MemberModel>(
       context: context,
       builder: (_) => QuickAddFarmerDialog(initialText: initialText),
@@ -24,7 +27,8 @@ class QuickAddFarmerDialog extends ConsumerStatefulWidget {
   }
 
   @override
-  ConsumerState<QuickAddFarmerDialog> createState() => _QuickAddFarmerDialogState();
+  ConsumerState<QuickAddFarmerDialog> createState() =>
+      _QuickAddFarmerDialogState();
 }
 
 class _QuickAddFarmerDialogState extends ConsumerState<QuickAddFarmerDialog> {
@@ -60,7 +64,9 @@ class _QuickAddFarmerDialogState extends ConsumerState<QuickAddFarmerDialog> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     final location = _locationController.text.trim();
-    final ok = await ref.read(registerMemberControllerProvider.notifier).registerMember(
+    final ok = await ref
+        .read(registerMemberControllerProvider.notifier)
+        .registerMember(
           CreateMemberRequestModel(
             firstName: _firstNameController.text.trim(),
             lastName: _lastNameController.text.trim(),
@@ -69,7 +75,9 @@ class _QuickAddFarmerDialogState extends ConsumerState<QuickAddFarmerDialog> {
           ),
         );
     if (!ok || !mounted) return;
-    Navigator.of(context).pop(ref.read(registerMemberControllerProvider).valueOrNull);
+    Navigator.of(
+      context,
+    ).pop(ref.read(registerMemberControllerProvider).valueOrNull);
   }
 
   String? _required(String? value, String field) =>
@@ -78,7 +86,9 @@ class _QuickAddFarmerDialogState extends ConsumerState<QuickAddFarmerDialog> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(registerMemberControllerProvider);
-    final error = state.hasError ? state.error.toString().replaceAll('Exception: ', '') : null;
+    final error = state.hasError
+        ? state.error.toString().replaceAll('Exception: ', '')
+        : null;
 
     return AlertDialog(
       title: const Text('Register new farmer'),
@@ -89,7 +99,10 @@ class _QuickAddFarmerDialogState extends ConsumerState<QuickAddFarmerDialog> {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (error != null) ...[
-              Text(error, style: const TextStyle(color: AppColors.error, fontSize: 12)),
+              Text(
+                error,
+                style: const TextStyle(color: AppColors.error, fontSize: 12),
+              ),
               const SizedBox(height: 12),
             ],
             AppTextField(
@@ -132,7 +145,14 @@ class _QuickAddFarmerDialogState extends ConsumerState<QuickAddFarmerDialog> {
         FilledButton(
           onPressed: state.isLoading ? null : _submit,
           child: state.isLoading
-              ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
               : const Text('Register'),
         ),
       ],

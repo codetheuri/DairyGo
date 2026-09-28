@@ -1,9 +1,11 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-final networkConnectivityServiceProvider = Provider<NetworkConnectivityService>((ref) {
-  return NetworkConnectivityService();
-});
+final networkConnectivityServiceProvider = Provider<NetworkConnectivityService>(
+  (ref) {
+    return NetworkConnectivityService();
+  },
+);
 
 final networkConnectivityProvider = StreamProvider.autoDispose<bool>((ref) {
   final service = ref.watch(networkConnectivityServiceProvider);

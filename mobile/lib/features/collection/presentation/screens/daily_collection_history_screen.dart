@@ -48,13 +48,17 @@ class DailyCollectionHistoryScreen extends ConsumerWidget {
       if (parsed != null) {
         // If string contains explicit UTC 'Z', convert to local; otherwise parse as local
         final local = parsed.isUtc ? parsed.toLocal() : parsed;
-        final hour = local.hour > 12 ? local.hour - 12 : (local.hour == 0 ? 12 : local.hour);
+        final hour = local.hour > 12
+            ? local.hour - 12
+            : (local.hour == 0 ? 12 : local.hour);
         final minute = local.minute.toString().padLeft(2, '0');
         final period = local.hour >= 12 ? 'PM' : 'AM';
         return '$hour:$minute $period';
       }
     }
-    return shift == 'MORNING' ? 'Morning' : (shift == 'EVENING' ? 'Evening' : shift);
+    return shift == 'MORNING'
+        ? 'Morning'
+        : (shift == 'EVENING' ? 'Evening' : shift);
   }
 
   @override
@@ -72,13 +76,19 @@ class DailyCollectionHistoryScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Daily Milk Collections', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Daily Milk Collections',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.add_circle_outline_rounded),
-        label: const Text('Record Intake', style: TextStyle(fontWeight: FontWeight.bold)),
+        label: const Text(
+          'Record Intake',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         onPressed: () => context.push(AppRoutes.recordCollection),
       ),
       body: Column(
@@ -91,7 +101,10 @@ class DailyCollectionHistoryScreen extends ConsumerWidget {
               children: [
                 // Date Selector Row
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.background,
                     borderRadius: BorderRadius.circular(12),
@@ -101,7 +114,10 @@ class DailyCollectionHistoryScreen extends ConsumerWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.chevron_left_rounded, color: AppColors.primary),
+                        icon: const Icon(
+                          Icons.chevron_left_rounded,
+                          color: AppColors.primary,
+                        ),
                         tooltip: 'Previous Day',
                         constraints: const BoxConstraints(),
                         padding: const EdgeInsets.all(8),
@@ -130,10 +146,17 @@ class DailyCollectionHistoryScreen extends ConsumerWidget {
                         },
                         borderRadius: BorderRadius.circular(8),
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
                           child: Row(
                             children: [
-                              const Icon(Icons.calendar_today_rounded, size: 16, color: AppColors.primary),
+                              const Icon(
+                                Icons.calendar_today_rounded,
+                                size: 16,
+                                color: AppColors.primary,
+                              ),
                               const SizedBox(width: 6),
                               Text(
                                 _formatDisplayDate(selectedDateStr),
@@ -152,18 +175,33 @@ class DailyCollectionHistoryScreen extends ConsumerWidget {
                           if (!isToday)
                             TextButton(
                               style: TextButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(horizontal: 6),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                ),
                                 minimumSize: Size.zero,
                                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                               ),
                               onPressed: () {
-                                ref.read(collectionFilterDateProvider.notifier).state =
+                                ref
+                                        .read(
+                                          collectionFilterDateProvider.notifier,
+                                        )
+                                        .state =
                                     getTodayDateString();
                               },
-                              child: const Text('Today', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
+                              child: const Text(
+                                'Today',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 11,
+                                ),
+                              ),
                             ),
                           IconButton(
-                            icon: const Icon(Icons.chevron_right_rounded, color: AppColors.primary),
+                            icon: const Icon(
+                              Icons.chevron_right_rounded,
+                              color: AppColors.primary,
+                            ),
                             tooltip: 'Next Day',
                             constraints: const BoxConstraints(),
                             padding: const EdgeInsets.all(8),
@@ -178,15 +216,27 @@ class DailyCollectionHistoryScreen extends ConsumerWidget {
 
                 // Search Input
                 TextField(
-                  onChanged: (val) => ref.read(collectionSearchProvider.notifier).state = val,
+                  onChanged: (val) =>
+                      ref.read(collectionSearchProvider.notifier).state = val,
                   decoration: InputDecoration(
                     hintText: 'Search by Farmer Name or M-0001...',
-                    hintStyle: const TextStyle(fontSize: 12, color: AppColors.textMuted),
-                    prefixIcon: const Icon(Icons.search_rounded, color: AppColors.primary, size: 20),
+                    hintStyle: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textMuted,
+                    ),
+                    prefixIcon: const Icon(
+                      Icons.search_rounded,
+                      color: AppColors.primary,
+                      size: 20,
+                    ),
                     suffixIcon: search.isNotEmpty
                         ? IconButton(
                             icon: const Icon(Icons.clear_rounded, size: 18),
-                            onPressed: () => ref.read(collectionSearchProvider.notifier).state = '',
+                            onPressed: () =>
+                                ref
+                                        .read(collectionSearchProvider.notifier)
+                                        .state =
+                                    '',
                           )
                         : null,
                     filled: true,
@@ -209,11 +259,26 @@ class DailyCollectionHistoryScreen extends ConsumerWidget {
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: [
-                      _buildShiftChip(ref, label: 'All Shifts', value: null, current: shiftFilter),
+                      _buildShiftChip(
+                        ref,
+                        label: 'All Shifts',
+                        value: null,
+                        current: shiftFilter,
+                      ),
                       const SizedBox(width: 6),
-                      _buildShiftChip(ref, label: 'Morning', value: 'MORNING', current: shiftFilter),
+                      _buildShiftChip(
+                        ref,
+                        label: 'Morning',
+                        value: 'MORNING',
+                        current: shiftFilter,
+                      ),
                       const SizedBox(width: 6),
-                      _buildShiftChip(ref, label: 'Evening', value: 'EVENING', current: shiftFilter),
+                      _buildShiftChip(
+                        ref,
+                        label: 'Evening',
+                        value: 'EVENING',
+                        current: shiftFilter,
+                      ),
                     ],
                   ),
                 ),
@@ -229,7 +294,8 @@ class DailyCollectionHistoryScreen extends ConsumerWidget {
                 final collections = paged.items;
                 if (collections.isEmpty) {
                   return RefreshIndicator(
-                    onRefresh: () async => ref.refresh(milkCollectionsListProvider),
+                    onRefresh: () async =>
+                        ref.refresh(milkCollectionsListProvider),
                     child: ListView(
                       physics: const AlwaysScrollableScrollPhysics(),
                       padding: const EdgeInsets.only(top: 40),
@@ -241,7 +307,8 @@ class DailyCollectionHistoryScreen extends ConsumerWidget {
                               : 'No milk intake entries for $selectedDateStr.',
                           icon: Icons.water_drop_outlined,
                           buttonLabel: 'Record Intake',
-                          onButtonPressed: () => context.push(AppRoutes.recordCollection),
+                          onButtonPressed: () =>
+                              context.push(AppRoutes.recordCollection),
                         ),
                       ],
                     ),
@@ -249,24 +316,34 @@ class DailyCollectionHistoryScreen extends ConsumerWidget {
                 }
 
                 return RefreshIndicator(
-                  onRefresh: () async => ref.refresh(milkCollectionsListProvider),
+                  onRefresh: () async =>
+                      ref.refresh(milkCollectionsListProvider),
                   child: ListView.separated(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                     itemCount: collections.length + (paged.showFooter ? 1 : 0),
                     separatorBuilder: (_, __) => const SizedBox(height: 6),
                     itemBuilder: (context, index) {
                       if (index == collections.length) {
                         return PagedListFooter(
                           list: paged,
-                          onLoadMore: () => ref.read(milkCollectionsListProvider.notifier).loadMore(),
+                          onLoadMore: () => ref
+                              .read(milkCollectionsListProvider.notifier)
+                              .loadMore(),
                         );
                       }
                       final item = collections[index];
                       final farmerName = item.memberName ?? 'Farmer';
-                      final timeLabel = _formatCollectedTime(item.createdAt, item.shift);
+                      final timeLabel = _formatCollectedTime(
+                        item.createdAt,
+                        item.shift,
+                      );
 
-                      final editBlockReason =
-                          user == null ? 'Sign in again to edit.' : collectionEditBlockReason(item, user);
+                      final editBlockReason = user == null
+                          ? 'Sign in again to edit.'
+                          : collectionEditBlockReason(item, user);
 
                       // High density thin tile card; tap to see status and change history.
                       return Material(
@@ -274,128 +351,168 @@ class DailyCollectionHistoryScreen extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(10),
                         child: InkWell(
                           borderRadius: BorderRadius.circular(10),
-                          onTap: () => CollectionHistorySheet.show(context, item),
+                          onTap: () =>
+                              CollectionHistorySheet.show(context, item),
                           child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: AppColors.cardBorder),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Row(
-                            children: [
-                              // Avatar
-                              CircleAvatar(
-                                radius: 16,
-                                backgroundColor: AppColors.accentMint,
-                                foregroundColor: AppColors.primary,
-                                child: Text(
-                                  farmerName.isNotEmpty ? farmerName[0].toUpperCase() : 'F',
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-
-                              // Farmer Name & Time Taken
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      farmerName,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 14,
-                                        color: AppColors.textPrimary,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 10,
+                            ),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: AppColors.cardBorder),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Row(
+                              children: [
+                                // Avatar
+                                CircleAvatar(
+                                  radius: 16,
+                                  backgroundColor: AppColors.accentMint,
+                                  foregroundColor: AppColors.primary,
+                                  child: Text(
+                                    farmerName.isNotEmpty
+                                        ? farmerName[0].toUpperCase()
+                                        : 'F',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13,
                                     ),
-                                    const SizedBox(height: 2),
-                                    Row(
-                                      children: [
-                                        if (item.membershipNumber != null) ...[
-                                          Text(
-                                            item.membershipNumber!,
-                                            style: const TextStyle(
-                                              fontSize: 11,
-                                              fontWeight: FontWeight.bold,
-                                              color: AppColors.primary,
-                                            ),
-                                          ),
-                                          const Text(' • ', style: TextStyle(fontSize: 11, color: AppColors.textMuted)),
-                                        ],
-                                        const Icon(Icons.access_time_rounded, size: 12, color: AppColors.textMuted),
-                                        const SizedBox(width: 3),
-                                        Text(
-                                          timeLabel,
-                                          style: const TextStyle(
-                                            fontSize: 11,
-                                            color: AppColors.textSecondary,
-                                          ),
-                                        ),
-                                        if (isExecutive && item.collectorName != null && item.collectorName!.isNotEmpty) ...[
-                                          const Text(' • ', style: TextStyle(fontSize: 11, color: AppColors.textMuted)),
-                                          Text(
-                                            'By: ${item.collectorName}',
-                                            style: const TextStyle(
-                                              fontSize: 11,
-                                              fontWeight: FontWeight.bold,
-                                              color: AppColors.secondary,
-                                            ),
-                                          ),
-                                        ],
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-
-                              // Quantity Badge
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                decoration: BoxDecoration(
-                                  color: AppColors.accentMint,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text(
-                                  '${item.quantityLitres.toStringAsFixed(1)} L',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w800,
-                                    fontSize: 14,
-                                    color: AppColors.primary,
                                   ),
                                 ),
-                              ),
+                                const SizedBox(width: 10),
 
-                              // Edit button when the rules allow it, otherwise a lock explaining why.
-                              IconButton(
-                                icon: Icon(
-                                  editBlockReason == null ? Icons.edit_outlined : Icons.lock_outline_rounded,
-                                  color: AppColors.textMuted,
-                                  size: 18,
+                                // Farmer Name & Time Taken
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        farmerName,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14,
+                                          color: AppColors.textPrimary,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Row(
+                                        children: [
+                                          if (item.membershipNumber !=
+                                              null) ...[
+                                            Text(
+                                              item.membershipNumber!,
+                                              style: const TextStyle(
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.bold,
+                                                color: AppColors.primary,
+                                              ),
+                                            ),
+                                            const Text(
+                                              ' • ',
+                                              style: TextStyle(
+                                                fontSize: 11,
+                                                color: AppColors.textMuted,
+                                              ),
+                                            ),
+                                          ],
+                                          const Icon(
+                                            Icons.access_time_rounded,
+                                            size: 12,
+                                            color: AppColors.textMuted,
+                                          ),
+                                          const SizedBox(width: 3),
+                                          Text(
+                                            timeLabel,
+                                            style: const TextStyle(
+                                              fontSize: 11,
+                                              color: AppColors.textSecondary,
+                                            ),
+                                          ),
+                                          if (isExecutive &&
+                                              item.collectorName != null &&
+                                              item
+                                                  .collectorName!
+                                                  .isNotEmpty) ...[
+                                            const Text(
+                                              ' • ',
+                                              style: TextStyle(
+                                                fontSize: 11,
+                                                color: AppColors.textMuted,
+                                              ),
+                                            ),
+                                            Text(
+                                              'By: ${item.collectorName}',
+                                              style: const TextStyle(
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.bold,
+                                                color: AppColors.secondary,
+                                              ),
+                                            ),
+                                          ],
+                                        ],
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                                padding: const EdgeInsets.only(left: 6),
-                                constraints: const BoxConstraints(),
-                                tooltip: editBlockReason ?? 'Edit entry',
-                                onPressed: () {
-                                  if (editBlockReason != null) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text(editBlockReason)),
-                                    );
-                                    return;
-                                  }
-                                  showDialog(
-                                    context: context,
-                                    builder: (_) => EditCollectionDialog(
-                                      collection: item,
-                                      isAdmin: user?.isSaccoAdmin ?? false,
+
+                                // Quantity Badge
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.accentMint,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    '${item.quantityLitres.toStringAsFixed(1)} L',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 14,
+                                      color: AppColors.primary,
                                     ),
-                                  );
-                                },
-                              ),
-                            ],
+                                  ),
+                                ),
+
+                                // Edit button when the rules allow it, otherwise a lock explaining why.
+                                IconButton(
+                                  icon: Icon(
+                                    editBlockReason == null
+                                        ? Icons.edit_outlined
+                                        : Icons.lock_outline_rounded,
+                                    color: AppColors.textMuted,
+                                    size: 18,
+                                  ),
+                                  padding: const EdgeInsets.only(left: 6),
+                                  constraints: const BoxConstraints(),
+                                  tooltip: editBlockReason ?? 'Edit entry',
+                                  onPressed: () {
+                                    if (editBlockReason != null) {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(editBlockReason),
+                                        ),
+                                      );
+                                      return;
+                                    }
+                                    showDialog(
+                                      context: context,
+                                      builder: (_) => EditCollectionDialog(
+                                        collection: item,
+                                        isAdmin: user?.isSaccoAdmin ?? false,
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
                         ),
                       );
                     },

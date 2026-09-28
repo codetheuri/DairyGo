@@ -4,7 +4,7 @@ import 'app_colors.dart';
 import 'app_typography.dart';
 
 /// AppTheme builds the ThemeData object for the MaterialApp.
-/// 
+///
 /// Senior Architect Note:
 /// Setting `useMaterial3: true` enables rounded cards, tonal buttons,
 /// and smooth transitions out of the box.
@@ -46,7 +46,10 @@ abstract class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.surface,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: AppColors.cardBorder),
@@ -68,7 +71,9 @@ abstract class AppTheme {
           borderSide: const BorderSide(color: AppColors.error, width: 2.0),
         ),
         labelStyle: AppTypography.textTheme.bodyMedium,
-        hintStyle: AppTypography.textTheme.bodyMedium?.copyWith(color: AppColors.textMuted),
+        hintStyle: AppTypography.textTheme.bodyMedium?.copyWith(
+          color: AppColors.textMuted,
+        ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(

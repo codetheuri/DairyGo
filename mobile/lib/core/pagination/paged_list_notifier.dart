@@ -71,7 +71,9 @@ abstract class PagedListNotifier<T> extends AsyncNotifier<PagedList<T>> {
   }
 
   /// Stores [fetchPage] for later pages and loads page 1.
-  Future<PagedList<T>> loadFirstPage(Future<PageResult<T>> Function(int page) fetchPage) async {
+  Future<PagedList<T>> loadFirstPage(
+    Future<PageResult<T>> Function(int page) fetchPage,
+  ) async {
     _fetchPage = fetchPage;
     final first = await fetchPage(1);
     return PagedList(items: first.items, page: 1, hasMore: first.hasMore);
@@ -88,17 +90,21 @@ abstract class PagedListNotifier<T> extends AsyncNotifier<PagedList<T>> {
       final next = await _fetchPage(current.page + 1);
       // A refresh or filter change while this page loaded replaced the list.
       if (!identical(state.valueOrNull?.items, current.items)) return;
-      state = AsyncData(PagedList(
-        items: [...current.items, ...next.items],
-        page: current.page + 1,
-        hasMore: next.hasMore,
-      ));
+      state = AsyncData(
+        PagedList(
+          items: [...current.items, ...next.items],
+          page: current.page + 1,
+          hasMore: next.hasMore,
+        ),
+      );
     } catch (e) {
       if (!identical(state.valueOrNull?.items, current.items)) return;
-      state = AsyncData(current.copyWith(
-        loadingMore: false,
-        loadMoreError: e.toString().replaceAll('Exception: ', ''),
-      ));
+      state = AsyncData(
+        current.copyWith(
+          loadingMore: false,
+          loadMoreError: e.toString().replaceAll('Exception: ', ''),
+        ),
+      );
     }
   }
 }
@@ -109,7 +115,11 @@ class PagedListFooter extends StatefulWidget {
   final PagedList<dynamic> list;
   final VoidCallback onLoadMore;
 
-  const PagedListFooter({super.key, required this.list, required this.onLoadMore});
+  const PagedListFooter({
+    super.key,
+    required this.list,
+    required this.onLoadMore,
+  });
 
   @override
   State<PagedListFooter> createState() => _PagedListFooterState();
@@ -148,14 +158,22 @@ class _PagedListFooterState extends State<PagedListFooter> {
             ? const SizedBox(
                 width: 24,
                 height: 24,
-                child: CircularProgressIndicator(strokeWidth: 2.5, color: AppColors.primary),
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.5,
+                  color: AppColors.primary,
+                ),
               )
             : Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(error,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(color: AppColors.error, fontSize: 12)),
+                  Text(
+                    error,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: AppColors.error,
+                      fontSize: 12,
+                    ),
+                  ),
                   TextButton.icon(
                     onPressed: widget.onLoadMore,
                     icon: const Icon(Icons.refresh_rounded),

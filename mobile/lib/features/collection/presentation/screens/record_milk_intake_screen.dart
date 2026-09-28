@@ -18,10 +18,12 @@ class RecordMilkIntakeScreen extends ConsumerStatefulWidget {
   const RecordMilkIntakeScreen({super.key, this.initialMemberId});
 
   @override
-  ConsumerState<RecordMilkIntakeScreen> createState() => _RecordMilkIntakeScreenState();
+  ConsumerState<RecordMilkIntakeScreen> createState() =>
+      _RecordMilkIntakeScreenState();
 }
 
-class _RecordMilkIntakeScreenState extends ConsumerState<RecordMilkIntakeScreen> {
+class _RecordMilkIntakeScreenState
+    extends ConsumerState<RecordMilkIntakeScreen> {
   final _formKey = GlobalKey<FormState>();
 
   MemberModel? _selectedMember;
@@ -53,7 +55,9 @@ class _RecordMilkIntakeScreenState extends ConsumerState<RecordMilkIntakeScreen>
       memberId: member.id,
       shift: _selectedShift,
       quantityLitres: litres,
-      notes: _notesController.text.trim().isNotEmpty ? _notesController.text.trim() : null,
+      notes: _notesController.text.trim().isNotEmpty
+          ? _notesController.text.trim()
+          : null,
     );
 
     final success = await ref
@@ -63,7 +67,9 @@ class _RecordMilkIntakeScreenState extends ConsumerState<RecordMilkIntakeScreen>
     if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Successfully recorded ${litres.toStringAsFixed(1)} Litres milk intake!'),
+          content: Text(
+            'Successfully recorded ${litres.toStringAsFixed(1)} Litres milk intake!',
+          ),
           backgroundColor: AppColors.success,
         ),
       );
@@ -106,7 +112,10 @@ class _RecordMilkIntakeScreenState extends ConsumerState<RecordMilkIntakeScreen>
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Record Milk Intake', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Record Milk Intake',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
       ),
       body: Stack(
         children: [
@@ -128,7 +137,11 @@ class _RecordMilkIntakeScreenState extends ConsumerState<RecordMilkIntakeScreen>
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 22),
+                          const Icon(
+                            Icons.error_outline_rounded,
+                            color: AppColors.error,
+                            size: 22,
+                          ),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
@@ -153,7 +166,9 @@ class _RecordMilkIntakeScreenState extends ConsumerState<RecordMilkIntakeScreen>
                     decoration: BoxDecoration(
                       color: AppColors.accentMint,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+                      border: Border.all(
+                        color: AppColors.primary.withValues(alpha: 0.2),
+                      ),
                     ),
                     child: Row(
                       children: [
@@ -163,7 +178,11 @@ class _RecordMilkIntakeScreenState extends ConsumerState<RecordMilkIntakeScreen>
                             color: AppColors.primary,
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          child: const Icon(Icons.monetization_on_rounded, color: Colors.white, size: 22),
+                          child: const Icon(
+                            Icons.monetization_on_rounded,
+                            color: Colors.white,
+                            size: 22,
+                          ),
                         ),
                         const SizedBox(width: 14),
                         Expanded(
@@ -172,7 +191,10 @@ class _RecordMilkIntakeScreenState extends ConsumerState<RecordMilkIntakeScreen>
                             children: [
                               const Text(
                                 'Active Sacco Buying Rate',
-                                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.textSecondary,
+                                ),
                               ),
                               const SizedBox(height: 2),
                               Text(
@@ -195,9 +217,9 @@ class _RecordMilkIntakeScreenState extends ConsumerState<RecordMilkIntakeScreen>
                   Text(
                     'Farmer Member *',
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
-                        ),
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
                   ),
                   const SizedBox(height: 8),
 
@@ -208,10 +230,15 @@ class _RecordMilkIntakeScreenState extends ConsumerState<RecordMilkIntakeScreen>
                       onTap: _pickFarmer,
                       borderRadius: BorderRadius.circular(14),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
                         decoration: BoxDecoration(
                           border: Border.all(
-                            color: hasMember ? AppColors.primary : AppColors.cardBorder,
+                            color: hasMember
+                                ? AppColors.primary
+                                : AppColors.cardBorder,
                             width: hasMember ? 1.5 : 1,
                           ),
                           borderRadius: BorderRadius.circular(14),
@@ -233,7 +260,8 @@ class _RecordMilkIntakeScreenState extends ConsumerState<RecordMilkIntakeScreen>
                             Expanded(
                               child: selectedMember != null
                                   ? Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           selectedMember.fullName,
@@ -261,7 +289,11 @@ class _RecordMilkIntakeScreenState extends ConsumerState<RecordMilkIntakeScreen>
                                       ),
                                     ),
                             ),
-                            const Icon(Icons.arrow_drop_down_circle_outlined, color: AppColors.primary, size: 22),
+                            const Icon(
+                              Icons.arrow_drop_down_circle_outlined,
+                              color: AppColors.primary,
+                              size: 22,
+                            ),
                           ],
                         ),
                       ),
@@ -273,9 +305,9 @@ class _RecordMilkIntakeScreenState extends ConsumerState<RecordMilkIntakeScreen>
                   Text(
                     'Collection Shift',
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
-                        ),
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
                   ),
                   const SizedBox(height: 8),
 
@@ -293,7 +325,8 @@ class _RecordMilkIntakeScreenState extends ConsumerState<RecordMilkIntakeScreen>
                       ),
                     ],
                     selected: {_selectedShift},
-                    onSelectionChanged: (set) => setState(() => _selectedShift = set.first),
+                    onSelectionChanged: (set) =>
+                        setState(() => _selectedShift = set.first),
                   ),
                   const SizedBox(height: 20),
 
@@ -302,12 +335,18 @@ class _RecordMilkIntakeScreenState extends ConsumerState<RecordMilkIntakeScreen>
                     label: 'Milk Quantity (Litres) *',
                     controller: _litresController,
                     hint: 'e.g. 15.5',
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     prefixIcon: Icons.water_drop_rounded,
                     validator: (val) {
-                      if (val == null || val.trim().isEmpty) return 'Litres is required';
+                      if (val == null || val.trim().isEmpty) {
+                        return 'Litres is required';
+                      }
                       final d = double.tryParse(val.trim());
-                      if (d == null || d <= 0) return 'Enter a valid milk quantity in litres';
+                      if (d == null || d <= 0) {
+                        return 'Enter a valid milk quantity in litres';
+                      }
                       return null;
                     },
                   ),
@@ -331,7 +370,8 @@ class _RecordMilkIntakeScreenState extends ConsumerState<RecordMilkIntakeScreen>
               ),
             ),
           ),
-          if (isLoading) const LoadingOverlay(message: 'Recording milk intake...'),
+          if (isLoading)
+            const LoadingOverlay(message: 'Recording milk intake...'),
         ],
       ),
     );

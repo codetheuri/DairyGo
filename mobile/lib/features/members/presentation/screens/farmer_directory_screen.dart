@@ -21,13 +21,19 @@ class FarmerDirectoryScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Farmer Directory', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Farmer Directory',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.person_add_alt_1_rounded),
-        label: const Text('Register Farmer', style: TextStyle(fontWeight: FontWeight.bold)),
+        label: const Text(
+          'Register Farmer',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         onPressed: () => context.push(AppRoutes.registerMember),
       ),
       body: Column(
@@ -40,16 +46,26 @@ class FarmerDirectoryScreen extends ConsumerWidget {
               children: [
                 // Search Input Field
                 TextField(
-                  onChanged: (val) => ref.read(memberSearchQueryProvider.notifier).state = val,
+                  onChanged: (val) =>
+                      ref.read(memberSearchQueryProvider.notifier).state = val,
                   decoration: InputDecoration(
                     hintText: 'Search by Name, Phone, or ID (e.g. M-0001)...',
-                    hintStyle: const TextStyle(fontSize: 13, color: AppColors.textMuted),
-                    prefixIcon: const Icon(Icons.search_rounded, color: AppColors.primary),
+                    hintStyle: const TextStyle(
+                      fontSize: 13,
+                      color: AppColors.textMuted,
+                    ),
+                    prefixIcon: const Icon(
+                      Icons.search_rounded,
+                      color: AppColors.primary,
+                    ),
                     suffixIcon: searchQuery.isNotEmpty
                         ? IconButton(
                             icon: const Icon(Icons.clear_rounded, size: 20),
                             onPressed: () {
-                              ref.read(memberSearchQueryProvider.notifier).state = '';
+                              ref
+                                      .read(memberSearchQueryProvider.notifier)
+                                      .state =
+                                  '';
                             },
                           )
                         : null,
@@ -66,7 +82,10 @@ class FarmerDirectoryScreen extends ConsumerWidget {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                      borderSide: const BorderSide(
+                        color: AppColors.primary,
+                        width: 1.5,
+                      ),
                     ),
                   ),
                 ),
@@ -126,7 +145,8 @@ class FarmerDirectoryScreen extends ConsumerWidget {
                         : 'No registered farmers in the Sacco directory yet.',
                     icon: Icons.people_outline_rounded,
                     buttonLabel: 'Register New Farmer',
-                    onButtonPressed: () => context.push(AppRoutes.registerMember),
+                    onButtonPressed: () =>
+                        context.push(AppRoutes.registerMember),
                   );
                 }
 
@@ -140,7 +160,8 @@ class FarmerDirectoryScreen extends ConsumerWidget {
                       if (index == members.length) {
                         return PagedListFooter(
                           list: paged,
-                          onLoadMore: () => ref.read(membersListProvider.notifier).loadMore(),
+                          onLoadMore: () =>
+                              ref.read(membersListProvider.notifier).loadMore(),
                         );
                       }
                       final member = members[index];
@@ -178,10 +199,12 @@ class FarmerDirectoryScreen extends ConsumerWidget {
                                 // Member Details
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
                                         children: [
                                           Text(
                                             member.fullName,
@@ -191,18 +214,26 @@ class FarmerDirectoryScreen extends ConsumerWidget {
                                               color: AppColors.textPrimary,
                                             ),
                                           ),
-                                          StatusPill.fromStatusString(member.status),
+                                          StatusPill.fromStatusString(
+                                            member.status,
+                                          ),
                                         ],
                                       ),
                                       const SizedBox(height: 4),
                                       Row(
                                         children: [
                                           Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 6,
+                                              vertical: 2,
+                                            ),
                                             decoration: BoxDecoration(
                                               color: AppColors.background,
-                                              borderRadius: BorderRadius.circular(6),
-                                              border: Border.all(color: AppColors.cardBorder),
+                                              borderRadius:
+                                                  BorderRadius.circular(6),
+                                              border: Border.all(
+                                                color: AppColors.cardBorder,
+                                              ),
                                             ),
                                             child: Text(
                                               member.membershipNumber,
@@ -214,7 +245,11 @@ class FarmerDirectoryScreen extends ConsumerWidget {
                                             ),
                                           ),
                                           const SizedBox(width: 8),
-                                          Icon(Icons.phone_outlined, size: 14, color: AppColors.textMuted),
+                                          Icon(
+                                            Icons.phone_outlined,
+                                            size: 14,
+                                            color: AppColors.textMuted,
+                                          ),
                                           const SizedBox(width: 4),
                                           Text(
                                             member.phone,
@@ -225,11 +260,16 @@ class FarmerDirectoryScreen extends ConsumerWidget {
                                           ),
                                         ],
                                       ),
-                                      if (member.location != null && member.location!.isNotEmpty) ...[
+                                      if (member.location != null &&
+                                          member.location!.isNotEmpty) ...[
                                         const SizedBox(height: 4),
                                         Row(
                                           children: [
-                                            const Icon(Icons.location_on_outlined, size: 14, color: AppColors.textMuted),
+                                            const Icon(
+                                              Icons.location_on_outlined,
+                                              size: 14,
+                                              color: AppColors.textMuted,
+                                            ),
                                             const SizedBox(width: 4),
                                             Text(
                                               member.location!,
@@ -245,7 +285,10 @@ class FarmerDirectoryScreen extends ConsumerWidget {
                                   ),
                                 ),
 
-                                const Icon(Icons.chevron_right_rounded, color: AppColors.textMuted),
+                                const Icon(
+                                  Icons.chevron_right_rounded,
+                                  color: AppColors.textMuted,
+                                ),
                               ],
                             ),
                           ),

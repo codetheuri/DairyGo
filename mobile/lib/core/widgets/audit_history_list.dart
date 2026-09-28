@@ -24,13 +24,21 @@ class AuditHistoryList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (entries.isEmpty) {
-      return const Text('No history recorded.', style: TextStyle(fontSize: 12, color: AppColors.textMuted));
+      return const Text(
+        'No history recorded.',
+        style: TextStyle(fontSize: 12, color: AppColors.textMuted),
+      );
     }
     return ListView.separated(
       shrinkWrap: true,
       itemCount: entries.length,
-      separatorBuilder: (_, __) => const Divider(height: 16, color: AppColors.cardBorder),
-      itemBuilder: (_, i) => _AuditTile(entry: entries[i], fieldLabels: fieldLabels, createdSummary: createdSummary),
+      separatorBuilder: (_, __) =>
+          const Divider(height: 16, color: AppColors.cardBorder),
+      itemBuilder: (_, i) => _AuditTile(
+        entry: entries[i],
+        fieldLabels: fieldLabels,
+        createdSummary: createdSummary,
+      ),
     );
   }
 }
@@ -40,7 +48,11 @@ class _AuditTile extends StatelessWidget {
   final Map<String, String> fieldLabels;
   final List<String> Function(Map<String, dynamic> newValues)? createdSummary;
 
-  const _AuditTile({required this.entry, required this.fieldLabels, this.createdSummary});
+  const _AuditTile({
+    required this.entry,
+    required this.fieldLabels,
+    this.createdSummary,
+  });
 
   String get _title {
     switch (entry.action) {
@@ -109,20 +121,47 @@ class _AuditTile extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(_icon, size: 18, color: entry.action == 'VOID' ? AppColors.error : AppColors.primary),
+        Icon(
+          _icon,
+          size: 18,
+          color: entry.action == 'VOID' ? AppColors.error : AppColors.primary,
+        ),
         const SizedBox(width: 10),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('$_title by ${entry.actorName ?? 'unknown'}',
-                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
-              Text(_formatTime(entry.createdAt), style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
+              Text(
+                '$_title by ${entry.actorName ?? 'unknown'}',
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                ),
+              ),
+              Text(
+                _formatTime(entry.createdAt),
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: AppColors.textMuted,
+                ),
+              ),
               for (final line in _changes())
-                Text(line, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                Text(
+                  line,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
               if (entry.reason != null && entry.reason!.isNotEmpty)
-                Text('Reason: ${entry.reason}',
-                    style: const TextStyle(fontSize: 12, fontStyle: FontStyle.italic, color: AppColors.textPrimary)),
+                Text(
+                  'Reason: ${entry.reason}',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontStyle: FontStyle.italic,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
             ],
           ),
         ),

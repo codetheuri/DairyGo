@@ -18,12 +18,18 @@ final memberRepositoryProvider = Provider<MemberRepository>((ref) {
   return MemberRepositoryImpl(dataSource);
 });
 
-final memberSearchQueryProvider = StateProvider.autoDispose<String>((ref) => '');
-final memberStatusFilterProvider = StateProvider.autoDispose<String?>((ref) => null);
+final memberSearchQueryProvider = StateProvider.autoDispose<String>(
+  (ref) => '',
+);
+final memberStatusFilterProvider = StateProvider.autoDispose<String?>(
+  (ref) => null,
+);
 
 /// The farmer directory, loaded page by page as the user scrolls.
 final membersListProvider =
-    AsyncNotifierProvider<MembersListNotifier, PagedList<MemberModel>>(MembersListNotifier.new);
+    AsyncNotifierProvider<MembersListNotifier, PagedList<MemberModel>>(
+      MembersListNotifier.new,
+    );
 
 class MembersListNotifier extends PagedListNotifier<MemberModel> {
   @override
@@ -32,25 +38,32 @@ class MembersListNotifier extends PagedListNotifier<MemberModel> {
     final search = ref.watch(memberSearchQueryProvider).trim();
     final status = ref.watch(memberStatusFilterProvider);
     await debounce(search);
-    return loadFirstPage((page) => repository.listMembers(
-          search: search,
-          status: status,
-          page: page,
-          perPage: PagedListNotifier.pageSize,
-        ));
+    return loadFirstPage(
+      (page) => repository.listMembers(
+        search: search,
+        status: status,
+        page: page,
+        perPage: PagedListNotifier.pageSize,
+      ),
+    );
   }
 }
 
 /// Active farmers matching [search] (name, phone, membership or national ID),
 /// searched on the server so every farmer can be found, not just a first page.
 /// Separate from [membersListProvider], whose filters belong to the directory.
-final farmerPickerResultsProvider =
-    FutureProvider.autoDispose.family<List<MemberModel>, String>((ref, search) async {
-  final result = await ref.watch(memberRepositoryProvider).listMembers(search: search, status: 'ACTIVE', perPage: 30);
-  return result.items;
-});
+final farmerPickerResultsProvider = FutureProvider.autoDispose
+    .family<List<MemberModel>, String>((ref, search) async {
+      final result = await ref
+          .watch(memberRepositoryProvider)
+          .listMembers(search: search, status: 'ACTIVE', perPage: 30);
+      return result.items;
+    });
 
-final memberDetailsProvider = FutureProvider.family<MemberModel, String>((ref, id) async {
+final memberDetailsProvider = FutureProvider.family<MemberModel, String>((
+  ref,
+  id,
+) async {
   final repository = ref.watch(memberRepositoryProvider);
   return repository.getMemberById(id);
 });
@@ -60,7 +73,7 @@ class RegisterMemberController extends StateNotifier<AsyncValue<MemberModel?>> {
   final Ref _ref;
 
   RegisterMemberController(this._repository, this._ref)
-      : super(const AsyncValue.data(null));
+    : super(const AsyncValue.data(null));
 
   Future<bool> registerMember(CreateMemberRequestModel request) async {
     state = const AsyncValue.loading();
@@ -79,7 +92,10 @@ class RegisterMemberController extends StateNotifier<AsyncValue<MemberModel?>> {
 }
 
 final registerMemberControllerProvider =
-    StateNotifierProvider.autoDispose<RegisterMemberController, AsyncValue<MemberModel?>>((ref) {
-  final repository = ref.watch(memberRepositoryProvider);
-  return RegisterMemberController(repository, ref);
-});
+    StateNotifierProvider.autoDispose<
+      RegisterMemberController,
+      AsyncValue<MemberModel?>
+    >((ref) {
+      final repository = ref.watch(memberRepositoryProvider);
+      return RegisterMemberController(repository, ref);
+    });

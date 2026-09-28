@@ -17,12 +17,18 @@ abstract class MilkCollectionRemoteDataSource {
     int page = 1,
     int perPage = 50,
   });
-  Future<MilkCollectionModel> recordCollection(RecordCollectionRequestModel request);
-  Future<MilkCollectionModel> updateCollection(String id, UpdateCollectionRequestModel request);
+  Future<MilkCollectionModel> recordCollection(
+    RecordCollectionRequestModel request,
+  );
+  Future<MilkCollectionModel> updateCollection(
+    String id,
+    UpdateCollectionRequestModel request,
+  );
   Future<List<AuditLogModel>> getCollectionHistory(String id);
 }
 
-class MilkCollectionRemoteDataSourceImpl implements MilkCollectionRemoteDataSource {
+class MilkCollectionRemoteDataSourceImpl
+    implements MilkCollectionRemoteDataSource {
   final Dio _dio;
 
   MilkCollectionRemoteDataSourceImpl(this._dio);
@@ -41,8 +47,12 @@ class MilkCollectionRemoteDataSourceImpl implements MilkCollectionRemoteDataSour
       // Fallback default if no active price set
       return const MilkPriceModel(id: 'default', pricePerLitre: 50.0);
     } on DioException catch (e) {
-      final serverMsg = e.response?.data is Map ? e.response?.data['message'] : null;
-      throw Exception(serverMsg ?? e.message ?? 'Error fetching active milk price');
+      final serverMsg = e.response?.data is Map
+          ? e.response?.data['message']
+          : null;
+      throw Exception(
+        serverMsg ?? e.message ?? 'Error fetching active milk price',
+      );
     }
   }
 
@@ -59,13 +69,14 @@ class MilkCollectionRemoteDataSourceImpl implements MilkCollectionRemoteDataSour
     int perPage = 50,
   }) async {
     try {
-      final queryParams = <String, dynamic>{
-        'page': page,
-        'per_page': perPage,
-      };
-      if (memberId != null && memberId.isNotEmpty) queryParams['member_id'] = memberId;
+      final queryParams = <String, dynamic>{'page': page, 'per_page': perPage};
+      if (memberId != null && memberId.isNotEmpty) {
+        queryParams['member_id'] = memberId;
+      }
       if (collectorId != null) queryParams['collector_id'] = collectorId;
-      if (fromDate != null && fromDate.isNotEmpty) queryParams['from_date'] = fromDate;
+      if (fromDate != null && fromDate.isNotEmpty) {
+        queryParams['from_date'] = fromDate;
+      }
       if (toDate != null && toDate.isNotEmpty) queryParams['to_date'] = toDate;
       if (shift != null && shift.isNotEmpty) queryParams['shift'] = shift;
       if (status != null && status.isNotEmpty) queryParams['status'] = status;
@@ -78,17 +89,27 @@ class MilkCollectionRemoteDataSourceImpl implements MilkCollectionRemoteDataSour
 
       final data = response.data as Map<String, dynamic>;
       if (data['success'] == true && data['data'] != null) {
-        return PageResult.fromData(data['data'] as Map<String, dynamic>, 'collections', MilkCollectionModel.fromJson);
+        return PageResult.fromData(
+          data['data'] as Map<String, dynamic>,
+          'collections',
+          MilkCollectionModel.fromJson,
+        );
       }
       throw Exception(data['message'] ?? 'Failed to load milk collections');
     } on DioException catch (e) {
-      final serverMsg = e.response?.data is Map ? e.response?.data['message'] : null;
-      throw Exception(serverMsg ?? e.message ?? 'Error loading milk collections');
+      final serverMsg = e.response?.data is Map
+          ? e.response?.data['message']
+          : null;
+      throw Exception(
+        serverMsg ?? e.message ?? 'Error loading milk collections',
+      );
     }
   }
 
   @override
-  Future<MilkCollectionModel> recordCollection(RecordCollectionRequestModel request) async {
+  Future<MilkCollectionModel> recordCollection(
+    RecordCollectionRequestModel request,
+  ) async {
     try {
       final response = await _dio.post(
         ApiConstants.collections,
@@ -97,7 +118,9 @@ class MilkCollectionRemoteDataSourceImpl implements MilkCollectionRemoteDataSour
 
       final data = response.data as Map<String, dynamic>;
       if (data['success'] == true && data['data'] != null) {
-        return MilkCollectionModel.fromJson(data['data']['collection'] as Map<String, dynamic>);
+        return MilkCollectionModel.fromJson(
+          data['data']['collection'] as Map<String, dynamic>,
+        );
       }
       throw Exception(data['message'] ?? 'Failed to record milk intake');
     } on DioException catch (e) {
@@ -145,11 +168,15 @@ class MilkCollectionRemoteDataSourceImpl implements MilkCollectionRemoteDataSour
 
       final data = response.data as Map<String, dynamic>;
       if (data['success'] == true && data['data'] != null) {
-        return MilkCollectionModel.fromJson(data['data']['collection'] as Map<String, dynamic>);
+        return MilkCollectionModel.fromJson(
+          data['data']['collection'] as Map<String, dynamic>,
+        );
       }
       throw Exception(data['message'] ?? 'Failed to update milk intake');
     } on DioException catch (e) {
-      final serverMsg = e.response?.data is Map ? e.response?.data['message'] : null;
+      final serverMsg = e.response?.data is Map
+          ? e.response?.data['message']
+          : null;
       throw Exception(serverMsg ?? e.message ?? 'Error updating milk intake');
     }
   }
@@ -157,7 +184,9 @@ class MilkCollectionRemoteDataSourceImpl implements MilkCollectionRemoteDataSour
   @override
   Future<List<AuditLogModel>> getCollectionHistory(String id) async {
     try {
-      final response = await _dio.get('${ApiConstants.collections}/$id/history');
+      final response = await _dio.get(
+        '${ApiConstants.collections}/$id/history',
+      );
       final data = response.data as Map<String, dynamic>;
       if (data['success'] == true && data['data'] != null) {
         final list = (data['data']['history'] as List<dynamic>? ?? const []);
@@ -167,7 +196,9 @@ class MilkCollectionRemoteDataSourceImpl implements MilkCollectionRemoteDataSour
       }
       throw Exception(data['message'] ?? 'Failed to load entry history');
     } on DioException catch (e) {
-      final serverMsg = e.response?.data is Map ? e.response?.data['message'] : null;
+      final serverMsg = e.response?.data is Map
+          ? e.response?.data['message']
+          : null;
       throw Exception(serverMsg ?? e.message ?? 'Error loading entry history');
     }
   }

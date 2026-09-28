@@ -8,10 +8,8 @@ import '../../domain/entities/auth_state.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
 
-import '../../../reports/presentation/controllers/report_controller.dart';
-
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
-  final dio = ref.watch(dioClientProvider);
+  final dio = ref.watch(authDioProvider);
   final storageService = ref.watch(secureStorageServiceProvider);
   final remoteDS = AuthRemoteDataSourceImpl(dio);
   return AuthRepositoryImpl(remoteDS, storageService);
@@ -24,6 +22,12 @@ final saccoStaffListProvider = FutureProvider.autoDispose<List<UserEntity>>((ref
 
 final authControllerProvider =
     AsyncNotifierProvider<AuthController, AuthState>(AuthController.new);
+
+/// The signed-in user's id, or null when signed out. Data providers depend on
+/// it through [dioClientProvider], so they all reload when the user changes.
+final sessionUserIdProvider = Provider<int?>((ref) {
+  return ref.watch(authControllerProvider.select((s) => s.valueOrNull?.user?.id));
+});
 
 class AuthController extends AsyncNotifier<AuthState> {
   @override
@@ -41,15 +45,22 @@ class AuthController extends AsyncNotifier<AuthState> {
     state = const AsyncValue.loading();
     final repo = ref.read(authRepositoryProvider);
     final result = await repo.login(identity: identity, password: password);
-
-    invalidateAllAppMetrics(ref);
     state = AsyncValue.data(result);
   }
 
   Future<void> logout() async {
     final repo = ref.read(authRepositoryProvider);
     await repo.logout();
-    invalidateAllAppMetrics(ref);
     state = AsyncValue.data(AuthState.unauthenticated());
+  }
+
+  /// Called when the server rejects the token (expired, user deactivated or
+  /// Sacco suspended). Several requests can fail at once, so only the first
+  /// one signs the user out.
+  void expireSession() {
+    if (state.valueOrNull?.isAuthenticated != true) return;
+    state = AsyncValue.data(
+      AuthState.unauthenticated('Your session has ended. Please log in again.'),
+    );
   }
 }

@@ -40,7 +40,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
     final isExecutive = user?.isExecutive ?? false;
 
     final collectorAsync = ref.watch(collectorDashboardProvider(null));
-    final executiveAsync = ref.watch(executiveDashboardProvider(7));
+    // Only executives may read the Sacco-wide summary; collectors would get 403.
+    final executiveAsync = isExecutive ? ref.watch(executiveDashboardProvider(7)) : null;
 
     return Scaffold(
       appBar: AppBar(
@@ -140,7 +141,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                 ),
 
                 // Executive Summary Dashboard View
-                executiveAsync.when(
+                executiveAsync!.when(
                   data: (data) => ExecutiveDashboardView(
                     data: data,
                     onRefresh: () => ref.refresh(executiveDashboardProvider(7)),

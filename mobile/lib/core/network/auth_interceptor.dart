@@ -1,15 +1,18 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import '../storage/secure_storage_service.dart';
 
 /// AuthInterceptor dynamically injects the JWT token into HTTP request headers.
-/// 
-/// Senior Architect Note:
+///
 /// Automatically attaches `Authorization: Bearer <token>` to outgoing requests.
-/// If HTTP 401 (Unauthorized) occurs, it clears stale credentials.
+/// On HTTP 401 (expired token, deactivated user or suspended Sacco) it clears
+/// the stored token and calls [onSessionExpired] so the app returns to login
+/// instead of showing errors on every screen.
 class AuthInterceptor extends Interceptor {
   final SecureStorageService _storageService;
+  final VoidCallback? onSessionExpired;
 
-  AuthInterceptor(this._storageService);
+  AuthInterceptor(this._storageService, {this.onSessionExpired});
 
   @override
   Future<void> onRequest(
@@ -29,9 +32,11 @@ class AuthInterceptor extends Interceptor {
     DioException err,
     ErrorInterceptorHandler handler,
   ) async {
-    if (err.response?.statusCode == 401) {
-      // Clear invalid token session
+    // A 401 from the login call means wrong credentials, not an expired session.
+    final isLogin = err.requestOptions.path.contains('/auth/login');
+    if (err.response?.statusCode == 401 && !isLogin) {
       await _storageService.deleteToken();
+      onSessionExpired?.call();
     }
     return handler.next(err);
   }

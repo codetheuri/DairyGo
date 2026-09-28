@@ -64,7 +64,9 @@ func (r *Repository) List(ctx context.Context, q query.Query) ([]Member, query.M
 			"status":            "members.status",
 			"created_at":        "members.created_at",
 		},
-		AllowedSearches: []string{"members.membership_number", "members.first_name", "members.last_name", "members.phone", "members.national_id"},
+		// The full-name expression lets "John Kamau" match; || is standard SQL
+		// concatenation on Postgres and SQLite.
+		AllowedSearches: []string{"members.membership_number", "members.first_name", "members.last_name", "(members.first_name || ' ' || members.last_name)", "members.phone", "members.national_id"},
 		AllowedFilters: map[string]string{
 			"status": "members.status",
 		},

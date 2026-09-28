@@ -8,6 +8,7 @@ import '../../../../core/widgets/loading_overlay.dart';
 import '../../../../core/widgets/primary_button.dart';
 import '../../../members/data/models/member_model.dart';
 import '../../../members/presentation/controllers/member_controller.dart';
+import '../../../members/presentation/widgets/farmer_picker_sheet.dart';
 import '../../data/models/milk_collection_model.dart';
 import '../controllers/collection_controller.dart';
 
@@ -23,16 +24,10 @@ class RecordMilkIntakeScreen extends ConsumerStatefulWidget {
 class _RecordMilkIntakeScreenState extends ConsumerState<RecordMilkIntakeScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  String? _selectedMemberId;
+  MemberModel? _selectedMember;
   String _selectedShift = 'MORNING';
   final _litresController = TextEditingController();
   final _notesController = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    _selectedMemberId = widget.initialMemberId;
-  }
 
   @override
   void dispose() {
@@ -43,7 +38,8 @@ class _RecordMilkIntakeScreenState extends ConsumerState<RecordMilkIntakeScreen>
 
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) return;
-    if (_selectedMemberId == null || _selectedMemberId!.isEmpty) {
+    final member = _selectedMember ?? _initialMember();
+    if (member == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select a farmer member')),
       );
@@ -54,7 +50,7 @@ class _RecordMilkIntakeScreenState extends ConsumerState<RecordMilkIntakeScreen>
     if (litres == null || litres <= 0) return;
 
     final request = RecordCollectionRequestModel(
-      memberId: _selectedMemberId!,
+      memberId: member.id,
       shift: _selectedShift,
       quantityLitres: litres,
       notes: _notesController.text.trim().isNotEmpty ? _notesController.text.trim() : null,
@@ -75,33 +71,24 @@ class _RecordMilkIntakeScreenState extends ConsumerState<RecordMilkIntakeScreen>
     }
   }
 
-  void _showSearchableFarmerPicker(List<MemberModel> members) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) {
-        return _SearchableFarmerPickerBottomSheet(
-          members: members,
-          selectedMemberId: _selectedMemberId,
-          onSelected: (member) {
-            setState(() {
-              _selectedMemberId = member.id;
-            });
-            Navigator.pop(ctx);
-          },
-        );
-      },
+  /// The farmer passed in from their profile ("Record milk"), once loaded.
+  MemberModel? _initialMember() {
+    final id = widget.initialMemberId;
+    if (id == null || id.isEmpty) return null;
+    return ref.watch(memberDetailsProvider(id)).valueOrNull;
+  }
+
+  Future<void> _pickFarmer() async {
+    final picked = await FarmerPickerSheet.show(
+      context,
+      selectedMemberId: (_selectedMember ?? _initialMember())?.id,
     );
+    if (picked != null && mounted) setState(() => _selectedMember = picked);
   }
 
   @override
   Widget build(BuildContext context) {
     final activePriceAsync = ref.watch(activeMilkPriceProvider);
-    final membersAsync = ref.watch(membersListProvider);
     final recordState = ref.watch(recordMilkCollectionControllerProvider);
 
     final isLoading = recordState.isLoading;
@@ -109,12 +96,13 @@ class _RecordMilkIntakeScreenState extends ConsumerState<RecordMilkIntakeScreen>
         ? recordState.error.toString().replaceAll('Exception: ', '')
         : null;
 
-    final activePrice = activePriceAsync.valueOrNull?.pricePerLitre ?? 50.0;
-    final membersList = membersAsync.valueOrNull ?? [];
-    final selectedMember = membersList.firstWhere(
-      (m) => m.id == _selectedMemberId,
-      orElse: () => const MemberModel(id: '', firstName: '', lastName: ''),
+    final priceText = activePriceAsync.when(
+      data: (p) => 'KES ${p.pricePerLitre.toStringAsFixed(2)} / Litre',
+      loading: () => 'Loading…',
+      error: (_, __) => 'No price set for today',
     );
+    final selectedMember = _selectedMember ?? _initialMember();
+    final hasMember = selectedMember != null;
 
     return Scaffold(
       appBar: AppBar(
@@ -188,7 +176,7 @@ class _RecordMilkIntakeScreenState extends ConsumerState<RecordMilkIntakeScreen>
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                'KES ${activePrice.toStringAsFixed(2)} / Litre',
+                                priceText,
                                 style: const TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
@@ -217,18 +205,14 @@ class _RecordMilkIntakeScreenState extends ConsumerState<RecordMilkIntakeScreen>
                     color: AppColors.surface,
                     borderRadius: BorderRadius.circular(14),
                     child: InkWell(
-                      onTap: membersList.isNotEmpty
-                          ? () => _showSearchableFarmerPicker(membersList)
-                          : null,
+                      onTap: _pickFarmer,
                       borderRadius: BorderRadius.circular(14),
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                         decoration: BoxDecoration(
                           border: Border.all(
-                            color: _selectedMemberId != null && _selectedMemberId!.isNotEmpty
-                                ? AppColors.primary
-                                : AppColors.cardBorder,
-                            width: _selectedMemberId != null && _selectedMemberId!.isNotEmpty ? 1.5 : 1,
+                            color: hasMember ? AppColors.primary : AppColors.cardBorder,
+                            width: hasMember ? 1.5 : 1,
                           ),
                           borderRadius: BorderRadius.circular(14),
                         ),
@@ -239,7 +223,7 @@ class _RecordMilkIntakeScreenState extends ConsumerState<RecordMilkIntakeScreen>
                               backgroundColor: AppColors.accentMint,
                               foregroundColor: AppColors.primary,
                               child: Icon(
-                                selectedMember.id.isNotEmpty
+                                hasMember
                                     ? Icons.person_rounded
                                     : Icons.person_search_rounded,
                                 size: 20,
@@ -247,7 +231,7 @@ class _RecordMilkIntakeScreenState extends ConsumerState<RecordMilkIntakeScreen>
                             ),
                             const SizedBox(width: 12),
                             Expanded(
-                              child: selectedMember.id.isNotEmpty
+                              child: selectedMember != null
                                   ? Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
@@ -270,7 +254,7 @@ class _RecordMilkIntakeScreenState extends ConsumerState<RecordMilkIntakeScreen>
                                       ],
                                     )
                                   : const Text(
-                                      'Search and select farmer member...',
+                                      'Tap to search or register a farmer',
                                       style: TextStyle(
                                         color: AppColors.textMuted,
                                         fontSize: 14,
@@ -348,158 +332,6 @@ class _RecordMilkIntakeScreenState extends ConsumerState<RecordMilkIntakeScreen>
             ),
           ),
           if (isLoading) const LoadingOverlay(message: 'Recording milk intake...'),
-        ],
-      ),
-    );
-  }
-}
-
-class _SearchableFarmerPickerBottomSheet extends StatefulWidget {
-  final List<MemberModel> members;
-  final String? selectedMemberId;
-  final ValueChanged<MemberModel> onSelected;
-
-  const _SearchableFarmerPickerBottomSheet({
-    required this.members,
-    required this.selectedMemberId,
-    required this.onSelected,
-  });
-
-  @override
-  State<_SearchableFarmerPickerBottomSheet> createState() =>
-      __SearchableFarmerPickerBottomSheetState();
-}
-
-class __SearchableFarmerPickerBottomSheetState
-    extends State<_SearchableFarmerPickerBottomSheet> {
-  final TextEditingController _searchController = TextEditingController();
-  String _query = '';
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final filtered = widget.members.where((m) {
-      if (_query.isEmpty) return true;
-      final q = _query.toLowerCase();
-      return m.fullName.toLowerCase().contains(q) ||
-          m.membershipNumber.toLowerCase().contains(q) ||
-          m.phone.toLowerCase().contains(q) ||
-          (m.nationalId?.toLowerCase().contains(q) ?? false);
-    }).toList();
-
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.75,
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          // Drag handle indicator
-          Center(
-            child: Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: AppColors.cardBorder,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Select Farmer Member',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.close_rounded),
-                onPressed: () => Navigator.pop(context),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-
-          // Search Field
-          TextField(
-            controller: _searchController,
-            onChanged: (val) => setState(() => _query = val.trim()),
-            autofocus: true,
-            decoration: InputDecoration(
-              hintText: 'Search by Name, Phone, or ID (e.g. M-0001)...',
-              prefixIcon: const Icon(Icons.search_rounded, color: AppColors.primary),
-              suffixIcon: _query.isNotEmpty
-                  ? IconButton(
-                      icon: const Icon(Icons.clear_rounded, size: 20),
-                      onPressed: () {
-                        _searchController.clear();
-                        setState(() => _query = '');
-                      },
-                    )
-                  : null,
-              filled: true,
-              fillColor: AppColors.background,
-              contentPadding: const EdgeInsets.symmetric(vertical: 12),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppColors.cardBorder),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          // Farmers List
-          Expanded(
-            child: filtered.isEmpty
-                ? Center(
-                    child: Text(
-                      'No farmer matching "$_query"',
-                      style: const TextStyle(color: AppColors.textMuted),
-                    ),
-                  )
-                : ListView.separated(
-                    itemCount: filtered.length,
-                    separatorBuilder: (_, __) => const Divider(height: 1, color: AppColors.cardBorder),
-                    itemBuilder: (ctx, index) {
-                      final member = filtered[index];
-                      final isSelected = member.id == widget.selectedMemberId;
-
-                      return ListTile(
-                        onTap: () => widget.onSelected(member),
-                        leading: CircleAvatar(
-                          backgroundColor: isSelected ? AppColors.primary : AppColors.accentMint,
-                          foregroundColor: isSelected ? Colors.white : AppColors.primary,
-                          child: Text(
-                            member.firstName.isNotEmpty ? member.firstName[0].toUpperCase() : 'F',
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        title: Text(
-                          member.fullName,
-                          style: TextStyle(
-                            fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                        subtitle: Text(
-                          '${member.membershipNumber} • ${member.phone}${member.location != null && member.location!.isNotEmpty ? " • ${member.location}" : ""}',
-                          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                        ),
-                        trailing: isSelected
-                            ? const Icon(Icons.check_circle_rounded, color: AppColors.primary)
-                            : null,
-                      );
-                    },
-                  ),
-          ),
         ],
       ),
     );

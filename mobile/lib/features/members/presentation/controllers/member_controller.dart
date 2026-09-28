@@ -32,6 +32,14 @@ final membersListProvider = FutureProvider<List<MemberModel>>((ref) async {
   );
 });
 
+/// Active farmers matching [search] (name, phone, membership or national ID),
+/// searched on the server so every farmer can be found, not just a first page.
+/// Separate from [membersListProvider], whose filters belong to the directory.
+final farmerPickerResultsProvider =
+    FutureProvider.autoDispose.family<List<MemberModel>, String>((ref, search) async {
+  return ref.watch(memberRepositoryProvider).listMembers(search: search, status: 'ACTIVE', perPage: 30);
+});
+
 final memberDetailsProvider = FutureProvider.family<MemberModel, String>((ref, id) async {
   final repository = ref.watch(memberRepositoryProvider);
   return repository.getMemberById(id);
@@ -50,6 +58,7 @@ class RegisterMemberController extends StateNotifier<AsyncValue<MemberModel?>> {
       final member = await _repository.createMember(request);
       state = AsyncValue.data(member);
       invalidateAllAppMetrics(_ref);
+      _ref.invalidate(farmerPickerResultsProvider);
       return true;
     } catch (e, st) {
       state = AsyncValue.error(e, st);

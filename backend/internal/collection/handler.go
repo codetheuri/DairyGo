@@ -68,6 +68,51 @@ func (h *Handler) ListPrices(ctx context.Context, input *ListPricesInput) (*List
 	return resp, nil
 }
 
+// idFilter formats a numeric ID for a query filter. (string(rune(id)) would
+// give the character with that code, not its digits.)
+func idFilter(id uint) string {
+	return strconv.FormatUint(uint64(id), 10)
+}
+
+// collectionFilters turns the list request's query parameters into filters.
+func collectionFilters(input *ListCollectionsInput) map[string]string {
+	f := make(map[string]string)
+	if input.MemberID != "" {
+		f["member_id"] = input.MemberID
+	}
+	if input.CollectorID > 0 {
+		f["collector_id"] = idFilter(input.CollectorID)
+	}
+	if input.Shift != "" {
+		f["shift"] = input.Shift
+	}
+	if input.Status != "" {
+		f["status"] = input.Status
+	}
+	if input.FromDate != "" {
+		f["collection_date_from"] = input.FromDate
+	}
+	if input.ToDate != "" {
+		f["collection_date_to"] = input.ToDate
+	}
+	return f
+}
+
+// spoilageFilters turns the list request's query parameters into filters.
+func spoilageFilters(input *ListSpoilageInput) map[string]string {
+	f := make(map[string]string)
+	if input.CollectorID > 0 {
+		f["collector_id"] = idFilter(input.CollectorID)
+	}
+	if input.FromDate != "" {
+		f["spoilage_date_from"] = input.FromDate
+	}
+	if input.ToDate != "" {
+		f["spoilage_date_to"] = input.ToDate
+	}
+	return f
+}
+
 // --- COLLECTION HANDLERS ---
 
 func (h *Handler) RecordCollection(ctx context.Context, input *RecordCollectionInput) (*CollectionOutput, error) {
@@ -102,26 +147,7 @@ func (h *Handler) ListCollections(ctx context.Context, input *ListCollectionsInp
 		Page:    input.Page,
 		PerPage: input.PerPage,
 		Search:  input.Search,
-		Filters: make(map[string]string),
-	}
-
-	if input.MemberID != "" {
-		q.Filters["member_id"] = input.MemberID
-	}
-	if input.CollectorID > 0 {
-		q.Filters["collector_id"] = string(rune(input.CollectorID))
-	}
-	if input.Shift != "" {
-		q.Filters["shift"] = input.Shift
-	}
-	if input.Status != "" {
-		q.Filters["status"] = input.Status
-	}
-	if input.FromDate != "" {
-		q.Filters["collection_date_from"] = input.FromDate
-	}
-	if input.ToDate != "" {
-		q.Filters["collection_date_to"] = input.ToDate
+		Filters: collectionFilters(input),
 	}
 
 	collections, meta, err := h.service.ListCollections(ctx, q)
@@ -223,7 +249,7 @@ func (h *Handler) ListSales(ctx context.Context, input *ListSalesInput) (*ListSa
 		q.Filters["sale_date_to"] = input.ToDate
 	}
 	if input.CollectorID > 0 {
-		q.Filters["collector_id"] = strconv.FormatUint(uint64(input.CollectorID), 10)
+		q.Filters["collector_id"] = idFilter(input.CollectorID)
 	}
 	if input.CustomerID != "" {
 		q.Filters["customer_id"] = input.CustomerID
@@ -304,14 +330,7 @@ func (h *Handler) ListSpoilage(ctx context.Context, input *ListSpoilageInput) (*
 	q := query.Query{
 		Page:    input.Page,
 		PerPage: input.PerPage,
-		Filters: make(map[string]string),
-	}
-
-	if input.FromDate != "" {
-		q.Filters["spoilage_date_from"] = input.FromDate
-	}
-	if input.ToDate != "" {
-		q.Filters["spoilage_date_to"] = input.ToDate
+		Filters: spoilageFilters(input),
 	}
 
 	spoilages, meta, err := h.service.ListSpoilage(ctx, q)

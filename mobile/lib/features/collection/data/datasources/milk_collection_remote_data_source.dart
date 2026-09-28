@@ -27,6 +27,15 @@ abstract class MilkCollectionRemoteDataSource {
   Future<List<AuditLogModel>> getCollectionHistory(String id);
 }
 
+/// The Sacco has no milk price in force today, so none can be shown and milk
+/// cannot be recorded until an admin sets one.
+class NoMilkPriceException implements Exception {
+  const NoMilkPriceException();
+
+  @override
+  String toString() => 'No milk price has been set for today.';
+}
+
 class MilkCollectionRemoteDataSourceImpl
     implements MilkCollectionRemoteDataSource {
   final Dio _dio;
@@ -44,9 +53,10 @@ class MilkCollectionRemoteDataSourceImpl
           return MilkPriceModel.fromJson(priceMap as Map<String, dynamic>);
         }
       }
-      // Fallback default if no active price set
-      return const MilkPriceModel(id: 'default', pricePerLitre: 50.0);
+      throw const NoMilkPriceException();
     } on DioException catch (e) {
+      // 404 means the Sacco has no price in force today, not a failure.
+      if (e.response?.statusCode == 404) throw const NoMilkPriceException();
       final serverMsg = e.response?.data is Map
           ? e.response?.data['message']
           : null;

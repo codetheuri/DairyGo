@@ -14,6 +14,7 @@ import '../widgets/change_password_dialog.dart';
 import '../widgets/register_staff_dialog.dart';
 import '../widgets/set_price_dialog.dart';
 import '../../../../core/layout/breakpoints.dart';
+import '../../../collection/data/datasources/milk_collection_remote_data_source.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -322,9 +323,7 @@ class SettingsScreen extends ConsumerWidget {
                       _buildLoadingCard('Loading milk price configuration...'),
                   error: (err, stack) {
                     final msg = err.toString().replaceAll('Exception: ', '');
-                    final isNoPriceConfigured = msg.toLowerCase().contains(
-                      'no active milk price',
-                    );
+                    final isNoPriceConfigured = err is NoMilkPriceException;
 
                     if (isNoPriceConfigured) {
                       return Container(
@@ -346,20 +345,24 @@ class SettingsScreen extends ConsumerWidget {
                                   size: 22,
                                 ),
                                 SizedBox(width: 8),
-                                Text(
-                                  'No Active Milk Price Configured',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
-                                    color: AppColors.textPrimary,
+                                Expanded(
+                                  child: Text(
+                                    'No milk price set for today',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                      color: AppColors.textPrimary,
+                                    ),
                                   ),
                                 ),
                               ],
                             ),
                             const SizedBox(height: 6),
-                            const Text(
-                              'Set the initial milk buying price per litre for Sacco milk intake operations.',
-                              style: TextStyle(
+                            Text(
+                              canSetPrice
+                                  ? 'Set the milk buying price per litre. Milk cannot be recorded until a price is in force.'
+                                  : 'Milk cannot be recorded until a price is set. Ask your Sacco admin to set it.',
+                              style: const TextStyle(
                                 fontSize: 12,
                                 color: AppColors.textSecondary,
                               ),

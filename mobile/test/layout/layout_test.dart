@@ -55,10 +55,18 @@ const _commonRoutes = [
   '/members/register',
 ];
 
+/// Text that must be on screen, checked at the first size. 'admin-noprice'
+/// is a Sacco whose admin has not set a milk price yet.
+const _mustShow = {
+  'admin-noprice /settings': 'Set Initial Buying Price',
+  'admin-noprice /collections/record': 'No price set for today',
+};
+
 const _routesByRole = {
   'collector': _commonRoutes,
   'admin': [..._commonRoutes, '/reports', '/settings/staff'],
   'board': [..._commonRoutes, '/reports'],
+  'admin-noprice': ['/settings', '/collections/record'],
 };
 
 /// Serves the captured responses for one role. Any other request gets a 404,
@@ -213,6 +221,22 @@ void main() {
               // Let requests, debounces and the first frames of each screen finish.
               for (var i = 0; i < 8; i++) {
                 await tester.pump(const Duration(milliseconds: 250));
+              }
+
+              final mustShow = _mustShow['$role $route'];
+              if (mustShow != null &&
+                  entry.key == _sizes.keys.first &&
+                  scale == _textScales.first) {
+                await tester.scrollUntilVisible(
+                  find.text(mustShow),
+                  200,
+                  scrollable: find.byType(Scrollable).first,
+                );
+                expect(
+                  find.text(mustShow),
+                  findsOneWidget,
+                  reason: '$role $route should show "$mustShow"',
+                );
               }
 
               if (_screenshots &&

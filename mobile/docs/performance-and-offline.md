@@ -57,10 +57,26 @@ At 100 kbps against a Sacco with 150 farmers and 150 collections a day:
   start-up the saved profile is used and the user stays signed in. Only a
   rejected session (for example a deactivated account) signs them out.
 
-## Not done yet: recording offline
+## Online-only by decision
 
-Recording milk, sales or spoilage still needs a connection. Doing it offline
-needs a queue of records on the phone that is sent when the signal returns,
-and the API must recognise a record sent twice (an idempotency key per
-record) so a retry never counts milk twice. This is planned as its own
-piece of work.
+Recording milk, sales, spoilage and payments needs a connection; there is no
+offline recording queue (the Sacco owner's decision, 2026-09-28). Saved data
+is only used to show screens quickly and to let users read the last figures
+when the signal drops.
+
+## Known limits (not yet addressed)
+
+- **Connection status**: the offline banner uses `connectivity_plus`, which
+  only knows whether Wi-Fi or mobile data is switched on, not whether data
+  actually flows (for example, no data bundle). It can say "online" while
+  nothing loads, and it does not show a slow connection.
+- **Duplicates on slow networks**: a save that times out may already have
+  reached the server. Collections are protected (one per farmer, date and
+  shift); sales, spoilage and customer payments could be saved twice if the
+  user taps again.
+- **Sessions**: access tokens last 24 hours and the app does not yet use the
+  refresh token, so users are signed out about a day after logging in,
+  whether or not they are active.
+- **Start-up** waits for the server to confirm the session before showing
+  anything, and connections are closed after ~15 s idle, so the next tap
+  opens a new one (0.6–2.6 s on a slow link).

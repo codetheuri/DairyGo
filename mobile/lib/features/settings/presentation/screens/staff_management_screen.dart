@@ -6,6 +6,7 @@ import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/status_pill.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../widgets/register_staff_dialog.dart';
+import '../../../../core/layout/breakpoints.dart';
 
 class StaffManagementScreen extends ConsumerWidget {
   const StaffManagementScreen({super.key});
@@ -50,163 +51,175 @@ class StaffManagementScreen extends ConsumerWidget {
           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
       ),
-      body: RefreshIndicator(
-        onRefresh: () async {
-          ref.invalidate(saccoStaffListProvider);
-        },
-        child: staffAsync.when(
-          data: (users) {
-            if (users.isEmpty) {
-              return ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(24),
-                children: const [
-                  SizedBox(height: 60),
-                  Center(
-                    child: Column(
-                      children: [
-                        Icon(
-                          Icons.people_outline_rounded,
-                          size: 48,
-                          color: AppColors.textMuted,
-                        ),
-                        SizedBox(height: 12),
-                        Text(
-                          'No Sacco Staff Registered Yet',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          'Tap "+ Add Staff" to register Milk Collectors and Board Members.',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              );
-            }
-
-            return ListView.separated(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.all(16),
-              itemCount: users.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 10),
-              itemBuilder: (context, index) {
-                final staff = users[index];
-                final isAdmin = staff.isSaccoAdmin;
-
-                return Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: AppColors.cardBorder),
-                  ),
-                  child: Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 22,
-                        backgroundColor: isAdmin
-                            ? AppColors.accentMint
-                            : AppColors.background,
-                        foregroundColor: isAdmin
-                            ? AppColors.primary
-                            : AppColors.textSecondary,
-                        child: Text(
-                          staff.fullName.isNotEmpty
-                              ? staff.fullName[0].toUpperCase()
-                              : 'U',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              staff.fullName,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 15,
-                                color: AppColors.textPrimary,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              'Username: @${staff.username}',
-                              style: const TextStyle(
-                                fontSize: 11,
-                                color: AppColors.textMuted,
-                              ),
-                            ),
-                            if (staff.email.isNotEmpty) ...[
-                              Text(
-                                staff.email,
-                                style: const TextStyle(
-                                  fontSize: 11,
-                                  color: AppColors.textSecondary,
-                                ),
-                              ),
-                            ],
-                            if (staff.phone != null &&
-                                staff.phone!.isNotEmpty) ...[
-                              Text(
-                                'Phone: ${staff.phone}',
-                                style: const TextStyle(
-                                  fontSize: 11,
-                                  color: AppColors.textSecondary,
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
+      body: ReadableWidth(
+        child: RefreshIndicator(
+          onRefresh: () async {
+            ref.invalidate(saccoStaffListProvider);
+          },
+          child: staffAsync.when(
+            data: (users) {
+              if (users.isEmpty) {
+                return ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(24),
+                  children: const [
+                    SizedBox(height: 60),
+                    Center(
+                      child: Column(
                         children: [
-                          StatusPill(
-                            status: staff.displayRole.toUpperCase(),
-                            type: isAdmin
-                                ? StatusType.success
-                                : (staff.isExecutive
-                                      ? StatusType.warning
-                                      : StatusType.info),
+                          Icon(
+                            Icons.people_outline_rounded,
+                            size: 48,
+                            color: AppColors.textMuted,
                           ),
-                          const SizedBox(height: 6),
-                          const Text(
-                            'Active Duty',
+                          SizedBox(height: 12),
+                          Text(
+                            'No Sacco Staff Registered Yet',
                             style: TextStyle(
-                              fontSize: 10,
-                              color: AppColors.success,
                               fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            'Tap "+ Add Staff" to register Milk Collectors and Board Members.',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textSecondary,
                             ),
                           ),
                         ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 );
-              },
-            );
-          },
-          loading: () => const Center(
-            child: CircularProgressIndicator(color: AppColors.primary),
-          ),
-          error: (err, stack) => ErrorView(
-            message: err.toString().replaceAll('Exception: ', ''),
-            onRetry: () => ref.invalidate(saccoStaffListProvider),
+              }
+
+              return ListView.separated(
+                physics: const AlwaysScrollableScrollPhysics(),
+                // Bottom space so the floating button never covers the last row.
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 88),
+                itemCount: users.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 10),
+                itemBuilder: (context, index) {
+                  final staff = users[index];
+                  final isAdmin = staff.isSaccoAdmin;
+
+                  return Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: AppColors.cardBorder),
+                    ),
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 22,
+                          backgroundColor: isAdmin
+                              ? AppColors.accentMint
+                              : AppColors.background,
+                          foregroundColor: isAdmin
+                              ? AppColors.primary
+                              : AppColors.textSecondary,
+                          child: Text(
+                            staff.fullName.isNotEmpty
+                                ? staff.fullName[0].toUpperCase()
+                                : 'U',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                staff.fullName,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Username: @${staff.username}',
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.textMuted,
+                                ),
+                              ),
+                              if (staff.email.isNotEmpty) ...[
+                                Text(
+                                  staff.email,
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
+                              ],
+                              if (staff.phone != null &&
+                                  staff.phone!.isNotEmpty) ...[
+                                Text(
+                                  'Phone: ${staff.phone}',
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        // Long role names shrink rather than push the row off screen.
+                        Flexible(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: StatusPill(
+                                  status: staff.displayRole.toUpperCase(),
+                                  type: isAdmin
+                                      ? StatusType.success
+                                      : (staff.isExecutive
+                                            ? StatusType.warning
+                                            : StatusType.info),
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              const Text(
+                                'Active Duty',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: AppColors.success,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              );
+            },
+            loading: () => const Center(
+              child: CircularProgressIndicator(color: AppColors.primary),
+            ),
+            error: (err, stack) => ErrorView(
+              message: err.toString().replaceAll('Exception: ', ''),
+              onRetry: () => ref.invalidate(saccoStaffListProvider),
+            ),
           ),
         ),
       ),

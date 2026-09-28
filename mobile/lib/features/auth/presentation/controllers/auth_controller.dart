@@ -47,7 +47,9 @@ class AuthController extends AsyncNotifier<AuthState> {
   }
 
   Future<void> login(String identity, String password) async {
-    state = const AsyncValue.loading();
+    // Keep the previous (signed-out) state while loading, so the router
+    // leaves the login screen up with its spinner.
+    state = const AsyncLoading<AuthState>().copyWithPrevious(state);
     final repo = ref.read(authRepositoryProvider);
     final result = await repo.login(identity: identity, password: password);
     state = AsyncValue.data(result);

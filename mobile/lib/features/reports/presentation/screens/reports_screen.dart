@@ -220,31 +220,41 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
                     padding: const EdgeInsets.all(6),
                     onPressed: () => _stepMonth(-1),
                   ),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.calendar_month_rounded,
-                        size: 18,
-                        color: AppColors.primary,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        _formatMonthHeader(_selectedMonth),
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                          color: AppColors.textPrimary,
+                  // The month name always shows; the exact dates only when there is room.
+                  Flexible(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.calendar_month_rounded,
+                          size: 18,
+                          color: AppColors.primary,
                         ),
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        '($fromDate to $toDate)',
-                        style: const TextStyle(
-                          fontSize: 10,
-                          color: AppColors.textMuted,
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: Text(
+                            _formatMonthHeader(_selectedMonth),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
                         ),
-                      ),
-                    ],
+                        if (MediaQuery.sizeOf(context).width >= 420) ...[
+                          const SizedBox(width: 6),
+                          Text(
+                            '($fromDate to $toDate)',
+                            style: const TextStyle(
+                              fontSize: 10,
+                              color: AppColors.textMuted,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
                   ),
                   IconButton(
                     icon: const Icon(

@@ -21,6 +21,10 @@ class DairySaccoApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       routerConfig: router,
+      // Follow the phone's font-size setting, but only up to 1.3x: beyond that
+      // the dense field screens stop fitting on a phone.
+      builder: (context, child) =>
+          MediaQuery.withClampedTextScaling(maxScaleFactor: 1.3, child: child!),
     );
   }
 }

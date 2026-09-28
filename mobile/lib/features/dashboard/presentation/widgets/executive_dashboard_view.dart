@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../core/layout/breakpoints.dart';
 import '../../../../core/widgets/stat_card.dart';
 import '../../data/models/executive_dashboard_model.dart';
 import 'trend_chart_widget.dart';
@@ -50,8 +51,12 @@ class ExecutiveDashboardView extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  // The balance badge moves under the title when they do not fit on one line.
+                  Wrap(
+                    alignment: WrapAlignment.spaceBetween,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 8,
+                    runSpacing: 6,
                     children: [
                       Text(
                         'Sacco Executive Overview',
@@ -75,69 +80,21 @@ class ExecutiveDashboardView extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
+                      _HeaderStat(
+                        value:
                             '${cards.todayCollectedLitres.toStringAsFixed(0)} L',
-                            style: Theme.of(context).textTheme.headlineMedium
-                                ?.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                          ),
-                          Text(
-                            'Today Intake',
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.8),
-                              fontSize: 11,
-                            ),
-                          ),
-                        ],
+                        label: 'Today Intake',
                       ),
                       Container(height: 36, width: 1, color: Colors.white24),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '${cards.activeMembersCount}',
-                            style: Theme.of(context).textTheme.headlineMedium
-                                ?.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                          ),
-                          Text(
-                            'Farmers',
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.8),
-                              fontSize: 11,
-                            ),
-                          ),
-                        ],
+                      _HeaderStat(
+                        value: '${cards.activeMembersCount}',
+                        label: 'Farmers',
                       ),
                       Container(height: 36, width: 1, color: Colors.white24),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '${cards.activeCollectorsCount}',
-                            style: Theme.of(context).textTheme.headlineMedium
-                                ?.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                          ),
-                          Text(
-                            'Collectors',
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.8),
-                              fontSize: 11,
-                            ),
-                          ),
-                        ],
+                      _HeaderStat(
+                        value: '${cards.activeCollectorsCount}',
+                        label: 'Collectors',
                       ),
                     ],
                   ),
@@ -156,13 +113,10 @@ class ExecutiveDashboardView extends StatelessWidget {
             ),
             const SizedBox(height: 12),
 
-            GridView.count(
-              crossAxisCount: 2,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              childAspectRatio: 1.3,
+            ResponsiveGrid(
+              // Two per row on phones (one with large text), more on wider screens.
+              minItemWidth: 160,
+              minColumns: 1,
               children: [
                 StatCard(
                   title: 'Month Intake',
@@ -225,6 +179,50 @@ class ExecutiveDashboardView extends StatelessWidget {
 
             // Trend Chart
             TrendChartWidget(points: data.intakeTrend),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// One figure in the dashboard header. Shares the row equally with the others
+/// and shrinks a long number to fit rather than overflowing.
+class _HeaderStat extends StatelessWidget {
+  final String value;
+  final String label;
+
+  const _HeaderStat({required this.value, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 6),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                value,
+                maxLines: 1,
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.8),
+                fontSize: 11,
+              ),
+            ),
           ],
         ),
       ),

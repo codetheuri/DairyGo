@@ -1,0 +1,59 @@
+{
+  "status": 200,
+  "body": {
+    "success": true,
+    "message": "Milk sales retrieved successfully",
+    "data": {
+      "sales": [
+        {
+          "id": "b276fe8a-25f3-4143-b2ce-94d4af0f0850",
+          "sacco_id": "ee937809-8894-4f7c-8fe0-6bd7d2890fa8",
+          "collector_id": 29,
+          "collector_name": "uxcol",
+          "customer_id": "cf623959-71f2-4fd4-a77d-65ac7198ca37",
+          "customer_type": "HOTEL",
+          "sale_date": "2026-09-28T00:00:00Z",
+          "buyer_name": "Mama Njeri Hotel",
+          "buyer_phone": "0733000002",
+          "quantity_litres": 40,
+          "unit_price": 70,
+          "total_amount": 2800,
+          "amount_paid": 1000,
+          "payment_status": "PARTIAL",
+          "payment_method": "CASH",
+          "created_at": "2026-09-28T09:01:35.493969+03:00",
+          "updated_at": "2026-09-28T09:01:35.493969+03:00",
+          "deleted_at": null
+        },
+        {
+          "id": "ab181d23-3918-4659-bd76-5fb9e4070685",
+          "sacco_id": "ee937809-8894-4f7c-8fe0-6bd7d2890fa8",
+          "collector_id": 29,
+          "collector_name": "uxcol",
+          "customer_id": "214628a3-9562-4c8a-b844-343584aa8abe",
+          "customer_type": "COOLER",
+          "sale_date": "2026-09-28T00:00:00Z",
+          "buyer_name": "Githunguri Dairy Farmers Cooperative Cooler Number Two",
+          "buyer_phone": "0733000001",
+          "quantity_litres": 1500,
+          "unit_price": 62,
+          "total_amount": 93000,
+          "amount_paid": 0,
+          "payment_status": "CREDIT",
+          "payment_method": "CREDIT",
+          "created_at": "2026-09-28T09:01:35.477102+03:00",
+          "updated_at": "2026-09-28T09:01:35.477102+03:00",
+          "deleted_at": null
+        }
+      ],
+      "meta": {
+        "page": 1,
+        "per_page": 100,
+        "total": 2,
+        "total_pages": 1,
+        "has_next": false,
+        "has_previous": false
+      }
+    }
+  }
+}

@@ -30,8 +30,12 @@ class TrendChartWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        // The legend moves under the title when they do not fit on one line.
+        Wrap(
+          alignment: WrapAlignment.spaceBetween,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 12,
+          runSpacing: 6,
           children: [
             Text(
               '7-Day Collection & Sales Trend',
@@ -41,6 +45,7 @@ class TrendChartWidget extends StatelessWidget {
               ),
             ),
             Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 _buildLegendIndicator('Intake', AppColors.primary),
                 const SizedBox(width: 12),
@@ -69,7 +74,6 @@ class TrendChartWidget extends StatelessWidget {
               SizedBox(
                 height: 160,
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: points.map((point) {
                     final intakeHeightRatio = (point.collectedLitres / maxVal)
@@ -82,49 +86,61 @@ class TrendChartWidget extends StatelessWidget {
                         ? point.date.substring(point.date.length - 5)
                         : point.date;
 
-                    return Column(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            // Intake Bar
-                            AnimatedContainer(
-                              duration: const Duration(milliseconds: 500),
-                              width: 14,
-                              height: 120 * intakeHeightRatio,
-                              decoration: const BoxDecoration(
-                                color: AppColors.primary,
-                                borderRadius: BorderRadius.vertical(
-                                  top: Radius.circular(4),
+                    // Each day gets an equal share of the width; bars narrow on small screens.
+                    return Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              // Intake Bar
+                              Flexible(
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 500),
+                                  width: 14,
+                                  height: 120 * intakeHeightRatio,
+                                  decoration: const BoxDecoration(
+                                    color: AppColors.primary,
+                                    borderRadius: BorderRadius.vertical(
+                                      top: Radius.circular(4),
+                                    ),
+                                  ),
                                 ),
                               ),
-                            ),
-                            const SizedBox(width: 4),
-                            // Sales Bar
-                            AnimatedContainer(
-                              duration: const Duration(milliseconds: 500),
-                              width: 14,
-                              height: 120 * salesHeightRatio,
-                              decoration: const BoxDecoration(
-                                color: AppColors.secondary,
-                                borderRadius: BorderRadius.vertical(
-                                  top: Radius.circular(4),
+                              const SizedBox(width: 3),
+                              // Sales Bar
+                              Flexible(
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 500),
+                                  width: 14,
+                                  height: 120 * salesHeightRatio,
+                                  decoration: const BoxDecoration(
+                                    color: AppColors.secondary,
+                                    borderRadius: BorderRadius.vertical(
+                                      top: Radius.circular(4),
+                                    ),
+                                  ),
                                 ),
                               ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              dateLabel,
+                              maxLines: 1,
+                              style: Theme.of(context).textTheme.labelSmall
+                                  ?.copyWith(
+                                    color: AppColors.textSecondary,
+                                    fontSize: 10,
+                                  ),
                             ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          dateLabel,
-                          style: Theme.of(context).textTheme.labelSmall
-                              ?.copyWith(
-                                color: AppColors.textSecondary,
-                                fontSize: 10,
-                              ),
-                        ),
-                      ],
+                          ),
+                        ],
+                      ),
                     );
                   }).toList(),
                 ),

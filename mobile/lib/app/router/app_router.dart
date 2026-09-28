@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -20,6 +21,8 @@ import '../../features/members/presentation/screens/register_farmer_screen.dart'
 import '../../features/reports/presentation/screens/reports_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
 import '../../features/settings/presentation/screens/staff_management_screen.dart';
+import '../../features/more/presentation/screens/more_screen.dart';
+import '../../features/auth/domain/entities/auth_state.dart';
 import '../shell/main_shell_screen.dart';
 
 abstract class AppRoutes {
@@ -37,16 +40,28 @@ abstract class AppRoutes {
   static const String settings = '/settings';
   static const String staff = '/settings/staff';
   static const String customers = '/customers';
+  static const String more = '/more';
 }
 
+/// The router is created once. Sign-in changes reach it through
+/// [GoRouter.refreshListenable], which re-runs the redirect without
+/// rebuilding the router, so open screens and tab history survive.
 final appRouterProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(authControllerProvider);
+  final auth = ValueNotifier<AsyncValue<AuthState>>(
+    ref.read(authControllerProvider),
+  );
+  ref.listen(authControllerProvider, (_, next) => auth.value = next);
+  ref.onDispose(auth.dispose);
 
   return GoRouter(
     initialLocation: AppRoutes.splash,
-    debugLogDiagnostics: true,
+    debugLogDiagnostics: kDebugMode,
+    refreshListenable: auth,
     redirect: (BuildContext context, GoRouterState state) {
-      if (authState.isLoading) {
+      final authState = auth.value;
+      // Splash only while the saved session is checked at start-up; during
+      // sign-in the login screen stays up and shows its own spinner.
+      if (authState.isLoading && !authState.hasValue) {
         return AppRoutes.splash;
       }
 
@@ -125,6 +140,24 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
+          // Branch 5: Customers
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.customers,
+                builder: (context, state) => const CustomersScreen(),
+              ),
+            ],
+          ),
+          // Branch 6: More (settings, staff, account)
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.more,
+                builder: (context, state) => const MoreScreen(),
+              ),
+            ],
+          ),
         ],
       ),
 
@@ -162,10 +195,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               ? state.extra as CustomerModel
               : null,
         ),
-      ),
-      GoRoute(
-        path: AppRoutes.customers,
-        builder: (context, state) => const CustomersScreen(),
       ),
       GoRoute(
         path: '/customers/:id',

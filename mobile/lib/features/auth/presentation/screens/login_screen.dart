@@ -39,20 +39,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final authState = ref.watch(authControllerProvider);
     final isLoading = authState.isLoading;
 
-    ref.listen(authControllerProvider, (previous, next) {
-      next.whenData((state) {
-        if (!state.isAuthenticated && state.errorMessage != null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.errorMessage!),
-              backgroundColor: AppColors.error,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-        }
-      });
-    });
-
     return Scaffold(
       backgroundColor: AppColors.background,
       body: OfflineBannerOverlay(

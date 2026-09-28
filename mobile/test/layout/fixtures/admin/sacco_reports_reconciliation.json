@@ -1,0 +1,58 @@
+{
+  "status": 200,
+  "body": {
+    "success": true,
+    "message": "Sacco reconciliation balancing ledger generated successfully",
+    "data": {
+      "ledger": {
+        "sacco_id": "ee937809-8894-4f7c-8fe0-6bd7d2890fa8",
+        "sacco_name": "UX Test Dairy",
+        "from_date": "2026-09-01",
+        "to_date": "2026-09-30",
+        "total_farmer_intake_litres": 4621,
+        "total_farmer_liability_kes": 231050,
+        "total_sold_litres": 1540,
+        "total_sales_revenue_kes": 95800,
+        "cash_received_kes": 1000,
+        "credit_sales_kes": 94800,
+        "total_spoilage_litres": 0,
+        "unaccounted_litres": 3081,
+        "allowance_litres": 0,
+        "is_balanced": false,
+        "balance_status": "MISSING",
+        "gross_margin_kes": -135250,
+        "receivables_kes": 94800,
+        "sales_by_customer_type": [
+          {
+            "customer_type": "COOLER",
+            "litres": 1500,
+            "revenue": 93000
+          },
+          {
+            "customer_type": "HOTEL",
+            "litres": 40,
+            "revenue": 2800
+          }
+        ],
+        "collectors_summary": [
+          {
+            "collector_id": 29,
+            "collector_name": "uxcol",
+            "active_days": 1,
+            "total_collected_litres": 4621,
+            "total_purchases_amount": 231050,
+            "total_sold_litres": 1540,
+            "total_sales_revenue": 95800,
+            "cash_received_amount": 1000,
+            "total_spoiled_litres": 0,
+            "unaccounted_litres": 3081,
+            "allowance_litres": 0,
+            "is_balanced": false,
+            "balance_status": "MISSING",
+            "farmers_serviced_count": 154
+          }
+        ]
+      }
+    }
+  }
+}

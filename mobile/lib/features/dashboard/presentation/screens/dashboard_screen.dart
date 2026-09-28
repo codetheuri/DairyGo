@@ -45,8 +45,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
         ? ref.watch(executiveDashboardProvider(7))
         : null;
 
+    // The two-line title and the tab bar grow with the user's text size.
+    final textScaler = MediaQuery.textScalerOf(context);
+
     return Scaffold(
       appBar: AppBar(
+        toolbarHeight: textScaler.scale(kToolbarHeight),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -75,7 +79,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
         ],
         bottom: isExecutive
             ? PreferredSize(
-                preferredSize: const Size.fromHeight(48),
+                preferredSize: Size.fromHeight(textScaler.scale(64)),
                 child: Container(
                   color: Colors.white,
                   child: TabBar(

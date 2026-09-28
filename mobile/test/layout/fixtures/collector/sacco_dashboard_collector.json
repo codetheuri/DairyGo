@@ -1,0 +1,21 @@
+{
+  "status": 200,
+  "body": {
+    "success": true,
+    "message": "Collector mobile shift metrics retrieved successfully",
+    "data": {
+      "collector_id": 29,
+      "collector_name": "uxcol",
+      "date": "2026-09-28",
+      "today_collected_litres": 4621,
+      "today_purchases_amount": 231050,
+      "today_farmers_serviced": 154,
+      "today_sold_litres": 1540,
+      "today_sales_revenue": 95800,
+      "today_cash_received": 1000,
+      "today_spoiled_litres": 0,
+      "today_unaccounted_litres": 3081,
+      "today_balance_status": "MISSING"
+    }
+  }
+}

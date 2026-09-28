@@ -11,6 +11,7 @@ import '../../../members/presentation/controllers/member_controller.dart';
 import '../../../members/presentation/widgets/farmer_picker_sheet.dart';
 import '../../data/models/milk_collection_model.dart';
 import '../controllers/collection_controller.dart';
+import '../../../../core/layout/breakpoints.dart';
 
 class RecordMilkIntakeScreen extends ConsumerStatefulWidget {
   final String? initialMemberId;
@@ -117,262 +118,264 @@ class _RecordMilkIntakeScreenState
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
-      body: Stack(
-        children: [
-          SingleChildScrollView(
-            padding: const EdgeInsets.all(20.0),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (errorMessage != null) ...[
+      body: ReadableWidth(
+        child: Stack(
+          children: [
+            SingleChildScrollView(
+              padding: const EdgeInsets.all(20.0),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (errorMessage != null) ...[
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: AppColors.errorContainer,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: AppColors.error),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.error_outline_rounded,
+                              color: AppColors.error,
+                              size: 22,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                errorMessage,
+                                style: const TextStyle(
+                                  color: AppColors.error,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+
+                    // Buying Price Banner Card
                     Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.all(14),
+                      padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: AppColors.errorContainer,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: AppColors.error),
+                        color: AppColors.accentMint,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: AppColors.primary.withValues(alpha: 0.2),
+                        ),
                       ),
                       child: Row(
                         children: [
-                          const Icon(
-                            Icons.error_outline_rounded,
-                            color: AppColors.error,
-                            size: 22,
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Icon(
+                              Icons.monetization_on_rounded,
+                              color: Colors.white,
+                              size: 22,
+                            ),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: 14),
                           Expanded(
-                            child: Text(
-                              errorMessage,
-                              style: const TextStyle(
-                                color: AppColors.error,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                              ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Active Sacco Buying Rate',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  priceText,
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.primary,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 16),
-                  ],
+                    const SizedBox(height: 20),
 
-                  // Buying Price Banner Card
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppColors.accentMint,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: AppColors.primary.withValues(alpha: 0.2),
+                    // Searchable Farmer Selector Field
+                    Text(
+                      'Farmer Member *',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
                       ),
                     ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(10),
+                    const SizedBox(height: 8),
+
+                    Material(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(14),
+                      child: InkWell(
+                        onTap: _pickFarmer,
+                        borderRadius: BorderRadius.circular(14),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
                           decoration: BoxDecoration(
-                            color: AppColors.primary,
-                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: hasMember
+                                  ? AppColors.primary
+                                  : AppColors.cardBorder,
+                              width: hasMember ? 1.5 : 1,
+                            ),
+                            borderRadius: BorderRadius.circular(14),
                           ),
-                          child: const Icon(
-                            Icons.monetization_on_rounded,
-                            color: Colors.white,
-                            size: 22,
-                          ),
-                        ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          child: Row(
                             children: [
-                              const Text(
-                                'Active Sacco Buying Rate',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: AppColors.textSecondary,
+                              CircleAvatar(
+                                radius: 18,
+                                backgroundColor: AppColors.accentMint,
+                                foregroundColor: AppColors.primary,
+                                child: Icon(
+                                  hasMember
+                                      ? Icons.person_rounded
+                                      : Icons.person_search_rounded,
+                                  size: 20,
                                 ),
                               ),
-                              const SizedBox(height: 2),
-                              Text(
-                                priceText,
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.primary,
-                                ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: selectedMember != null
+                                    ? Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            selectedMember.fullName,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 15,
+                                              color: AppColors.textPrimary,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            '${selectedMember.membershipNumber} • ${selectedMember.phone}',
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                              color: AppColors.textSecondary,
+                                            ),
+                                          ),
+                                        ],
+                                      )
+                                    : const Text(
+                                        'Tap to search or register a farmer',
+                                        style: TextStyle(
+                                          color: AppColors.textMuted,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                              ),
+                              const Icon(
+                                Icons.arrow_drop_down_circle_outlined,
+                                color: AppColors.primary,
+                                size: 22,
                               ),
                             ],
                           ),
                         ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Shift Selection
+                    Text(
+                      'Collection Shift',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+
+                    SegmentedButton<String>(
+                      segments: const [
+                        ButtonSegment(
+                          value: 'MORNING',
+                          label: Text('Morning Shift'),
+                          icon: Icon(Icons.wb_sunny_outlined, size: 18),
+                        ),
+                        ButtonSegment(
+                          value: 'EVENING',
+                          label: Text('Evening Shift'),
+                          icon: Icon(Icons.nights_stay_outlined, size: 18),
+                        ),
                       ],
+                      selected: {_selectedShift},
+                      onSelectionChanged: (set) =>
+                          setState(() => _selectedShift = set.first),
                     ),
-                  ),
-                  const SizedBox(height: 20),
+                    const SizedBox(height: 20),
 
-                  // Searchable Farmer Selector Field
-                  Text(
-                    'Farmer Member *',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-
-                  Material(
-                    color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(14),
-                    child: InkWell(
-                      onTap: _pickFarmer,
-                      borderRadius: BorderRadius.circular(14),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 14,
-                        ),
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: hasMember
-                                ? AppColors.primary
-                                : AppColors.cardBorder,
-                            width: hasMember ? 1.5 : 1,
-                          ),
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: Row(
-                          children: [
-                            CircleAvatar(
-                              radius: 18,
-                              backgroundColor: AppColors.accentMint,
-                              foregroundColor: AppColors.primary,
-                              child: Icon(
-                                hasMember
-                                    ? Icons.person_rounded
-                                    : Icons.person_search_rounded,
-                                size: 20,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: selectedMember != null
-                                  ? Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          selectedMember.fullName,
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 15,
-                                            color: AppColors.textPrimary,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          '${selectedMember.membershipNumber} • ${selectedMember.phone}',
-                                          style: const TextStyle(
-                                            fontSize: 12,
-                                            color: AppColors.textSecondary,
-                                          ),
-                                        ),
-                                      ],
-                                    )
-                                  : const Text(
-                                      'Tap to search or register a farmer',
-                                      style: TextStyle(
-                                        color: AppColors.textMuted,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                            ),
-                            const Icon(
-                              Icons.arrow_drop_down_circle_outlined,
-                              color: AppColors.primary,
-                              size: 22,
-                            ),
-                          ],
-                        ),
+                    // Litres Input Field
+                    AppTextField(
+                      label: 'Milk Quantity (Litres) *',
+                      controller: _litresController,
+                      hint: 'e.g. 15.5',
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
                       ),
+                      prefixIcon: Icons.water_drop_rounded,
+                      validator: (val) {
+                        if (val == null || val.trim().isEmpty) {
+                          return 'Litres is required';
+                        }
+                        final d = double.tryParse(val.trim());
+                        if (d == null || d <= 0) {
+                          return 'Enter a valid milk quantity in litres';
+                        }
+                        return null;
+                      },
                     ),
-                  ),
-                  const SizedBox(height: 20),
+                    const SizedBox(height: 16),
 
-                  // Shift Selection
-                  Text(
-                    'Collection Shift',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
+                    // Notes Input
+                    AppTextField(
+                      label: 'Notes / Remarks (Optional)',
+                      controller: _notesController,
+                      hint: 'e.g. Quality verified',
+                      prefixIcon: Icons.notes_rounded,
                     ),
-                  ),
-                  const SizedBox(height: 8),
+                    const SizedBox(height: 30),
 
-                  SegmentedButton<String>(
-                    segments: const [
-                      ButtonSegment(
-                        value: 'MORNING',
-                        label: Text('Morning Shift'),
-                        icon: Icon(Icons.wb_sunny_outlined, size: 18),
-                      ),
-                      ButtonSegment(
-                        value: 'EVENING',
-                        label: Text('Evening Shift'),
-                        icon: Icon(Icons.nights_stay_outlined, size: 18),
-                      ),
-                    ],
-                    selected: {_selectedShift},
-                    onSelectionChanged: (set) =>
-                        setState(() => _selectedShift = set.first),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Litres Input Field
-                  AppTextField(
-                    label: 'Milk Quantity (Litres) *',
-                    controller: _litresController,
-                    hint: 'e.g. 15.5',
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
+                    PrimaryButton(
+                      label: 'Record Milk Intake',
+                      icon: Icons.check_circle_rounded,
+                      onPressed: isLoading ? null : _submitForm,
                     ),
-                    prefixIcon: Icons.water_drop_rounded,
-                    validator: (val) {
-                      if (val == null || val.trim().isEmpty) {
-                        return 'Litres is required';
-                      }
-                      final d = double.tryParse(val.trim());
-                      if (d == null || d <= 0) {
-                        return 'Enter a valid milk quantity in litres';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Notes Input
-                  AppTextField(
-                    label: 'Notes / Remarks (Optional)',
-                    controller: _notesController,
-                    hint: 'e.g. Quality verified',
-                    prefixIcon: Icons.notes_rounded,
-                  ),
-                  const SizedBox(height: 30),
-
-                  PrimaryButton(
-                    label: 'Record Milk Intake',
-                    icon: Icons.check_circle_rounded,
-                    onPressed: isLoading ? null : _submitForm,
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
-          if (isLoading)
-            const LoadingOverlay(message: 'Recording milk intake...'),
-        ],
+            if (isLoading)
+              const LoadingOverlay(message: 'Recording milk intake...'),
+          ],
+        ),
       ),
     );
   }

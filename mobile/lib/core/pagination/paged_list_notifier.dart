@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/theme/app_colors.dart';
+import '../network/dio_client.dart';
 import 'page_result.dart';
 
 /// Rows loaded so far for an infinitely scrolling list.
@@ -74,6 +75,11 @@ abstract class PagedListNotifier<T> extends AsyncNotifier<PagedList<T>> {
   Future<PagedList<T>> loadFirstPage(
     Future<PageResult<T>> Function(int page) fetchPage,
   ) async {
+    // Newer data from a background refresh replaces the list, but only while
+    // the user is still on the first page, so scrolling is never reset.
+    ref.reloadWhenNewerDataArrives(
+      when: () => (state.valueOrNull?.page ?? 1) == 1,
+    );
     _fetchPage = fetchPage;
     final first = await fetchPage(1);
     return PagedList(items: first.items, page: 1, hasMore: first.hasMore);

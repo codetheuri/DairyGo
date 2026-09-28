@@ -1,6 +1,9 @@
 import 'package:dio/dio.dart';
 import 'network_connectivity_service.dart';
 
+/// Set on a request that failed because the phone has no connection.
+const offlineExtra = 'offline';
+
 class NetworkConnectivityInterceptor extends Interceptor {
   final NetworkConnectivityService _connectivityService;
 
@@ -13,6 +16,7 @@ class NetworkConnectivityInterceptor extends Interceptor {
   ) async {
     final hasConnection = await _connectivityService.checkHasConnection();
     if (!hasConnection) {
+      options.extra[offlineExtra] = true; // retrying cannot help
       return handler.reject(
         DioException(
           requestOptions: options,
@@ -20,6 +24,8 @@ class NetworkConnectivityInterceptor extends Interceptor {
           error:
               'No Internet Connection. Please check your network connection.',
         ),
+        // Let later interceptors see it too, so a saved copy can be shown.
+        true,
       );
     }
     return super.onRequest(options, handler);

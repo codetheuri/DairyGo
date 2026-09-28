@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/cache/response_cache.dart';
 import '../../../../core/network/dio_client.dart';
 import '../../../../core/storage/secure_storage_service.dart';
 import '../../data/datasources/auth_remote_data_source.dart';
@@ -58,6 +61,7 @@ class AuthController extends AsyncNotifier<AuthState> {
   Future<void> logout() async {
     final repo = ref.read(authRepositoryProvider);
     await repo.logout();
+    await ResponseCache.clearAll(); // no saved data left for the next user
     state = AsyncValue.data(AuthState.unauthenticated());
   }
 
@@ -66,6 +70,8 @@ class AuthController extends AsyncNotifier<AuthState> {
   /// one signs the user out.
   void expireSession() {
     if (state.valueOrNull?.isAuthenticated != true) return;
+    unawaited(ref.read(authRepositoryProvider).logout());
+    unawaited(ResponseCache.clearAll());
     state = AsyncValue.data(
       AuthState.unauthenticated('Your session has ended. Please log in again.'),
     );

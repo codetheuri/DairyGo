@@ -60,6 +60,7 @@ final reportFilterToDateProvider = StateProvider.autoDispose<String>(
 // Persistent cached providers (no autoDispose) for instant screen transitions
 final farmerPayoutReportProvider =
     FutureProvider<List<FarmerPayoutStatementModel>>((ref) async {
+      ref.reloadWhenNewerDataArrives();
       final repository = ref.watch(reportRepositoryProvider);
       final fromDate = ref.watch(reportFilterFromDateProvider);
       final toDate = ref.watch(reportFilterToDateProvider);
@@ -72,6 +73,7 @@ final farmerPayoutReportProvider =
 
 final saccoLedgerReportProvider =
     FutureProvider<SaccoReconciliationLedgerModel>((ref) async {
+      ref.reloadWhenNewerDataArrives();
       final repository = ref.watch(reportRepositoryProvider);
       final fromDate = ref.watch(reportFilterFromDateProvider);
       final toDate = ref.watch(reportFilterToDateProvider);
@@ -84,6 +86,7 @@ final saccoLedgerReportProvider =
 
 final collectorAuditReportProvider =
     FutureProvider<List<CollectorAuditSummaryModel>>((ref) async {
+      ref.reloadWhenNewerDataArrives();
       final repository = ref.watch(reportRepositoryProvider);
       final fromDate = ref.watch(reportFilterFromDateProvider);
       final toDate = ref.watch(reportFilterToDateProvider);

@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import '../../../../core/errors/failure.dart';
 import '../../../../core/storage/secure_storage_service.dart';
 import '../../domain/entities/auth_state.dart';
 import '../../domain/entities/user_entity.dart';
@@ -23,6 +26,7 @@ class AuthRepositoryImpl implements AuthRepository {
       final user = UserEntity.fromJson(userJson);
 
       await _storageService.saveToken(token);
+      await _saveUser(user);
 
       return AuthState.authenticated(user: user, token: token);
     } catch (e) {
@@ -31,17 +35,33 @@ class AuthRepositoryImpl implements AuthRepository {
     }
   }
 
+  /// The signed-in user at start-up. With no connection the saved profile is
+  /// used, so field staff stay signed in without signal; only a real
+  /// rejection from the server (e.g. an expired or revoked session) signs
+  /// them out.
   @override
   Future<UserEntity?> getCurrentUser() async {
+    final token = await _storageService.getToken();
+    if (token == null || token.isEmpty) return null;
     try {
-      final token = await _storageService.getToken();
-      if (token == null || token.isEmpty) return null;
-      return await _remoteDataSource.getMe();
+      final user = await _remoteDataSource.getMe();
+      await _saveUser(user);
+      return user;
+    } on ServerUnreachableException {
+      final saved = await _storageService.getUserJson();
+      if (saved != null) {
+        return UserEntity.fromJson(jsonDecode(saved) as Map<String, dynamic>);
+      }
+      rethrow; // never signed in on this phone before: nothing to show
     } catch (_) {
       await _storageService.deleteToken();
+      await _storageService.deleteUserJson();
       return null;
     }
   }
+
+  Future<void> _saveUser(UserEntity user) =>
+      _storageService.saveUserJson(jsonEncode(user.toJson()));
 
   @override
   Future<UserEntity> register(RegisterRequest request) {
@@ -69,5 +89,6 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<void> logout() async {
     await _storageService.deleteToken();
+    await _storageService.deleteUserJson();
   }
 }

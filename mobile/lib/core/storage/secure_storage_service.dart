@@ -25,6 +25,19 @@ class SecureStorageService {
     await _storage.delete(key: StorageKeys.accessToken);
   }
 
+  /// The signed-in user's profile, kept so the app can start offline.
+  Future<void> saveUserJson(String json) async {
+    await _storage.write(key: StorageKeys.userPayload, value: json);
+  }
+
+  Future<String?> getUserJson() async {
+    return await _storage.read(key: StorageKeys.userPayload);
+  }
+
+  Future<void> deleteUserJson() async {
+    await _storage.delete(key: StorageKeys.userPayload);
+  }
+
   Future<void> clearAll() async {
     await _storage.deleteAll();
   }

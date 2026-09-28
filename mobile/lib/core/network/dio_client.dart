@@ -5,7 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/auth/presentation/controllers/auth_controller.dart';
 import '../constants/api_constants.dart';
 import '../storage/secure_storage_service.dart';
+import '../cache/response_cache.dart';
 import 'auth_interceptor.dart';
+import 'cache_interceptor.dart';
 import 'network_connectivity_interceptor.dart';
 import 'network_connectivity_service.dart';
 import 'retry_interceptor.dart';
@@ -30,8 +32,32 @@ final dioClientProvider = Provider<Dio>((ref) {
     storageService,
     connectivityService,
     onSessionExpired: auth.expireSession,
+    cache: ref.watch(responseCacheProvider),
   );
 });
+
+/// Responses saved on the phone for the signed-in user; null when signed out.
+final responseCacheProvider = Provider<ResponseCache?>((ref) {
+  final userId = ref.watch(sessionUserIdProvider);
+  if (userId == null) return null;
+  final cache = ResponseCache.forUser(userId);
+  ref.onDispose(cache.dispose);
+  return cache;
+});
+
+/// Lets a provider reload when a background refresh brings newer data than
+/// the saved copy it showed. The reload reads the just-saved copy, so it is
+/// instant and needs no network.
+extension ReloadOnNewerData on Ref {
+  void reloadWhenNewerDataArrives({bool Function()? when}) {
+    final cache = read(responseCacheProvider);
+    if (cache == null) return;
+    final sub = cache.updates.listen((_) {
+      if (when == null || when()) invalidateSelf();
+    });
+    onDispose(sub.cancel);
+  }
+}
 
 /// DioClient configures the HTTP network client instance.
 class DioClient {
@@ -39,6 +65,7 @@ class DioClient {
     SecureStorageService storageService,
     NetworkConnectivityService connectivityService, {
     VoidCallback? onSessionExpired,
+    ResponseCache? cache,
   }) {
     final dio = Dio(
       BaseOptions(
@@ -52,11 +79,15 @@ class DioClient {
       ),
     );
 
+    // Order matters: a saved copy is served before any network work, and
+    // responses are saved after auth and retries have run.
+    if (cache != null) dio.interceptors.add(CacheFirstInterceptor(dio, cache));
     dio.interceptors.add(NetworkConnectivityInterceptor(connectivityService));
     dio.interceptors.add(
       AuthInterceptor(storageService, onSessionExpired: onSessionExpired),
     );
     dio.interceptors.add(RetryInterceptor(dio));
+    if (cache != null) dio.interceptors.add(CacheStoreInterceptor(cache));
 
     if (kDebugMode) {
       dio.interceptors.add(

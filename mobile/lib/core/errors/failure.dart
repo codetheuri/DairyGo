@@ -22,6 +22,15 @@ class NetworkFailure extends Failure {
   ]);
 }
 
+/// The server could not be reached (no signal, timeout, or it is down), as
+/// opposed to the server answering with an error.
+class ServerUnreachableException implements Exception {
+  const ServerUnreachableException();
+
+  @override
+  String toString() => 'The server could not be reached.';
+}
+
 class UnauthorizedFailure extends Failure {
   const UnauthorizedFailure([
     super.message = 'Session expired. Please log in again.',

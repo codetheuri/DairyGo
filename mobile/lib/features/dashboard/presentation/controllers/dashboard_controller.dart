@@ -21,12 +21,14 @@ final dashboardRepositoryProvider = Provider<DashboardRepository>((ref) {
 
 final collectorDashboardProvider =
     FutureProvider.family<CollectorDashboardModel, String?>((ref, date) async {
+      ref.reloadWhenNewerDataArrives();
       final repository = ref.watch(dashboardRepositoryProvider);
       return repository.getCollectorDashboard(date: date);
     });
 
 final executiveDashboardProvider =
     FutureProvider.family<ExecutiveDashboardModel, int>((ref, days) async {
+      ref.reloadWhenNewerDataArrives();
       final repository = ref.watch(dashboardRepositoryProvider);
       return repository.getExecutiveDashboard(days: days);
     });

@@ -28,6 +28,7 @@ final fieldOpsFilterDateProvider = StateProvider.autoDispose<String>(
 
 final reconciliationProvider =
     FutureProvider.family<ReconciliationModel, String?>((ref, date) async {
+      ref.reloadWhenNewerDataArrives();
       final repository = ref.watch(fieldOpsRepositoryProvider);
       return repository.getReconciliation(date: date);
     });
@@ -52,6 +53,7 @@ Future<String?> voidSale(WidgetRef ref, String id, String reason) async {
 }
 
 final salesListProvider = FutureProvider<List<MilkSaleModel>>((ref) async {
+  ref.reloadWhenNewerDataArrives();
   final repository = ref.watch(fieldOpsRepositoryProvider);
   final date = ref.watch(fieldOpsFilterDateProvider);
   return repository.listSales(fromDate: date, toDate: date);
@@ -60,6 +62,7 @@ final salesListProvider = FutureProvider<List<MilkSaleModel>>((ref) async {
 final spoilageListProvider = FutureProvider<List<MilkSpoilageModel>>((
   ref,
 ) async {
+  ref.reloadWhenNewerDataArrives();
   final repository = ref.watch(fieldOpsRepositoryProvider);
   final date = ref.watch(fieldOpsFilterDateProvider);
   return repository.listSpoilage(fromDate: date, toDate: date);

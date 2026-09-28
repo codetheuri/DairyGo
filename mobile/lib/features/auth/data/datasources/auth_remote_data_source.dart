@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../../domain/entities/user_entity.dart';
 import '../models/register_request.dart';
+import '../../../../core/errors/failure.dart';
 
 abstract class AuthRemoteDataSource {
   Future<Map<String, dynamic>> login(String identity, String password);
@@ -76,6 +77,12 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       }
       throw Exception(data['message'] ?? 'Failed to retrieve profile');
     } on DioException catch (e) {
+      // No answer at all (offline, timeout) or the server is down: the saved
+      // session may still be valid, so the caller must not sign the user out.
+      final status = e.response?.statusCode;
+      if (status == null || status >= 500) {
+        throw const ServerUnreachableException();
+      }
       throw Exception(
         _extractErrorMessage(e, 'Failed to retrieve user profile'),
       );

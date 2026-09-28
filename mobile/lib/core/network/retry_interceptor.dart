@@ -1,5 +1,7 @@
 import 'package:dio/dio.dart';
 
+import 'network_connectivity_interceptor.dart';
+
 /// Retries reads (GET) that failed because the connection dropped or timed
 /// out, which is common on weak rural networks. Writes are never retried: a
 /// POST whose response was lost may already have been saved, and repeating it
@@ -36,6 +38,7 @@ class RetryInterceptor extends Interceptor {
     final options = err.requestOptions;
     final attempt = (options.extra[_attemptKey] as int?) ?? 0;
     if (options.method != 'GET' ||
+        options.extra[offlineExtra] == true ||
         !_isTransient(err) ||
         attempt >= delays.length) {
       return handler.next(err);

@@ -65,6 +65,7 @@ final customerBalancesProvider =
     FutureProvider.autoDispose<
       ({List<CustomerBalanceModel> balances, double totalOwed})
     >((ref) async {
+      ref.reloadWhenNewerDataArrives();
       return ref.watch(customerRepositoryProvider).getBalances(owingOnly: true);
     });
 

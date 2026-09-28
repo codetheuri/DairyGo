@@ -90,6 +90,22 @@ abstract class AppTheme {
           ),
         ),
       ),
+      // Same height, corners and weight as filled buttons, so a pair of
+      // buttons side by side lines up (Flutter's default is 40 dp and a pill
+      // shape). Width is left to the layout, unlike filled buttons.
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppColors.primary,
+          minimumSize: const Size(64, 52),
+          side: const BorderSide(color: AppColors.primary),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          textStyle: AppTypography.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
     );
   }
 }

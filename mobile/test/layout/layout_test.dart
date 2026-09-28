@@ -10,21 +10,11 @@
 //
 //   flutter test test/layout --update-goldens --dart-define=SCREENSHOTS=true
 
-import 'dart:convert';
-import 'dart:io';
-
-import 'package:dairy_sacco_mobile/app/router/app_router.dart';
-import 'package:dairy_sacco_mobile/core/network/dio_client.dart';
-import 'package:dairy_sacco_mobile/core/network/network_connectivity_service.dart';
-import 'package:dairy_sacco_mobile/features/auth/domain/entities/auth_state.dart';
-import 'package:dairy_sacco_mobile/features/auth/domain/entities/user_entity.dart';
-import 'package:dairy_sacco_mobile/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:dairy_sacco_mobile/main.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import 'harness.dart';
 
 const _screenshots = bool.fromEnvironment('SCREENSHOTS');
 
@@ -41,139 +31,19 @@ const _sizes = <String, Size>{
 /// Normal text, and the largest font setting (the app caps it at 1.3x).
 const _textScales = [1.0, 2.0];
 
-const _commonRoutes = [
-  '/dashboard',
-  '/collections',
-  '/field-operations',
-  '/members',
-  '/customers',
-  '/more',
-  '/settings',
-  '/collections/record',
-  '/field-sales/record',
-  '/spoilage/record',
-  '/members/register',
-];
-
-/// Text that must be on screen, checked at the first size. 'admin-noprice'
-/// is a Sacco whose admin has not set a milk price yet.
+/// Text that must be on screen, checked at the first size.
 const _mustShow = {
   'admin-noprice /settings': 'Set Initial Buying Price',
   'admin-noprice /collections/record': 'No price set for today',
 };
 
-const _routesByRole = {
-  'collector': _commonRoutes,
-  'admin': [..._commonRoutes, '/reports', '/settings/staff'],
-  'board': [..._commonRoutes, '/reports'],
-  'admin-noprice': ['/settings', '/collections/record'],
-};
-
-/// Serves the captured responses for one role. Any other request gets a 404,
-/// which the screens must also lay out correctly.
-class _FixtureAdapter implements HttpClientAdapter {
-  final String role;
-  _FixtureAdapter(this.role);
-
-  @override
-  Future<ResponseBody> fetch(
-    RequestOptions options,
-    Stream<Uint8List>? requestStream,
-    Future<void>? cancelFuture,
-  ) async {
-    final name = options.path
-        .replaceFirst(RegExp(r'^/api/v1/'), '')
-        .replaceAll('/', '_');
-    final file = File('test/layout/fixtures/$role/$name.json');
-    var status = 404;
-    Object body = {'success': false, 'message': 'not found'};
-    if (options.method == 'GET' && file.existsSync()) {
-      final fixture =
-          jsonDecode(file.readAsStringSync()) as Map<String, dynamic>;
-      status = fixture['status'] as int;
-      body = fixture['body'] as Object;
-      // Later pages: repeat the rows once, then report the end of the list.
-      final page = int.tryParse('${options.queryParameters['page'] ?? 1}') ?? 1;
-      final data = body is Map ? body['data'] : null;
-      if (page > 1 && data is Map && data['meta'] is Map) {
-        (data['meta'] as Map)['has_next'] = false;
-      }
-    }
-    return ResponseBody.fromString(
-      jsonEncode(body),
-      status,
-      headers: {
-        Headers.contentTypeHeader: [Headers.jsonContentType],
-      },
-    );
-  }
-
-  @override
-  void close({bool force = false}) {}
-}
-
-class _SignedIn extends AuthController {
-  final UserEntity user;
-  _SignedIn(this.user);
-
-  @override
-  Future<AuthState> build() async =>
-      AuthState.authenticated(user: user, token: 'test');
-}
-
-class _Online extends NetworkConnectivityService {
-  @override
-  Stream<bool> get onConnectivityChanged => Stream.value(true);
-
-  @override
-  Future<bool> checkHasConnection() async => true;
-}
-
-UserEntity _userFor(String role) {
-  final fixture = jsonDecode(
-    File('test/layout/fixtures/$role/auth_me.json').readAsStringSync(),
-  );
-  return UserEntity.fromJson(
-    fixture['body']['data']['user'] as Map<String, dynamic>,
-  );
-}
-
-Future<void> _loadFonts() async {
-  Future<void> load(String family, List<String> paths) async {
-    final loader = FontLoader(family);
-    for (final path in paths) {
-      final file = File(path);
-      if (file.existsSync()) {
-        loader.addFont(
-          Future.value(ByteData.sublistView(file.readAsBytesSync())),
-        );
-      }
-    }
-    await loader.load();
-  }
-
-  await load('Inter', [
-    for (final w in ['Regular', 'Medium', 'SemiBold', 'Bold', 'ExtraBold'])
-      'assets/fonts/Inter-$w.ttf',
-  ]);
-  await load('Outfit', [
-    'assets/fonts/Outfit-SemiBold.ttf',
-    'assets/fonts/Outfit-Bold.ttf',
-  ]);
-  final flutterRoot = Platform.environment['FLUTTER_ROOT'] ?? '';
-  await load('MaterialIcons', [
-    '$flutterRoot/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf',
-  ]);
-}
-
 void main() {
-  setUpAll(_loadFonts);
+  setUpAll(loadFonts);
 
-  for (final role in _routesByRole.keys) {
-    for (final route in _routesByRole[role]!) {
+  for (final role in routesByRole.keys) {
+    for (final route in routesByRole[role]!) {
       testWidgets('$role $route lays out on every screen size', (tester) async {
         final problems = <String>[];
-        final user = _userFor(role);
 
         for (final entry in _sizes.entries) {
           for (final scale in _textScales) {
@@ -181,48 +51,8 @@ void main() {
             tester.view.physicalSize = entry.value * 2;
             tester.platformDispatcher.textScaleFactorTestValue = scale;
 
-            final dio = Dio(BaseOptions(baseUrl: 'http://fixtures'))
-              ..httpClientAdapter = _FixtureAdapter(role);
-            final container = ProviderContainer(
-              overrides: [
-                authControllerProvider.overrideWith(() => _SignedIn(user)),
-                dioClientProvider.overrideWithValue(dio),
-                authDioProvider.overrideWithValue(dio),
-                networkConnectivityServiceProvider.overrideWithValue(_Online()),
-              ],
-            );
-
-            final errors = <String>[];
-            final previousHandler = FlutterError.onError;
-            FlutterError.onError = (details) {
-              // "overflowed by N pixels" plus the widget's source location.
-              final text = details.toString();
-              final where =
-                  RegExp(
-                    r'file:///\S*/lib/(\S+\.dart:\d+)',
-                  ).firstMatch(text)?.group(1) ??
-                  '?';
-              errors.add(
-                '${details.exceptionAsString().split('\n').first}  [$where]',
-              );
-            };
+            final app = await AppUnderTest.open(tester, role, route);
             try {
-              await tester.pumpWidget(
-                UncontrolledProviderScope(
-                  container: container,
-                  child: const DairySaccoApp(),
-                ),
-              );
-              await tester.pump();
-              container.read(appRouterProvider).go(route);
-              await tester.pump();
-              errors
-                  .clear(); // ignore the start-up screen shown before navigating
-              // Let requests, debounces and the first frames of each screen finish.
-              for (var i = 0; i < 8; i++) {
-                await tester.pump(const Duration(milliseconds: 250));
-              }
-
               final mustShow = _mustShow['$role $route'];
               if (mustShow != null &&
                   entry.key == _sizes.keys.first &&
@@ -250,15 +80,10 @@ void main() {
                 );
               }
             } finally {
-              FlutterError.onError = previousHandler;
-              await tester.pumpWidget(const SizedBox.shrink());
-              await tester.pump(
-                const Duration(seconds: 2),
-              ); // flush timers such as snack bars
-              container.dispose();
+              await app.close();
             }
 
-            for (final e in errors.toSet()) {
+            for (final e in app.errors.toSet()) {
               problems.add('${entry.key} @${scale}x: $e');
             }
           }

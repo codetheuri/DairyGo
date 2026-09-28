@@ -597,7 +597,7 @@ class SettingsScreen extends ConsumerWidget {
                                   Icons.people_outline_rounded,
                                   size: 18,
                                 ),
-                                label: const Text('Staff Roster'),
+                                label: const Text('All Staff'),
                                 onPressed: () => context.push(AppRoutes.staff),
                               ),
                             ),

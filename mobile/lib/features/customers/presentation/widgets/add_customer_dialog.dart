@@ -32,7 +32,7 @@ class _AddCustomerDialogState extends ConsumerState<AddCustomerDialog> {
   late final TextEditingController _nameController;
   final _phoneController = TextEditingController();
   final _priceController = TextEditingController();
-  String _type = 'COOLER';
+  String _type = 'INDIVIDUAL';
 
   @override
   void initState() {

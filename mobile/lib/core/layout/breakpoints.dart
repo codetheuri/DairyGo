@@ -14,8 +14,14 @@ abstract class Breakpoints {
   static const double readableWidth = 720;
 }
 
-/// Keeps its child at a readable width, centred, on wide screens. On phones
-/// it changes nothing.
+/// The body of a screen: kept clear of the areas the system draws over, and
+/// at a readable width, centred, on wide screens.
+///
+/// Since Android 15 apps draw edge to edge, so without this the last button
+/// of a form ends up under the gesture or 3-button navigation bar, and in
+/// landscape content goes under the camera cutout. The top is left to the
+/// app bar. Inside the main sections the bottom bar already takes the bottom
+/// inset, so nothing is added twice.
 class ReadableWidth extends StatelessWidget {
   final Widget child;
   final double maxWidth;
@@ -28,11 +34,14 @@ class ReadableWidth extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.topCenter,
-      child: ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: maxWidth),
-        child: child,
+    return SafeArea(
+      top: false,
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: maxWidth),
+          child: child,
+        ),
       ),
     );
   }

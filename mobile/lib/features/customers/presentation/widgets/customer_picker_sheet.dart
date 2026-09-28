@@ -18,6 +18,7 @@ class CustomerPickerSheet extends ConsumerStatefulWidget {
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
+      useSafeArea: true,
       builder: (_) => const CustomerPickerSheet(),
     );
   }

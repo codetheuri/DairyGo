@@ -61,7 +61,10 @@ type RefreshToken struct {
 	TokenHash string     `json:"-" gorm:"uniqueIndex;not null"`
 	ExpiresAt time.Time  `json:"expires_at" gorm:"not null"`
 	RevokedAt *time.Time `json:"revoked_at,omitempty"`
-	CreatedAt time.Time  `json:"created_at"`
+	// ReplacedAt is set when the token is rotated; it stays usable for a
+	// short grace period (see refreshDecision).
+	ReplacedAt *time.Time `json:"replaced_at,omitempty"`
+	CreatedAt  time.Time  `json:"created_at"`
 }
 
 // Role represents a security role containing permissions.

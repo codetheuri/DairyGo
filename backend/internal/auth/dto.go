@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"time"
 	"github.com/codetheuri/tusk/pkg/authz"
 	"github.com/codetheuri/tusk/pkg/query"
 	"github.com/codetheuri/tusk/pkg/response"
@@ -66,6 +67,11 @@ type AuthResultData struct {
 	User         *User  `json:"user"`
 	AccessToken  string `json:"access_token"`
 	RefreshToken string `json:"refresh_token"`
+	// AccessExpiresAt: refresh the access token before this time.
+	AccessExpiresAt time.Time `json:"access_expires_at"`
+	// SessionExpiresAt: the session ends at this time unless refreshed; each
+	// refresh moves it forward by the idle timeout.
+	SessionExpiresAt time.Time `json:"session_expires_at"`
 }
 
 type AuthOutput struct {

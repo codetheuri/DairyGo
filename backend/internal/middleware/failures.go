@@ -72,7 +72,7 @@ func RecordFailures(store FailureStore, jwtSecret string) func(http.Handler) htt
 			if cw.status >= http.StatusInternalServerError {
 				f.Level = "ERROR"
 			}
-			f.UserID, f.SaccoID = callerFromToken(r.Header.Get("Authorization"), jwtSecret)
+			f.UserID, f.SaccoID = CallerFromToken(r.Header.Get("Authorization"), jwtSecret)
 
 			go func() {
 				ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -133,8 +133,9 @@ func errorMessage(body []byte) string {
 	return envelope.Message + " (" + strings.Join(fields, "; ") + ")"
 }
 
-// callerFromToken reads the user and Sacco from a valid bearer token, if any.
-func callerFromToken(header, jwtSecret string) (*uint, *string) {
+// CallerFromToken reads the user and Sacco from a valid bearer token, if any.
+// Middleware that runs before authentication uses it to know who is calling.
+func CallerFromToken(header, jwtSecret string) (*uint, *string) {
 	parts := strings.SplitN(header, " ", 2)
 	if len(parts) != 2 || !strings.EqualFold(parts[0], "bearer") {
 		return nil, nil

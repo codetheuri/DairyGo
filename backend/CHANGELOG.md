@@ -9,6 +9,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 
 ### Added
+- **Safe retries (`internal/idempotency`)**: writes with an `Idempotency-Key` header run once per user and key; retries get the stored response (`Idempotent-Replayed: true`), so a lost response on a slow connection or a double tap never records a sale, payment or collection twice. Migration `00014`. See [docs/sessions-and-idempotency.md](docs/sessions-and-idempotency.md).
+- **Sessions that follow activity**: access tokens last `ACCESS_TOKEN_TTL` (default 1h) and are refreshed silently; each refresh extends the session by `SESSION_IDLE_TIMEOUT` (default 720h), so users are signed out only after 30 days without using the app. Login and refresh return `access_expires_at` and `session_expires_at`.
+- **Refresh token rotation with a 2-minute grace period and reuse detection**: a lost refresh response no longer signs the user out; reuse of an old token after the grace period revokes every session of that user.
+- **Daily cleanup** of idempotency keys (48h) and ended sessions (7 days).
+
+### Security
+- The API refuses to start with an empty `JWT_SECRET`, the public example value from `docker-compose.yml`, or (in production) a secret shorter than 32 characters. `docker-compose.yml` now requires `JWT_SECRET` to be set.
 - **Compressed responses**: JSON and console assets are gzip-compressed (`chi` `Compress`, outside `RecordFailures`); API responses shrink by about 85%, which matters on the slow connections collectors use.
 - **Collections carry farmer names**: list rows include `member_name` and `membership_number`, so the app no longer downloads the farmer directory to label them.
 - **Search collections by farmer**: `search` on `/sacco/milk-collections` matches the farmer's name and membership number, not only notes.

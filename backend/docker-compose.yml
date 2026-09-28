@@ -19,8 +19,13 @@ services:
       - DB_PASS=${DB_PASSWORD:-l3g3ndaryHub}
       - DB_PASSWORD=${DB_PASSWORD:-l3g3ndaryHub}
       - DB_NAME=${DB_NAME:-dairy_db}
-      - JWT_SECRET=${JWT_SECRET:-generate_a_secure_random_string_for_production}
-      - ACCESS_TOKEN_TTL=24h
+      # Required: a random secret, e.g. `openssl rand -hex 32`, in .env next
+      # to this file. The API refuses to start with a weak or example value.
+      - JWT_SECRET=${JWT_SECRET:?set JWT_SECRET in .env (openssl rand -hex 32)}
+      # Access tokens are short and renewed silently by the app; the session
+      # ends after this long without using the app.
+      - ACCESS_TOKEN_TTL=${ACCESS_TOKEN_TTL:-1h}
+      - SESSION_IDLE_TIMEOUT=${SESSION_IDLE_TIMEOUT:-720h}
 
       - MAIL_HOST=smtp.gmail.com
       - MAIL_PORT=587

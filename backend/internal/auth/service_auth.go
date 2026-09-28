@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"errors"
 	"context"
 	"crypto/rand"
 	"crypto/sha256"
@@ -118,6 +119,12 @@ type AuthTokens struct {
 	User         *User
 	AccessToken  string
 	RefreshToken string
+	// AccessExpiresAt is when the access token stops working; the app
+	// refreshes shortly before.
+	AccessExpiresAt time.Time
+	// SessionExpiresAt is when the session ends if the app is not used
+	// (refreshing moves it forward by the idle timeout).
+	SessionExpiresAt time.Time
 }
 
 // Login authenticates a user via single flexible login field (username, email, or phone).
@@ -159,58 +166,89 @@ func (s *Service) Login(ctx context.Context, req *LoginRequest) (*AuthTokens, er
 	_ = s.repo.UpdateUser(ctx, user)
 
 	// 4. Token Generation (Access JWT + Opaque Refresh Token)
-	accessToken, err := s.generateAccessToken(user)
+	return s.issueTokens(ctx, user)
+}
+
+// issueTokens creates a new access token and refresh token for user.
+func (s *Service) issueTokens(ctx context.Context, user *User) (*AuthTokens, error) {
+	accessToken, accessExpiry, err := s.generateAccessToken(user)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate access token: %w", err)
 	}
-
-	refreshToken, err := s.issueRefreshToken(ctx, user.ID)
+	refreshToken, sessionExpiry, err := s.issueRefreshToken(ctx, user.ID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to issue refresh token: %w", err)
 	}
-
 	return &AuthTokens{
-		User:         user,
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
+		User:             user,
+		AccessToken:      accessToken,
+		RefreshToken:     refreshToken,
+		AccessExpiresAt:  accessExpiry,
+		SessionExpiresAt: sessionExpiry,
 	}, nil
 }
 
-// RefreshToken implements token rotation by validating a refresh token, revoking it, and issuing new tokens.
+// refreshReuseGrace is how long a rotated refresh token still works. It
+// covers a client whose refresh response was lost on a weak connection, or two
+// requests refreshing at once.
+const refreshReuseGrace = 2 * time.Minute
+
+// ErrInvalidRefreshToken means the session is over and the user must sign in.
+var ErrInvalidRefreshToken = errors.New("invalid or expired refresh token")
+
+type refreshVerdict int
+
+const (
+	refreshAllowed refreshVerdict = iota
+	refreshRejected
+	// refreshReused: a token rotated long ago is being used again. Either
+	// the client is broken or the token was copied, so every session of the
+	// user is ended.
+	refreshReused
+)
+
+// refreshDecision decides what to do with a presented refresh token.
+func refreshDecision(t *RefreshToken, now time.Time) refreshVerdict {
+	switch {
+	case t.RevokedAt != nil, !t.ExpiresAt.After(now):
+		return refreshRejected
+	case t.ReplacedAt != nil && now.Sub(*t.ReplacedAt) > refreshReuseGrace:
+		return refreshReused
+	default:
+		return refreshAllowed
+	}
+}
+
+// RefreshToken rotates a refresh token: it issues a new pair and marks the
+// old token replaced. Each refresh extends the session by the idle timeout,
+// so users who keep using the app stay signed in and others are signed out.
 func (s *Service) RefreshToken(ctx context.Context, rawRefreshToken string) (*AuthTokens, error) {
 	hash := s.hashToken(rawRefreshToken)
-
-	tokenRecord, err := s.repo.FindRefreshToken(ctx, hash)
-	if err != nil || tokenRecord.ExpiresAt.Before(time.Now()) {
-		return nil, fmt.Errorf("invalid or expired refresh token")
+	record, err := s.repo.FindRefreshTokenByHash(ctx, hash)
+	if err != nil {
+		return nil, ErrInvalidRefreshToken
 	}
 
-	// Revoke old refresh token (Token Rotation!)
-	_ = s.repo.RevokeRefreshToken(ctx, hash)
+	switch refreshDecision(record, time.Now()) {
+	case refreshRejected:
+		return nil, ErrInvalidRefreshToken
+	case refreshReused:
+		_ = s.repo.RevokeAllRefreshTokens(ctx, record.UserID)
+		return nil, ErrInvalidRefreshToken
+	}
 
-	user, err := s.repo.FindByID(ctx, tokenRecord.UserID)
+	if err := s.repo.MarkRefreshTokenReplaced(ctx, hash, time.Now()); err != nil {
+		return nil, fmt.Errorf("failed to rotate refresh token: %w", err)
+	}
+
+	user, err := s.repo.FindByID(ctx, record.UserID)
 	if err != nil || !user.IsActive {
 		return nil, fmt.Errorf("user account invalid or deactivated")
 	}
 	if err := s.ensureSaccoActive(ctx, user); err != nil {
 		return nil, err
 	}
-
-	newAccessToken, err := s.generateAccessToken(user)
-	if err != nil {
-		return nil, fmt.Errorf("failed to generate access token: %w", err)
-	}
-
-	newRefreshToken, err := s.issueRefreshToken(ctx, user.ID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to issue refresh token: %w", err)
-	}
-
-	return &AuthTokens{
-		User:         user,
-		AccessToken:  newAccessToken,
-		RefreshToken: newRefreshToken,
-	}, nil
+	return s.issueTokens(ctx, user)
 }
 
 // Logout revokes a refresh token session.
@@ -294,7 +332,7 @@ func (s *Service) ListPermissions(ctx context.Context) ([]authz.Permission, erro
 
 // --- Helper Functions ---
 
-func (s *Service) generateAccessToken(user *User) (string, error) {
+func (s *Service) generateAccessToken(user *User) (string, time.Time, error) {
 	expiry := time.Now().Add(s.cfg.AccessTokenTTL)
 	claims := middleware.Claims{
 		UserID:  user.ID,
@@ -306,28 +344,29 @@ func (s *Service) generateAccessToken(user *User) (string, error) {
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString([]byte(s.cfg.JWTSecret))
+	signed, err := token.SignedString([]byte(s.cfg.JWTSecret))
+	return signed, expiry, err
 }
 
-func (s *Service) issueRefreshToken(ctx context.Context, userID uint) (string, error) {
+// issueRefreshToken stores a new refresh token valid for the idle timeout.
+// Only its hash is stored; the raw token is returned once, to the client.
+func (s *Service) issueRefreshToken(ctx context.Context, userID uint) (string, time.Time, error) {
 	bytes := make([]byte, 32)
 	if _, err := rand.Read(bytes); err != nil {
-		return "", err
+		return "", time.Time{}, err
 	}
 	rawToken := hex.EncodeToString(bytes)
-	tokenHash := s.hashToken(rawToken)
+	expiry := time.Now().Add(s.cfg.SessionIdleTimeout)
 
 	refreshToken := &RefreshToken{
 		UserID:    userID,
-		TokenHash: tokenHash,
-		ExpiresAt: time.Now().Add(30 * 24 * time.Hour), // 30 Days TTL for Inactivity
+		TokenHash: s.hashToken(rawToken),
+		ExpiresAt: expiry,
 	}
-
 	if err := s.repo.SaveRefreshToken(ctx, refreshToken); err != nil {
-		return "", err
+		return "", time.Time{}, err
 	}
-
-	return rawToken, nil
+	return rawToken, expiry, nil
 }
 
 func (s *Service) hashToken(token string) string {

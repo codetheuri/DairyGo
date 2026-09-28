@@ -50,6 +50,8 @@ func (h *Handler) Register(ctx context.Context, input *RegisterInput) (*AuthOutp
 	resp.Body.Data.User = tokens.User
 	resp.Body.Data.AccessToken = tokens.AccessToken
 	resp.Body.Data.RefreshToken = tokens.RefreshToken
+	resp.Body.Data.AccessExpiresAt = tokens.AccessExpiresAt
+	resp.Body.Data.SessionExpiresAt = tokens.SessionExpiresAt
 	return resp, nil
 }
 
@@ -66,6 +68,8 @@ func (h *Handler) Login(ctx context.Context, input *LoginInput) (*AuthOutput, er
 	resp.Body.Data.User = tokens.User
 	resp.Body.Data.AccessToken = tokens.AccessToken
 	resp.Body.Data.RefreshToken = tokens.RefreshToken
+	resp.Body.Data.AccessExpiresAt = tokens.AccessExpiresAt
+	resp.Body.Data.SessionExpiresAt = tokens.SessionExpiresAt
 	return resp, nil
 }
 
@@ -82,6 +86,8 @@ func (h *Handler) RefreshToken(ctx context.Context, input *RefreshTokenInput) (*
 	resp.Body.Data.User = tokens.User
 	resp.Body.Data.AccessToken = tokens.AccessToken
 	resp.Body.Data.RefreshToken = tokens.RefreshToken
+	resp.Body.Data.AccessExpiresAt = tokens.AccessExpiresAt
+	resp.Body.Data.SessionExpiresAt = tokens.SessionExpiresAt
 	return resp, nil
 }
 

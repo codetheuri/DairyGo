@@ -20,6 +20,7 @@ import (
 	"github.com/codetheuri/tusk/internal/collection"
 	"github.com/codetheuri/tusk/internal/customer"
 	"github.com/codetheuri/tusk/internal/dashboard"
+	"github.com/codetheuri/tusk/internal/idempotency"
 	"github.com/codetheuri/tusk/internal/member"
 	"github.com/codetheuri/tusk/internal/middleware"
 	"github.com/codetheuri/tusk/internal/notification"
@@ -35,10 +36,12 @@ import (
 )
 
 type App struct {
-	cfg      *config.Config
-	router   *chi.Mux
-	log      logger.Logger
-	platform *superadmin.Repository
+	cfg         *config.Config
+	router      *chi.Mux
+	log         logger.Logger
+	platform    *superadmin.Repository
+	idempotency *idempotency.Store
+	auth        *auth.Repository
 }
 
 func New(cfg *config.Config, log logger.Logger) (*App, error) {
@@ -49,6 +52,8 @@ func New(cfg *config.Config, log logger.Logger) (*App, error) {
 
 	r := chi.NewRouter()
 	platformRepo := superadmin.NewRepository(db)
+	idempotencyStore := idempotency.NewStore(db)
+	authRepo := auth.NewRepository(db, log)
 
 	// Middlewares. RecordFailures sits outside Recovery so recovered panics
 	// (500s) are recorded too.
@@ -63,6 +68,9 @@ func New(cfg *config.Config, log logger.Logger) (*App, error) {
 	r.Use(middleware.Recovery(log))
 	r.Use(middleware.CORS(cfg.CORSOrigins, log))
 	r.Use(middleware.SecurityHeaders)
+	// A save retried with the same Idempotency-Key (double tap, or a response
+	// lost on a slow connection) is performed once.
+	r.Use(idempotency.Middleware(idempotencyStore, cfg.JWTSecret))
 
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -209,10 +217,12 @@ func New(cfg *config.Config, log logger.Logger) (*App, error) {
 	superadmin.RegisterRoutes(api, db, cfg, log)
 
 	return &App{
-		cfg:      cfg,
-		router:   r,
-		log:      log,
-		platform: platformRepo,
+		cfg:         cfg,
+		router:      r,
+		log:         log,
+		platform:    platformRepo,
+		idempotency: idempotencyStore,
+		auth:        authRepo,
 	}, nil
 }
 
@@ -245,6 +255,15 @@ func (a *App) Run() error {
 	go superadmin.RunLogRetention(retentionCtx, a.platform, 30*24*time.Hour, func(err error) {
 		a.log.Error("Failed to purge old system logs", err)
 	})
+	// Idempotency keys only matter while a client may retry (minutes), and
+	// ended sessions only while they could be presented again.
+	go runDaily(retentionCtx, func(ctx context.Context) error {
+		if _, err := a.idempotency.Purge(ctx, time.Now().Add(-48*time.Hour)); err != nil {
+			return err
+		}
+		_, err := a.auth.PurgeRefreshTokens(ctx, time.Now().Add(-7*24*time.Hour))
+		return err
+	}, func(err error) { a.log.Error("Failed to purge idempotency keys or old sessions", err) })
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
@@ -261,4 +280,24 @@ func (a *App) Run() error {
 
 	a.log.Info("Server shut down gracefully.")
 	return nil
+}
+
+// runDaily runs job once now and then every 24 hours until ctx ends.
+func runDaily(ctx context.Context, job func(context.Context) error, onError func(error)) {
+	run := func() {
+		if err := job(ctx); err != nil && ctx.Err() == nil {
+			onError(err)
+		}
+	}
+	run()
+	ticker := time.NewTicker(24 * time.Hour)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			run()
+		}
+	}
 }

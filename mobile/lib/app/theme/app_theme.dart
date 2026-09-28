@@ -25,6 +25,7 @@ abstract class AppTheme {
         error: AppColors.error,
         onError: Colors.white,
       ),
+      fontFamily: 'Inter',
       textTheme: AppTypography.textTheme,
       appBarTheme: AppBarTheme(
         backgroundColor: AppColors.surface,

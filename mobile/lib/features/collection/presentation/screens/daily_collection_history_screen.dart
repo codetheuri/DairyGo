@@ -13,6 +13,7 @@ import '../controllers/collection_controller.dart';
 import '../widgets/collection_history_sheet.dart';
 import '../widgets/edit_collection_dialog.dart';
 import '../../../../core/layout/breakpoints.dart';
+import '../../../../core/widgets/skeleton.dart';
 
 class DailyCollectionHistoryScreen extends ConsumerWidget {
   const DailyCollectionHistoryScreen({super.key});
@@ -540,9 +541,7 @@ class DailyCollectionHistoryScreen extends ConsumerWidget {
                     ),
                   );
                 },
-                loading: () => const Center(
-                  child: CircularProgressIndicator(color: AppColors.primary),
-                ),
+                loading: () => const ListSkeleton(),
                 error: (err, stack) => ErrorView(
                   message: err.toString().replaceAll('Exception: ', ''),
                   onRetry: () => ref.refresh(milkCollectionsListProvider),

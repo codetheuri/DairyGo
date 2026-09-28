@@ -7,6 +7,7 @@ import '../../../../app/theme/app_colors.dart';
 import '../../data/models/member_model.dart';
 import '../controllers/member_controller.dart';
 import 'quick_add_farmer_dialog.dart';
+import '../../../../core/widgets/skeleton.dart';
 
 /// Search-as-you-type picker for the farmer whose milk is being recorded.
 /// Searches the server (active farmers only), so it works for any number of
@@ -153,9 +154,7 @@ class _FarmerPickerSheetState extends ConsumerState<FarmerPickerSheet> {
                           onTap: () => Navigator.of(context).pop(members[i]),
                         ),
                       ),
-                loading: () => const Center(
-                  child: CircularProgressIndicator(color: AppColors.primary),
-                ),
+                loading: () => const ListSkeleton(rows: 4),
                 error: (e, _) => Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,

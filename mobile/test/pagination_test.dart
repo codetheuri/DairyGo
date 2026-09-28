@@ -1,3 +1,4 @@
+import 'package:dairy_sacco_mobile/core/network/dio_client.dart';
 import 'package:dairy_sacco_mobile/core/pagination/page_result.dart';
 import 'package:dairy_sacco_mobile/core/pagination/paged_list_notifier.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -61,7 +62,9 @@ void main() {
   });
 
   test('loadMore appends pages until there are no more', () async {
-    final c = ProviderContainer();
+    final c = ProviderContainer(
+      overrides: [responseCacheProvider.overrideWithValue(null)],
+    );
     addTearDown(c.dispose);
     final first = await c.read(_numbersProvider.future);
     expect(first.items, [0, 1, 2]);
@@ -80,7 +83,9 @@ void main() {
   });
 
   test('a failed page keeps the rows and can be retried', () async {
-    final c = ProviderContainer();
+    final c = ProviderContainer(
+      overrides: [responseCacheProvider.overrideWithValue(null)],
+    );
     addTearDown(c.dispose);
     await c.read(_numbersProvider.future);
     _Numbers.failPage = 2;
@@ -98,7 +103,9 @@ void main() {
   });
 
   test('a page arriving after a refresh is dropped', () async {
-    final c = ProviderContainer();
+    final c = ProviderContainer(
+      overrides: [responseCacheProvider.overrideWithValue(null)],
+    );
     addTearDown(c.dispose);
     await c.read(_numbersProvider.future);
 

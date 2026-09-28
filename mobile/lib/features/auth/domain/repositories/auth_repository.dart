@@ -5,6 +5,13 @@ import '../entities/user_entity.dart';
 abstract class AuthRepository {
   Future<AuthState> login({required String identity, required String password});
   Future<UserEntity?> getCurrentUser();
+
+  /// The profile saved at the last sign-in, used to open the app instantly.
+  Future<UserEntity?> savedUser();
+
+  /// Whether the session ran out on this phone (not used for longer than the
+  /// server's idle limit), which can be known without a connection.
+  Future<bool> sessionIdleExpired();
   Future<UserEntity> register(RegisterRequest request);
   Future<List<UserEntity>> listUsers();
   Future<void> changePassword(
@@ -12,5 +19,8 @@ abstract class AuthRepository {
     String newPassword,
     String confirmPassword,
   );
-  Future<void> logout();
+
+  /// Signs out on this phone and, when [notifyServer], ends the session on
+  /// the server too (best effort: works offline).
+  Future<void> logout({bool notifyServer = true});
 }

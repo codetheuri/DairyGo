@@ -10,6 +10,7 @@ import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/status_pill.dart';
 import '../controllers/member_controller.dart';
 import '../../../../core/layout/breakpoints.dart';
+import '../../../../core/widgets/skeleton.dart';
 
 class FarmerDirectoryScreen extends ConsumerWidget {
   const FarmerDirectoryScreen({super.key});
@@ -325,9 +326,7 @@ class FarmerDirectoryScreen extends ConsumerWidget {
                     ),
                   );
                 },
-                loading: () => const Center(
-                  child: CircularProgressIndicator(color: AppColors.primary),
-                ),
+                loading: () => const ListSkeleton(),
                 error: (err, stack) => ErrorView(
                   message: err.toString().replaceAll('Exception: ', ''),
                   onRetry: () => ref.refresh(membersListProvider),

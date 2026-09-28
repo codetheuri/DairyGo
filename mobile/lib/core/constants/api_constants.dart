@@ -12,6 +12,8 @@ abstract class ApiConstants {
   // Auth Routes
   static const String login = '/api/v1/auth/login';
   static const String me = '/api/v1/auth/me';
+  static const String refresh = '/api/v1/auth/refresh';
+  static const String logout = '/api/v1/auth/logout';
 
   // Member Routes
   static const String members = '/api/v1/sacco/members';

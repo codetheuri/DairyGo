@@ -13,6 +13,7 @@ import '../../data/models/customer_models.dart';
 import '../controllers/customer_controller.dart';
 import '../widgets/add_customer_dialog.dart';
 import '../../../../core/layout/breakpoints.dart';
+import '../../../../core/widgets/skeleton.dart';
 
 /// Customers (coolers, processors, hotels, shops, individuals). Collectors can
 /// search and add; admins and board members also see what each customer owes.
@@ -122,9 +123,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                     ),
                   );
                 },
-                loading: () => const Center(
-                  child: CircularProgressIndicator(color: AppColors.primary),
-                ),
+                loading: () => const ListSkeleton(),
                 error: (e, _) => ErrorView(
                   message: e.toString().replaceAll('Exception: ', ''),
                   onRetry: () => ref.refresh(customersListProvider),

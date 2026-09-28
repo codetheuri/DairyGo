@@ -55,6 +55,12 @@ server in `test/layout/fixtures`.
   writes them to `test/layout/screenshots/` (not committed).
 - New fixtures after an API change: run `test/layout/capture_fixtures.sh`
   against a local API with test data.
+- `test/layout/safe_area_test.dart` and `test/layout/states_test.dart` check
+  system bars, cutouts, curved edges, loading placeholders and the
+  connection strips.
+- `test/live_api_test.dart` runs the real network layer (sessions, safe
+  retries) against a local API; see the file header. Never against
+  production.
 
 ## Docs
 

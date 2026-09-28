@@ -196,6 +196,15 @@ class _MemoryStorage extends SecureStorageService {
   Future<void> saveUserJson(String json) async => userJson = json;
   @override
   Future<void> deleteUserJson() async => userJson = null;
+  @override
+  Future<String?> getRefreshToken() async => null;
+  @override
+  Future<DateTime?> getSessionExpiresAt() async => null;
+  @override
+  Future<void> clearSession() async {
+    token = null;
+    userJson = null;
+  }
 }
 
 class _Unreachable extends Fake implements AuthRemoteDataSource {

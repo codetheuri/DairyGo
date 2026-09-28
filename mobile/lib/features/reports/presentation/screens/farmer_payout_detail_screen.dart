@@ -6,6 +6,7 @@ import '../../../../core/widgets/empty_state_widget.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../data/models/report_models.dart';
 import '../controllers/report_controller.dart';
+import '../../../../core/widgets/skeleton.dart';
 
 class FarmerPayoutDetailScreen extends ConsumerWidget {
   final FarmerPayoutStatementModel statement;
@@ -319,9 +320,7 @@ class FarmerPayoutDetailScreen extends ConsumerWidget {
                   },
                 );
               },
-              loading: () => const Center(
-                child: CircularProgressIndicator(color: AppColors.primary),
-              ),
+              loading: () => const ListSkeleton(rows: 4),
               error: (err, stack) => ErrorView(
                 message: err.toString().replaceAll('Exception: ', ''),
                 onRetry: () => ref.refresh(

@@ -11,6 +11,7 @@ import '../../data/models/customer_models.dart';
 import '../controllers/customer_controller.dart';
 import '../widgets/record_payment_dialog.dart';
 import '../../../../core/layout/breakpoints.dart';
+import '../../../../core/widgets/skeleton.dart';
 
 /// A customer's details and, for admins and board members, their monthly
 /// statement. Admins can record and void payments and (de)activate the customer.
@@ -109,9 +110,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
       ),
       body: ReadableWidth(
         child: customerAsync.when(
-          loading: () => const Center(
-            child: CircularProgressIndicator(color: AppColors.primary),
-          ),
+          loading: () => const ListSkeleton(rows: 4),
           error: (e, _) => ErrorView(
             message: e.toString().replaceAll('Exception: ', ''),
             onRetry: () =>
@@ -282,12 +281,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
   Widget _statement(bool isAdmin) {
     final statementAsync = ref.watch(customerStatementProvider(_query));
     return statementAsync.when(
-      loading: () => const Padding(
-        padding: EdgeInsets.all(24),
-        child: Center(
-          child: CircularProgressIndicator(color: AppColors.primary),
-        ),
-      ),
+      loading: () => const ListSkeleton(rows: 4),
       error: (e, _) => Text(
         e.toString().replaceAll('Exception: ', ''),
         style: const TextStyle(color: AppColors.error),

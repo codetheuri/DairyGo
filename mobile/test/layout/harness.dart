@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dairy_sacco_mobile/app/router/app_router.dart';
+import 'package:dairy_sacco_mobile/core/network/connection_monitor.dart';
 import 'package:dairy_sacco_mobile/core/network/dio_client.dart';
 import 'package:dairy_sacco_mobile/core/network/network_connectivity_service.dart';
 import 'package:dairy_sacco_mobile/features/auth/domain/entities/auth_state.dart';
@@ -45,7 +46,10 @@ const routesByRole = {
 /// which the screens must also lay out correctly.
 class FixtureAdapter implements HttpClientAdapter {
   final String role;
-  FixtureAdapter(this.role);
+
+  /// Holds every answer this long, to show loading states.
+  final Duration delay;
+  FixtureAdapter(this.role, {this.delay = Duration.zero});
 
   @override
   Future<ResponseBody> fetch(
@@ -56,6 +60,10 @@ class FixtureAdapter implements HttpClientAdapter {
     final name = options.path
         .replaceFirst(RegExp(r'^/api/v1/'), '')
         .replaceAll('/', '_');
+    if (delay > Duration.zero) await Future<void>.delayed(delay);
+    if (options.path == '/health') {
+      return ResponseBody.fromString('{"status":"ok"}', 200);
+    }
     final file = File('test/layout/fixtures/$role/$name.json');
     var status = 404;
     Object body = {'success': false, 'message': 'not found'};
@@ -150,13 +158,17 @@ class AppUnderTest {
 
   AppUnderTest._(this.tester, this.container, this._previousHandler);
 
+  /// [responseDelay] holds every API answer, to show loading states;
+  /// [settle] waits for the screen to finish loading.
   static Future<AppUnderTest> open(
     WidgetTester tester,
     String role,
-    String route,
-  ) async {
+    String route, {
+    Duration responseDelay = Duration.zero,
+    bool settle = true,
+  }) async {
     final dio = Dio(BaseOptions(baseUrl: 'http://fixtures'))
-      ..httpClientAdapter = FixtureAdapter(role);
+      ..httpClientAdapter = FixtureAdapter(role, delay: responseDelay);
     final container = ProviderContainer(
       overrides: [
         authControllerProvider.overrideWith(() => _SignedIn(userFor(role))),
@@ -186,10 +198,12 @@ class AppUnderTest {
     );
     await tester.pump();
     container.read(appRouterProvider).go(route);
+    // Health checks go to the fixtures too, never to the network.
+    container.read(connectionMonitorProvider.notifier).probeClient = dio;
     await tester.pump();
     app.errors.clear(); // ignore the start-up screen shown before navigating
     // Let requests, debounces and the first frames of the screen finish.
-    for (var i = 0; i < 8; i++) {
+    for (var i = 0; i < (settle ? 8 : 2); i++) {
       await tester.pump(const Duration(milliseconds: 250));
     }
     return app;
@@ -198,7 +212,8 @@ class AppUnderTest {
   Future<void> close() async {
     FlutterError.onError = _previousHandler;
     await tester.pumpWidget(const SizedBox.shrink());
-    await tester.pump(const Duration(seconds: 2)); // flush timers (snack bars)
+    // Flush timers: snack bars, delayed answers, background tab loading.
+    await tester.pump(const Duration(seconds: 10));
     container.dispose();
   }
 }

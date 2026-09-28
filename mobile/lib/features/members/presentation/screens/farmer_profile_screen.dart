@@ -9,6 +9,7 @@ import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/status_pill.dart';
 import '../controllers/member_controller.dart';
 import '../../../../core/layout/breakpoints.dart';
+import '../../../../core/widgets/skeleton.dart';
 
 class FarmerProfileScreen extends ConsumerWidget {
   final String memberId;
@@ -235,9 +236,7 @@ class FarmerProfileScreen extends ConsumerWidget {
               ),
             );
           },
-          loading: () => const Center(
-            child: CircularProgressIndicator(color: AppColors.primary),
-          ),
+          loading: () => const ListSkeleton(rows: 4),
           error: (err, stack) => ErrorView(
             message: err.toString().replaceAll('Exception: ', ''),
             onRetry: () => ref.refresh(memberDetailsProvider(memberId)),

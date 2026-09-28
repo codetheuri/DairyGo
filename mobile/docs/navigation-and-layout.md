@@ -90,3 +90,10 @@ screen.
 
 With `--update-goldens --dart-define=SCREENSHOTS=true` it saves a screenshot
 of each screen on each device (`screenshots/safe_*.png`).
+
+## Loading and connection states
+
+`test/layout/states_test.dart` opens every main screen with the server held
+back, so the loading placeholders are on screen, and shows the slow, offline
+and back-online strips, all on a 320 dp phone with the largest text. It
+fails on any layout error.

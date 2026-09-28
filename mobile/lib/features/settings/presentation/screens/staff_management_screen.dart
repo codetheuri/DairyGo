@@ -7,6 +7,7 @@ import '../../../../core/widgets/status_pill.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../widgets/register_staff_dialog.dart';
 import '../../../../core/layout/breakpoints.dart';
+import '../../../../core/widgets/skeleton.dart';
 
 class StaffManagementScreen extends ConsumerWidget {
   const StaffManagementScreen({super.key});
@@ -213,9 +214,7 @@ class StaffManagementScreen extends ConsumerWidget {
                 },
               );
             },
-            loading: () => const Center(
-              child: CircularProgressIndicator(color: AppColors.primary),
-            ),
+            loading: () => const ListSkeleton(),
             error: (err, stack) => ErrorView(
               message: err.toString().replaceAll('Exception: ', ''),
               onRetry: () => ref.invalidate(saccoStaffListProvider),

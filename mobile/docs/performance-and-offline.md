@@ -64,19 +64,61 @@ offline recording queue (the Sacco owner's decision, 2026-09-28). Saved data
 is only used to show screens quickly and to let users read the last figures
 when the signal drops.
 
-## Known limits (not yet addressed)
+## Connection status (`lib/core/network/connection_monitor.dart`)
 
-- **Connection status**: the offline banner uses `connectivity_plus`, which
-  only knows whether Wi-Fi or mobile data is switched on, not whether data
-  actually flows (for example, no data bundle). It can say "online" while
-  nothing loads, and it does not show a slow connection.
-- **Duplicates on slow networks**: a save that times out may already have
-  reached the server. Collections are protected (one per farmer, date and
-  shift); sales, spoilage and customer payments could be saved twice if the
-  user taps again.
-- **Sessions**: access tokens last 24 hours and the app does not yet use the
-  refresh token, so users are signed out about a day after logging in,
-  whether or not they are active.
-- **Start-up** waits for the server to confirm the session before showing
-  anything, and connections are closed after ~15 s idle, so the next tap
-  opens a new one (0.6–2.6 s on a slow link).
+The app judges the connection from real traffic, because a phone can show
+Wi-Fi or mobile data "on" with no data bundle, and then nothing loads.
+
+| Status | How it is decided | What the user sees |
+| :--- | :--- | :--- |
+| Online | Recent requests answered quickly | Nothing |
+| Slow | Median of the last 5 answers over 2.5 s, or a request waiting over 4 s | Amber strip: "Slow connection · loading and saving may take a little longer" |
+| No internet | Two requests without any answer, or the phone reports no network, and the server's `/health` does not answer | Dark strip: "No internet connection · showing data from 10:42 · saving needs a connection", with Retry |
+
+- The strip is shown on every screen (it sits at the app root), clear of the
+  gesture bar, and says "Back online" for 3 s when the connection returns.
+- While offline, `/health` is checked after 5, 10, 20, then every 30 s, and
+  whenever the app comes back to the foreground.
+- While offline, reads fail at once so saved data shows without waiting for
+  a timeout. A save checks `/health` once first, so a stale status never
+  blocks a real save; if there is still no connection the form says it was
+  not saved and why.
+- The saving overlay dims the form, blocks taps, and on a slow connection
+  asks the user to wait and keep the app open.
+
+## Saves are recorded once
+
+Every save (POST/PUT/PATCH/DELETE) carries an `Idempotency-Key`
+(`IdempotencyInterceptor`). A save that got no definite answer (timeout,
+dropped connection, "still processing") keeps its key for 10 minutes, so an
+automatic retry or the user tapping Save again is recognised by the server
+and recorded once. Because of that, saves are now retried automatically
+(after 1 s and 3 s) like reads. See `backend/docs/sessions-and-idempotency.md`.
+
+## Sessions
+
+- Sign-in stores the access token (1 hour), the refresh token and both
+  expiry times in secure storage.
+- `TokenRefresher` renews the access token 2 minutes before it expires, or
+  after a 401, and retries the request. Concurrent renewals share one
+  request.
+- Only the server refusing the renewal signs the user out ("Your session has
+  ended"). No signal while renewing never signs anyone out.
+- A user who does not use the app for 30 days (the server's
+  `SESSION_IDLE_TIMEOUT`) is signed out; the phone also checks this at start
+  and when the app returns to the foreground, with "You were signed out
+  because the app was not used for a long time".
+- Logout ends the session on the server too, and deletes the saved data.
+
+## Start-up and loading
+
+- The app opens straight into the saved profile and confirms the session
+  with the server in the background, instead of waiting a round trip.
+- One connection pool is shared by the whole app and connections are kept
+  for 55 s between requests (Dart's default is 15 s), saving a new TCP and
+  TLS handshake (0.6–2.6 s on a slow link) after short pauses.
+- A second after the home screen opens, the data behind the role's other
+  bottom-bar tabs is fetched, so the first tap on each tab is instant.
+- Loading shows placeholders shaped like the content (`skeleton.dart`)
+  instead of a spinner; they pulse gently and stay still with reduced
+  motion.

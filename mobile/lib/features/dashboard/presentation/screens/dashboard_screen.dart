@@ -9,6 +9,7 @@ import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../controllers/dashboard_controller.dart';
 import '../widgets/collector_dashboard_view.dart';
 import '../widgets/executive_dashboard_view.dart';
+import '../../../../core/widgets/skeleton.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -119,9 +120,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                     onRefresh: () =>
                         ref.refresh(collectorDashboardProvider(null)),
                   ),
-                  loading: () => const Center(
-                    child: CircularProgressIndicator(color: AppColors.primary),
-                  ),
+                  loading: () => const DashboardSkeleton(),
                   error: (err, stack) {
                     final msg = err.toString().replaceAll('Exception: ', '');
                     if (msg.toLowerCase().contains('forbidden') ||
@@ -173,9 +172,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                     data: data,
                     onRefresh: () => ref.refresh(executiveDashboardProvider(7)),
                   ),
-                  loading: () => const Center(
-                    child: CircularProgressIndicator(color: AppColors.primary),
-                  ),
+                  loading: () => const DashboardSkeleton(),
                   error: (err, stack) => ErrorView(
                     message: err.toString().replaceAll('Exception: ', ''),
                     onRetry: () => ref.refresh(executiveDashboardProvider(7)),
@@ -188,9 +185,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                 data: data,
                 onRefresh: () => ref.refresh(collectorDashboardProvider(null)),
               ),
-              loading: () => const Center(
-                child: CircularProgressIndicator(color: AppColors.primary),
-              ),
+              loading: () => const DashboardSkeleton(),
               error: (err, stack) => ErrorView(
                 message: err.toString().replaceAll('Exception: ', ''),
                 onRetry: () => ref.refresh(collectorDashboardProvider(null)),

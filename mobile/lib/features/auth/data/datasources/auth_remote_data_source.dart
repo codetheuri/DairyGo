@@ -7,6 +7,7 @@ import '../../../../core/errors/failure.dart';
 abstract class AuthRemoteDataSource {
   Future<Map<String, dynamic>> login(String identity, String password);
   Future<UserEntity> getMe();
+  Future<void> logout(String refreshToken);
   Future<UserEntity> register(RegisterRequest request);
   Future<List<UserEntity>> listUsers();
   Future<void> changePassword(
@@ -60,6 +61,20 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     } on DioException catch (e) {
       throw Exception(_extractErrorMessage(e, 'Authentication failed'));
     }
+  }
+
+  /// Ends the session on the server, so the refresh token cannot be used
+  /// again even if it was copied from the phone.
+  @override
+  Future<void> logout(String refreshToken) async {
+    await _dio.post(
+      ApiConstants.logout,
+      data: {'refresh_token': refreshToken},
+      options: Options(
+        sendTimeout: const Duration(seconds: 5),
+        receiveTimeout: const Duration(seconds: 5),
+      ),
+    );
   }
 
   @override

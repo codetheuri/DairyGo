@@ -8,6 +8,7 @@ import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../../customers/presentation/widgets/record_payment_dialog.dart';
 import '../../data/models/field_ops_models.dart';
 import '../controllers/field_ops_controller.dart';
+import '../../../../core/widgets/skeleton.dart';
 
 /// Bottom sheet with a sale's details and change history. Admins can void it.
 class SaleDetailSheet extends ConsumerWidget {
@@ -131,9 +132,7 @@ class SaleDetailSheet extends ConsumerWidget {
                         'Paid at sale: KES ${v['amount_paid']}',
                     ],
                   ),
-                  loading: () => const Center(
-                    child: CircularProgressIndicator(color: AppColors.primary),
-                  ),
+                  loading: () => const ListSkeleton(rows: 4),
                   error: (e, _) => Text(
                     e.toString().replaceAll('Exception: ', ''),
                     style: const TextStyle(

@@ -7,6 +7,7 @@ import '../../../../core/widgets/error_view.dart';
 import '../../data/models/report_models.dart';
 import '../controllers/report_controller.dart';
 import '../../../../core/widgets/balance_badge.dart';
+import '../../../../core/widgets/skeleton.dart';
 
 class CollectorDailyAuditItem {
   final String date;
@@ -372,11 +373,7 @@ class CollectorAuditDetailScreen extends ConsumerWidget {
                           },
                         );
                       },
-                      loading: () => const Center(
-                        child: CircularProgressIndicator(
-                          color: AppColors.primary,
-                        ),
-                      ),
+                      loading: () => const ListSkeleton(rows: 4),
                       error: (e, s) => ErrorView(
                         message: e.toString(),
                         onRetry: () => ref.refresh(
@@ -389,9 +386,7 @@ class CollectorAuditDetailScreen extends ConsumerWidget {
                       ),
                     );
                   },
-                  loading: () => const Center(
-                    child: CircularProgressIndicator(color: AppColors.primary),
-                  ),
+                  loading: () => const ListSkeleton(rows: 4),
                   error: (e, s) => ErrorView(
                     message: e.toString(),
                     onRetry: () => ref.refresh(
@@ -404,9 +399,7 @@ class CollectorAuditDetailScreen extends ConsumerWidget {
                   ),
                 );
               },
-              loading: () => const Center(
-                child: CircularProgressIndicator(color: AppColors.primary),
-              ),
+              loading: () => const ListSkeleton(rows: 4),
               error: (e, s) => ErrorView(
                 message: e.toString(),
                 onRetry: () => ref.refresh(

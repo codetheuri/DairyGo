@@ -7,6 +7,7 @@ import '../../../../app/theme/app_colors.dart';
 import '../../data/models/customer_models.dart';
 import '../controllers/customer_controller.dart';
 import 'add_customer_dialog.dart';
+import '../../../../core/widgets/skeleton.dart';
 
 /// Search-as-you-type picker for the customer of a sale. If the customer does
 /// not exist yet, "Add customer" creates it and returns it selected.
@@ -148,9 +149,7 @@ class _CustomerPickerSheetState extends ConsumerState<CustomerPickerSheet> {
                     },
                   );
                 },
-                loading: () => const Center(
-                  child: CircularProgressIndicator(color: AppColors.primary),
-                ),
+                loading: () => const ListSkeleton(rows: 4),
                 error: (e, _) => Center(
                   child: Text(
                     e.toString().replaceAll('Exception: ', ''),

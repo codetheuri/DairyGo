@@ -12,6 +12,7 @@ import '../../../collection/presentation/controllers/collection_controller.dart'
 import '../controllers/field_ops_controller.dart';
 import '../widgets/sale_detail_sheet.dart';
 import '../../../../core/layout/breakpoints.dart';
+import '../../../../core/widgets/skeleton.dart';
 
 class FieldOperationsHistoryScreen extends ConsumerStatefulWidget {
   const FieldOperationsHistoryScreen({super.key});
@@ -424,11 +425,7 @@ class _FieldOperationsHistoryScreenState
                         ),
                       );
                     },
-                    loading: () => const Center(
-                      child: CircularProgressIndicator(
-                        color: AppColors.primary,
-                      ),
-                    ),
+                    loading: () => const ListSkeleton(),
                     error: (err, stack) => ErrorView(
                       message: err.toString().replaceAll('Exception: ', ''),
                       onRetry: () => ref.refresh(salesListProvider),
@@ -557,11 +554,7 @@ class _FieldOperationsHistoryScreenState
                         ),
                       );
                     },
-                    loading: () => const Center(
-                      child: CircularProgressIndicator(
-                        color: AppColors.primary,
-                      ),
-                    ),
+                    loading: () => const ListSkeleton(),
                     error: (err, stack) => ErrorView(
                       message: err.toString().replaceAll('Exception: ', ''),
                       onRetry: () => ref.refresh(spoilageListProvider),

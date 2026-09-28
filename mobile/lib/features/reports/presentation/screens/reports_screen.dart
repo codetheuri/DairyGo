@@ -11,6 +11,7 @@ import 'collector_audit_detail_screen.dart';
 import 'farmer_payout_detail_screen.dart';
 import '../../../../core/widgets/balance_badge.dart';
 import '../../../customers/data/models/customer_models.dart';
+import '../../../../core/widgets/skeleton.dart';
 
 class ReportsScreen extends ConsumerStatefulWidget {
   const ReportsScreen({super.key});
@@ -402,9 +403,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
                       ),
                     );
                   },
-                  loading: () => const Center(
-                    child: CircularProgressIndicator(color: AppColors.primary),
-                  ),
+                  loading: () => const ListSkeleton(),
                   error: (err, stack) => ErrorView(
                     message: err.toString().replaceAll('Exception: ', ''),
                     onRetry: () => ref.refresh(farmerPayoutReportProvider),
@@ -658,9 +657,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
                       ),
                     );
                   },
-                  loading: () => const Center(
-                    child: CircularProgressIndicator(color: AppColors.primary),
-                  ),
+                  loading: () => const ListSkeleton(),
                   error: (err, stack) => ErrorView(
                     message: err.toString().replaceAll('Exception: ', ''),
                     onRetry: () => ref.refresh(saccoLedgerReportProvider),
@@ -798,9 +795,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
                       ),
                     );
                   },
-                  loading: () => const Center(
-                    child: CircularProgressIndicator(color: AppColors.primary),
-                  ),
+                  loading: () => const ListSkeleton(),
                   error: (err, stack) => ErrorView(
                     message: err.toString().replaceAll('Exception: ', ''),
                     onRetry: () => ref.refresh(collectorAuditReportProvider),

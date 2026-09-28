@@ -3,10 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/layout/breakpoints.dart';
-import '../../core/widgets/offline_banner_overlay.dart';
 import '../../features/auth/presentation/controllers/auth_controller.dart';
 import '../theme/app_colors.dart';
 import 'app_destinations.dart';
+import 'tab_warm_up.dart';
 
 /// The frame around the main sections. It adapts to the screen width:
 /// - phones: a bottom bar with the role's five sections;
@@ -39,7 +39,7 @@ class MainShellScreen extends ConsumerWidget {
     );
     final nav = RoleNavigation.of(user);
     final current = AppSection.values[navigationShell.currentIndex];
-    final body = OfflineBannerOverlay(child: navigationShell);
+    final body = TabWarmUp(child: navigationShell);
     final width = MediaQuery.sizeOf(context).width;
 
     if (width < Breakpoints.medium) {

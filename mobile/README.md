@@ -15,7 +15,7 @@ flutter run                       # on a connected phone or emulator
 flutter build apk --release --split-per-abi
 ```
 
-`--split-per-abi` builds one APK per phone type, about 17 MB each instead of
+`--split-per-abi` builds one APK per phone type, about 20 MB each instead of
 one 56 MB file, which matters on slow connections. Almost every current phone
 needs `app-arm64-v8a-release.apk`; very old phones need
 `app-armeabi-v7a-release.apk`. The files are in

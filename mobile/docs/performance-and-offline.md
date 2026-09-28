@@ -28,7 +28,7 @@ At 100 kbps against a Sacco with 150 farmers and 150 collections a day:
 - Recording something reloads only the figures it changes, and only for
   screens that are open.
 - Fonts are bundled (450 KB, Latin subset) instead of downloaded at start.
-- APKs are built per phone type (`--split-per-abi`), about 17 MB each.
+- APKs are built per phone type (`--split-per-abi`), about 20 MB each instead of 56 MB.
 
 **Slow and dropped connections**
 - Timeouts: 20 s to connect, 45 s to receive.

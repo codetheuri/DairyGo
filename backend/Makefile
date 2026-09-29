@@ -1,4 +1,4 @@
-.PHONY: dev run build test coverage vet migrate-up migrate-down migrate-status clean help
+.PHONY: dev run build test coverage vet migrate-up migrate-down migrate-status clean help env
 
 # ==============================================================================
 # Development commands
@@ -57,6 +57,10 @@ auth-sync-prune:
 
 # ==============================================================================
 # Utilities
+
+## env: create .env and a random JWT_SECRET if missing or weak (safe to rerun)
+env:
+	@sh scripts/init-env.sh
 
 ## clean: remove binary and temporary files
 clean:

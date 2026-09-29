@@ -92,7 +92,7 @@ graph TD
 * **Code-First Permissions**: Synchronized via CLI tool (`dairy-cli auth sync`).
 
 ### ⏱️ 6. Continuous Field Session (30-Day Inactivity TTL)
-* Designed for field agents: **30-day inactivity refresh token lifespan** with automatic background token rotation, eliminating daily re-login friction.
+* Designed for field agents: the app renews its 1-hour login silently, so people who use it stay signed in; a user is signed out only after **30 days without using the app** (`SESSION_IDLE_TIMEOUT`). Losing the signal never signs anyone out. See [backend/docs/sessions-and-idempotency.md](backend/docs/sessions-and-idempotency.md).
 
 ---
 
@@ -187,6 +187,10 @@ flutter run
 ### 1. Launch Container Stack
 ```bash
 cd backend
+
+# Create .env with a random JWT_SECRET if it is missing or weak.
+# Safe to run on every deploy: a good secret is never changed.
+make env
 
 # Build and start container in background
 docker compose up -d --build

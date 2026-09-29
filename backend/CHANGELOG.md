@@ -9,6 +9,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 
 ### Added
+- **`make env`** (`scripts/init-env.sh`): creates `.env` with a random `JWT_SECRET`, or replaces a missing or weak one; never changes a good secret or prints it. Safe on every deploy.
+- The collector audit report returns `tolerance_litres` (per collector per day), so clients can balance each day of a period by the same rule.
 - **Safe retries (`internal/idempotency`)**: writes with an `Idempotency-Key` header run once per user and key; retries get the stored response (`Idempotent-Replayed: true`), so a lost response on a slow connection or a double tap never records a sale, payment or collection twice. Migration `00014`. See [docs/sessions-and-idempotency.md](docs/sessions-and-idempotency.md).
 - **Sessions that follow activity**: access tokens last `ACCESS_TOKEN_TTL` (default 1h) and are refreshed silently; each refresh extends the session by `SESSION_IDLE_TIMEOUT` (default 720h), so users are signed out only after 30 days without using the app. Login and refresh return `access_expires_at` and `session_expires_at`.
 - **Refresh token rotation with a 2-minute grace period and reuse detection**: a lost refresh response no longer signs the user out; reuse of an old token after the grace period revokes every session of that user.

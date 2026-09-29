@@ -36,9 +36,11 @@ The login and refresh responses include `access_expires_at` and
 
 `JWT_SECRET` signs access tokens. The API refuses to start if it is empty,
 the example value that was committed in `docker-compose.yml`, or shorter than
-32 characters in production (`APP_MODE=prod`). Generate one with
-`openssl rand -hex 32` and keep it in `.env` next to `docker-compose.yml`.
-Changing it signs everyone out once.
+32 characters in production (`APP_MODE=prod`). `make env`
+(`scripts/init-env.sh`) creates `.env` next to `docker-compose.yml` with a
+random secret, or replaces a missing or weak one; it never changes a good
+secret and never prints it, so it is safe to run on every deploy. Changing
+the secret signs everyone out once.
 
 ## Safe retries (idempotency)
 

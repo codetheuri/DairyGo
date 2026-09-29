@@ -41,7 +41,7 @@ At 100 kbps against a Sacco with 150 farmers and 150 collections a day:
 - The last response of every GET is kept on the phone, per user, in the
   app's private folder (at most 400).
 - Opening a screen shows the saved copy at once and asks the server in the
-  background. A copy under 20 s old is used without asking. If the server's
+  background. A copy under 5 s old is used without asking. If the server's
   answer differs, open screens reload from the new copy; paged lists do so
   only while on page 1, so scrolling is never reset.
 - After the user records or changes anything, saved copies are not shown
@@ -56,6 +56,37 @@ At 100 kbps against a Sacco with 150 farmers and 150 collections a day:
 - The user's profile is saved at login. If the server cannot be reached at
   start-up the saved profile is used and the user stays signed in. Only a
   rejected session (for example a deactivated account) signs them out.
+
+## Seeing other phones' records
+
+Several people record for the same Sacco, and a sale made on one phone must
+show on another without pulling to refresh again and again. Tabs and covered
+screens stay alive with their data, so before this they kept showing what
+they first loaded.
+
+- **Reload when shown** (`RefreshOnShow`, `lib/core/cache/keep_fresh.dart`).
+  Each main screen (Home, Intake, Sales, Farmers, Buyers, Reports, customer
+  detail) reloads its data when it comes into view: its tab is selected, a
+  screen opened on top of it is closed, or the app returns from the
+  background. The saved copy stays on screen while the server is asked, and
+  the screen updates in place if the answer differs. A long list scrolled
+  past its first page is left alone, so the user keeps their place.
+- **Home every minute.** While Home is on screen and the app is open, the
+  dashboard reloads every minute, for admins who leave it open during
+  collection. It stops when another tab shows or the app goes to the
+  background.
+- **Pull to refresh always asks the server** (`refreshFromServer`), skipping
+  saved copies, and the spinner stays until the answer arrives, so one pull
+  is enough.
+- **Cost.** Only what is on screen is asked for, when it is looked at: the
+  dashboard answers are under 1 KB compressed (measured on test data), so
+  about 1–2 KB a minute with headers while Home is open. Offline, the saved
+  copy simply stays and nothing is shown as an error.
+
+Live push (the server announcing changes over a kept-open connection) was
+considered and left for later (owner's decision, 2026-09-29): it would add a
+permanent connection per phone and server work, for updates a few seconds
+sooner than this gives. Nothing here would need to change to add it.
 
 ## Online-only by decision
 

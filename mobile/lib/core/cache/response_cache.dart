@@ -37,7 +37,7 @@ class ResponseCache {
   /// At most this many responses are kept; the oldest are dropped.
   static const maxEntries = 400;
 
-  ResponseCache(this._locate, {this.freshFor = const Duration(seconds: 20)});
+  ResponseCache(this._locate, {this.freshFor = const Duration(seconds: 5)});
 
   /// The cache for [userId] in the app's support folder.
   factory ResponseCache.forUser(int userId) => ResponseCache(

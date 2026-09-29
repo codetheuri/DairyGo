@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/cache/keep_fresh.dart';
 import '../../../../app/router/app_router.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/pagination/paged_list_notifier.dart';
@@ -76,480 +77,490 @@ class DailyCollectionHistoryScreen extends ConsumerWidget {
 
     final isToday = selectedDateStr == getTodayDateString();
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Daily Milk Collections',
-          style: TextStyle(fontWeight: FontWeight.bold),
+    return RefreshOnShow(
+      providers: [milkCollectionsListProvider],
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text(
+            'Daily Milk Collections',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        icon: const Icon(Icons.add_circle_outline_rounded),
-        label: const Text(
-          'Record Intake',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        floatingActionButton: FloatingActionButton.extended(
+          backgroundColor: AppColors.primary,
+          foregroundColor: Colors.white,
+          icon: const Icon(Icons.add_circle_outline_rounded),
+          label: const Text(
+            'Record Intake',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          onPressed: () => context.push(AppRoutes.recordCollection),
         ),
-        onPressed: () => context.push(AppRoutes.recordCollection),
-      ),
-      body: ReadableWidth(
-        maxWidth: 900,
-        child: Column(
-          children: [
-            // Filter Header & Compact Date Bar
-            Container(
-              color: Colors.white,
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
-              child: Column(
-                children: [
-                  // Date Selector Row
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.background,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.cardBorder),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        IconButton(
-                          icon: const Icon(
-                            Icons.chevron_left_rounded,
-                            color: AppColors.primary,
+        body: ReadableWidth(
+          maxWidth: 900,
+          child: Column(
+            children: [
+              // Filter Header & Compact Date Bar
+              Container(
+                color: Colors.white,
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
+                child: Column(
+                  children: [
+                    // Date Selector Row
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.background,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppColors.cardBorder),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          IconButton(
+                            icon: const Icon(
+                              Icons.chevron_left_rounded,
+                              color: AppColors.primary,
+                            ),
+                            tooltip: 'Previous Day',
+                            constraints: const BoxConstraints(),
+                            padding: const EdgeInsets.all(8),
+                            onPressed: () => _stepDay(ref, selectedDateStr, -1),
                           ),
-                          tooltip: 'Previous Day',
-                          constraints: const BoxConstraints(),
-                          padding: const EdgeInsets.all(8),
-                          onPressed: () => _stepDay(ref, selectedDateStr, -1),
-                        ),
-                        Flexible(
-                          child: InkWell(
-                            onTap: () async {
-                              final parts = selectedDateStr.split('-');
-                              final initial = parts.length == 3
-                                  ? DateTime(
-                                      int.parse(parts[0]),
-                                      int.parse(parts[1]),
-                                      int.parse(parts[2]),
-                                    )
-                                  : DateTime.now();
+                          Flexible(
+                            child: InkWell(
+                              onTap: () async {
+                                final parts = selectedDateStr.split('-');
+                                final initial = parts.length == 3
+                                    ? DateTime(
+                                        int.parse(parts[0]),
+                                        int.parse(parts[1]),
+                                        int.parse(parts[2]),
+                                      )
+                                    : DateTime.now();
 
-                              final picked = await showDatePicker(
-                                context: context,
-                                initialDate: initial,
-                                firstDate: DateTime(2025),
-                                lastDate: DateTime(2030),
-                              );
-                              if (picked != null) {
-                                _changeDate(ref, picked);
-                              }
-                            },
-                            borderRadius: BorderRadius.circular(8),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 6,
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(
-                                    Icons.calendar_today_rounded,
-                                    size: 16,
-                                    color: AppColors.primary,
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Flexible(
-                                    child: Text(
-                                      _formatDisplayDate(selectedDateStr),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 13,
-                                        color: AppColors.textPrimary,
+                                final picked = await showDatePicker(
+                                  context: context,
+                                  initialDate: initial,
+                                  firstDate: DateTime(2025),
+                                  lastDate: DateTime(2030),
+                                );
+                                if (picked != null) {
+                                  _changeDate(ref, picked);
+                                }
+                              },
+                              borderRadius: BorderRadius.circular(8),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 6,
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(
+                                      Icons.calendar_today_rounded,
+                                      size: 16,
+                                      color: AppColors.primary,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Flexible(
+                                      child: Text(
+                                        _formatDisplayDate(selectedDateStr),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13,
+                                          color: AppColors.textPrimary,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                        Row(
-                          children: [
-                            if (!isToday)
-                              TextButton(
-                                style: TextButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 6,
+                          Row(
+                            children: [
+                              if (!isToday)
+                                TextButton(
+                                  style: TextButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                    ),
+                                    minimumSize: Size.zero,
+                                    tapTargetSize:
+                                        MaterialTapTargetSize.shrinkWrap,
                                   ),
-                                  minimumSize: Size.zero,
-                                  tapTargetSize:
-                                      MaterialTapTargetSize.shrinkWrap,
-                                ),
-                                onPressed: () {
-                                  ref
-                                          .read(
-                                            collectionFilterDateProvider
-                                                .notifier,
-                                          )
-                                          .state =
-                                      getTodayDateString();
-                                },
-                                child: const Text(
-                                  'Today',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 11,
+                                  onPressed: () {
+                                    ref
+                                            .read(
+                                              collectionFilterDateProvider
+                                                  .notifier,
+                                            )
+                                            .state =
+                                        getTodayDateString();
+                                  },
+                                  child: const Text(
+                                    'Today',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 11,
+                                    ),
                                   ),
                                 ),
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.chevron_right_rounded,
+                                  color: AppColors.primary,
+                                ),
+                                tooltip: 'Next Day',
+                                constraints: const BoxConstraints(),
+                                padding: const EdgeInsets.all(8),
+                                onPressed: () =>
+                                    _stepDay(ref, selectedDateStr, 1),
                               ),
-                            IconButton(
-                              icon: const Icon(
-                                Icons.chevron_right_rounded,
-                                color: AppColors.primary,
-                              ),
-                              tooltip: 'Next Day',
-                              constraints: const BoxConstraints(),
-                              padding: const EdgeInsets.all(8),
-                              onPressed: () =>
-                                  _stepDay(ref, selectedDateStr, 1),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-
-                  // Search Input
-                  TextField(
-                    onChanged: (val) =>
-                        ref.read(collectionSearchProvider.notifier).state = val,
-                    decoration: InputDecoration(
-                      hintText: 'Search by Farmer Name or M-0001...',
-                      hintStyle: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textMuted,
-                      ),
-                      prefixIcon: const Icon(
-                        Icons.search_rounded,
-                        color: AppColors.primary,
-                        size: 20,
-                      ),
-                      suffixIcon: search.isNotEmpty
-                          ? IconButton(
-                              icon: const Icon(Icons.clear_rounded, size: 18),
-                              onPressed: () =>
-                                  ref
-                                          .read(
-                                            collectionSearchProvider.notifier,
-                                          )
-                                          .state =
-                                      '',
-                            )
-                          : null,
-                      filled: true,
-                      fillColor: AppColors.background,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 8),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(
-                          color: AppColors.cardBorder,
-                        ),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(
-                          color: AppColors.cardBorder,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-
-                  // Shift Chips
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [
-                        _buildShiftChip(
-                          ref,
-                          label: 'All Shifts',
-                          value: null,
-                          current: shiftFilter,
-                        ),
-                        const SizedBox(width: 6),
-                        _buildShiftChip(
-                          ref,
-                          label: 'Morning',
-                          value: 'MORNING',
-                          current: shiftFilter,
-                        ),
-                        const SizedBox(width: 6),
-                        _buildShiftChip(
-                          ref,
-                          label: 'Evening',
-                          value: 'EVENING',
-                          current: shiftFilter,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const Divider(height: 1, color: AppColors.cardBorder),
-
-            // High-Density Populated Collections List
-            Expanded(
-              child: collectionsAsync.when(
-                data: (paged) {
-                  final collections = paged.items;
-                  if (collections.isEmpty) {
-                    return RefreshIndicator(
-                      onRefresh: () async =>
-                          ref.refresh(milkCollectionsListProvider),
-                      child: ListView(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        padding: const EdgeInsets.only(top: 40),
-                        children: [
-                          EmptyStateWidget(
-                            title: 'No Intake Entries',
-                            description: isToday
-                                ? 'No milk intake recorded for today ($selectedDateStr) yet.'
-                                : 'No milk intake entries for $selectedDateStr.',
-                            icon: Icons.water_drop_outlined,
-                            buttonLabel: 'Record Intake',
-                            onButtonPressed: () =>
-                                context.push(AppRoutes.recordCollection),
+                            ],
                           ),
                         ],
                       ),
-                    );
-                  }
-
-                  return RefreshIndicator(
-                    onRefresh: () async =>
-                        ref.refresh(milkCollectionsListProvider),
-                    child: ListView.separated(
-                      // Bottom space so the floating button never covers the last row.
-                      padding: const EdgeInsets.fromLTRB(12, 8, 12, 88),
-                      itemCount:
-                          collections.length + (paged.showFooter ? 1 : 0),
-                      separatorBuilder: (_, __) => const SizedBox(height: 6),
-                      itemBuilder: (context, index) {
-                        if (index == collections.length) {
-                          return PagedListFooter(
-                            list: paged,
-                            onLoadMore: () => ref
-                                .read(milkCollectionsListProvider.notifier)
-                                .loadMore(),
-                          );
-                        }
-                        final item = collections[index];
-                        final farmerName = item.memberName ?? 'Farmer';
-                        final timeLabel = _formatCollectedTime(
-                          item.createdAt,
-                          item.shift,
-                        );
-
-                        final editBlockReason = user == null
-                            ? 'Sign in again to edit.'
-                            : collectionEditBlockReason(item, user);
-
-                        // High density thin tile card; tap to see status and change history.
-                        return Material(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(10),
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(10),
-                            onTap: () =>
-                                CollectionHistorySheet.show(context, item),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 10,
-                              ),
-                              decoration: BoxDecoration(
-                                border: Border.all(color: AppColors.cardBorder),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Row(
-                                children: [
-                                  // Avatar
-                                  CircleAvatar(
-                                    radius: 16,
-                                    backgroundColor: AppColors.accentMint,
-                                    foregroundColor: AppColors.primary,
-                                    child: Text(
-                                      farmerName.isNotEmpty
-                                          ? farmerName[0].toUpperCase()
-                                          : 'F',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 13,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 10),
-
-                                  // Farmer Name & Time Taken
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          farmerName,
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 14,
-                                            color: AppColors.textPrimary,
-                                          ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                        const SizedBox(height: 2),
-                                        // Wraps onto a second line on narrow screens or large text.
-                                        Wrap(
-                                          crossAxisAlignment:
-                                              WrapCrossAlignment.center,
-                                          children: [
-                                            if (item.membershipNumber !=
-                                                null) ...[
-                                              Text(
-                                                item.membershipNumber!,
-                                                style: const TextStyle(
-                                                  fontSize: 11,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: AppColors.primary,
-                                                ),
-                                              ),
-                                              const Text(
-                                                ' • ',
-                                                style: TextStyle(
-                                                  fontSize: 11,
-                                                  color: AppColors.textMuted,
-                                                ),
-                                              ),
-                                            ],
-                                            const Icon(
-                                              Icons.access_time_rounded,
-                                              size: 12,
-                                              color: AppColors.textMuted,
-                                            ),
-                                            const SizedBox(width: 3),
-                                            Text(
-                                              timeLabel,
-                                              style: const TextStyle(
-                                                fontSize: 11,
-                                                color: AppColors.textSecondary,
-                                              ),
-                                            ),
-                                            if (isExecutive &&
-                                                item.collectorName != null &&
-                                                item
-                                                    .collectorName!
-                                                    .isNotEmpty) ...[
-                                              const Text(
-                                                ' • ',
-                                                style: TextStyle(
-                                                  fontSize: 11,
-                                                  color: AppColors.textMuted,
-                                                ),
-                                              ),
-                                              Text(
-                                                'By: ${item.collectorName}',
-                                                style: const TextStyle(
-                                                  fontSize: 11,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: AppColors.secondary,
-                                                ),
-                                              ),
-                                            ],
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-
-                                  // Quantity Badge
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 10,
-                                      vertical: 6,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.accentMint,
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Text(
-                                      '${item.quantityLitres.toStringAsFixed(1)} L',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w800,
-                                        fontSize: 14,
-                                        color: AppColors.primary,
-                                      ),
-                                    ),
-                                  ),
-
-                                  // Edit button when the rules allow it, otherwise a lock explaining why.
-                                  IconButton(
-                                    icon: Icon(
-                                      editBlockReason == null
-                                          ? Icons.edit_outlined
-                                          : Icons.lock_outline_rounded,
-                                      color: AppColors.textMuted,
-                                      size: 18,
-                                    ),
-                                    padding: const EdgeInsets.only(left: 6),
-                                    constraints: const BoxConstraints(),
-                                    tooltip: editBlockReason ?? 'Edit entry',
-                                    onPressed: () {
-                                      if (editBlockReason != null) {
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          SnackBar(
-                                            content: Text(editBlockReason),
-                                          ),
-                                        );
-                                        return;
-                                      }
-                                      showDialog(
-                                        context: context,
-                                        builder: (_) => EditCollectionDialog(
-                                          collection: item,
-                                          isAdmin: user?.isSaccoAdmin ?? false,
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        );
-                      },
                     ),
-                  );
-                },
-                loading: () => const ListSkeleton(),
-                error: (err, stack) => ErrorView(
-                  message: err.toString().replaceAll('Exception: ', ''),
-                  onRetry: () =>
-                      ref.refresh(milkCollectionsListProvider.future),
+                    const SizedBox(height: 8),
+
+                    // Search Input
+                    TextField(
+                      onChanged: (val) =>
+                          ref.read(collectionSearchProvider.notifier).state =
+                              val,
+                      decoration: InputDecoration(
+                        hintText: 'Search by Farmer Name or M-0001...',
+                        hintStyle: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textMuted,
+                        ),
+                        prefixIcon: const Icon(
+                          Icons.search_rounded,
+                          color: AppColors.primary,
+                          size: 20,
+                        ),
+                        suffixIcon: search.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear_rounded, size: 18),
+                                onPressed: () =>
+                                    ref
+                                            .read(
+                                              collectionSearchProvider.notifier,
+                                            )
+                                            .state =
+                                        '',
+                              )
+                            : null,
+                        filled: true,
+                        fillColor: AppColors.background,
+                        contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(
+                            color: AppColors.cardBorder,
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(
+                            color: AppColors.cardBorder,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+
+                    // Shift Chips
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          _buildShiftChip(
+                            ref,
+                            label: 'All Shifts',
+                            value: null,
+                            current: shiftFilter,
+                          ),
+                          const SizedBox(width: 6),
+                          _buildShiftChip(
+                            ref,
+                            label: 'Morning',
+                            value: 'MORNING',
+                            current: shiftFilter,
+                          ),
+                          const SizedBox(width: 6),
+                          _buildShiftChip(
+                            ref,
+                            label: 'Evening',
+                            value: 'EVENING',
+                            current: shiftFilter,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
-          ],
+              const Divider(height: 1, color: AppColors.cardBorder),
+
+              // High-Density Populated Collections List
+              Expanded(
+                child: collectionsAsync.when(
+                  data: (paged) {
+                    final collections = paged.items;
+                    if (collections.isEmpty) {
+                      return RefreshIndicator(
+                        onRefresh: () => ref.refreshFromServer([
+                          milkCollectionsListProvider.future,
+                        ]),
+                        child: ListView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: const EdgeInsets.only(top: 40),
+                          children: [
+                            EmptyStateWidget(
+                              title: 'No Intake Entries',
+                              description: isToday
+                                  ? 'No milk intake recorded for today ($selectedDateStr) yet.'
+                                  : 'No milk intake entries for $selectedDateStr.',
+                              icon: Icons.water_drop_outlined,
+                              buttonLabel: 'Record Intake',
+                              onButtonPressed: () =>
+                                  context.push(AppRoutes.recordCollection),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+
+                    return RefreshIndicator(
+                      onRefresh: () => ref.refreshFromServer([
+                        milkCollectionsListProvider.future,
+                      ]),
+                      child: ListView.separated(
+                        // Bottom space so the floating button never covers the last row.
+                        padding: const EdgeInsets.fromLTRB(12, 8, 12, 88),
+                        itemCount:
+                            collections.length + (paged.showFooter ? 1 : 0),
+                        separatorBuilder: (_, __) => const SizedBox(height: 6),
+                        itemBuilder: (context, index) {
+                          if (index == collections.length) {
+                            return PagedListFooter(
+                              list: paged,
+                              onLoadMore: () => ref
+                                  .read(milkCollectionsListProvider.notifier)
+                                  .loadMore(),
+                            );
+                          }
+                          final item = collections[index];
+                          final farmerName = item.memberName ?? 'Farmer';
+                          final timeLabel = _formatCollectedTime(
+                            item.createdAt,
+                            item.shift,
+                          );
+
+                          final editBlockReason = user == null
+                              ? 'Sign in again to edit.'
+                              : collectionEditBlockReason(item, user);
+
+                          // High density thin tile card; tap to see status and change history.
+                          return Material(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(10),
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(10),
+                              onTap: () =>
+                                  CollectionHistorySheet.show(context, item),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 10,
+                                ),
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: AppColors.cardBorder,
+                                  ),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Row(
+                                  children: [
+                                    // Avatar
+                                    CircleAvatar(
+                                      radius: 16,
+                                      backgroundColor: AppColors.accentMint,
+                                      foregroundColor: AppColors.primary,
+                                      child: Text(
+                                        farmerName.isNotEmpty
+                                            ? farmerName[0].toUpperCase()
+                                            : 'F',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+
+                                    // Farmer Name & Time Taken
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            farmerName,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 14,
+                                              color: AppColors.textPrimary,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          const SizedBox(height: 2),
+                                          // Wraps onto a second line on narrow screens or large text.
+                                          Wrap(
+                                            crossAxisAlignment:
+                                                WrapCrossAlignment.center,
+                                            children: [
+                                              if (item.membershipNumber !=
+                                                  null) ...[
+                                                Text(
+                                                  item.membershipNumber!,
+                                                  style: const TextStyle(
+                                                    fontSize: 11,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: AppColors.primary,
+                                                  ),
+                                                ),
+                                                const Text(
+                                                  ' • ',
+                                                  style: TextStyle(
+                                                    fontSize: 11,
+                                                    color: AppColors.textMuted,
+                                                  ),
+                                                ),
+                                              ],
+                                              const Icon(
+                                                Icons.access_time_rounded,
+                                                size: 12,
+                                                color: AppColors.textMuted,
+                                              ),
+                                              const SizedBox(width: 3),
+                                              Text(
+                                                timeLabel,
+                                                style: const TextStyle(
+                                                  fontSize: 11,
+                                                  color:
+                                                      AppColors.textSecondary,
+                                                ),
+                                              ),
+                                              if (isExecutive &&
+                                                  item.collectorName != null &&
+                                                  item
+                                                      .collectorName!
+                                                      .isNotEmpty) ...[
+                                                const Text(
+                                                  ' • ',
+                                                  style: TextStyle(
+                                                    fontSize: 11,
+                                                    color: AppColors.textMuted,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  'By: ${item.collectorName}',
+                                                  style: const TextStyle(
+                                                    fontSize: 11,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: AppColors.secondary,
+                                                  ),
+                                                ),
+                                              ],
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+
+                                    // Quantity Badge
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 6,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.accentMint,
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Text(
+                                        '${item.quantityLitres.toStringAsFixed(1)} L',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w800,
+                                          fontSize: 14,
+                                          color: AppColors.primary,
+                                        ),
+                                      ),
+                                    ),
+
+                                    // Edit button when the rules allow it, otherwise a lock explaining why.
+                                    IconButton(
+                                      icon: Icon(
+                                        editBlockReason == null
+                                            ? Icons.edit_outlined
+                                            : Icons.lock_outline_rounded,
+                                        color: AppColors.textMuted,
+                                        size: 18,
+                                      ),
+                                      padding: const EdgeInsets.only(left: 6),
+                                      constraints: const BoxConstraints(),
+                                      tooltip: editBlockReason ?? 'Edit entry',
+                                      onPressed: () {
+                                        if (editBlockReason != null) {
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text(editBlockReason),
+                                            ),
+                                          );
+                                          return;
+                                        }
+                                        showDialog(
+                                          context: context,
+                                          builder: (_) => EditCollectionDialog(
+                                            collection: item,
+                                            isAdmin:
+                                                user?.isSaccoAdmin ?? false,
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    );
+                  },
+                  loading: () => const ListSkeleton(),
+                  error: (err, stack) => ErrorView(
+                    message: err.toString().replaceAll('Exception: ', ''),
+                    onRetry: () =>
+                        ref.refresh(milkCollectionsListProvider.future),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

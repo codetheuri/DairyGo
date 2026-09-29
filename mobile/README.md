@@ -58,6 +58,9 @@ server in `test/layout/fixtures`.
 - `test/layout/safe_area_test.dart` and `test/layout/states_test.dart` check
   system bars, cutouts, curved edges, loading placeholders and the
   connection strips.
+- `test/layout/live_changes_test.dart` checks that a sale saved on another
+  phone shows when Sales is opened again, and that Home reloads every minute
+  only while it shows.
 - `test/live_api_test.dart` runs the real network layer (sessions, safe
   retries) against a local API; see the file header. Never against
   production.
@@ -67,5 +70,6 @@ server in `test/layout/fixtures`.
 - [Navigation and layout](docs/navigation-and-layout.md): menus per role,
   screen sizes, text size, the layout test.
 - [Speed and offline](docs/performance-and-offline.md): what makes the app
-  usable on a 100 kbps connection or with no signal.
+  usable on a 100 kbps connection or with no signal, and how screens show
+  records saved on other phones.
 - Backend and business rules: `../backend/docs/`.

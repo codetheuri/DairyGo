@@ -9,7 +9,7 @@ import '../../../../core/widgets/balance_badge.dart';
 
 class ExecutiveDashboardView extends StatelessWidget {
   final ExecutiveDashboardModel data;
-  final VoidCallback onRefresh;
+  final Future<void> Function() onRefresh;
 
   const ExecutiveDashboardView({
     super.key,
@@ -22,7 +22,7 @@ class ExecutiveDashboardView extends StatelessWidget {
     final cards = data.summaryCards;
 
     return RefreshIndicator(
-      onRefresh: () async => onRefresh(),
+      onRefresh: onRefresh,
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(16.0),

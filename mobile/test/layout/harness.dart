@@ -5,6 +5,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dairy_sacco_mobile/app/router/app_router.dart';
+import 'package:dairy_sacco_mobile/core/cache/response_cache.dart';
+import 'package:dairy_sacco_mobile/core/network/cache_interceptor.dart';
 import 'package:dairy_sacco_mobile/core/network/connection_monitor.dart';
 import 'package:dairy_sacco_mobile/core/network/dio_client.dart';
 import 'package:dairy_sacco_mobile/core/network/network_connectivity_service.dart';
@@ -51,6 +53,13 @@ class FixtureAdapter implements HttpClientAdapter {
   final Duration delay;
   FixtureAdapter(this.role, {this.delay = Duration.zero});
 
+  /// Answers that replace a fixture, by fixture name (for example
+  /// 'sacco_milk-sales'), to play data changed on the server.
+  final Map<String, Object> replaced = {};
+
+  /// Names of the fixtures asked for, in order.
+  final List<String> requests = [];
+
   @override
   Future<ResponseBody> fetch(
     RequestOptions options,
@@ -60,6 +69,7 @@ class FixtureAdapter implements HttpClientAdapter {
     final name = options.path
         .replaceFirst(RegExp(r'^/api/v1/'), '')
         .replaceAll('/', '_');
+    requests.add(name);
     if (delay > Duration.zero) await Future<void>.delayed(delay);
     if (options.path == '/health') {
       return ResponseBody.fromString('{"status":"ok"}', 200);
@@ -67,7 +77,10 @@ class FixtureAdapter implements HttpClientAdapter {
     final file = File('test/layout/fixtures/$role/$name.json');
     var status = 404;
     Object body = {'success': false, 'message': 'not found'};
-    if (options.method == 'GET' && file.existsSync()) {
+    if (options.method == 'GET' && replaced.containsKey(name)) {
+      status = 200;
+      body = replaced[name]!;
+    } else if (options.method == 'GET' && file.existsSync()) {
       final fixture =
           jsonDecode(file.readAsStringSync()) as Map<String, dynamic>;
       status = fixture['status'] as int;
@@ -153,31 +166,46 @@ Future<void> loadFonts() async {
 class AppUnderTest {
   final WidgetTester tester;
   final ProviderContainer container;
+  final FixtureAdapter server;
   final List<String> errors = [];
   final FlutterExceptionHandler? _previousHandler;
 
-  AppUnderTest._(this.tester, this.container, this._previousHandler);
+  AppUnderTest._(
+    this.tester,
+    this.container,
+    this.server,
+    this._previousHandler,
+  );
 
   /// [responseDelay] holds every API answer, to show loading states;
-  /// [settle] waits for the screen to finish loading.
+  /// [settle] waits for the screen to finish loading; with [cache], reads go
+  /// through the saved-copy interceptors as in the app.
   static Future<AppUnderTest> open(
     WidgetTester tester,
     String role,
     String route, {
     Duration responseDelay = Duration.zero,
     bool settle = true,
+    ResponseCache? cache,
   }) async {
+    final server = FixtureAdapter(role, delay: responseDelay);
     final dio = Dio(BaseOptions(baseUrl: 'http://fixtures'))
-      ..httpClientAdapter = FixtureAdapter(role, delay: responseDelay);
+      ..httpClientAdapter = server;
+    if (cache != null) {
+      dio.interceptors
+        ..add(CacheFirstInterceptor(dio, cache))
+        ..add(CacheStoreInterceptor(cache));
+    }
     final container = ProviderContainer(
       overrides: [
         authControllerProvider.overrideWith(() => _SignedIn(userFor(role))),
         dioClientProvider.overrideWithValue(dio),
         authDioProvider.overrideWithValue(dio),
         networkConnectivityServiceProvider.overrideWithValue(_Online()),
+        if (cache != null) responseCacheProvider.overrideWithValue(cache),
       ],
     );
-    final app = AppUnderTest._(tester, container, FlutterError.onError);
+    final app = AppUnderTest._(tester, container, server, FlutterError.onError);
     FlutterError.onError = (details) {
       // The error's first line plus the widget's source location.
       final where =

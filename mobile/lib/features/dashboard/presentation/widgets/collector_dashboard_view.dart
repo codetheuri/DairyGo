@@ -10,7 +10,7 @@ import '../../../../core/widgets/balance_badge.dart';
 
 class CollectorDashboardView extends StatelessWidget {
   final CollectorDashboardModel data;
-  final VoidCallback onRefresh;
+  final Future<void> Function() onRefresh;
 
   const CollectorDashboardView({
     super.key,
@@ -21,7 +21,7 @@ class CollectorDashboardView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
-      onRefresh: () async => onRefresh(),
+      onRefresh: onRefresh,
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(16.0),

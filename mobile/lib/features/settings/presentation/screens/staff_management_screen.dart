@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/cache/keep_fresh.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/status_pill.dart';
@@ -54,9 +55,8 @@ class StaffManagementScreen extends ConsumerWidget {
       ),
       body: ReadableWidth(
         child: RefreshIndicator(
-          onRefresh: () async {
-            ref.invalidate(saccoStaffListProvider);
-          },
+          onRefresh: () =>
+              ref.refreshFromServer([saccoStaffListProvider.future]),
           child: staffAsync.when(
             data: (users) {
               if (users.isEmpty) {

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/cache/keep_fresh.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/pagination/paged_list_notifier.dart';
 import '../../../../core/widgets/empty_state_widget.dart';
@@ -42,95 +43,101 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
         !(user?.isExecutive ?? false); // not board
     final customersAsync = ref.watch(customersListProvider);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Customers',
-          style: TextStyle(fontWeight: FontWeight.bold),
+    return RefreshOnShow(
+      providers: [customersListProvider, customerBalancesProvider],
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text(
+            'Customers',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
         ),
-      ),
-      floatingActionButton: canAdd
-          ? FloatingActionButton.extended(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              icon: const Icon(Icons.person_add_alt_1_rounded),
-              label: const Text(
-                'Add Customer',
-                style: TextStyle(fontWeight: FontWeight.bold),
+        floatingActionButton: canAdd
+            ? FloatingActionButton.extended(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                icon: const Icon(Icons.person_add_alt_1_rounded),
+                label: const Text(
+                  'Add Customer',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                onPressed: () async {
+                  final created = await AddCustomerDialog.show(context);
+                  if (created != null && context.mounted) {
+                    context.push('/customers/${created.id}');
+                  }
+                },
+              )
+            : null,
+        body: ReadableWidth(
+          maxWidth: 900,
+          child: Column(
+            children: [
+              Container(
+                color: Colors.white,
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
+                child: TextFormField(
+                  // The list remembers its search between visits, so show it.
+                  initialValue: ref.read(customerSearchProvider),
+                  decoration: InputDecoration(
+                    hintText: 'Search by name or phone',
+                    prefixIcon: const Icon(Icons.search_rounded),
+                    isDense: true,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onChanged: (v) {
+                    _debounce?.cancel();
+                    _debounce = Timer(const Duration(milliseconds: 300), () {
+                      ref.read(customerSearchProvider.notifier).state = v
+                          .trim();
+                    });
+                  },
+                ),
               ),
-              onPressed: () async {
-                final created = await AddCustomerDialog.show(context);
-                if (created != null && context.mounted) {
-                  context.push('/customers/${created.id}');
-                }
-              },
-            )
-          : null,
-      body: ReadableWidth(
-        maxWidth: 900,
-        child: Column(
-          children: [
-            Container(
-              color: Colors.white,
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
-              child: TextFormField(
-                // The list remembers its search between visits, so show it.
-                initialValue: ref.read(customerSearchProvider),
-                decoration: InputDecoration(
-                  hintText: 'Search by name or phone',
-                  prefixIcon: const Icon(Icons.search_rounded),
-                  isDense: true,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+              if (seesBalances) const _TotalOwedBanner(),
+              Expanded(
+                child: customersAsync.when(
+                  data: (paged) {
+                    final customers = paged.items;
+                    if (customers.isEmpty) {
+                      return const EmptyStateWidget(
+                        title: 'No customers yet',
+                        description:
+                            'Customers are added when recording a sale, or with the button below.',
+                        icon: Icons.storefront_outlined,
+                      );
+                    }
+                    return RefreshIndicator(
+                      onRefresh: () =>
+                          ref.refreshFromServer([customersListProvider.future]),
+                      child: ListView.separated(
+                        // Bottom space so the floating button never covers the last row.
+                        padding: const EdgeInsets.fromLTRB(12, 12, 12, 88),
+                        itemCount:
+                            customers.length + (paged.showFooter ? 1 : 0),
+                        separatorBuilder: (_, __) => const SizedBox(height: 6),
+                        itemBuilder: (_, i) => i == customers.length
+                            ? PagedListFooter(
+                                list: paged,
+                                onLoadMore: () => ref
+                                    .read(customersListProvider.notifier)
+                                    .loadMore(),
+                              )
+                            : _CustomerTile(customer: customers[i]),
+                      ),
+                    );
+                  },
+                  loading: () => const ListSkeleton(),
+                  error: (e, _) => ErrorView(
+                    message: e.toString().replaceAll('Exception: ', ''),
+                    onRetry: () => ref.refresh(customersListProvider.future),
                   ),
                 ),
-                onChanged: (v) {
-                  _debounce?.cancel();
-                  _debounce = Timer(const Duration(milliseconds: 300), () {
-                    ref.read(customerSearchProvider.notifier).state = v.trim();
-                  });
-                },
               ),
-            ),
-            if (seesBalances) const _TotalOwedBanner(),
-            Expanded(
-              child: customersAsync.when(
-                data: (paged) {
-                  final customers = paged.items;
-                  if (customers.isEmpty) {
-                    return const EmptyStateWidget(
-                      title: 'No customers yet',
-                      description:
-                          'Customers are added when recording a sale, or with the button below.',
-                      icon: Icons.storefront_outlined,
-                    );
-                  }
-                  return RefreshIndicator(
-                    onRefresh: () async => ref.refresh(customersListProvider),
-                    child: ListView.separated(
-                      // Bottom space so the floating button never covers the last row.
-                      padding: const EdgeInsets.fromLTRB(12, 12, 12, 88),
-                      itemCount: customers.length + (paged.showFooter ? 1 : 0),
-                      separatorBuilder: (_, __) => const SizedBox(height: 6),
-                      itemBuilder: (_, i) => i == customers.length
-                          ? PagedListFooter(
-                              list: paged,
-                              onLoadMore: () => ref
-                                  .read(customersListProvider.notifier)
-                                  .loadMore(),
-                            )
-                          : _CustomerTile(customer: customers[i]),
-                    ),
-                  );
-                },
-                loading: () => const ListSkeleton(),
-                error: (e, _) => ErrorView(
-                  message: e.toString().replaceAll('Exception: ', ''),
-                  onRetry: () => ref.refresh(customersListProvider.future),
-                ),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

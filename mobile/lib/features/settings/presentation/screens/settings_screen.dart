@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/cache/keep_fresh.dart';
 import '../../../../app/router/app_router.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/widgets/error_view.dart';
@@ -114,11 +115,11 @@ class SettingsScreen extends ConsumerWidget {
       ),
       body: ReadableWidth(
         child: RefreshIndicator(
-          onRefresh: () async {
-            ref.invalidate(saccoProfileProvider);
-            ref.invalidate(activeMilkPriceProvider);
-            ref.invalidate(milkPriceHistoryProvider);
-          },
+          onRefresh: () => ref.refreshFromServer([
+            saccoProfileProvider.future,
+            activeMilkPriceProvider.future,
+            milkPriceHistoryProvider.future,
+          ]),
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.all(16),

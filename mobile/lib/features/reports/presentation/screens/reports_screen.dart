@@ -407,7 +407,8 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
                   loading: () => const ListSkeleton(),
                   error: (err, stack) => ErrorView(
                     message: err.toString().replaceAll('Exception: ', ''),
-                    onRetry: () => ref.refresh(farmerPayoutReportProvider),
+                    onRetry: () =>
+                        ref.refresh(farmerPayoutReportProvider.future),
                   ),
                 ),
 
@@ -661,7 +662,8 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
                   loading: () => const ListSkeleton(),
                   error: (err, stack) => ErrorView(
                     message: err.toString().replaceAll('Exception: ', ''),
-                    onRetry: () => ref.refresh(saccoLedgerReportProvider),
+                    onRetry: () =>
+                        ref.refresh(saccoLedgerReportProvider.future),
                   ),
                 ),
 
@@ -799,7 +801,8 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
                   loading: () => const ListSkeleton(),
                   error: (err, stack) => ErrorView(
                     message: err.toString().replaceAll('Exception: ', ''),
-                    onRetry: () => ref.refresh(collectorAuditReportProvider),
+                    onRetry: () =>
+                        ref.refresh(collectorAuditReportProvider.future),
                   ),
                 ),
               ],

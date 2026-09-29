@@ -217,7 +217,7 @@ class StaffManagementScreen extends ConsumerWidget {
             loading: () => const ListSkeleton(),
             error: (err, stack) => ErrorView(
               message: err.toString().replaceAll('Exception: ', ''),
-              onRetry: () => ref.invalidate(saccoStaffListProvider),
+              onRetry: () => ref.refresh(saccoStaffListProvider.future),
             ),
           ),
         ),

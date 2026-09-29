@@ -328,7 +328,7 @@ class FarmerPayoutDetailScreen extends ConsumerWidget {
                     memberId: statement.memberId,
                     fromDate: statement.fromDate ?? fromDate,
                     toDate: statement.toDate ?? toDate,
-                  )),
+                  )).future,
                 ),
               ),
             ),

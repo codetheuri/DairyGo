@@ -161,7 +161,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                     return ErrorView(
                       message: msg,
                       onRetry: () =>
-                          ref.refresh(collectorDashboardProvider(null)),
+                          ref.refresh(collectorDashboardProvider(null).future),
                     );
                   },
                 ),
@@ -175,7 +175,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                   loading: () => const DashboardSkeleton(),
                   error: (err, stack) => ErrorView(
                     message: err.toString().replaceAll('Exception: ', ''),
-                    onRetry: () => ref.refresh(executiveDashboardProvider(7)),
+                    onRetry: () =>
+                        ref.refresh(executiveDashboardProvider(7).future),
                   ),
                 ),
               ],
@@ -188,7 +189,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
               loading: () => const DashboardSkeleton(),
               error: (err, stack) => ErrorView(
                 message: err.toString().replaceAll('Exception: ', ''),
-                onRetry: () => ref.refresh(collectorDashboardProvider(null)),
+                onRetry: () =>
+                    ref.refresh(collectorDashboardProvider(null).future),
               ),
             ),
     );

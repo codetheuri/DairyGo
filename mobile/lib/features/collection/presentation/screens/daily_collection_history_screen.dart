@@ -544,7 +544,8 @@ class DailyCollectionHistoryScreen extends ConsumerWidget {
                 loading: () => const ListSkeleton(),
                 error: (err, stack) => ErrorView(
                   message: err.toString().replaceAll('Exception: ', ''),
-                  onRetry: () => ref.refresh(milkCollectionsListProvider),
+                  onRetry: () =>
+                      ref.refresh(milkCollectionsListProvider.future),
                 ),
               ),
             ),

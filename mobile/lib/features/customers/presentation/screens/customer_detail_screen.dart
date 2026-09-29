@@ -114,7 +114,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
           error: (e, _) => ErrorView(
             message: e.toString().replaceAll('Exception: ', ''),
             onRetry: () =>
-                ref.refresh(customerDetailProvider(widget.customerId)),
+                ref.refresh(customerDetailProvider(widget.customerId).future),
           ),
           data: (customer) => RefreshIndicator(
             onRefresh: () async {

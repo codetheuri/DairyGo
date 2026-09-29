@@ -126,7 +126,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                 loading: () => const ListSkeleton(),
                 error: (e, _) => ErrorView(
                   message: e.toString().replaceAll('Exception: ', ''),
-                  onRetry: () => ref.refresh(customersListProvider),
+                  onRetry: () => ref.refresh(customersListProvider.future),
                 ),
               ),
             ),

@@ -360,7 +360,7 @@ class CollectorAuditDetailScreen extends ConsumerWidget {
                             collectorId: summary.collectorId,
                             fromDate: fromDate,
                             toDate: toDate,
-                          )),
+                          )).future,
                         ),
                       ),
                     );
@@ -373,7 +373,7 @@ class CollectorAuditDetailScreen extends ConsumerWidget {
                         collectorId: summary.collectorId,
                         fromDate: fromDate,
                         toDate: toDate,
-                      )),
+                      )).future,
                     ),
                   ),
                 );
@@ -386,7 +386,7 @@ class CollectorAuditDetailScreen extends ConsumerWidget {
                     collectorId: summary.collectorId,
                     fromDate: fromDate,
                     toDate: toDate,
-                  )),
+                  )).future,
                 ),
               ),
             ),

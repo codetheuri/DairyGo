@@ -223,7 +223,7 @@ class SettingsScreen extends ConsumerWidget {
                       _buildLoadingCard('Loading organization profile...'),
                   error: (err, stack) => ErrorView(
                     message: err.toString().replaceAll('Exception: ', ''),
-                    onRetry: () => ref.refresh(saccoProfileProvider),
+                    onRetry: () => ref.refresh(saccoProfileProvider.future),
                   ),
                 ),
                 const SizedBox(height: 22),
@@ -398,7 +398,8 @@ class SettingsScreen extends ConsumerWidget {
 
                     return ErrorView(
                       message: msg,
-                      onRetry: () => ref.refresh(activeMilkPriceProvider),
+                      onRetry: () =>
+                          ref.refresh(activeMilkPriceProvider.future),
                     );
                   },
                 ),

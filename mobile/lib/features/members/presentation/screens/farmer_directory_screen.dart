@@ -329,7 +329,7 @@ class FarmerDirectoryScreen extends ConsumerWidget {
                 loading: () => const ListSkeleton(),
                 error: (err, stack) => ErrorView(
                   message: err.toString().replaceAll('Exception: ', ''),
-                  onRetry: () => ref.refresh(membersListProvider),
+                  onRetry: () => ref.refresh(membersListProvider.future),
                 ),
               ),
             ),

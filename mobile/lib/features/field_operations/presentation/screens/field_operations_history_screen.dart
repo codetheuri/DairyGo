@@ -428,7 +428,7 @@ class _FieldOperationsHistoryScreenState
                     loading: () => const ListSkeleton(),
                     error: (err, stack) => ErrorView(
                       message: err.toString().replaceAll('Exception: ', ''),
-                      onRetry: () => ref.refresh(salesListProvider),
+                      onRetry: () => ref.refresh(salesListProvider.future),
                     ),
                   ),
 
@@ -557,7 +557,7 @@ class _FieldOperationsHistoryScreenState
                     loading: () => const ListSkeleton(),
                     error: (err, stack) => ErrorView(
                       message: err.toString().replaceAll('Exception: ', ''),
-                      onRetry: () => ref.refresh(spoilageListProvider),
+                      onRetry: () => ref.refresh(spoilageListProvider.future),
                     ),
                   ),
                 ],

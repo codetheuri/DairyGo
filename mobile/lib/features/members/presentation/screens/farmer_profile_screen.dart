@@ -239,7 +239,7 @@ class FarmerProfileScreen extends ConsumerWidget {
           loading: () => const ListSkeleton(rows: 4),
           error: (err, stack) => ErrorView(
             message: err.toString().replaceAll('Exception: ', ''),
-            onRetry: () => ref.refresh(memberDetailsProvider(memberId)),
+            onRetry: () => ref.refresh(memberDetailsProvider(memberId).future),
           ),
         ),
       ),

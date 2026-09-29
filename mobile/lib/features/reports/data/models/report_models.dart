@@ -53,6 +53,8 @@ class CollectorAuditSummaryModel with _$CollectorAuditSummaryModel {
     // collected - sold - spoiled; > 0 missing, < 0 oversold
     @JsonKey(name: 'unaccounted_litres') @Default(0.0) double unaccountedLitres,
     @JsonKey(name: 'balance_status') @Default('BALANCED') String balanceStatus,
+    // Allowed difference per collector per day, to balance each day alike.
+    @JsonKey(name: 'tolerance_litres') @Default(0.0) double toleranceLitres,
     @JsonKey(name: 'active_days') @Default(0) int activeDays,
     @JsonKey(name: 'farmers_serviced_count')
     @Default(0)

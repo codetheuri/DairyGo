@@ -271,6 +271,7 @@ func (r *Repository) collectorTotals(ctx context.Context, saccoID, fromDateStr, 
 			days = 1 // sold or spoiled without collecting still gets one day's allowance
 		}
 		s.Result = reconcile.Compute(s.TotalCollectedLitres, s.TotalSoldLitres, s.TotalSpoiledLitres, tolerance*float64(days))
+		s.ToleranceLitres = tolerance
 		summaries = append(summaries, *s)
 	}
 	sort.Slice(summaries, func(i, j int) bool {

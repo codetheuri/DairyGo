@@ -526,7 +526,9 @@ mixin _$CollectorAuditSummaryModel {
   @JsonKey(name: 'unaccounted_litres')
   double get unaccountedLitres => throw _privateConstructorUsedError;
   @JsonKey(name: 'balance_status')
-  String get balanceStatus => throw _privateConstructorUsedError;
+  String get balanceStatus => throw _privateConstructorUsedError; // Allowed difference per collector per day, to balance each day alike.
+  @JsonKey(name: 'tolerance_litres')
+  double get toleranceLitres => throw _privateConstructorUsedError;
   @JsonKey(name: 'active_days')
   int get activeDays => throw _privateConstructorUsedError;
   @JsonKey(name: 'farmers_serviced_count')
@@ -564,6 +566,7 @@ abstract class $CollectorAuditSummaryModelCopyWith<$Res> {
     @JsonKey(name: 'total_spoiled_litres') double totalSpoiledLitres,
     @JsonKey(name: 'unaccounted_litres') double unaccountedLitres,
     @JsonKey(name: 'balance_status') String balanceStatus,
+    @JsonKey(name: 'tolerance_litres') double toleranceLitres,
     @JsonKey(name: 'active_days') int activeDays,
     @JsonKey(name: 'farmers_serviced_count') int farmersServicedCount,
   });
@@ -597,6 +600,7 @@ class _$CollectorAuditSummaryModelCopyWithImpl<
     Object? totalSpoiledLitres = null,
     Object? unaccountedLitres = null,
     Object? balanceStatus = null,
+    Object? toleranceLitres = null,
     Object? activeDays = null,
     Object? farmersServicedCount = null,
   }) {
@@ -642,6 +646,10 @@ class _$CollectorAuditSummaryModelCopyWithImpl<
                 ? _value.balanceStatus
                 : balanceStatus // ignore: cast_nullable_to_non_nullable
                       as String,
+            toleranceLitres: null == toleranceLitres
+                ? _value.toleranceLitres
+                : toleranceLitres // ignore: cast_nullable_to_non_nullable
+                      as double,
             activeDays: null == activeDays
                 ? _value.activeDays
                 : activeDays // ignore: cast_nullable_to_non_nullable
@@ -676,6 +684,7 @@ abstract class _$$CollectorAuditSummaryModelImplCopyWith<$Res>
     @JsonKey(name: 'total_spoiled_litres') double totalSpoiledLitres,
     @JsonKey(name: 'unaccounted_litres') double unaccountedLitres,
     @JsonKey(name: 'balance_status') String balanceStatus,
+    @JsonKey(name: 'tolerance_litres') double toleranceLitres,
     @JsonKey(name: 'active_days') int activeDays,
     @JsonKey(name: 'farmers_serviced_count') int farmersServicedCount,
   });
@@ -709,6 +718,7 @@ class __$$CollectorAuditSummaryModelImplCopyWithImpl<$Res>
     Object? totalSpoiledLitres = null,
     Object? unaccountedLitres = null,
     Object? balanceStatus = null,
+    Object? toleranceLitres = null,
     Object? activeDays = null,
     Object? farmersServicedCount = null,
   }) {
@@ -754,6 +764,10 @@ class __$$CollectorAuditSummaryModelImplCopyWithImpl<$Res>
             ? _value.balanceStatus
             : balanceStatus // ignore: cast_nullable_to_non_nullable
                   as String,
+        toleranceLitres: null == toleranceLitres
+            ? _value.toleranceLitres
+            : toleranceLitres // ignore: cast_nullable_to_non_nullable
+                  as double,
         activeDays: null == activeDays
             ? _value.activeDays
             : activeDays // ignore: cast_nullable_to_non_nullable
@@ -781,6 +795,7 @@ class _$CollectorAuditSummaryModelImpl implements _CollectorAuditSummaryModel {
     @JsonKey(name: 'total_spoiled_litres') this.totalSpoiledLitres = 0.0,
     @JsonKey(name: 'unaccounted_litres') this.unaccountedLitres = 0.0,
     @JsonKey(name: 'balance_status') this.balanceStatus = 'BALANCED',
+    @JsonKey(name: 'tolerance_litres') this.toleranceLitres = 0.0,
     @JsonKey(name: 'active_days') this.activeDays = 0,
     @JsonKey(name: 'farmers_serviced_count') this.farmersServicedCount = 0,
   });
@@ -820,6 +835,10 @@ class _$CollectorAuditSummaryModelImpl implements _CollectorAuditSummaryModel {
   @override
   @JsonKey(name: 'balance_status')
   final String balanceStatus;
+  // Allowed difference per collector per day, to balance each day alike.
+  @override
+  @JsonKey(name: 'tolerance_litres')
+  final double toleranceLitres;
   @override
   @JsonKey(name: 'active_days')
   final int activeDays;
@@ -829,7 +848,7 @@ class _$CollectorAuditSummaryModelImpl implements _CollectorAuditSummaryModel {
 
   @override
   String toString() {
-    return 'CollectorAuditSummaryModel(collectorId: $collectorId, collectorName: $collectorName, totalCollectedLitres: $totalCollectedLitres, totalPurchasesAmount: $totalPurchasesAmount, totalSoldLitres: $totalSoldLitres, totalSalesRevenue: $totalSalesRevenue, cashReceivedAmount: $cashReceivedAmount, totalSpoiledLitres: $totalSpoiledLitres, unaccountedLitres: $unaccountedLitres, balanceStatus: $balanceStatus, activeDays: $activeDays, farmersServicedCount: $farmersServicedCount)';
+    return 'CollectorAuditSummaryModel(collectorId: $collectorId, collectorName: $collectorName, totalCollectedLitres: $totalCollectedLitres, totalPurchasesAmount: $totalPurchasesAmount, totalSoldLitres: $totalSoldLitres, totalSalesRevenue: $totalSalesRevenue, cashReceivedAmount: $cashReceivedAmount, totalSpoiledLitres: $totalSpoiledLitres, unaccountedLitres: $unaccountedLitres, balanceStatus: $balanceStatus, toleranceLitres: $toleranceLitres, activeDays: $activeDays, farmersServicedCount: $farmersServicedCount)';
   }
 
   @override
@@ -857,6 +876,8 @@ class _$CollectorAuditSummaryModelImpl implements _CollectorAuditSummaryModel {
                 other.unaccountedLitres == unaccountedLitres) &&
             (identical(other.balanceStatus, balanceStatus) ||
                 other.balanceStatus == balanceStatus) &&
+            (identical(other.toleranceLitres, toleranceLitres) ||
+                other.toleranceLitres == toleranceLitres) &&
             (identical(other.activeDays, activeDays) ||
                 other.activeDays == activeDays) &&
             (identical(other.farmersServicedCount, farmersServicedCount) ||
@@ -877,6 +898,7 @@ class _$CollectorAuditSummaryModelImpl implements _CollectorAuditSummaryModel {
     totalSpoiledLitres,
     unaccountedLitres,
     balanceStatus,
+    toleranceLitres,
     activeDays,
     farmersServicedCount,
   );
@@ -911,6 +933,7 @@ abstract class _CollectorAuditSummaryModel
     @JsonKey(name: 'total_spoiled_litres') final double totalSpoiledLitres,
     @JsonKey(name: 'unaccounted_litres') final double unaccountedLitres,
     @JsonKey(name: 'balance_status') final String balanceStatus,
+    @JsonKey(name: 'tolerance_litres') final double toleranceLitres,
     @JsonKey(name: 'active_days') final int activeDays,
     @JsonKey(name: 'farmers_serviced_count') final int farmersServicedCount,
   }) = _$CollectorAuditSummaryModelImpl;
@@ -947,7 +970,10 @@ abstract class _CollectorAuditSummaryModel
   double get unaccountedLitres;
   @override
   @JsonKey(name: 'balance_status')
-  String get balanceStatus;
+  String get balanceStatus; // Allowed difference per collector per day, to balance each day alike.
+  @override
+  @JsonKey(name: 'tolerance_litres')
+  double get toleranceLitres;
   @override
   @JsonKey(name: 'active_days')
   int get activeDays;

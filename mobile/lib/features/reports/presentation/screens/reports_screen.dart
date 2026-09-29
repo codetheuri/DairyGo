@@ -12,6 +12,7 @@ import 'farmer_payout_detail_screen.dart';
 import '../../../../core/widgets/balance_badge.dart';
 import '../../../customers/data/models/customer_models.dart';
 import '../../../../core/widgets/skeleton.dart';
+import '../../../../core/widgets/figure_cell.dart';
 
 class ReportsScreen extends ConsumerStatefulWidget {
   const ReportsScreen({super.key});
@@ -830,21 +831,8 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
   }
 
   Widget _buildAuditItem(String label, String value, Color color) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: TextStyle(
-            fontWeight: FontWeight.w800,
-            fontSize: 13,
-            color: color,
-          ),
-        ),
-        Text(
-          label,
-          style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
-        ),
-      ],
+    return Expanded(
+      child: FigureCell(label: label, value: value, color: color),
     );
   }
 }

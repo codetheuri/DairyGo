@@ -57,4 +57,7 @@ type CollectorAuditSummary struct {
 	TotalSpoiledLitres   float64 `json:"total_spoiled_litres"`
 	reconcile.Result
 	FarmersServicedCount int64 `json:"farmers_serviced_count"`
+	// ToleranceLitres is the Sacco's allowed difference per collector per
+	// day, so clients can balance each day of the period the same way.
+	ToleranceLitres float64 `json:"tolerance_litres"`
 }

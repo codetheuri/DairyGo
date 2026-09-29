@@ -28,7 +28,7 @@ class CollectorDashboardView extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Net Handover Hero Banner
+            // Milk balance banner: unaccounted = collected − sold − spoiled
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20),

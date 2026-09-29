@@ -8,22 +8,8 @@ import '../../data/models/report_models.dart';
 import '../controllers/report_controller.dart';
 import '../../../../core/widgets/balance_badge.dart';
 import '../../../../core/widgets/skeleton.dart';
-
-class CollectorDailyAuditItem {
-  final String date;
-  final double collected;
-  final double sold;
-  final double spoiled;
-  final double netHandover;
-
-  CollectorDailyAuditItem({
-    required this.date,
-    required this.collected,
-    required this.sold,
-    required this.spoiled,
-    required this.netHandover,
-  });
-}
+import '../../../../core/utils/milk_balance.dart';
+import '../../../../core/widgets/figure_cell.dart';
 
 class CollectorAuditDetailScreen extends ConsumerWidget {
   final CollectorAuditSummaryModel summary;
@@ -188,7 +174,7 @@ class CollectorAuditDetailScreen extends ConsumerWidget {
             child: Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                'Daily Mathematical Reconciliation Log',
+                'Daily milk balance',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 15,
@@ -281,7 +267,14 @@ class CollectorAuditDetailScreen extends ConsumerWidget {
                             final collected = collectedMap[date] ?? 0.0;
                             final sold = soldMap[date] ?? 0.0;
                             final spoiled = spoiledMap[date] ?? 0.0;
-                            final netHandover = collected - sold - spoiled;
+                            // Every litre collected must be sold (coolers
+                            // included) or spoiled; what is left is unaccounted.
+                            final balance = MilkBalance.compute(
+                              collected: collected,
+                              sold: sold,
+                              spoiled: spoiled,
+                              allowanceLitres: summary.toleranceLitres,
+                            );
 
                             return Container(
                               padding: const EdgeInsets.all(14),
@@ -293,11 +286,17 @@ class CollectorAuditDetailScreen extends ConsumerWidget {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
+                                  // The badge moves under the date when
+                                  // they do not fit on one line.
+                                  Wrap(
+                                    alignment: WrapAlignment.spaceBetween,
+                                    crossAxisAlignment:
+                                        WrapCrossAlignment.center,
+                                    spacing: 8,
+                                    runSpacing: 6,
                                     children: [
                                       Row(
+                                        mainAxisSize: MainAxisSize.min,
                                         children: [
                                           const Icon(
                                             Icons.calendar_today_rounded,
@@ -315,25 +314,10 @@ class CollectorAuditDetailScreen extends ConsumerWidget {
                                           ),
                                         ],
                                       ),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 8,
-                                          vertical: 4,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: AppColors.accentMint,
-                                          borderRadius: BorderRadius.circular(
-                                            6,
-                                          ),
-                                        ),
-                                        child: Text(
-                                          'Net Handover: ${netHandover.toStringAsFixed(1)} L',
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.w800,
-                                            fontSize: 12,
-                                            color: AppColors.primary,
-                                          ),
-                                        ),
+                                      BalanceBadge(
+                                        unaccountedLitres:
+                                            balance.unaccountedLitres,
+                                        status: balance.status,
                                       ),
                                     ],
                                   ),
@@ -359,11 +343,6 @@ class CollectorAuditDetailScreen extends ConsumerWidget {
                                         'Spoiled',
                                         '${spoiled.toStringAsFixed(1)}L',
                                         AppColors.warning,
-                                      ),
-                                      _buildSubItem(
-                                        'To Station',
-                                        '${netHandover.toStringAsFixed(1)}L',
-                                        AppColors.success,
                                       ),
                                     ],
                                   ),
@@ -423,40 +402,19 @@ class CollectorAuditDetailScreen extends ConsumerWidget {
     Color color, {
     bool isBold = false,
   }) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: TextStyle(
-            fontWeight: isBold ? FontWeight.w800 : FontWeight.bold,
-            fontSize: isBold ? 14 : 13,
-            color: color,
-          ),
-        ),
-        Text(
-          label,
-          style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
-        ),
-      ],
+    return Expanded(
+      child: FigureCell(
+        label: label,
+        value: value,
+        color: color,
+        emphasis: isBold,
+      ),
     );
   }
 
   Widget _buildSubItem(String label, String value, Color color) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 12,
-            color: color,
-          ),
-        ),
-        Text(
-          label,
-          style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
-        ),
-      ],
+    return Expanded(
+      child: FigureCell(label: label, value: value, color: color),
     );
   }
 }

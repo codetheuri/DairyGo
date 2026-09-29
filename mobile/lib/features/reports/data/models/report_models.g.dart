@@ -58,6 +58,7 @@ _$CollectorAuditSummaryModelImpl _$$CollectorAuditSummaryModelImplFromJson(
   totalSpoiledLitres: (json['total_spoiled_litres'] as num?)?.toDouble() ?? 0.0,
   unaccountedLitres: (json['unaccounted_litres'] as num?)?.toDouble() ?? 0.0,
   balanceStatus: json['balance_status'] as String? ?? 'BALANCED',
+  toleranceLitres: (json['tolerance_litres'] as num?)?.toDouble() ?? 0.0,
   activeDays: (json['active_days'] as num?)?.toInt() ?? 0,
   farmersServicedCount: (json['farmers_serviced_count'] as num?)?.toInt() ?? 0,
 );
@@ -75,6 +76,7 @@ Map<String, dynamic> _$$CollectorAuditSummaryModelImplToJson(
   'total_spoiled_litres': instance.totalSpoiledLitres,
   'unaccounted_litres': instance.unaccountedLitres,
   'balance_status': instance.balanceStatus,
+  'tolerance_litres': instance.toleranceLitres,
   'active_days': instance.activeDays,
   'farmers_serviced_count': instance.farmersServicedCount,
 };

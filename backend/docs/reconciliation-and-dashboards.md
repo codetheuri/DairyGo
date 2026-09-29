@@ -39,9 +39,12 @@ the **collectors to check** separately.
 | :--- | :--- |
 | `GET /sacco/reconciliation?date=` | One collector's day. Collectors see only their own. |
 | `GET /sacco/reports/reconciliation?from_date&to_date` | Sacco ledger: volumes, sales by customer type, unaccounted litres, money (owed to farmers, revenue, paid at sale, credit, gross margin, customers owe now), per-collector summaries |
-| `GET /sacco/reports/collector-audit` | Per-collector balance over a period |
+| `GET /sacco/reports/collector-audit` | Per-collector balance over a period, with `tolerance_litres` (per collector per day) so the app balances each day of the period the same way |
 | `GET /sacco/dashboard/summary?days=` | Executive cards (today's balance status, month gross margin, receivables) and daily trend including unaccounted litres |
 | `GET /sacco/dashboard/collector` | A collector's day, including unaccounted litres and cash received |
+
+There is no "to station" or "net handover" figure: deliveries to coolers and
+stations are sales to a customer like any other.
 
 **Breaking change:** `net_delivered_litres`, `net_coolant_*` and `discrepancy_litres`
 were removed. Use `unaccounted_litres`, `balance_status`, `is_balanced` and

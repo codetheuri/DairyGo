@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../app/router/app_router.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/widgets/app_text_field.dart';
 import '../../../../core/widgets/loading_overlay.dart';
 import '../../../../core/widgets/primary_button.dart';
 import '../../data/models/member_model.dart';
 import '../controllers/member_controller.dart';
+import '../widgets/next_of_kin_fields.dart';
 import '../../../../core/layout/breakpoints.dart';
 
 class RegisterFarmerScreen extends ConsumerStatefulWidget {
@@ -28,6 +30,9 @@ class _RegisterFarmerScreenState extends ConsumerState<RegisterFarmerScreen> {
   final _nationalIdController = TextEditingController();
   final _locationController = TextEditingController();
   final _mpesaNoController = TextEditingController();
+  final _kinNameController = TextEditingController();
+  final _kinPhoneController = TextEditingController();
+  String? _kinRelationship;
   String? _selectedGender;
 
   @override
@@ -39,6 +44,8 @@ class _RegisterFarmerScreenState extends ConsumerState<RegisterFarmerScreen> {
     _nationalIdController.dispose();
     _locationController.dispose();
     _mpesaNoController.dispose();
+    _kinNameController.dispose();
+    _kinPhoneController.dispose();
     super.dispose();
   }
 
@@ -62,6 +69,9 @@ class _RegisterFarmerScreenState extends ConsumerState<RegisterFarmerScreen> {
       mpesaNumber: _mpesaNoController.text.trim().isNotEmpty
           ? _mpesaNoController.text.trim()
           : null,
+      nextOfKinName: _kinNameController.text.trim(),
+      nextOfKinRelationship: _kinRelationship ?? '',
+      nextOfKinPhone: _kinPhoneController.text.trim(),
     );
 
     final success = await ref
@@ -77,7 +87,8 @@ class _RegisterFarmerScreenState extends ConsumerState<RegisterFarmerScreen> {
           backgroundColor: AppColors.success,
         ),
       );
-      context.pop();
+      // Opened from a link there may be nothing to go back to.
+      context.canPop() ? context.pop() : context.go(AppRoutes.members);
     }
   }
 
@@ -209,6 +220,32 @@ class _RegisterFarmerScreenState extends ConsumerState<RegisterFarmerScreen> {
                           ),
                         ),
                       ],
+                    ),
+                    const SizedBox(height: 24),
+
+                    Text(
+                      'Next of Kin',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Who the Sacco contacts if the farmer cannot be reached.',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    NextOfKinFields(
+                      nameController: _kinNameController,
+                      phoneController: _kinPhoneController,
+                      relationship: _kinRelationship,
+                      onRelationshipChanged: (v) =>
+                          setState(() => _kinRelationship = v),
+                      farmerPhone: () => _phoneController.text,
                     ),
                     const SizedBox(height: 24),
 

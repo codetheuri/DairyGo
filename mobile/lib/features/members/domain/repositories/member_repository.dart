@@ -10,4 +10,12 @@ abstract class MemberRepository {
   });
   Future<MemberModel> getMemberById(String id);
   Future<MemberModel> createMember(CreateMemberRequestModel request);
+
+  /// Sets or replaces a farmer's next of kin (all three details).
+  Future<MemberModel> updateNextOfKin(
+    String id, {
+    required String name,
+    required String relationship,
+    required String phone,
+  });
 }

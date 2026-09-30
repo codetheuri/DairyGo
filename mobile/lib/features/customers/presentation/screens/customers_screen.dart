@@ -13,6 +13,7 @@ import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../data/models/customer_models.dart';
 import '../controllers/customer_controller.dart';
 import '../widgets/add_customer_dialog.dart';
+import '../widgets/customers_owing_sheet.dart';
 import '../../../../core/layout/breakpoints.dart';
 import '../../../../core/widgets/skeleton.dart';
 
@@ -37,10 +38,8 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(authControllerProvider).valueOrNull?.user;
-    final seesBalances = user?.isExecutive ?? false; // admins and board members
-    final canAdd =
-        (user?.isSaccoAdmin ?? false) ||
-        !(user?.isExecutive ?? false); // not board
+    final seesBalances = user?.seesCustomerBalances ?? false;
+    final canAdd = user?.canAddCustomers ?? false;
     final customersAsync = ref.watch(customersListProvider);
 
     return RefreshOnShow(
@@ -151,20 +150,35 @@ class _TotalOwedBanner extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final balances = ref.watch(customerBalancesProvider).valueOrNull;
     if (balances == null) return const SizedBox.shrink();
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.fromLTRB(12, 10, 12, 0),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
+      child: Material(
         color: AppColors.warningContainer,
         borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        'Customers owe KES ${balances.totalOwed.toStringAsFixed(2)} '
-        '(${balances.balances.where((b) => b.balance > 0).length} with a balance)',
-        style: const TextStyle(
-          fontWeight: FontWeight.w700,
-          color: AppColors.textPrimary,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: () => CustomersOwingSheet.show(context),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Customers owe KES ${balances.totalOwed.toStringAsFixed(2)} '
+                    '(${balances.balances.where((b) => b.balance > 0).length} with a balance)',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ),
+                const Icon(
+                  Icons.chevron_right_rounded,
+                  color: AppColors.textSecondary,
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

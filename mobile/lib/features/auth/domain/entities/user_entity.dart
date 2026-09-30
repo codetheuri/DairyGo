@@ -29,6 +29,10 @@ class UserEntity with _$UserEntity {
     @JsonKey(name: 'sacco_id') String? saccoId,
     @JsonKey(name: 'role_name') @Default('') String roleName,
     UserProfileEntity? profile,
+
+    /// What the user's role may do, as the server lists it with the profile.
+    /// Empty for a profile saved by an older version of the app.
+    @Default(<String>[]) List<String> permissions,
   }) = _UserEntity;
 
   String get fullName {
@@ -61,8 +65,54 @@ class UserEntity with _$UserEntity {
     return 2;
   }
 
-  bool get canManageStaff => isSaccoAdmin || isSuperUser;
-  bool get canSetPrice => isSaccoAdmin || isSuperUser;
+  /// Whether the user's role holds [permission]. The screens ask this, not
+  /// the role's name, so what a role may do can change on the server without
+  /// a new app version. [whenUnknown] is used only for a profile saved
+  /// before permissions were sent with it.
+  bool can(String permission, {required bool whenUnknown}) {
+    if (isSuperUser) return true;
+    if (permissions.isEmpty) return whenUnknown;
+    return permissions.contains(permission);
+  }
+
+  bool get _records => isSaccoAdmin || !isExecutive;
+
+  /// Sees every collector's records, not only their own.
+  bool get seesAllRecords =>
+      can('milk.records.read_all', whenUnknown: isExecutive);
+  bool get seesExecutiveDashboard =>
+      can('dashboard.executive.read', whenUnknown: isExecutive);
+  bool get seesCollectorAudit =>
+      can('reports.collector.read', whenUnknown: isExecutive);
+  bool get seesLedger =>
+      can('reports.reconciliation.read', whenUnknown: isExecutive);
+  bool get seesPayouts => can('reports.payout.read', whenUnknown: isExecutive);
+  bool get seesReports => seesCollectorAudit || seesLedger || seesPayouts;
+
+  bool get canRecordMilk =>
+      can('milk.collections.create', whenUnknown: _records);
+  bool get canManageCollections =>
+      can('milk.collections.manage', whenUnknown: isSaccoAdmin);
+  bool get canSell => can('milk.sales.create', whenUnknown: _records);
+  bool get canManageSales =>
+      can('milk.sales.manage', whenUnknown: isSaccoAdmin);
+  bool get canTransfer => can('milk.transfers.create', whenUnknown: _records);
+  bool get canManageTransfers =>
+      can('milk.transfers.manage', whenUnknown: isSaccoAdmin);
+
+  bool get canRegisterFarmers => can('members.create', whenUnknown: _records);
+  bool get canEditFarmers => can('members.update', whenUnknown: isSaccoAdmin);
+
+  bool get canAddCustomers => can('customers.create', whenUnknown: _records);
+  bool get canEditCustomers =>
+      can('customers.update', whenUnknown: isSaccoAdmin);
+  bool get seesCustomerBalances =>
+      can('customers.statement.read', whenUnknown: isExecutive);
+  bool get canRecordPayments =>
+      can('customers.payments.manage', whenUnknown: isSaccoAdmin);
+
+  bool get canManageStaff => can('users.read', whenUnknown: isSaccoAdmin);
+  bool get canSetPrice => can('milk.prices.manage', whenUnknown: isSaccoAdmin);
 
   String get displayRole {
     if (isSuperUser) return 'Platform Administrator';

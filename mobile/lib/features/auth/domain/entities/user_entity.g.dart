@@ -36,6 +36,11 @@ _$UserEntityImpl _$$UserEntityImplFromJson(Map<String, dynamic> json) =>
       profile: json['profile'] == null
           ? null
           : UserProfileEntity.fromJson(json['profile'] as Map<String, dynamic>),
+      permissions:
+          (json['permissions'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const <String>[],
     );
 
 Map<String, dynamic> _$$UserEntityImplToJson(_$UserEntityImpl instance) =>
@@ -48,4 +53,5 @@ Map<String, dynamic> _$$UserEntityImplToJson(_$UserEntityImpl instance) =>
       'sacco_id': instance.saccoId,
       'role_name': instance.roleName,
       'profile': instance.profile,
+      'permissions': instance.permissions,
     };

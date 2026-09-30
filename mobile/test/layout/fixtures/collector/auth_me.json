@@ -25,22 +25,41 @@
           "bio": "",
           "created_at": "2026-09-28T09:01:17.929726+03:00",
           "updated_at": "2026-09-28T09:01:17.929726+03:00"
-        }
+        },
+        "permissions": [
+          "customers.create",
+          "customers.read",
+          "dashboard.collector.read",
+          "members.create",
+          "members.read",
+          "milk.collections.create",
+          "milk.collections.read",
+          "milk.prices.read",
+          "milk.reconciliation.read",
+          "milk.sales.create",
+          "milk.sales.read",
+          "milk.spoilage.create",
+          "milk.spoilage.read",
+          "milk.transfers.create",
+          "milk.transfers.read"
+        ]
       },
       "permissions": [
+        "customers.create",
+        "customers.read",
         "dashboard.collector.read",
-        "milk.prices.read",
+        "members.create",
+        "members.read",
         "milk.collections.create",
         "milk.collections.read",
+        "milk.prices.read",
+        "milk.reconciliation.read",
         "milk.sales.create",
         "milk.sales.read",
         "milk.spoilage.create",
         "milk.spoilage.read",
-        "members.read",
-        "members.create",
-        "milk.reconciliation.read",
-        "customers.read",
-        "customers.create"
+        "milk.transfers.create",
+        "milk.transfers.read"
       ]
     }
   }

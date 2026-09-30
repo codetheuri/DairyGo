@@ -43,6 +43,16 @@ Models use freezed/json_serializable; after changing one run
 Format with `dart format lib test` (generated `*.g.dart`/`*.freezed.dart`
 excluded: restore them with `git checkout` if a formatter touches them).
 
+## What a user may do
+
+Screens never look at the role's name. The server sends the user's
+`permissions` with the profile, and `UserEntity` turns them into questions
+the screens ask: `user.canRecordMilk`, `user.seesReports`,
+`user.canManageStaff`, or `user.can('some.permission', whenUnknown: ...)`.
+An operator can therefore change what a role may do in the platform console
+with no new app version; the app picks it up when it is next opened or
+brought to the front. See `../backend/docs/authorization.md`.
+
 ## Tests
 
 ```bash

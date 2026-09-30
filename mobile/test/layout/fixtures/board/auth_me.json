@@ -25,23 +25,43 @@
           "bio": "",
           "created_at": "2026-09-28T09:02:11.990721+03:00",
           "updated_at": "2026-09-28T09:02:11.990721+03:00"
-        }
+        },
+        "permissions": [
+          "customers.read",
+          "customers.statement.read",
+          "dashboard.collector.read",
+          "dashboard.executive.read",
+          "members.read",
+          "milk.collections.read",
+          "milk.prices.read",
+          "milk.reconciliation.read",
+          "milk.records.read_all",
+          "milk.sales.read",
+          "milk.spoilage.read",
+          "milk.transfers.read",
+          "reports.collector.read",
+          "reports.payout.read",
+          "reports.reconciliation.read",
+          "sacco.settings.read"
+        ]
       },
       "permissions": [
-        "dashboard.executive.read",
+        "customers.read",
+        "customers.statement.read",
         "dashboard.collector.read",
-        "milk.prices.read",
-        "reports.payout.read",
-        "reports.reconciliation.read",
-        "reports.collector.read",
+        "dashboard.executive.read",
         "members.read",
         "milk.collections.read",
+        "milk.prices.read",
+        "milk.reconciliation.read",
+        "milk.records.read_all",
         "milk.sales.read",
         "milk.spoilage.read",
-        "milk.reconciliation.read",
-        "sacco.settings.read",
-        "customers.read",
-        "customers.statement.read"
+        "milk.transfers.read",
+        "reports.collector.read",
+        "reports.payout.read",
+        "reports.reconciliation.read",
+        "sacco.settings.read"
       ]
     }
   }

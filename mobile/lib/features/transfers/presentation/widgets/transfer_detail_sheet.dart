@@ -188,7 +188,7 @@ class TransferDetailSheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authControllerProvider).valueOrNull?.user;
-    final isAdmin = user?.isSaccoAdmin ?? false;
+    final isAdmin = user?.canManageTransfers ?? false;
     final userId = user?.id ?? 0;
     final changeable = canChange(transfer, userId: userId, isAdmin: isAdmin);
     final historyAsync = ref.watch(transferHistoryProvider(transfer.id));

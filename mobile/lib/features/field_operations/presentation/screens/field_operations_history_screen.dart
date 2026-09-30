@@ -88,7 +88,7 @@ class _FieldOperationsHistoryScreenState
 
     final authState = ref.watch(authControllerProvider).valueOrNull;
     final user = authState?.user;
-    final isExecutive = user?.isExecutive ?? false;
+    final isExecutive = user?.seesAllRecords ?? false;
 
     final salesAsync = ref.watch(salesListProvider);
     final spoilageAsync = ref.watch(spoilageListProvider);

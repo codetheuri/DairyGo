@@ -38,7 +38,7 @@ class SaleDetailSheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isAdmin =
-        ref.watch(authControllerProvider).valueOrNull?.user?.isSaccoAdmin ??
+        ref.watch(authControllerProvider).valueOrNull?.user?.canManageSales ??
         false;
     final historyAsync = ref.watch(saleHistoryProvider(sale.id));
 

@@ -270,6 +270,10 @@ mixin _$UserEntity {
   String get roleName => throw _privateConstructorUsedError;
   UserProfileEntity? get profile => throw _privateConstructorUsedError;
 
+  /// What the user's role may do, as the server lists it with the profile.
+  /// Empty for a profile saved by an older version of the app.
+  List<String> get permissions => throw _privateConstructorUsedError;
+
   /// Serializes this UserEntity to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
@@ -296,6 +300,7 @@ abstract class $UserEntityCopyWith<$Res> {
     @JsonKey(name: 'sacco_id') String? saccoId,
     @JsonKey(name: 'role_name') String roleName,
     UserProfileEntity? profile,
+    List<String> permissions,
   });
 
   $UserProfileEntityCopyWith<$Res>? get profile;
@@ -324,6 +329,7 @@ class _$UserEntityCopyWithImpl<$Res, $Val extends UserEntity>
     Object? saccoId = freezed,
     Object? roleName = null,
     Object? profile = freezed,
+    Object? permissions = null,
   }) {
     return _then(
       _value.copyWith(
@@ -359,6 +365,10 @@ class _$UserEntityCopyWithImpl<$Res, $Val extends UserEntity>
                 ? _value.profile
                 : profile // ignore: cast_nullable_to_non_nullable
                       as UserProfileEntity?,
+            permissions: null == permissions
+                ? _value.permissions
+                : permissions // ignore: cast_nullable_to_non_nullable
+                      as List<String>,
           )
           as $Val,
     );
@@ -397,6 +407,7 @@ abstract class _$$UserEntityImplCopyWith<$Res>
     @JsonKey(name: 'sacco_id') String? saccoId,
     @JsonKey(name: 'role_name') String roleName,
     UserProfileEntity? profile,
+    List<String> permissions,
   });
 
   @override
@@ -425,6 +436,7 @@ class __$$UserEntityImplCopyWithImpl<$Res>
     Object? saccoId = freezed,
     Object? roleName = null,
     Object? profile = freezed,
+    Object? permissions = null,
   }) {
     return _then(
       _$UserEntityImpl(
@@ -460,6 +472,10 @@ class __$$UserEntityImplCopyWithImpl<$Res>
             ? _value.profile
             : profile // ignore: cast_nullable_to_non_nullable
                   as UserProfileEntity?,
+        permissions: null == permissions
+            ? _value._permissions
+            : permissions // ignore: cast_nullable_to_non_nullable
+                  as List<String>,
       ),
     );
   }
@@ -477,7 +493,9 @@ class _$UserEntityImpl extends _UserEntity {
     @JsonKey(name: 'sacco_id') this.saccoId,
     @JsonKey(name: 'role_name') this.roleName = '',
     this.profile,
-  }) : super._();
+    final List<String> permissions = const <String>[],
+  }) : _permissions = permissions,
+       super._();
 
   factory _$UserEntityImpl.fromJson(Map<String, dynamic> json) =>
       _$$UserEntityImplFromJson(json);
@@ -502,9 +520,23 @@ class _$UserEntityImpl extends _UserEntity {
   @override
   final UserProfileEntity? profile;
 
+  /// What the user's role may do, as the server lists it with the profile.
+  /// Empty for a profile saved by an older version of the app.
+  final List<String> _permissions;
+
+  /// What the user's role may do, as the server lists it with the profile.
+  /// Empty for a profile saved by an older version of the app.
+  @override
+  @JsonKey()
+  List<String> get permissions {
+    if (_permissions is EqualUnmodifiableListView) return _permissions;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_permissions);
+  }
+
   @override
   String toString() {
-    return 'UserEntity(id: $id, email: $email, username: $username, phone: $phone, isSuperUser: $isSuperUser, saccoId: $saccoId, roleName: $roleName, profile: $profile)';
+    return 'UserEntity(id: $id, email: $email, username: $username, phone: $phone, isSuperUser: $isSuperUser, saccoId: $saccoId, roleName: $roleName, profile: $profile, permissions: $permissions)';
   }
 
   @override
@@ -522,7 +554,11 @@ class _$UserEntityImpl extends _UserEntity {
             (identical(other.saccoId, saccoId) || other.saccoId == saccoId) &&
             (identical(other.roleName, roleName) ||
                 other.roleName == roleName) &&
-            (identical(other.profile, profile) || other.profile == profile));
+            (identical(other.profile, profile) || other.profile == profile) &&
+            const DeepCollectionEquality().equals(
+              other._permissions,
+              _permissions,
+            ));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -537,6 +573,7 @@ class _$UserEntityImpl extends _UserEntity {
     saccoId,
     roleName,
     profile,
+    const DeepCollectionEquality().hash(_permissions),
   );
 
   /// Create a copy of UserEntity
@@ -563,6 +600,7 @@ abstract class _UserEntity extends UserEntity {
     @JsonKey(name: 'sacco_id') final String? saccoId,
     @JsonKey(name: 'role_name') final String roleName,
     final UserProfileEntity? profile,
+    final List<String> permissions,
   }) = _$UserEntityImpl;
   const _UserEntity._() : super._();
 
@@ -588,6 +626,11 @@ abstract class _UserEntity extends UserEntity {
   String get roleName;
   @override
   UserProfileEntity? get profile;
+
+  /// What the user's role may do, as the server lists it with the profile.
+  /// Empty for a profile saved by an older version of the app.
+  @override
+  List<String> get permissions;
 
   /// Create a copy of UserEntity
   /// with the given fields replaced by the non-null parameter values.

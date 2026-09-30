@@ -32,4 +32,17 @@ class MemberRepositoryImpl implements MemberRepository {
   Future<MemberModel> createMember(CreateMemberRequestModel request) {
     return _remoteDataSource.createMember(request);
   }
+
+  @override
+  Future<MemberModel> updateNextOfKin(
+    String id, {
+    required String name,
+    required String relationship,
+    required String phone,
+  }) => _remoteDataSource.updateNextOfKin(
+    id,
+    name: name,
+    relationship: relationship,
+    phone: phone,
+  );
 }

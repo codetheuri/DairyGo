@@ -7,7 +7,9 @@ import '../../../../app/router/app_router.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/status_pill.dart';
+import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../controllers/member_controller.dart';
+import '../widgets/next_of_kin_dialog.dart';
 import '../../../../core/layout/breakpoints.dart';
 import '../../../../core/widgets/skeleton.dart';
 
@@ -19,6 +21,9 @@ class FarmerProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final memberAsync = ref.watch(memberDetailsProvider(memberId));
+    final canEdit =
+        ref.watch(authControllerProvider).valueOrNull?.user?.canEditFarmers ??
+        false;
 
     return Scaffold(
       appBar: AppBar(
@@ -164,6 +169,99 @@ class FarmerProfileScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 20),
 
+                  // Next of kin
+                  Text(
+                    'Next of Kin',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: member.hasNextOfKin
+                            ? AppColors.cardBorder
+                            : AppColors.warning,
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (member.hasNextOfKin) ...[
+                          _buildInfoRow(
+                            Icons.family_restroom_rounded,
+                            'Name',
+                            member.nextOfKinName!,
+                          ),
+                          const Divider(
+                            height: 20,
+                            color: AppColors.cardBorder,
+                          ),
+                          _buildInfoRow(
+                            Icons.diversity_1_rounded,
+                            'Relationship',
+                            member.nextOfKinRelationship ?? 'Not recorded',
+                          ),
+                          const Divider(
+                            height: 20,
+                            color: AppColors.cardBorder,
+                          ),
+                          _buildInfoRow(
+                            Icons.phone_in_talk_outlined,
+                            'Phone',
+                            member.nextOfKinPhone ?? 'Not recorded',
+                          ),
+                        ] else
+                          Text(
+                            canEdit
+                                ? 'Not recorded yet. This farmer was registered before next of kin was required.'
+                                : 'Not recorded yet. Ask an administrator to add it.',
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        if (canEdit) ...[
+                          const SizedBox(height: 12),
+                          OutlinedButton.icon(
+                            icon: Icon(
+                              member.hasNextOfKin
+                                  ? Icons.edit_outlined
+                                  : Icons.add_rounded,
+                              size: 18,
+                            ),
+                            label: Text(
+                              member.hasNextOfKin
+                                  ? 'Change next of kin'
+                                  : 'Add next of kin',
+                            ),
+                            onPressed: () async {
+                              final saved = await NextOfKinDialog.show(
+                                context,
+                                member,
+                              );
+                              if (saved == true && context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Next of kin saved'),
+                                    backgroundColor: AppColors.success,
+                                  ),
+                                );
+                              }
+                            },
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
                   // Payment Details Card
                   Text(
                     'Payout & Mobile Money Information',
@@ -251,23 +349,29 @@ class FarmerProfileScreen extends ConsumerWidget {
       children: [
         Icon(icon, size: 20, color: AppColors.primary),
         const SizedBox(width: 12),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              value,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
+        // Long values wrap instead of running off the screen.
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: AppColors.textMuted,
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );

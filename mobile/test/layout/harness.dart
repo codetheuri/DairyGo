@@ -74,6 +74,9 @@ class FixtureAdapter implements HttpClientAdapter {
   /// Saves sent, in order, as 'METHOD name'.
   final List<String> sent = [];
 
+  /// The body of the last save sent, by 'METHOD name'.
+  final Map<String, Object?> sentBodies = {};
+
   @override
   Future<ResponseBody> fetch(
     RequestOptions options,
@@ -91,7 +94,10 @@ class FixtureAdapter implements HttpClientAdapter {
     final file = File('test/layout/fixtures/$role/$name.json');
     var status = 404;
     Object body = {'success': false, 'message': 'not found'};
-    if (options.method != 'GET') sent.add('${options.method} $name');
+    if (options.method != 'GET') {
+      sent.add('${options.method} $name');
+      sentBodies['${options.method} $name'] = options.data;
+    }
     if (writes.containsKey('${options.method} $name')) {
       status = 200;
       body = writes['${options.method} $name']!;
@@ -198,7 +204,8 @@ class AppUnderTest {
   /// [responseDelay] holds every API answer, to show loading states;
   /// [settle] waits for the screen to finish loading; with [cache], reads go
   /// through the saved-copy interceptors as in the app; [updates] plays the
-  /// update server (nothing published by default).
+  /// update server (nothing published by default); [permissions] replaces
+  /// what the role may do, as an operator would in the console.
   static Future<AppUnderTest> open(
     WidgetTester tester,
     String role,
@@ -207,6 +214,7 @@ class AppUnderTest {
     bool settle = true,
     ResponseCache? cache,
     FakeAppUpdateService? updates,
+    List<String>? permissions,
   }) async {
     final server = FixtureAdapter(role, delay: responseDelay);
     final dio = Dio(BaseOptions(baseUrl: 'http://fixtures'))
@@ -218,7 +226,13 @@ class AppUnderTest {
     }
     final container = ProviderContainer(
       overrides: [
-        authControllerProvider.overrideWith(() => _SignedIn(userFor(role))),
+        authControllerProvider.overrideWith(
+          () => _SignedIn(
+            permissions == null
+                ? userFor(role)
+                : userFor(role).copyWith(permissions: permissions),
+          ),
+        ),
         dioClientProvider.overrideWithValue(dio),
         authDioProvider.overrideWithValue(dio),
         networkConnectivityServiceProvider.overrideWithValue(_Online()),

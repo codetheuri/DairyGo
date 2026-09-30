@@ -39,7 +39,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
   Widget build(BuildContext context) {
     final authState = ref.watch(authControllerProvider);
     final user = authState.valueOrNull?.user;
-    final isExecutive = user?.isExecutive ?? false;
+    final isExecutive = user?.seesExecutiveDashboard ?? false;
 
     final collectorAsync = ref.watch(collectorDashboardProvider(null));
     // Only executives may read the Sacco-wide summary; collectors would get 403.

@@ -52,11 +52,12 @@ class RoleNavigation {
   ];
 
   factory RoleNavigation.of(UserEntity? user) {
-    final admin = user?.isSaccoAdmin ?? false;
-    final executive = user?.isExecutive ?? false;
+    final records = user?.canRecordMilk ?? true;
+    final reports = user?.seesReports ?? false;
 
-    if (executive && !admin) {
-      // Board members oversee rather than record: reports and balances first.
+    if (!records && reports) {
+      // Those who oversee rather than record (board members): reports and
+      // balances first.
       return const RoleNavigation(
         bar: [
           AppSection.home,
@@ -76,7 +77,7 @@ class RoleNavigation {
         AppSection.farmers,
         AppSection.more,
       ],
-      overflow: [AppSection.customers, if (admin) AppSection.reports],
+      overflow: [AppSection.customers, if (reports) AppSection.reports],
     );
   }
 }

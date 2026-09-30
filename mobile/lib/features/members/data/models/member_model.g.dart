@@ -24,6 +24,9 @@ _$MemberModelImpl _$$MemberModelImplFromJson(Map<String, dynamic> json) =>
       bankName: json['bank_name'] as String?,
       bankAccountNumber: json['bank_account_number'] as String?,
       bankBranch: json['bank_branch'] as String?,
+      nextOfKinName: json['next_of_kin_name'] as String?,
+      nextOfKinRelationship: json['next_of_kin_relationship'] as String?,
+      nextOfKinPhone: json['next_of_kin_phone'] as String?,
       createdAt: json['created_at'] as String?,
     );
 
@@ -45,6 +48,9 @@ Map<String, dynamic> _$$MemberModelImplToJson(_$MemberModelImpl instance) =>
       'bank_name': instance.bankName,
       'bank_account_number': instance.bankAccountNumber,
       'bank_branch': instance.bankBranch,
+      'next_of_kin_name': instance.nextOfKinName,
+      'next_of_kin_relationship': instance.nextOfKinRelationship,
+      'next_of_kin_phone': instance.nextOfKinPhone,
       'created_at': instance.createdAt,
     };
 
@@ -61,6 +67,9 @@ _$CreateMemberRequestModelImpl _$$CreateMemberRequestModelImplFromJson(
   location: json['location'] as String?,
   mpesaNumber: json['mpesa_number'] as String?,
   mpesaName: json['mpesa_name'] as String?,
+  nextOfKinName: json['next_of_kin_name'] as String,
+  nextOfKinRelationship: json['next_of_kin_relationship'] as String,
+  nextOfKinPhone: json['next_of_kin_phone'] as String,
 );
 
 Map<String, dynamic> _$$CreateMemberRequestModelImplToJson(
@@ -76,4 +85,7 @@ Map<String, dynamic> _$$CreateMemberRequestModelImplToJson(
   'location': instance.location,
   'mpesa_number': instance.mpesaNumber,
   'mpesa_name': instance.mpesaName,
+  'next_of_kin_name': instance.nextOfKinName,
+  'next_of_kin_relationship': instance.nextOfKinRelationship,
+  'next_of_kin_phone': instance.nextOfKinPhone,
 };

@@ -24,10 +24,16 @@ class MemberModel with _$MemberModel {
     @JsonKey(name: 'bank_name') String? bankName,
     @JsonKey(name: 'bank_account_number') String? bankAccountNumber,
     @JsonKey(name: 'bank_branch') String? bankBranch,
+    @JsonKey(name: 'next_of_kin_name') String? nextOfKinName,
+    @JsonKey(name: 'next_of_kin_relationship') String? nextOfKinRelationship,
+    @JsonKey(name: 'next_of_kin_phone') String? nextOfKinPhone,
     @JsonKey(name: 'created_at') String? createdAt,
   }) = _MemberModel;
 
   String get fullName => '$firstName $lastName'.trim();
+
+  /// False for farmers registered before next of kin was collected.
+  bool get hasNextOfKin => (nextOfKinName ?? '').trim().isNotEmpty;
 
   factory MemberModel.fromJson(Map<String, dynamic> json) =>
       _$MemberModelFromJson(json);
@@ -46,6 +52,10 @@ class CreateMemberRequestModel with _$CreateMemberRequestModel {
     String? location,
     @JsonKey(name: 'mpesa_number') String? mpesaNumber,
     @JsonKey(name: 'mpesa_name') String? mpesaName,
+    @JsonKey(name: 'next_of_kin_name') required String nextOfKinName,
+    @JsonKey(name: 'next_of_kin_relationship')
+    required String nextOfKinRelationship,
+    @JsonKey(name: 'next_of_kin_phone') required String nextOfKinPhone,
   }) = _CreateMemberRequestModel;
 
   factory CreateMemberRequestModel.fromJson(Map<String, dynamic> json) =>

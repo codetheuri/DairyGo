@@ -13,6 +13,7 @@ import 'collector_audit_detail_screen.dart';
 import 'farmer_payout_detail_screen.dart';
 import '../../../../core/widgets/balance_badge.dart';
 import '../../../customers/data/models/customer_models.dart';
+import '../../../customers/presentation/widgets/customers_owing_sheet.dart';
 import '../../../../core/widgets/skeleton.dart';
 import '../../../../core/widgets/figure_cell.dart';
 
@@ -83,7 +84,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
   Widget build(BuildContext context) {
     final authState = ref.watch(authControllerProvider).valueOrNull;
     final user = authState?.user;
-    final isExecutive = user?.isExecutive ?? false;
+    final isExecutive = user?.seesReports ?? false;
 
     // Security Gate: Restrict Reports View to Sacco Administrators & Executive Board Members
     if (!isExecutive) {
@@ -453,9 +454,14 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
+                                    // Wraps at large text sizes
+                                    // instead of running off the card.
+                                    Wrap(
+                                      alignment: WrapAlignment.spaceBetween,
+                                      crossAxisAlignment:
+                                          WrapCrossAlignment.center,
+                                      spacing: 8,
+                                      runSpacing: 6,
                                       children: [
                                         const Text(
                                           'Milk Balance',
@@ -678,11 +684,50 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
                                       height: 20,
                                       color: AppColors.cardBorder,
                                     ),
-                                    _buildLedgerRow(
-                                      'Customers Owe (now)',
-                                      'KES ${ledger.receivablesKes.toStringAsFixed(2)}',
-                                      AppColors.warning,
+                                    // Opens the customers who owe, for
+                                    // those allowed to see balances.
+                                    InkWell(
+                                      onTap:
+                                          (user?.seesCustomerBalances ?? false)
+                                          ? () => CustomersOwingSheet.show(
+                                              context,
+                                            )
+                                          : null,
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 6,
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Expanded(
+                                              child: _buildLedgerRow(
+                                                'Customers Owe (now)',
+                                                'KES ${ledger.receivablesKes.toStringAsFixed(2)}',
+                                                AppColors.warning,
+                                              ),
+                                            ),
+                                            if (user?.seesCustomerBalances ??
+                                                false)
+                                              const Icon(
+                                                Icons.chevron_right_rounded,
+                                                color: AppColors.textMuted,
+                                              ),
+                                          ],
+                                        ),
+                                      ),
                                     ),
+                                    if (user?.seesCustomerBalances ?? false)
+                                      const Align(
+                                        alignment: Alignment.centerLeft,
+                                        child: Text(
+                                          'Tap to see who owes',
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            color: AppColors.textMuted,
+                                          ),
+                                        ),
+                                      ),
                                   ],
                                 ),
                               ),
@@ -863,19 +908,28 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
   }
 
   Widget _buildLedgerRow(String label, String value, Color color) {
+    // The label takes the room the figure leaves and wraps if it must.
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+        Expanded(
+          child: Text(
+            label,
+            style: const TextStyle(
+              fontSize: 13,
+              color: AppColors.textSecondary,
+            ),
+          ),
         ),
-        Text(
-          value,
-          style: TextStyle(
-            fontWeight: FontWeight.w800,
-            fontSize: 14,
-            color: color,
+        const SizedBox(width: 8),
+        Flexible(
+          child: Text(
+            value,
+            textAlign: TextAlign.end,
+            style: TextStyle(
+              fontWeight: FontWeight.w800,
+              fontSize: 14,
+              color: color,
+            ),
           ),
         ),
       ],

@@ -134,7 +134,7 @@ class _RecordTransferScreenState extends ConsumerState<RecordTransferScreen> {
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(authControllerProvider).valueOrNull?.user;
-    final isAdmin = user?.isSaccoAdmin ?? false;
+    final isAdmin = user?.canManageTransfers ?? false;
     final recipientsAsync = ref.watch(transferRecipientsProvider);
     // What the collector still holds today: the unaccounted balance.
     final holding = !isAdmin && _isToday

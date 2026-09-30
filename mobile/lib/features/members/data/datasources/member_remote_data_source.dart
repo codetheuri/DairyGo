@@ -12,6 +12,12 @@ abstract class MemberRemoteDataSource {
   });
   Future<MemberModel> getMemberById(String id);
   Future<MemberModel> createMember(CreateMemberRequestModel request);
+  Future<MemberModel> updateNextOfKin(
+    String id, {
+    required String name,
+    required String relationship,
+    required String phone,
+  });
 }
 
 class MemberRemoteDataSourceImpl implements MemberRemoteDataSource {
@@ -94,13 +100,51 @@ class MemberRemoteDataSourceImpl implements MemberRemoteDataSource {
       }
       throw Exception(data['message'] ?? 'Failed to register farmer member');
     } on DioException catch (e) {
-      final serverMsg = e.response?.data is Map
-          ? (e.response?.data['message'] ??
-                e.response?.data['errors']?['phone'])
-          : null;
       throw Exception(
-        serverMsg ?? e.message ?? 'Error registering farmer member',
+        _serverMessage(e) ?? e.message ?? 'Error registering farmer member',
       );
     }
+  }
+
+  @override
+  Future<MemberModel> updateNextOfKin(
+    String id, {
+    required String name,
+    required String relationship,
+    required String phone,
+  }) async {
+    try {
+      final response = await _dio.put(
+        '${ApiConstants.members}/$id',
+        data: {
+          'next_of_kin_name': name,
+          'next_of_kin_relationship': relationship,
+          'next_of_kin_phone': phone,
+        },
+      );
+      final data = response.data as Map<String, dynamic>;
+      if (data['success'] == true && data['data'] != null) {
+        return MemberModel.fromJson(
+          data['data']['member'] as Map<String, dynamic>,
+        );
+      }
+      throw Exception(data['message'] ?? 'Could not save the next of kin');
+    } on DioException catch (e) {
+      throw Exception(
+        _serverMessage(e) ?? e.message ?? 'Could not save the next of kin',
+      );
+    }
+  }
+
+  /// The reason the server gave: the first field error, else its message.
+  static String? _serverMessage(DioException e) {
+    final data = e.response?.data;
+    if (data is! Map) return null;
+    final errors = data['errors'];
+    if (errors is Map && errors.isNotEmpty) {
+      final first = errors.values.first?.toString();
+      if (first != null && first.isNotEmpty) return first;
+    }
+    return data['message']?.toString();
   }
 }

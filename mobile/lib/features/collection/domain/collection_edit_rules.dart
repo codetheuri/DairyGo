@@ -16,8 +16,8 @@ String? collectionEditBlockReason(
   if (collection.status == 'VERIFIED' || collection.status == 'REJECTED') {
     return 'This entry is ${collection.status.toLowerCase()} and locked. An admin must reopen it first.';
   }
-  if (user.isSaccoAdmin) return null;
-  if (user.isExecutive) return 'Board members have read-only access.';
+  if (user.canManageCollections) return null;
+  if (!user.canRecordMilk) return 'Board members have read-only access.';
   if (collection.collectorId != user.id) {
     return 'You can only edit entries you recorded.';
   }

@@ -23,9 +23,7 @@ class TransfersTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authControllerProvider).valueOrNull?.user;
     final userId = user?.id ?? 0;
-    // Board members read; collectors and admins also transfer.
-    final canTransfer =
-        user != null && (!user.isExecutive || user.isSaccoAdmin);
+    final canTransfer = user?.canTransfer ?? false;
     final async = ref.watch(dayTransfersProvider);
 
     Widget header(double received, double given, bool mine) => Padding(
@@ -79,7 +77,7 @@ class TransfersTab extends ConsumerWidget {
         }
         // Collectors see their own figures; admins and board members see
         // everyone's transfers, where "mine" means little.
-        final mine = !(user?.isExecutive ?? false);
+        final mine = !(user?.seesAllRecords ?? false);
 
         return RefreshIndicator(
           onRefresh: () => ref.refreshFromServer([dayTransfersProvider.future]),

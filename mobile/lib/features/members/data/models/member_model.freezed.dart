@@ -47,6 +47,12 @@ mixin _$MemberModel {
   String? get bankAccountNumber => throw _privateConstructorUsedError;
   @JsonKey(name: 'bank_branch')
   String? get bankBranch => throw _privateConstructorUsedError;
+  @JsonKey(name: 'next_of_kin_name')
+  String? get nextOfKinName => throw _privateConstructorUsedError;
+  @JsonKey(name: 'next_of_kin_relationship')
+  String? get nextOfKinRelationship => throw _privateConstructorUsedError;
+  @JsonKey(name: 'next_of_kin_phone')
+  String? get nextOfKinPhone => throw _privateConstructorUsedError;
   @JsonKey(name: 'created_at')
   String? get createdAt => throw _privateConstructorUsedError;
 
@@ -84,6 +90,9 @@ abstract class $MemberModelCopyWith<$Res> {
     @JsonKey(name: 'bank_name') String? bankName,
     @JsonKey(name: 'bank_account_number') String? bankAccountNumber,
     @JsonKey(name: 'bank_branch') String? bankBranch,
+    @JsonKey(name: 'next_of_kin_name') String? nextOfKinName,
+    @JsonKey(name: 'next_of_kin_relationship') String? nextOfKinRelationship,
+    @JsonKey(name: 'next_of_kin_phone') String? nextOfKinPhone,
     @JsonKey(name: 'created_at') String? createdAt,
   });
 }
@@ -119,6 +128,9 @@ class _$MemberModelCopyWithImpl<$Res, $Val extends MemberModel>
     Object? bankName = freezed,
     Object? bankAccountNumber = freezed,
     Object? bankBranch = freezed,
+    Object? nextOfKinName = freezed,
+    Object? nextOfKinRelationship = freezed,
+    Object? nextOfKinPhone = freezed,
     Object? createdAt = freezed,
   }) {
     return _then(
@@ -187,6 +199,18 @@ class _$MemberModelCopyWithImpl<$Res, $Val extends MemberModel>
                 ? _value.bankBranch
                 : bankBranch // ignore: cast_nullable_to_non_nullable
                       as String?,
+            nextOfKinName: freezed == nextOfKinName
+                ? _value.nextOfKinName
+                : nextOfKinName // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            nextOfKinRelationship: freezed == nextOfKinRelationship
+                ? _value.nextOfKinRelationship
+                : nextOfKinRelationship // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            nextOfKinPhone: freezed == nextOfKinPhone
+                ? _value.nextOfKinPhone
+                : nextOfKinPhone // ignore: cast_nullable_to_non_nullable
+                      as String?,
             createdAt: freezed == createdAt
                 ? _value.createdAt
                 : createdAt // ignore: cast_nullable_to_non_nullable
@@ -223,6 +247,9 @@ abstract class _$$MemberModelImplCopyWith<$Res>
     @JsonKey(name: 'bank_name') String? bankName,
     @JsonKey(name: 'bank_account_number') String? bankAccountNumber,
     @JsonKey(name: 'bank_branch') String? bankBranch,
+    @JsonKey(name: 'next_of_kin_name') String? nextOfKinName,
+    @JsonKey(name: 'next_of_kin_relationship') String? nextOfKinRelationship,
+    @JsonKey(name: 'next_of_kin_phone') String? nextOfKinPhone,
     @JsonKey(name: 'created_at') String? createdAt,
   });
 }
@@ -257,6 +284,9 @@ class __$$MemberModelImplCopyWithImpl<$Res>
     Object? bankName = freezed,
     Object? bankAccountNumber = freezed,
     Object? bankBranch = freezed,
+    Object? nextOfKinName = freezed,
+    Object? nextOfKinRelationship = freezed,
+    Object? nextOfKinPhone = freezed,
     Object? createdAt = freezed,
   }) {
     return _then(
@@ -325,6 +355,18 @@ class __$$MemberModelImplCopyWithImpl<$Res>
             ? _value.bankBranch
             : bankBranch // ignore: cast_nullable_to_non_nullable
                   as String?,
+        nextOfKinName: freezed == nextOfKinName
+            ? _value.nextOfKinName
+            : nextOfKinName // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        nextOfKinRelationship: freezed == nextOfKinRelationship
+            ? _value.nextOfKinRelationship
+            : nextOfKinRelationship // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        nextOfKinPhone: freezed == nextOfKinPhone
+            ? _value.nextOfKinPhone
+            : nextOfKinPhone // ignore: cast_nullable_to_non_nullable
+                  as String?,
         createdAt: freezed == createdAt
             ? _value.createdAt
             : createdAt // ignore: cast_nullable_to_non_nullable
@@ -354,6 +396,9 @@ class _$MemberModelImpl extends _MemberModel {
     @JsonKey(name: 'bank_name') this.bankName,
     @JsonKey(name: 'bank_account_number') this.bankAccountNumber,
     @JsonKey(name: 'bank_branch') this.bankBranch,
+    @JsonKey(name: 'next_of_kin_name') this.nextOfKinName,
+    @JsonKey(name: 'next_of_kin_relationship') this.nextOfKinRelationship,
+    @JsonKey(name: 'next_of_kin_phone') this.nextOfKinPhone,
     @JsonKey(name: 'created_at') this.createdAt,
   }) : super._();
 
@@ -405,12 +450,21 @@ class _$MemberModelImpl extends _MemberModel {
   @JsonKey(name: 'bank_branch')
   final String? bankBranch;
   @override
+  @JsonKey(name: 'next_of_kin_name')
+  final String? nextOfKinName;
+  @override
+  @JsonKey(name: 'next_of_kin_relationship')
+  final String? nextOfKinRelationship;
+  @override
+  @JsonKey(name: 'next_of_kin_phone')
+  final String? nextOfKinPhone;
+  @override
   @JsonKey(name: 'created_at')
   final String? createdAt;
 
   @override
   String toString() {
-    return 'MemberModel(id: $id, saccoId: $saccoId, membershipNumber: $membershipNumber, firstName: $firstName, lastName: $lastName, nationalId: $nationalId, phone: $phone, email: $email, gender: $gender, location: $location, status: $status, mpesaNumber: $mpesaNumber, mpesaName: $mpesaName, bankName: $bankName, bankAccountNumber: $bankAccountNumber, bankBranch: $bankBranch, createdAt: $createdAt)';
+    return 'MemberModel(id: $id, saccoId: $saccoId, membershipNumber: $membershipNumber, firstName: $firstName, lastName: $lastName, nationalId: $nationalId, phone: $phone, email: $email, gender: $gender, location: $location, status: $status, mpesaNumber: $mpesaNumber, mpesaName: $mpesaName, bankName: $bankName, bankAccountNumber: $bankAccountNumber, bankBranch: $bankBranch, nextOfKinName: $nextOfKinName, nextOfKinRelationship: $nextOfKinRelationship, nextOfKinPhone: $nextOfKinPhone, createdAt: $createdAt)';
   }
 
   @override
@@ -444,13 +498,19 @@ class _$MemberModelImpl extends _MemberModel {
                 other.bankAccountNumber == bankAccountNumber) &&
             (identical(other.bankBranch, bankBranch) ||
                 other.bankBranch == bankBranch) &&
+            (identical(other.nextOfKinName, nextOfKinName) ||
+                other.nextOfKinName == nextOfKinName) &&
+            (identical(other.nextOfKinRelationship, nextOfKinRelationship) ||
+                other.nextOfKinRelationship == nextOfKinRelationship) &&
+            (identical(other.nextOfKinPhone, nextOfKinPhone) ||
+                other.nextOfKinPhone == nextOfKinPhone) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     runtimeType,
     id,
     saccoId,
@@ -468,8 +528,11 @@ class _$MemberModelImpl extends _MemberModel {
     bankName,
     bankAccountNumber,
     bankBranch,
+    nextOfKinName,
+    nextOfKinRelationship,
+    nextOfKinPhone,
     createdAt,
-  );
+  ]);
 
   /// Create a copy of MemberModel
   /// with the given fields replaced by the non-null parameter values.
@@ -503,6 +566,10 @@ abstract class _MemberModel extends MemberModel {
     @JsonKey(name: 'bank_name') final String? bankName,
     @JsonKey(name: 'bank_account_number') final String? bankAccountNumber,
     @JsonKey(name: 'bank_branch') final String? bankBranch,
+    @JsonKey(name: 'next_of_kin_name') final String? nextOfKinName,
+    @JsonKey(name: 'next_of_kin_relationship')
+    final String? nextOfKinRelationship,
+    @JsonKey(name: 'next_of_kin_phone') final String? nextOfKinPhone,
     @JsonKey(name: 'created_at') final String? createdAt,
   }) = _$MemberModelImpl;
   const _MemberModel._() : super._();
@@ -553,6 +620,15 @@ abstract class _MemberModel extends MemberModel {
   @JsonKey(name: 'bank_branch')
   String? get bankBranch;
   @override
+  @JsonKey(name: 'next_of_kin_name')
+  String? get nextOfKinName;
+  @override
+  @JsonKey(name: 'next_of_kin_relationship')
+  String? get nextOfKinRelationship;
+  @override
+  @JsonKey(name: 'next_of_kin_phone')
+  String? get nextOfKinPhone;
+  @override
   @JsonKey(name: 'created_at')
   String? get createdAt;
 
@@ -588,6 +664,12 @@ mixin _$CreateMemberRequestModel {
   String? get mpesaNumber => throw _privateConstructorUsedError;
   @JsonKey(name: 'mpesa_name')
   String? get mpesaName => throw _privateConstructorUsedError;
+  @JsonKey(name: 'next_of_kin_name')
+  String get nextOfKinName => throw _privateConstructorUsedError;
+  @JsonKey(name: 'next_of_kin_relationship')
+  String get nextOfKinRelationship => throw _privateConstructorUsedError;
+  @JsonKey(name: 'next_of_kin_phone')
+  String get nextOfKinPhone => throw _privateConstructorUsedError;
 
   /// Serializes this CreateMemberRequestModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -617,6 +699,9 @@ abstract class $CreateMemberRequestModelCopyWith<$Res> {
     String? location,
     @JsonKey(name: 'mpesa_number') String? mpesaNumber,
     @JsonKey(name: 'mpesa_name') String? mpesaName,
+    @JsonKey(name: 'next_of_kin_name') String nextOfKinName,
+    @JsonKey(name: 'next_of_kin_relationship') String nextOfKinRelationship,
+    @JsonKey(name: 'next_of_kin_phone') String nextOfKinPhone,
   });
 }
 
@@ -648,6 +733,9 @@ class _$CreateMemberRequestModelCopyWithImpl<
     Object? location = freezed,
     Object? mpesaNumber = freezed,
     Object? mpesaName = freezed,
+    Object? nextOfKinName = null,
+    Object? nextOfKinRelationship = null,
+    Object? nextOfKinPhone = null,
   }) {
     return _then(
       _value.copyWith(
@@ -691,6 +779,18 @@ class _$CreateMemberRequestModelCopyWithImpl<
                 ? _value.mpesaName
                 : mpesaName // ignore: cast_nullable_to_non_nullable
                       as String?,
+            nextOfKinName: null == nextOfKinName
+                ? _value.nextOfKinName
+                : nextOfKinName // ignore: cast_nullable_to_non_nullable
+                      as String,
+            nextOfKinRelationship: null == nextOfKinRelationship
+                ? _value.nextOfKinRelationship
+                : nextOfKinRelationship // ignore: cast_nullable_to_non_nullable
+                      as String,
+            nextOfKinPhone: null == nextOfKinPhone
+                ? _value.nextOfKinPhone
+                : nextOfKinPhone // ignore: cast_nullable_to_non_nullable
+                      as String,
           )
           as $Val,
     );
@@ -717,6 +817,9 @@ abstract class _$$CreateMemberRequestModelImplCopyWith<$Res>
     String? location,
     @JsonKey(name: 'mpesa_number') String? mpesaNumber,
     @JsonKey(name: 'mpesa_name') String? mpesaName,
+    @JsonKey(name: 'next_of_kin_name') String nextOfKinName,
+    @JsonKey(name: 'next_of_kin_relationship') String nextOfKinRelationship,
+    @JsonKey(name: 'next_of_kin_phone') String nextOfKinPhone,
   });
 }
 
@@ -748,6 +851,9 @@ class __$$CreateMemberRequestModelImplCopyWithImpl<$Res>
     Object? location = freezed,
     Object? mpesaNumber = freezed,
     Object? mpesaName = freezed,
+    Object? nextOfKinName = null,
+    Object? nextOfKinRelationship = null,
+    Object? nextOfKinPhone = null,
   }) {
     return _then(
       _$CreateMemberRequestModelImpl(
@@ -791,6 +897,18 @@ class __$$CreateMemberRequestModelImplCopyWithImpl<$Res>
             ? _value.mpesaName
             : mpesaName // ignore: cast_nullable_to_non_nullable
                   as String?,
+        nextOfKinName: null == nextOfKinName
+            ? _value.nextOfKinName
+            : nextOfKinName // ignore: cast_nullable_to_non_nullable
+                  as String,
+        nextOfKinRelationship: null == nextOfKinRelationship
+            ? _value.nextOfKinRelationship
+            : nextOfKinRelationship // ignore: cast_nullable_to_non_nullable
+                  as String,
+        nextOfKinPhone: null == nextOfKinPhone
+            ? _value.nextOfKinPhone
+            : nextOfKinPhone // ignore: cast_nullable_to_non_nullable
+                  as String,
       ),
     );
   }
@@ -810,6 +928,10 @@ class _$CreateMemberRequestModelImpl implements _CreateMemberRequestModel {
     this.location,
     @JsonKey(name: 'mpesa_number') this.mpesaNumber,
     @JsonKey(name: 'mpesa_name') this.mpesaName,
+    @JsonKey(name: 'next_of_kin_name') required this.nextOfKinName,
+    @JsonKey(name: 'next_of_kin_relationship')
+    required this.nextOfKinRelationship,
+    @JsonKey(name: 'next_of_kin_phone') required this.nextOfKinPhone,
   });
 
   factory _$CreateMemberRequestModelImpl.fromJson(Map<String, dynamic> json) =>
@@ -841,10 +963,19 @@ class _$CreateMemberRequestModelImpl implements _CreateMemberRequestModel {
   @override
   @JsonKey(name: 'mpesa_name')
   final String? mpesaName;
+  @override
+  @JsonKey(name: 'next_of_kin_name')
+  final String nextOfKinName;
+  @override
+  @JsonKey(name: 'next_of_kin_relationship')
+  final String nextOfKinRelationship;
+  @override
+  @JsonKey(name: 'next_of_kin_phone')
+  final String nextOfKinPhone;
 
   @override
   String toString() {
-    return 'CreateMemberRequestModel(membershipNumber: $membershipNumber, firstName: $firstName, lastName: $lastName, nationalId: $nationalId, phone: $phone, email: $email, gender: $gender, location: $location, mpesaNumber: $mpesaNumber, mpesaName: $mpesaName)';
+    return 'CreateMemberRequestModel(membershipNumber: $membershipNumber, firstName: $firstName, lastName: $lastName, nationalId: $nationalId, phone: $phone, email: $email, gender: $gender, location: $location, mpesaNumber: $mpesaNumber, mpesaName: $mpesaName, nextOfKinName: $nextOfKinName, nextOfKinRelationship: $nextOfKinRelationship, nextOfKinPhone: $nextOfKinPhone)';
   }
 
   @override
@@ -868,7 +999,13 @@ class _$CreateMemberRequestModelImpl implements _CreateMemberRequestModel {
             (identical(other.mpesaNumber, mpesaNumber) ||
                 other.mpesaNumber == mpesaNumber) &&
             (identical(other.mpesaName, mpesaName) ||
-                other.mpesaName == mpesaName));
+                other.mpesaName == mpesaName) &&
+            (identical(other.nextOfKinName, nextOfKinName) ||
+                other.nextOfKinName == nextOfKinName) &&
+            (identical(other.nextOfKinRelationship, nextOfKinRelationship) ||
+                other.nextOfKinRelationship == nextOfKinRelationship) &&
+            (identical(other.nextOfKinPhone, nextOfKinPhone) ||
+                other.nextOfKinPhone == nextOfKinPhone));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -885,6 +1022,9 @@ class _$CreateMemberRequestModelImpl implements _CreateMemberRequestModel {
     location,
     mpesaNumber,
     mpesaName,
+    nextOfKinName,
+    nextOfKinRelationship,
+    nextOfKinPhone,
   );
 
   /// Create a copy of CreateMemberRequestModel
@@ -916,6 +1056,10 @@ abstract class _CreateMemberRequestModel implements CreateMemberRequestModel {
     final String? location,
     @JsonKey(name: 'mpesa_number') final String? mpesaNumber,
     @JsonKey(name: 'mpesa_name') final String? mpesaName,
+    @JsonKey(name: 'next_of_kin_name') required final String nextOfKinName,
+    @JsonKey(name: 'next_of_kin_relationship')
+    required final String nextOfKinRelationship,
+    @JsonKey(name: 'next_of_kin_phone') required final String nextOfKinPhone,
   }) = _$CreateMemberRequestModelImpl;
 
   factory _CreateMemberRequestModel.fromJson(Map<String, dynamic> json) =
@@ -947,6 +1091,15 @@ abstract class _CreateMemberRequestModel implements CreateMemberRequestModel {
   @override
   @JsonKey(name: 'mpesa_name')
   String? get mpesaName;
+  @override
+  @JsonKey(name: 'next_of_kin_name')
+  String get nextOfKinName;
+  @override
+  @JsonKey(name: 'next_of_kin_relationship')
+  String get nextOfKinRelationship;
+  @override
+  @JsonKey(name: 'next_of_kin_phone')
+  String get nextOfKinPhone;
 
   /// Create a copy of CreateMemberRequestModel
   /// with the given fields replaced by the non-null parameter values.

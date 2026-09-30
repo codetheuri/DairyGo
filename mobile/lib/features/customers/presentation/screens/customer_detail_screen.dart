@@ -96,10 +96,10 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(authControllerProvider).valueOrNull?.user;
-    final isAdmin = user?.isSaccoAdmin ?? false;
-    final seesStatement =
-        user?.isExecutive ?? false; // admins and board members
-    final canSell = isAdmin || !(user?.isExecutive ?? false); // not board
+    final isAdmin = user?.canRecordPayments ?? false;
+    final canEdit = user?.canEditCustomers ?? false;
+    final seesStatement = user?.seesCustomerBalances ?? false;
+    final canSell = user?.canSell ?? false;
     final customerAsync = ref.watch(customerDetailProvider(widget.customerId));
 
     return RefreshOnShow(
@@ -171,7 +171,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                             }
                           },
                         ),
-                      if (isAdmin)
+                      if (canEdit)
                         TextButton(
                           onPressed: () => _toggleStatus(customer),
                           child: Text(

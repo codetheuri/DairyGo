@@ -68,6 +68,38 @@ final memberDetailsProvider = FutureProvider.family<MemberModel, String>((
   return repository.getMemberById(id);
 });
 
+/// Changes to a farmer's profile. Each method returns null on success or the
+/// message to show.
+class MemberActions {
+  final Ref _ref;
+
+  MemberActions(this._ref);
+
+  Future<String?> saveNextOfKin(
+    String memberId, {
+    required String name,
+    required String relationship,
+    required String phone,
+  }) async {
+    try {
+      await _ref
+          .read(memberRepositoryProvider)
+          .updateNextOfKin(
+            memberId,
+            name: name,
+            relationship: relationship,
+            phone: phone,
+          );
+      _ref.invalidate(memberDetailsProvider(memberId));
+      return null;
+    } catch (e) {
+      return e.toString().replaceAll('Exception: ', '');
+    }
+  }
+}
+
+final memberActionsProvider = Provider<MemberActions>(MemberActions.new);
+
 class RegisterMemberController extends StateNotifier<AsyncValue<MemberModel?>> {
   final MemberRepository _repository;
   final Ref _ref;

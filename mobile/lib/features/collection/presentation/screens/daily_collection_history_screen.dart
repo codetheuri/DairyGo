@@ -68,7 +68,7 @@ class DailyCollectionHistoryScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authControllerProvider).valueOrNull;
     final user = authState?.user;
-    final isExecutive = user?.isExecutive ?? false;
+    final isExecutive = user?.seesAllRecords ?? false;
 
     final search = ref.watch(collectionSearchProvider);
     final shiftFilter = ref.watch(collectionFilterShiftProvider);
@@ -537,7 +537,8 @@ class DailyCollectionHistoryScreen extends ConsumerWidget {
                                           builder: (_) => EditCollectionDialog(
                                             collection: item,
                                             isAdmin:
-                                                user?.isSaccoAdmin ?? false,
+                                                user?.canManageCollections ??
+                                                false,
                                           ),
                                         );
                                       },

@@ -16,7 +16,8 @@
         "month_gross_margin_kes": -135250,
         "receivables_kes": 94800,
         "active_members_count": 154,
-        "active_collectors_count": 1
+        "active_collectors_count": 1,
+        "today_transferred_litres": 39.5
       },
       "intake_trend": [
         {

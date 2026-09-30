@@ -101,8 +101,8 @@ class CollectorDashboardView extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Collected ${data.todayCollectedLitres}L − Sold ${data.todaySoldLitres}L − Spoiled ${data.todaySpoiledLitres}L. '
-                    'Record every sale, coolers included, so this reaches 0.',
+                    '${_balanceLine(data)} '
+                    'Record every sale and transfer, coolers included, so this reaches 0.',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Colors.white.withValues(alpha: 0.8),
                     ),
@@ -165,6 +165,21 @@ class CollectorDashboardView extends StatelessWidget {
                     backgroundColor: AppColors.warning.withValues(alpha: 0.1),
                   ),
                 ),
+                if (data.todayReceivedLitres > 0 ||
+                    data.todayTransferredOutLitres > 0)
+                  InkWell(
+                    onTap: () => context.go(AppRoutes.fieldOperations),
+                    borderRadius: BorderRadius.circular(16),
+                    child: StatCard(
+                      title: 'Transfers',
+                      value:
+                          '+${data.todayReceivedLitres.toStringAsFixed(1)} / −${data.todayTransferredOutLitres.toStringAsFixed(1)} L',
+                      subtitle: 'Received / given to collectors',
+                      icon: Icons.swap_horiz_rounded,
+                      iconColor: AppColors.info,
+                      backgroundColor: AppColors.infoContainer,
+                    ),
+                  ),
                 StatCard(
                   title: 'Intake Value',
                   value: 'KES ${data.todayPurchasesAmount.toStringAsFixed(0)}',
@@ -216,28 +231,51 @@ class CollectorDashboardView extends StatelessWidget {
                 Expanded(
                   child: _buildActionButton(
                     context,
-                    icon: Icons.remove_circle_outline_rounded,
-                    label: 'Log Spoilage',
-                    color: AppColors.warning,
-                    onTap: () => context.push(AppRoutes.recordSpoilage),
+                    icon: Icons.swap_horiz_rounded,
+                    label: 'Transfer Milk',
+                    color: AppColors.info,
+                    onTap: () => context.push(AppRoutes.recordTransfer),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: _buildActionButton(
                     context,
-                    icon: Icons.person_add_alt_1_rounded,
-                    label: 'New Farmer',
-                    color: AppColors.primaryDark,
-                    onTap: () => context.push(AppRoutes.registerMember),
+                    icon: Icons.remove_circle_outline_rounded,
+                    label: 'Log Spoilage',
+                    color: AppColors.warning,
+                    onTap: () => context.push(AppRoutes.recordSpoilage),
                   ),
                 ),
               ],
+            ),
+            const SizedBox(height: 12),
+            _buildActionButton(
+              context,
+              icon: Icons.person_add_alt_1_rounded,
+              label: 'New Farmer',
+              color: AppColors.primaryDark,
+              onTap: () => context.push(AppRoutes.registerMember),
             ),
           ],
         ),
       ),
     );
+  }
+
+  /// "Collected 80L + received 20L − sold 55L − given 20L − spoiled 5L."
+  /// Transfers appear only when there were any.
+  static String _balanceLine(CollectorDashboardModel d) {
+    String l(double v) =>
+        '${v.toStringAsFixed(v == v.roundToDouble() ? 0 : 1)}L';
+    return [
+      'Collected ${l(d.todayCollectedLitres)}',
+      if (d.todayReceivedLitres > 0) '+ received ${l(d.todayReceivedLitres)}',
+      '− sold ${l(d.todaySoldLitres)}',
+      if (d.todayTransferredOutLitres > 0)
+        '− given ${l(d.todayTransferredOutLitres)}',
+      '− spoiled ${l(d.todaySpoiledLitres)}.',
+    ].join(' ');
   }
 
   Widget _buildActionButton(

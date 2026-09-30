@@ -76,6 +76,8 @@ server in `test/layout/fixtures`.
 - [Speed and offline](docs/performance-and-offline.md): what makes the app
   usable on a 100 kbps connection or with no signal, and how screens show
   records saved on other phones.
+- Milk transfers between collectors: `../backend/docs/milk-transfers.md`
+  (the Transfers tab, the Transfer milk form, and where they show).
 - [Releasing the app](docs/releases.md): release key, download page,
   in-app updates, forcing an update.
 - Backend and business rules: `../backend/docs/`.

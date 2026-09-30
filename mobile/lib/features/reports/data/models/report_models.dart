@@ -51,6 +51,12 @@ class CollectorAuditSummaryModel with _$CollectorAuditSummaryModel {
     @Default(0.0)
     double totalSpoiledLitres,
     // collected - sold - spoiled; > 0 missing, < 0 oversold
+    @JsonKey(name: 'total_received_litres')
+    @Default(0.0)
+    double totalReceivedLitres,
+    @JsonKey(name: 'total_transferred_out_litres')
+    @Default(0.0)
+    double totalTransferredOutLitres,
     @JsonKey(name: 'unaccounted_litres') @Default(0.0) double unaccountedLitres,
     @JsonKey(name: 'balance_status') @Default('BALANCED') String balanceStatus,
     // Allowed difference per collector per day, to balance each day alike.
@@ -88,6 +94,10 @@ class SaccoReconciliationLedgerModel with _$SaccoReconciliationLedgerModel {
     @Default(0.0)
     double totalSpoilageLitres,
     // collected - sold - spoiled; > 0 missing, < 0 oversold
+    // Moved between collectors; cancels out across the Sacco.
+    @JsonKey(name: 'total_transferred_litres')
+    @Default(0.0)
+    double totalTransferredLitres,
     @JsonKey(name: 'unaccounted_litres') @Default(0.0) double unaccountedLitres,
     @JsonKey(name: 'allowance_litres') @Default(0.0) double allowanceLitres,
     @JsonKey(name: 'is_balanced') @Default(true) bool isBalanced,

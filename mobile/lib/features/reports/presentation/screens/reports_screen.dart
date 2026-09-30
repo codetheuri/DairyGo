@@ -7,6 +7,7 @@ import '../../../../core/widgets/empty_state_widget.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/status_pill.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
+import '../../../transfers/presentation/widgets/transfer_tile.dart';
 import '../controllers/report_controller.dart';
 import 'collector_audit_detail_screen.dart';
 import 'farmer_payout_detail_screen.dart';
@@ -476,7 +477,8 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
                                       'sold ${ledger.totalSoldLitres.toStringAsFixed(1)} L − '
                                       'spoiled ${ledger.totalSpoilageLitres.toStringAsFixed(1)} L = '
                                       '${ledger.unaccountedLitres.toStringAsFixed(1)} L unaccounted '
-                                      '(tolerance ${ledger.allowanceLitres.toStringAsFixed(1)} L).',
+                                      '(tolerance ${ledger.allowanceLitres.toStringAsFixed(1)} L).'
+                                      '${ledger.totalTransferredLitres > 0 ? ' Transfers between collectors cancel out here; each collector below includes them.' : ''}',
                                       style: const TextStyle(
                                         fontSize: 12,
                                         color: AppColors.textSecondary,
@@ -582,6 +584,17 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
                                       '${ledger.totalSpoilageLitres.toStringAsFixed(1)} L',
                                       AppColors.error,
                                     ),
+                                    if (ledger.totalTransferredLitres > 0) ...[
+                                      const Divider(
+                                        height: 20,
+                                        color: AppColors.cardBorder,
+                                      ),
+                                      _buildLedgerRow(
+                                        'Moved between collectors',
+                                        '${ledger.totalTransferredLitres.toStringAsFixed(1)} L',
+                                        AppColors.info,
+                                      ),
+                                    ],
                                     const Divider(
                                       height: 20,
                                       color: AppColors.cardBorder,
@@ -812,6 +825,18 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
                                           ),
                                         ],
                                       ),
+                                      if (item.totalReceivedLitres > 0 ||
+                                          item.totalTransferredOutLitres > 0)
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                            top: 8,
+                                          ),
+                                          child: TransferSummaryLine(
+                                            received: item.totalReceivedLitres,
+                                            given:
+                                                item.totalTransferredOutLitres,
+                                          ),
+                                        ),
                                     ],
                                   ),
                                 ),

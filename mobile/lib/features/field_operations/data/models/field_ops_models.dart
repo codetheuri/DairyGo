@@ -1,6 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../../../../core/models/customer_type_total_model.dart';
+import '../../../transfers/data/transfer_models.dart';
 
 part 'field_ops_models.freezed.dart';
 part 'field_ops_models.g.dart';
@@ -104,7 +105,15 @@ class ReconciliationModel with _$ReconciliationModel {
     @JsonKey(name: 'total_spoiled_litres')
     @Default(0.0)
     double totalSpoiledLitres,
-    // collected - sold - spoiled; > 0 missing, < 0 oversold
+    // Milk from and to other collectors on the day.
+    @JsonKey(name: 'total_received_litres')
+    @Default(0.0)
+    double totalReceivedLitres,
+    @JsonKey(name: 'total_transferred_out_litres')
+    @Default(0.0)
+    double totalTransferredOutLitres,
+    // collected + received - sold - transferred out - spoiled;
+    // > 0 missing, < 0 oversold
     @JsonKey(name: 'unaccounted_litres') @Default(0.0) double unaccountedLitres,
     @JsonKey(name: 'balance_status') @Default('BALANCED') String balanceStatus,
     @JsonKey(name: 'total_sales_amount') @Default(0.0) double totalSalesAmount,
@@ -120,6 +129,7 @@ class ReconciliationModel with _$ReconciliationModel {
     @JsonKey(name: 'total_purchases_amount')
     @Default(0.0)
     double totalPurchasesAmount,
+    @Default([]) List<MilkTransferModel> transfers,
   }) = _ReconciliationModel;
 
   factory ReconciliationModel.fromJson(Map<String, dynamic> json) =>

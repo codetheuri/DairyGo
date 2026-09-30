@@ -1,0 +1,26 @@
+{
+  "status": 200,
+  "body": {
+    "success": true,
+    "message": "Collectors retrieved",
+    "data": {
+      "collectors": [
+        {
+          "id": 31,
+          "name": "Grace Wambui",
+          "username": "grace"
+        },
+        {
+          "id": 32,
+          "name": "Peter Mwangi Kariuki Njoroge",
+          "username": "peter.njoroge"
+        },
+        {
+          "id": 28,
+          "name": "uxadmin",
+          "username": "uxadmin"
+        }
+      ]
+    }
+  }
+}

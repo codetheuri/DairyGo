@@ -10,6 +10,10 @@ import '../../../../core/widgets/balance_badge.dart';
 import '../../../../core/widgets/skeleton.dart';
 import '../../../../core/utils/milk_balance.dart';
 import '../../../../core/widgets/figure_cell.dart';
+import '../../../transfers/data/transfer_models.dart';
+import '../../../transfers/presentation/transfer_controller.dart';
+import '../../../transfers/presentation/widgets/transfer_detail_sheet.dart';
+import '../../../transfers/presentation/widgets/transfer_tile.dart';
 
 class CollectorAuditDetailScreen extends ConsumerWidget {
   final CollectorAuditSummaryModel summary;
@@ -44,26 +48,10 @@ class CollectorAuditDetailScreen extends ConsumerWidget {
     final fromDate = ref.watch(reportFilterFromDateProvider);
     final toDate = ref.watch(reportFilterToDateProvider);
 
-    final collectionsAsync = ref.watch(
-      collectorMonthCollectionsProvider((
-        collectorId: summary.collectorId,
-        fromDate: fromDate,
-        toDate: toDate,
-      )),
-    );
-    final salesAsync = ref.watch(
-      collectorMonthSalesProvider((
-        collectorId: summary.collectorId,
-        fromDate: fromDate,
-        toDate: toDate,
-      )),
-    );
-    final spoilageAsync = ref.watch(
-      collectorMonthSpoilageProvider((
-        collectorId: summary.collectorId,
-        fromDate: fromDate,
-        toDate: toDate,
-      )),
+    final period = (
+      collectorId: summary.collectorId,
+      fromDate: fromDate,
+      toDate: toDate,
     );
 
     return Scaffold(
@@ -163,6 +151,15 @@ class CollectorAuditDetailScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
+                if (summary.totalReceivedLitres > 0 ||
+                    summary.totalTransferredOutLitres > 0)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: TransferSummaryLine(
+                      received: summary.totalReceivedLitres,
+                      given: summary.totalTransferredOutLitres,
+                    ),
+                  ),
               ],
             ),
           ),
@@ -184,215 +181,178 @@ class CollectorAuditDetailScreen extends ConsumerWidget {
             ),
           ),
 
-          // Daily Reconciliation List across entire month
-          Expanded(
-            child: collectionsAsync.when(
-              data: (collections) {
-                return salesAsync.when(
-                  data: (sales) {
-                    return spoilageAsync.when(
-                      data: (spoilages) {
-                        // Filter for this collector if collectorId is available
-                        final filteredCollections = summary.collectorId > 0
-                            ? collections
-                                  .where(
-                                    (c) => c.collectorId == summary.collectorId,
-                                  )
-                                  .toList()
-                            : collections;
-                        final filteredSales = summary.collectorId > 0
-                            ? sales
-                                  .where(
-                                    (s) => s.collectorId == summary.collectorId,
-                                  )
-                                  .toList()
-                            : sales;
-                        final filteredSpoilage = summary.collectorId > 0
-                            ? spoilages
-                                  .where(
-                                    (sp) =>
-                                        sp.collectorId == summary.collectorId,
-                                  )
-                                  .toList()
-                            : spoilages;
-
-                        // Group by date
-                        final Map<String, double> collectedMap = {};
-                        final Map<String, double> soldMap = {};
-                        final Map<String, double> spoiledMap = {};
-
-                        for (var c in filteredCollections) {
-                          final dateKey = c.collectionDate.split('T').first;
-                          collectedMap[dateKey] =
-                              (collectedMap[dateKey] ?? 0.0) + c.quantityLitres;
-                        }
-
-                        for (var s in filteredSales) {
-                          final dateKey = s.saleDate.split('T').first;
-                          soldMap[dateKey] =
-                              (soldMap[dateKey] ?? 0.0) + s.quantityLitres;
-                        }
-
-                        for (var sp in filteredSpoilage) {
-                          final dateKey = sp.spoilageDate.split('T').first;
-                          spoiledMap[dateKey] =
-                              (spoiledMap[dateKey] ?? 0.0) + sp.quantityLitres;
-                        }
-
-                        final allDates = {
-                          ...collectedMap.keys,
-                          ...soldMap.keys,
-                          ...spoiledMap.keys,
-                        }.toList()..sort((a, b) => b.compareTo(a));
-
-                        if (allDates.isEmpty) {
-                          return const EmptyStateWidget(
-                            title: 'No Operations Logged',
-                            description:
-                                'No daily collection, sale, or spoilage entries found for this month.',
-                            icon: Icons.calendar_today_outlined,
-                          );
-                        }
-
-                        return ListView.separated(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
-                          itemCount: allDates.length,
-                          separatorBuilder: (_, __) =>
-                              const SizedBox(height: 10),
-                          itemBuilder: (context, index) {
-                            final date = allDates[index];
-                            final collected = collectedMap[date] ?? 0.0;
-                            final sold = soldMap[date] ?? 0.0;
-                            final spoiled = spoiledMap[date] ?? 0.0;
-                            // Every litre collected must be sold (coolers
-                            // included) or spoiled; what is left is unaccounted.
-                            final balance = MilkBalance.compute(
-                              collected: collected,
-                              sold: sold,
-                              spoiled: spoiled,
-                              allowanceLitres: summary.toleranceLitres,
-                            );
-
-                            return Container(
-                              padding: const EdgeInsets.all(14),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: AppColors.cardBorder),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  // The badge moves under the date when
-                                  // they do not fit on one line.
-                                  Wrap(
-                                    alignment: WrapAlignment.spaceBetween,
-                                    crossAxisAlignment:
-                                        WrapCrossAlignment.center,
-                                    spacing: 8,
-                                    runSpacing: 6,
-                                    children: [
-                                      Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          const Icon(
-                                            Icons.calendar_today_rounded,
-                                            size: 16,
-                                            color: AppColors.primary,
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Text(
-                                            _formatDate(date),
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 14,
-                                              color: AppColors.textPrimary,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      BalanceBadge(
-                                        unaccountedLitres:
-                                            balance.unaccountedLitres,
-                                        status: balance.status,
-                                      ),
-                                    ],
-                                  ),
-                                  const Divider(
-                                    height: 16,
-                                    color: AppColors.cardBorder,
-                                  ),
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceAround,
-                                    children: [
-                                      _buildSubItem(
-                                        'Intake',
-                                        '${collected.toStringAsFixed(1)}L',
-                                        AppColors.primary,
-                                      ),
-                                      _buildSubItem(
-                                        'Sales',
-                                        '${sold.toStringAsFixed(1)}L',
-                                        AppColors.secondary,
-                                      ),
-                                      _buildSubItem(
-                                        'Spoiled',
-                                        '${spoiled.toStringAsFixed(1)}L',
-                                        AppColors.warning,
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        );
-                      },
-                      loading: () => const ListSkeleton(rows: 4),
-                      error: (e, s) => ErrorView(
-                        message: e.toString(),
-                        onRetry: () => ref.refresh(
-                          collectorMonthSpoilageProvider((
-                            collectorId: summary.collectorId,
-                            fromDate: fromDate,
-                            toDate: toDate,
-                          )).future,
-                        ),
-                      ),
-                    );
-                  },
-                  loading: () => const ListSkeleton(rows: 4),
-                  error: (e, s) => ErrorView(
-                    message: e.toString(),
-                    onRetry: () => ref.refresh(
-                      collectorMonthSalesProvider((
-                        collectorId: summary.collectorId,
-                        fromDate: fromDate,
-                        toDate: toDate,
-                      )).future,
-                    ),
-                  ),
-                );
-              },
-              loading: () => const ListSkeleton(rows: 4),
-              error: (e, s) => ErrorView(
-                message: e.toString(),
-                onRetry: () => ref.refresh(
-                  collectorMonthCollectionsProvider((
-                    collectorId: summary.collectorId,
-                    fromDate: fromDate,
-                    toDate: toDate,
-                  )).future,
-                ),
-              ),
-            ),
-          ),
+          // Daily milk balance across the period
+          Expanded(child: _days(ref, period)),
         ],
       ),
+    );
+  }
+
+  /// Every day of the period with activity, newest first, balanced the same
+  /// way as the server: collected + received − sold − given − spoiled.
+  Widget _days(WidgetRef ref, CollectorPeriod period) {
+    final collectionsAsync = ref.watch(
+      collectorMonthCollectionsProvider(period),
+    );
+    final salesAsync = ref.watch(collectorMonthSalesProvider(period));
+    final spoilageAsync = ref.watch(collectorMonthSpoilageProvider(period));
+    final transfersAsync = ref.watch(collectorPeriodTransfersProvider(period));
+    final all = <AsyncValue<Object?>>[
+      collectionsAsync,
+      salesAsync,
+      spoilageAsync,
+      transfersAsync,
+    ];
+
+    final failed = all.where((a) => a.hasError && !a.hasValue).firstOrNull;
+    if (failed != null) {
+      return ErrorView(
+        message: failed.error.toString().replaceAll('Exception: ', ''),
+        onRetry: () => Future.wait([
+          ref.refresh(collectorMonthCollectionsProvider(period).future),
+          ref.refresh(collectorMonthSalesProvider(period).future),
+          ref.refresh(collectorMonthSpoilageProvider(period).future),
+          ref.refresh(collectorPeriodTransfersProvider(period).future),
+        ]),
+      );
+    }
+    if (all.any((a) => !a.hasValue)) return const ListSkeleton(rows: 4);
+
+    final id = summary.collectorId;
+    final collected = <String, double>{};
+    final sold = <String, double>{};
+    final spoiled = <String, double>{};
+    final transfersByDay = <String, List<MilkTransferModel>>{};
+    void add(Map<String, double> m, String date, double litres) =>
+        m[date] = (m[date] ?? 0) + litres;
+
+    for (final c in collectionsAsync.value!.where((c) => c.collectorId == id)) {
+      add(collected, c.collectionDate.split('T').first, c.quantityLitres);
+    }
+    for (final s in salesAsync.value!.where((s) => s.collectorId == id)) {
+      add(sold, s.saleDate.split('T').first, s.quantityLitres);
+    }
+    for (final sp in spoilageAsync.value!.where((sp) => sp.collectorId == id)) {
+      add(spoiled, sp.spoilageDate.split('T').first, sp.quantityLitres);
+    }
+    for (final t in transfersAsync.value!.where((t) => !t.isCancelled)) {
+      (transfersByDay[t.day] ??= []).add(t);
+    }
+
+    final dates = {
+      ...collected.keys,
+      ...sold.keys,
+      ...spoiled.keys,
+      ...transfersByDay.keys,
+    }.toList()..sort((a, b) => b.compareTo(a));
+
+    if (dates.isEmpty) {
+      return const EmptyStateWidget(
+        title: 'No Operations Logged',
+        description:
+            'No collections, sales, transfers or spoilage in this period.',
+        icon: Icons.calendar_today_outlined,
+      );
+    }
+
+    return ListView.separated(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      itemCount: dates.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 10),
+      itemBuilder: (context, index) {
+        final date = dates[index];
+        final transfers = transfersByDay[date] ?? const [];
+        final received = transfers
+            .where((t) => t.toCollectorId == id)
+            .fold(0.0, (sum, t) => sum + t.quantityLitres);
+        final given = transfers
+            .where((t) => t.fromCollectorId == id)
+            .fold(0.0, (sum, t) => sum + t.quantityLitres);
+        final balance = MilkBalance.compute(
+          collected: collected[date] ?? 0,
+          received: received,
+          sold: sold[date] ?? 0,
+          transferredOut: given,
+          spoiled: spoiled[date] ?? 0,
+          allowanceLitres: summary.toleranceLitres,
+        );
+
+        return Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.cardBorder),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // The badge moves under the date when they do not fit.
+              Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 8,
+                runSpacing: 6,
+                children: [
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.calendar_today_rounded,
+                        size: 16,
+                        color: AppColors.primary,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        _formatDate(date),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  BalanceBadge(
+                    unaccountedLitres: balance.unaccountedLitres,
+                    status: balance.status,
+                  ),
+                ],
+              ),
+              const Divider(height: 16, color: AppColors.cardBorder),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildSubItem(
+                    'Intake',
+                    '${(collected[date] ?? 0).toStringAsFixed(1)}L',
+                    AppColors.primary,
+                  ),
+                  _buildSubItem(
+                    'Sales',
+                    '${(sold[date] ?? 0).toStringAsFixed(1)}L',
+                    AppColors.secondary,
+                  ),
+                  _buildSubItem(
+                    'Spoiled',
+                    '${(spoiled[date] ?? 0).toStringAsFixed(1)}L',
+                    AppColors.warning,
+                  ),
+                ],
+              ),
+              // Each transfer, with who and when, so the day can be traced.
+              for (final t in transfers) ...[
+                const SizedBox(height: 8),
+                TransferTile(
+                  transfer: t,
+                  viewerId: id,
+                  onTap: () => TransferDetailSheet.show(context, t),
+                ),
+              ],
+            ],
+          ),
+        );
+      },
     );
   }
 

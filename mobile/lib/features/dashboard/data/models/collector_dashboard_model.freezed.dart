@@ -41,7 +41,12 @@ mixin _$CollectorDashboardModel {
   @JsonKey(name: 'today_cash_received')
   double get todayCashReceived => throw _privateConstructorUsedError;
   @JsonKey(name: 'today_spoiled_litres')
-  double get todaySpoiledLitres => throw _privateConstructorUsedError; // collected - sold - spoiled today; > 0 missing, < 0 oversold
+  double get todaySpoiledLitres => throw _privateConstructorUsedError;
+  @JsonKey(name: 'today_received_litres')
+  double get todayReceivedLitres => throw _privateConstructorUsedError;
+  @JsonKey(name: 'today_transferred_out_litres')
+  double get todayTransferredOutLitres => throw _privateConstructorUsedError; // collected + received - sold - transferred out - spoiled today;
+  // > 0 missing, < 0 oversold
   @JsonKey(name: 'today_unaccounted_litres')
   double get todayUnaccountedLitres => throw _privateConstructorUsedError;
   @JsonKey(name: 'today_balance_status')
@@ -75,6 +80,9 @@ abstract class $CollectorDashboardModelCopyWith<$Res> {
     @JsonKey(name: 'today_sales_revenue') double todaySalesRevenue,
     @JsonKey(name: 'today_cash_received') double todayCashReceived,
     @JsonKey(name: 'today_spoiled_litres') double todaySpoiledLitres,
+    @JsonKey(name: 'today_received_litres') double todayReceivedLitres,
+    @JsonKey(name: 'today_transferred_out_litres')
+    double todayTransferredOutLitres,
     @JsonKey(name: 'today_unaccounted_litres') double todayUnaccountedLitres,
     @JsonKey(name: 'today_balance_status') String todayBalanceStatus,
   });
@@ -108,6 +116,8 @@ class _$CollectorDashboardModelCopyWithImpl<
     Object? todaySalesRevenue = null,
     Object? todayCashReceived = null,
     Object? todaySpoiledLitres = null,
+    Object? todayReceivedLitres = null,
+    Object? todayTransferredOutLitres = null,
     Object? todayUnaccountedLitres = null,
     Object? todayBalanceStatus = null,
   }) {
@@ -153,6 +163,14 @@ class _$CollectorDashboardModelCopyWithImpl<
                 ? _value.todaySpoiledLitres
                 : todaySpoiledLitres // ignore: cast_nullable_to_non_nullable
                       as double,
+            todayReceivedLitres: null == todayReceivedLitres
+                ? _value.todayReceivedLitres
+                : todayReceivedLitres // ignore: cast_nullable_to_non_nullable
+                      as double,
+            todayTransferredOutLitres: null == todayTransferredOutLitres
+                ? _value.todayTransferredOutLitres
+                : todayTransferredOutLitres // ignore: cast_nullable_to_non_nullable
+                      as double,
             todayUnaccountedLitres: null == todayUnaccountedLitres
                 ? _value.todayUnaccountedLitres
                 : todayUnaccountedLitres // ignore: cast_nullable_to_non_nullable
@@ -187,6 +205,9 @@ abstract class _$$CollectorDashboardModelImplCopyWith<$Res>
     @JsonKey(name: 'today_sales_revenue') double todaySalesRevenue,
     @JsonKey(name: 'today_cash_received') double todayCashReceived,
     @JsonKey(name: 'today_spoiled_litres') double todaySpoiledLitres,
+    @JsonKey(name: 'today_received_litres') double todayReceivedLitres,
+    @JsonKey(name: 'today_transferred_out_litres')
+    double todayTransferredOutLitres,
     @JsonKey(name: 'today_unaccounted_litres') double todayUnaccountedLitres,
     @JsonKey(name: 'today_balance_status') String todayBalanceStatus,
   });
@@ -220,6 +241,8 @@ class __$$CollectorDashboardModelImplCopyWithImpl<$Res>
     Object? todaySalesRevenue = null,
     Object? todayCashReceived = null,
     Object? todaySpoiledLitres = null,
+    Object? todayReceivedLitres = null,
+    Object? todayTransferredOutLitres = null,
     Object? todayUnaccountedLitres = null,
     Object? todayBalanceStatus = null,
   }) {
@@ -265,6 +288,14 @@ class __$$CollectorDashboardModelImplCopyWithImpl<$Res>
             ? _value.todaySpoiledLitres
             : todaySpoiledLitres // ignore: cast_nullable_to_non_nullable
                   as double,
+        todayReceivedLitres: null == todayReceivedLitres
+            ? _value.todayReceivedLitres
+            : todayReceivedLitres // ignore: cast_nullable_to_non_nullable
+                  as double,
+        todayTransferredOutLitres: null == todayTransferredOutLitres
+            ? _value.todayTransferredOutLitres
+            : todayTransferredOutLitres // ignore: cast_nullable_to_non_nullable
+                  as double,
         todayUnaccountedLitres: null == todayUnaccountedLitres
             ? _value.todayUnaccountedLitres
             : todayUnaccountedLitres // ignore: cast_nullable_to_non_nullable
@@ -292,6 +323,9 @@ class _$CollectorDashboardModelImpl implements _CollectorDashboardModel {
     @JsonKey(name: 'today_sales_revenue') this.todaySalesRevenue = 0.0,
     @JsonKey(name: 'today_cash_received') this.todayCashReceived = 0.0,
     @JsonKey(name: 'today_spoiled_litres') this.todaySpoiledLitres = 0.0,
+    @JsonKey(name: 'today_received_litres') this.todayReceivedLitres = 0.0,
+    @JsonKey(name: 'today_transferred_out_litres')
+    this.todayTransferredOutLitres = 0.0,
     @JsonKey(name: 'today_unaccounted_litres')
     this.todayUnaccountedLitres = 0.0,
     @JsonKey(name: 'today_balance_status') this.todayBalanceStatus = 'BALANCED',
@@ -330,7 +364,14 @@ class _$CollectorDashboardModelImpl implements _CollectorDashboardModel {
   @override
   @JsonKey(name: 'today_spoiled_litres')
   final double todaySpoiledLitres;
-  // collected - sold - spoiled today; > 0 missing, < 0 oversold
+  @override
+  @JsonKey(name: 'today_received_litres')
+  final double todayReceivedLitres;
+  @override
+  @JsonKey(name: 'today_transferred_out_litres')
+  final double todayTransferredOutLitres;
+  // collected + received - sold - transferred out - spoiled today;
+  // > 0 missing, < 0 oversold
   @override
   @JsonKey(name: 'today_unaccounted_litres')
   final double todayUnaccountedLitres;
@@ -340,7 +381,7 @@ class _$CollectorDashboardModelImpl implements _CollectorDashboardModel {
 
   @override
   String toString() {
-    return 'CollectorDashboardModel(collectorId: $collectorId, collectorName: $collectorName, date: $date, todayCollectedLitres: $todayCollectedLitres, todayPurchasesAmount: $todayPurchasesAmount, todayFarmersServiced: $todayFarmersServiced, todaySoldLitres: $todaySoldLitres, todaySalesRevenue: $todaySalesRevenue, todayCashReceived: $todayCashReceived, todaySpoiledLitres: $todaySpoiledLitres, todayUnaccountedLitres: $todayUnaccountedLitres, todayBalanceStatus: $todayBalanceStatus)';
+    return 'CollectorDashboardModel(collectorId: $collectorId, collectorName: $collectorName, date: $date, todayCollectedLitres: $todayCollectedLitres, todayPurchasesAmount: $todayPurchasesAmount, todayFarmersServiced: $todayFarmersServiced, todaySoldLitres: $todaySoldLitres, todaySalesRevenue: $todaySalesRevenue, todayCashReceived: $todayCashReceived, todaySpoiledLitres: $todaySpoiledLitres, todayReceivedLitres: $todayReceivedLitres, todayTransferredOutLitres: $todayTransferredOutLitres, todayUnaccountedLitres: $todayUnaccountedLitres, todayBalanceStatus: $todayBalanceStatus)';
   }
 
   @override
@@ -367,6 +408,13 @@ class _$CollectorDashboardModelImpl implements _CollectorDashboardModel {
                 other.todayCashReceived == todayCashReceived) &&
             (identical(other.todaySpoiledLitres, todaySpoiledLitres) ||
                 other.todaySpoiledLitres == todaySpoiledLitres) &&
+            (identical(other.todayReceivedLitres, todayReceivedLitres) ||
+                other.todayReceivedLitres == todayReceivedLitres) &&
+            (identical(
+                  other.todayTransferredOutLitres,
+                  todayTransferredOutLitres,
+                ) ||
+                other.todayTransferredOutLitres == todayTransferredOutLitres) &&
             (identical(other.todayUnaccountedLitres, todayUnaccountedLitres) ||
                 other.todayUnaccountedLitres == todayUnaccountedLitres) &&
             (identical(other.todayBalanceStatus, todayBalanceStatus) ||
@@ -387,6 +435,8 @@ class _$CollectorDashboardModelImpl implements _CollectorDashboardModel {
     todaySalesRevenue,
     todayCashReceived,
     todaySpoiledLitres,
+    todayReceivedLitres,
+    todayTransferredOutLitres,
     todayUnaccountedLitres,
     todayBalanceStatus,
   );
@@ -420,6 +470,9 @@ abstract class _CollectorDashboardModel implements CollectorDashboardModel {
     @JsonKey(name: 'today_sales_revenue') final double todaySalesRevenue,
     @JsonKey(name: 'today_cash_received') final double todayCashReceived,
     @JsonKey(name: 'today_spoiled_litres') final double todaySpoiledLitres,
+    @JsonKey(name: 'today_received_litres') final double todayReceivedLitres,
+    @JsonKey(name: 'today_transferred_out_litres')
+    final double todayTransferredOutLitres,
     @JsonKey(name: 'today_unaccounted_litres')
     final double todayUnaccountedLitres,
     @JsonKey(name: 'today_balance_status') final String todayBalanceStatus,
@@ -456,7 +509,14 @@ abstract class _CollectorDashboardModel implements CollectorDashboardModel {
   double get todayCashReceived;
   @override
   @JsonKey(name: 'today_spoiled_litres')
-  double get todaySpoiledLitres; // collected - sold - spoiled today; > 0 missing, < 0 oversold
+  double get todaySpoiledLitres;
+  @override
+  @JsonKey(name: 'today_received_litres')
+  double get todayReceivedLitres;
+  @override
+  @JsonKey(name: 'today_transferred_out_litres')
+  double get todayTransferredOutLitres; // collected + received - sold - transferred out - spoiled today;
+  // > 0 missing, < 0 oversold
   @override
   @JsonKey(name: 'today_unaccounted_litres')
   double get todayUnaccountedLitres;

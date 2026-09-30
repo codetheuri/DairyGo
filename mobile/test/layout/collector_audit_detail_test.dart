@@ -1,12 +1,13 @@
 // The collector audit detail (Reports → Collector Audit → a collector) is
 // opened by tapping, not from a menu, so the other layout tests never reach
-// it. Every day must balance as intake = sales + spoiled + unaccounted, with
-// no "to station" figure: deliveries to coolers are sales.
+// it. Every day must balance as intake + received = sales + given + spoiled
+// + unaccounted, with no "to station" figure: deliveries to coolers are sales.
 //
 //   flutter test test/layout/collector_audit_detail_test.dart
 //   ... --update-goldens --dart-define=SCREENSHOTS=true   (screenshot)
 
 import 'package:dairy_sacco_mobile/core/widgets/balance_badge.dart';
+import 'package:dairy_sacco_mobile/features/transfers/presentation/widgets/transfer_tile.dart';
 import 'package:dairy_sacco_mobile/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -50,6 +51,14 @@ void main() {
           expect(find.text('Sales'), findsWidgets);
           expect(find.text('Spoiled'), findsWidgets);
           expect(find.byType(BalanceBadge), findsWidgets);
+          // Transfers count in the period and show on their day, with names.
+          expect(find.textContaining('Transfers: received'), findsOneWidget);
+          await tester.scrollUntilVisible(
+            find.byType(TransferTile).first,
+            200,
+            scrollable: find.byType(Scrollable).last,
+          );
+          expect(find.byType(TransferTile), findsWidgets);
 
           if (_screenshots && size.width == 412 && scale == 1.0) {
             await expectLater(

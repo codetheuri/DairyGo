@@ -40,8 +40,13 @@ const commonRoutes = [
 /// Main screens per role. 'admin-noprice' is a Sacco whose admin has not set
 /// a milk price yet.
 const routesByRole = {
-  'collector': commonRoutes,
-  'admin': [...commonRoutes, '/reports', '/settings/staff'],
+  'collector': [...commonRoutes, '/transfers/record'],
+  'admin': [
+    ...commonRoutes,
+    '/transfers/record',
+    '/reports',
+    '/settings/staff',
+  ],
   'board': [...commonRoutes, '/reports'],
   'admin-noprice': ['/settings', '/collections/record'],
 };

@@ -1,0 +1,28 @@
+{
+  "status": 200,
+  "body": {
+    "success": true,
+    "message": "Transfer history retrieved",
+    "data": {
+      "history": [
+        {
+          "id": "a0000000-0000-4000-8000-000000000004",
+          "action": "CREATE",
+          "actor_name": "grace",
+          "new_values": "{\"from_collector_id\": 31, \"to_collector_id\": 32, \"transfer_date\": \"2026-09-28\", \"quantity_litres\": 7}",
+          "created_at": "2026-09-28T07:05:40+03:00",
+          "entity_type": "milk_transfer"
+        },
+        {
+          "id": "a0000000-0000-4000-8000-000000000005",
+          "action": "VOID",
+          "actor_name": "grace",
+          "new_values": "{\"quantity_litres\": 7}",
+          "created_at": "2026-09-28T07:30:00+03:00",
+          "reason": "Recorded twice",
+          "entity_type": "milk_transfer"
+        }
+      ]
+    }
+  }
+}

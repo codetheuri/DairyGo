@@ -12,6 +12,8 @@ import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../../collection/presentation/controllers/collection_controller.dart';
 import '../controllers/field_ops_controller.dart';
 import '../widgets/sale_detail_sheet.dart';
+import '../../../transfers/presentation/transfer_controller.dart';
+import '../../../transfers/presentation/widgets/transfers_tab.dart';
 import '../../../../core/layout/breakpoints.dart';
 import '../../../../core/widgets/skeleton.dart';
 
@@ -31,7 +33,7 @@ class _FieldOperationsHistoryScreenState
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
   }
 
   @override
@@ -92,7 +94,11 @@ class _FieldOperationsHistoryScreenState
     final spoilageAsync = ref.watch(spoilageListProvider);
 
     return RefreshOnShow(
-      providers: [salesListProvider, spoilageListProvider],
+      providers: [
+        salesListProvider,
+        dayTransfersProvider,
+        spoilageListProvider,
+      ],
       child: Scaffold(
         appBar: AppBar(
           title: const Text(
@@ -138,16 +144,22 @@ class _FieldOperationsHistoryScreenState
                   fontWeight: FontWeight.bold,
                   fontSize: 13,
                 ),
+                // Short labels: three tabs share a 320 dp phone.
                 tabs: const [
                   Tab(
                     iconMargin: EdgeInsets.only(bottom: 2),
                     icon: Icon(Icons.storefront_rounded, size: 18),
-                    text: 'Field Sales',
+                    text: 'Sales',
+                  ),
+                  Tab(
+                    iconMargin: EdgeInsets.only(bottom: 2),
+                    icon: Icon(Icons.swap_horiz_rounded, size: 18),
+                    text: 'Transfers',
                   ),
                   Tab(
                     iconMargin: EdgeInsets.only(bottom: 2),
                     icon: Icon(Icons.report_problem_outlined, size: 18),
-                    text: 'Spoilage Logs',
+                    text: 'Spoilage',
                   ),
                 ],
               ),
@@ -447,6 +459,11 @@ class _FieldOperationsHistoryScreenState
                         message: err.toString().replaceAll('Exception: ', ''),
                         onRetry: () => ref.refresh(salesListProvider.future),
                       ),
+                    ),
+
+                    // Transfers between collectors
+                    TransfersTab(
+                      dateLabel: isToday ? 'today' : 'on $selectedDateStr',
                     ),
 
                     // Spoilage Logs List

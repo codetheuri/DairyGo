@@ -7,6 +7,7 @@ import '../../features/customers/presentation/controllers/customer_controller.da
 import '../../features/field_operations/presentation/controllers/field_ops_controller.dart';
 import '../../features/members/presentation/controllers/member_controller.dart';
 import '../../features/reports/presentation/controllers/report_controller.dart';
+import '../../features/transfers/presentation/transfer_controller.dart';
 import 'app_destinations.dart';
 
 /// Loads the data behind the role's bottom-bar tabs shortly after the app
@@ -40,6 +41,7 @@ class _TabWarmUpState extends ConsumerState<TabWarmUp> {
         AppSection.intake => [ref.read(milkCollectionsListProvider.future)],
         AppSection.sales => [
           ref.read(salesListProvider.future),
+          ref.read(dayTransfersProvider.future),
           ref.read(spoilageListProvider.future),
         ],
         AppSection.farmers => [ref.read(membersListProvider.future)],

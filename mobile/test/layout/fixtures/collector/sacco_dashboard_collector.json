@@ -15,7 +15,9 @@
       "today_cash_received": 1000,
       "today_spoiled_litres": 0,
       "today_unaccounted_litres": 3081,
-      "today_balance_status": "MISSING"
+      "today_balance_status": "MISSING",
+      "today_received_litres": 12.5,
+      "today_transferred_out_litres": 20
     }
   }
 }

@@ -1,0 +1,28 @@
+{
+  "status": 200,
+  "body": {
+    "success": true,
+    "message": "Transfer history retrieved",
+    "data": {
+      "history": [
+        {
+          "id": "a0000000-0000-4000-8000-000000000002",
+          "action": "CREATE",
+          "actor_name": "peter.njoroge",
+          "new_values": "{\"from_collector_id\": 32, \"to_collector_id\": 29, \"transfer_date\": \"2026-09-28\", \"quantity_litres\": 15}",
+          "created_at": "2026-09-28T08:15:02+03:00",
+          "entity_type": "milk_transfer"
+        },
+        {
+          "id": "a0000000-0000-4000-8000-000000000003",
+          "action": "UPDATE",
+          "actor_name": "peter.njoroge",
+          "new_values": "{\"quantity_litres\": 12.5}",
+          "created_at": "2026-09-28T08:20:00+03:00",
+          "old_values": "{\"quantity_litres\": 15}",
+          "entity_type": "milk_transfer"
+        }
+      ]
+    }
+  }
+}

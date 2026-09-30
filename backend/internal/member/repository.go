@@ -55,12 +55,17 @@ func (r *Repository) MembershipNumbers(ctx context.Context, saccoID string) ([]s
 	return numbers, err
 }
 
+// statusOrder lists active farmers first, then inactive, then suspended:
+// the order staff look for them in. Within a status, the newest come first
+// (and the id keeps pages stable).
+const statusOrder = "CASE members.status WHEN 'ACTIVE' THEN 0 WHEN 'INACTIVE' THEN 1 ELSE 2 END"
+
 // filterCanSupply limits a list to farmers milk may be taken from.
 const filterCanSupply = "can_supply"
 
 func (r *Repository) List(ctx context.Context, q query.Query) ([]Member, query.Meta, error) {
 	cfg := query.Config{
-		DefaultSort:    "-created_at",
+		// No DefaultSort: without a requested sort, statusOrder applies below.
 		DefaultPerPage: 20,
 		MaxPerPage:     100,
 		AllowedSorts: map[string]string{
@@ -80,6 +85,9 @@ func (r *Repository) List(ctx context.Context, q query.Query) ([]Member, query.M
 	}
 
 	session := r.db.Model(&Member{}).Scopes(query.TenantScope(ctx))
+	if len(q.Sorts) == 0 {
+		session = session.Order(statusOrder).Order("members.created_at DESC").Order("members.id")
+	}
 	if q.Filters[filterCanSupply] == "true" {
 		session = session.Where("members.status <> ?", StatusSuspended)
 	}

@@ -57,6 +57,12 @@ no milk for the Sacco's period is marked **inactive**. The code is
 - Each change is recorded in the farmer's history with the reason
   "No milk for N days: marked inactive automatically".
 
+## Order of farmer lists
+
+`GET /sacco/members` (and the console's farmer list) shows active farmers
+first, then inactive, then suspended, newest first within each. A `sort`
+parameter (for example `sort=membership_number`) replaces this order.
+
 ## Choosing a farmer to record milk
 
 `GET /api/v1/sacco/members?can_supply=true` lists active and inactive farmers

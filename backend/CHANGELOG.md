@@ -19,6 +19,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   See [docs/farmer-status.md](docs/farmer-status.md).
 
 ### Changed
+- **Farmer lists show active farmers first**, then inactive, then suspended (newest first within each), unless another `sort` is asked for. This applies to the app's directory and picker and the console.
 - Collection errors no longer start with `locked: `, `forbidden: ` or `not found: `; the message is a plain sentence for the user.
 - The console shows a rule the server refused as a plain sentence ("Give a reason for suspending the farmer").
 - **Import a Sacco's farmer register** (`dairy-cli members import`): loads farmers from CSV, checking the whole file first; `--replace` (with `--confirm <code>`) first clears that Sacco's test farmers, milk records, customers and their history, keeping staff, settings and prices; `--dry-run` reports without changing anything; all in one transaction. See [docs/importing-farmers.md](docs/importing-farmers.md).

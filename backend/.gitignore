@@ -11,6 +11,7 @@ main
 *.out
 *.html
 !web/platform/index.html
+!internal/appupdate/page/index.html
 *.log
 build-errors.log
 coverage.out

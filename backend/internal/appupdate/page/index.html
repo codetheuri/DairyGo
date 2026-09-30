@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Download DairyGo</title>
+<link rel="stylesheet" href="/app/app.css">
+</head>
+<body>
+<main>
+  <header>
+    <p class="brand">DairyGo</p>
+    <h1>Download the DairyGo app</h1>
+    <p class="sw">Pakua programu ya DairyGo</p>
+  </header>
+{{if .}}
+  {{with index .Files "arm64"}}
+  <a class="download" href="/app/download/arm64">Download DairyGo<span>Version {{$.Version}} · {{mb .Size}}</span></a>
+  {{else}}{{with index .Files "armv7"}}
+  <a class="download" href="/app/download/armv7">Download DairyGo<span>Version {{$.Version}} · {{mb .Size}}</span></a>
+  {{end}}{{end}}
+
+  <section>
+    <h2>How to install <span class="sw">Jinsi ya kusakinisha</span></h2>
+    <ol class="steps">
+      <li><b>Tap the green button above.</b><span class="sw">Bonyeza kitufe cha kijani hapo juu.</span></li>
+      <li><b>When the download finishes, tap Open.</b><span class="sw">Upakuaji ukiisha, bonyeza Open.</span></li>
+      <li><b>If the phone asks, allow installing from this app (Chrome), then press Back.</b><span class="sw">Simu ikiuliza, ruhusu kusakinisha kutoka Chrome, kisha rudi nyuma.</span></li>
+      <li><b>Tap Install (or Update).</b><span class="sw">Bonyeza Install.</span></li>
+      <li><b>Open DairyGo and log in.</b><span class="sw">Fungua DairyGo na uingie.</span></li>
+    </ol>
+    <p class="note">If this page opened inside WhatsApp, tap ⋮ and choose <b>Open in Chrome</b> first.</p>
+  </section>
+
+  <section>
+    <h2>If it does not work <span class="sw">Kama haifanyi kazi</span></h2>
+    <dl>
+      <dt>"App not installed" or "conflicts with an existing package"</dt>
+      <dd>Remove the old DairyGo first: <b>Settings → Apps → DairyGo → Uninstall</b>. Then install again.
+        This is needed only once, when moving to version 1.4. Your records are kept on the server; you only log in again.
+        <span class="sw">Ondoa DairyGo ya zamani kwanza, kisha sakinisha tena. Rekodi zako ziko salama.</span></dd>
+      {{with index .Files "armv7"}}
+      <dt>The download will not install on an older phone</dt>
+      <dd><a href="/app/download/armv7">Download the version for older phones</a> ({{mb .Size}}).</dd>
+      {{end}}
+      <dt>The file opens in a PDF or photo app</dt>
+      <dd>Open the <b>Downloads</b> (Files) app, tap the DairyGo file, and choose <b>Package installer</b>.</dd>
+    </dl>
+  </section>
+
+  <section>
+    <h2>Updates <span class="sw">Masasisho</span></h2>
+    <p>From version 1.4, DairyGo tells you when a new version is ready. A green bar appears in the app; tap <b>Update</b>. You can also check in <b>More → App version</b>. You will not need to download it from WhatsApp again.</p>
+    <p class="sw">Kuanzia toleo 1.4, DairyGo itakujulisha toleo jipya likiwa tayari. Bonyeza Update ndani ya programu.</p>
+  </section>
+
+  {{if .Notes}}
+  <section>
+    <h2>What is new in {{.Version}}</h2>
+    <p class="notes">{{.Notes}}</p>
+  </section>
+  {{end}}
+
+  <details>
+    <summary>File details</summary>
+    <p>Version {{.Version}} (build {{.Build}}), published {{.PublishedAt.Format "2 Jan 2006"}}.</p>
+    <ul class="files">
+    {{range $abi, $f := .Files}}<li>{{$abi}}: {{$f.Name}}<br>SHA-256 {{$f.SHA256}}</li>{{end}}
+    </ul>
+  </details>
+{{else}}
+  <section>
+    <p>No version is available to download yet. Please ask your Sacco administrator.</p>
+    <p class="sw">Hakuna toleo la kupakua kwa sasa. Tafadhali muulize msimamizi wa Sacco.</p>
+  </section>
+{{end}}
+</main>
+</body>
+</html>

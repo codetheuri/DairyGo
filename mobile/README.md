@@ -25,8 +25,9 @@ needs `app-arm64-v8a-release.apk`; very old phones need
 `app-armeabi-v7a-release.apk`. The files are in
 `build/app/outputs/flutter-apk/`.
 
-Raise `version:` in `pubspec.yaml` for every release, and release the app
-together with any backend change it depends on.
+Raise `version:` in `pubspec.yaml` for every release. Deploy the backend a
+version depends on first ([backend/docs/deployment.md](../backend/docs/deployment.md)),
+then publish the app.
 
 ## Code layout
 
@@ -77,6 +78,8 @@ server in `test/layout/fixtures`.
   usable on a 100 kbps connection or with no signal, and how screens show
   records saved on other phones.
 - Milk transfers between collectors: `../backend/docs/milk-transfers.md`
+- Staff roles and removal: `../backend/docs/staff-management.md`
+- Deploying the backend: `../backend/docs/deployment.md`
   (the Transfers tab, the Transfer milk form, and where they show).
 - [Releasing the app](docs/releases.md): release key, download page,
   in-app updates, forcing an update.

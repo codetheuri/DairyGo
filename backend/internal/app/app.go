@@ -16,6 +16,7 @@ import (
 	chimw "github.com/go-chi/chi/v5/middleware"
 
 	"github.com/codetheuri/tusk/config"
+	"github.com/codetheuri/tusk/database"
 	"github.com/codetheuri/tusk/internal/appupdate"
 	"github.com/codetheuri/tusk/internal/auth"
 	"github.com/codetheuri/tusk/internal/collection"
@@ -49,6 +50,19 @@ func New(cfg *config.Config, log logger.Logger) (*App, error) {
 	db, err := appDatabase.NewGoRMDB(cfg, log)
 	if err != nil {
 		return nil, fmt.Errorf("database connection failed: %w", err)
+	}
+
+	// Apply pending migrations before serving, so the code never runs against
+	// an older schema. A failed migration stops the start-up.
+	if cfg.AutoMigrate {
+		sqlDB, err := db.DB()
+		if err != nil {
+			return nil, fmt.Errorf("database handle: %w", err)
+		}
+		if err := database.RunMigrations(sqlDB, cfg.DBDriver); err != nil {
+			return nil, fmt.Errorf("database migrations failed: %w", err)
+		}
+		log.Info("Database migrations are up to date")
 	}
 
 	r := chi.NewRouter()

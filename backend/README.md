@@ -19,6 +19,8 @@ Explore the full documentation guides in the [`docs/`](docs/) directory:
 - 🔐 **[Code-First RBAC Authorization](docs/authorization.md)** - Code permissions, database sync CLI (`tusk auth sync`), and route guards.
 - 🗄️ **[Database & Migrations](docs/database-and-migrations.md)** - GORM connectivity, seeder tools, and schema migration CLI (`cmd/migrate`).
 - 🔍 **[Querying, Filtering & Pagination](docs/querying-and-pagination.md)** - Dynamic searching, sorting, field filtering, and metadata envelopes (`pkg/query`).
+- 🚢 **[Deploying an update](docs/deployment.md)** - What to run on the server after a merge, checks and rollback.
+- 🥛 **DairyGo features** - [collections and pricing](docs/collections-and-pricing.md), [customers and ledger](docs/customers-and-ledger.md), [milk transfers](docs/milk-transfers.md), [reconciliation and dashboards](docs/reconciliation-and-dashboards.md), [staff management](docs/staff-management.md), [platform console](docs/platform-console.md), [app releases](docs/app-releases.md), [sessions and safe retries](docs/sessions-and-idempotency.md), [multi-tenancy](docs/multi-tenancy.md).
 - 📬 **[Standardized Responses & Error Handling](docs/responses-and-errors.md)** - Uniform JSON response structure (`pkg/response`) and status code conventions.
 
 ---
@@ -68,6 +70,19 @@ The server will start at `http://localhost:8080`.
 
 - **Interactive API Documentation UI**: `http://localhost:8080/docs`
 - **OpenAPI 3.0 JSON Spec**: `http://localhost:8080/openapi.json`
+
+### 3. Updating the server
+
+After merging, on the server:
+
+```bash
+git pull && cd backend
+make env && mkdir -p releases
+docker compose up -d --build dairy-api   # applies new migrations, then serves
+curl -s http://localhost:9002/health
+```
+
+Details, checks and rollback: [docs/deployment.md](docs/deployment.md).
 
 ---
 

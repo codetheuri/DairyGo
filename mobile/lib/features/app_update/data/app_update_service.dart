@@ -79,7 +79,12 @@ class AppUpdateService {
   /// The latest release, or null when none is published.
   Future<AppRelease?> fetchLatest() async {
     try {
-      final res = await _dio.get<Map<String, dynamic>>(ApiConstants.appVersion);
+      // scheme 2: builds are compared as numbered in pubspec.yaml (see
+      // [releaseBuild]); the server answers older apps in their own scale.
+      final res = await _dio.get<Map<String, dynamic>>(
+        ApiConstants.appVersion,
+        queryParameters: const {'scheme': 2},
+      );
       return AppRelease.fromJson(res.data!['data'] as Map<String, dynamic>);
     } on DioException catch (e) {
       if (e.response?.statusCode == 404) return null;

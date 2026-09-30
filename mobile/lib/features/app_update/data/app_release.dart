@@ -59,3 +59,12 @@ class InstalledApp {
 
   const InstalledApp({required this.version, required this.build});
 }
+
+/// The build number from pubspec.yaml, given Android's versionCode.
+///
+/// An APK built with --split-per-abi does not carry the build number as its
+/// versionCode: Flutter adds 1000 for armv7 and 2000 for arm64 (build 11 is
+/// installed as 1011 or 2011), so that a phone always prefers its own type.
+/// Releases are published by build number, so the two must be compared in
+/// the same scale. Build numbers therefore stay below 1000.
+int releaseBuild(int versionCode) => versionCode % 1000;

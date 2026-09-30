@@ -167,7 +167,7 @@ func TestVersion(t *testing.T) {
 	}
 
 	publish(t, dir, 10, 9, map[string]string{"arm64": "arm64-apk", "armv7": "armv7-apk"})
-	res, err = http.Get(srv.URL + "/api/v1/app/version")
+	res, err = http.Get(srv.URL + "/api/v1/app/version?scheme=2")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -267,5 +267,44 @@ func TestPage(t *testing.T) {
 	res.Body.Close()
 	if res.StatusCode != http.StatusOK || !strings.HasPrefix(res.Header.Get("Content-Type"), "text/css") {
 		t.Fatalf("stylesheet: %d %s", res.StatusCode, res.Header.Get("Content-Type"))
+	}
+}
+
+// Apps 1.4.0 and 1.4.1 compare Android's versionCode (2000 + build on arm64)
+// with the published build and send no scheme; they are answered in that
+// scale so they see updates and required updates.
+func TestVersionForAppsThatCompareVersionCode(t *testing.T) {
+	dir := t.TempDir()
+	srv, _ := server(t, dir)
+	publish(t, dir, 12, 11, map[string]string{"arm64": "a", "armv7": "b"})
+
+	get := func(query string) ReleaseInfo {
+		t.Helper()
+		res, err := http.Get(srv.URL + "/api/v1/app/version" + query)
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer res.Body.Close()
+		var body response.Data[ReleaseInfo]
+		if err := json.NewDecoder(res.Body).Decode(&body); err != nil {
+			t.Fatal(err)
+		}
+		return body.Data
+	}
+
+	if got := get(""); got.Build != 2012 || got.MinBuild != 2011 {
+		t.Errorf("old app: got build %d, min %d; want 2012, 2011", got.Build, got.MinBuild)
+	}
+	if got := get("?scheme=2"); got.Build != 12 || got.MinBuild != 11 {
+		t.Errorf("current app: got build %d, min %d; want 12, 11", got.Build, got.MinBuild)
+	}
+}
+
+func TestBuildFor(t *testing.T) {
+	if got := buildFor(0, 0); got != 0 {
+		t.Errorf("no required build must stay 0 for old apps, got %d", got)
+	}
+	if got := buildFor(2, 0); got != 0 {
+		t.Errorf("got %d", got)
 	}
 }

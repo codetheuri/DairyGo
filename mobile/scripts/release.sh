@@ -46,6 +46,9 @@ if [[ -f "$RELEASES/latest.json" ]]; then
   read -r PREVIOUS_BUILD PREVIOUS_MIN < <(python3 -c '
 import json,sys; m=json.load(open(sys.argv[1])); print(m["build"], m["min_build"])' "$RELEASES/latest.json")
 fi
+# Flutter adds 1000 (armv7) or 2000 (arm64) to the build number to make each
+# APK's versionCode, and the app takes it off again; 1000 would wrap to 0.
+(( BUILD < 1000 )) || { echo "The build number (after +) must stay below 1000." >&2; exit 1; }
 (( BUILD > PREVIOUS_BUILD )) || {
   echo "Build $BUILD is not newer than the published $PREVIOUS_BUILD: raise version in pubspec.yaml." >&2; exit 1; }
 # Apps older than MIN_BUILD must update; otherwise the previous rule stays.

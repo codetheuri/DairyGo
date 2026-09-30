@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Fixed
+- **In-app updates were never offered** by apps 1.4.0 and 1.4.1: they compared Android's `versionCode` (build + 2000 on arm64) with the published build. `GET /api/v1/app/version` now answers apps that send no `scheme` in that scale; fixed apps send `scheme=2`.
+
 ### Added
 - **Next of kin for farmers** (migration `00017`): name, relationship and phone are required when registering a farmer (`POST /sacco/members`, and the console). Farmers registered earlier have none until edited; editing any of the three must leave all three complete.
 - **Role permissions are data**: the console has a **Roles & permissions** page; changes apply on the next request, in every Sacco, and are audited. Login, refresh and `/auth/me` return the user's `permissions` for the app. Platform-only permissions cannot be given to Sacco roles. `GET /auth/permissions` now returns `name`/`description` in lower case.

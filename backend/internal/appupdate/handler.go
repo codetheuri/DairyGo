@@ -63,8 +63,29 @@ type VersionOutput struct {
 	Body response.Data[ReleaseInfo]
 }
 
+// VersionInput says how the asking app counts builds.
+type VersionInput struct {
+	Scheme int `query:"scheme" doc:"2: the app compares the build number from pubspec.yaml. Omitted: app versions 1.4.0 and 1.4.1, which compare Android's versionCode."`
+}
+
+// legacyBuildOffset is what Flutter adds to the build number of an arm64 APK
+// built with --split-per-abi to make Android's versionCode (build 11 becomes
+// 2011; armv7 gets 1000). Apps 1.4.0 and 1.4.1 compare that versionCode with
+// the published build, so they never saw an update. They are answered in
+// their own scale; an armv7 phone on those versions is simply told to update
+// until it reaches a version that sends scheme=2.
+const legacyBuildOffset = 2000
+
+// buildFor returns build as the asking app counts it.
+func buildFor(scheme, build int) int {
+	if scheme >= 2 || build == 0 {
+		return build
+	}
+	return build + legacyBuildOffset
+}
+
 // Version returns the latest release, for the in-app updater.
-func (h *Handler) Version(ctx context.Context, _ *struct{}) (*VersionOutput, error) {
+func (h *Handler) Version(ctx context.Context, in *VersionInput) (*VersionOutput, error) {
 	m, err := h.store.Latest()
 	if errors.Is(err, ErrNoRelease) {
 		return nil, huma.Error404NotFound(err.Error())
@@ -75,8 +96,8 @@ func (h *Handler) Version(ctx context.Context, _ *struct{}) (*VersionOutput, err
 	}
 	info := ReleaseInfo{
 		Version:     m.Version,
-		Build:       m.Build,
-		MinBuild:    m.MinBuild,
+		Build:       buildFor(in.Scheme, m.Build),
+		MinBuild:    buildFor(in.Scheme, m.MinBuild),
 		Notes:       m.Notes,
 		PublishedAt: m.PublishedAt,
 		PageURL:     "/app",

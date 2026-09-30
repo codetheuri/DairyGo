@@ -72,6 +72,15 @@ AppRelease _releaseOf(List<int> apk, {String? sha}) => AppRelease(
 );
 
 void main() {
+  // Flutter installs build 11 as versionCode 2011 (arm64) or 1011 (armv7);
+  // comparing that with the published build hid every update in 1.4.0.
+  test('the installed build is read without the phone-type offset', () {
+    expect(releaseBuild(2011), 11);
+    expect(releaseBuild(1011), 11);
+    expect(releaseBuild(11), 11); // a build without --split-per-abi
+    expect(releaseBuild(2999), 999);
+  });
+
   group('downloading an update', () {
     late Directory dir;
     late _ApkServer server;

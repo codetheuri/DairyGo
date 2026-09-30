@@ -72,6 +72,19 @@ The script builds one APK per phone type, refuses an APK not signed with the Dai
 only the new APKs in the repository root, and writes `latest.json` with each
 file's size and SHA-256.
 
+### Build numbers and Android's versionCode
+
+`release.sh` builds one APK per phone type (`--split-per-abi`). Flutter then
+adds 1000 (armv7) or 2000 (arm64) to the build number to make each APK's
+Android `versionCode`: build 12 is installed as 1012 or 2012. Releases are
+published by build number, so the app takes the offset off again
+(`releaseBuild` in `app_release.dart`) and asks the server with `scheme=2`.
+Keep build numbers below 1000.
+
+Versions 1.4.0 and 1.4.1 compared the raw `versionCode` and so never saw an
+update. The server answers apps that send no `scheme` in that scale (build +
+2000), which lets them update to a fixed version.
+
 ## What users see
 
 - **A green bar at the bottom of every screen**: "New version … is ready",

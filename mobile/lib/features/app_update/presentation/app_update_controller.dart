@@ -16,7 +16,7 @@ final installedAppProvider = FutureProvider<InstalledApp>((ref) async {
   final info = await PackageInfo.fromPlatform();
   return InstalledApp(
     version: info.version,
-    build: int.tryParse(info.buildNumber) ?? 0,
+    build: releaseBuild(int.tryParse(info.buildNumber) ?? 0),
   );
 });
 

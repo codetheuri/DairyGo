@@ -161,6 +161,12 @@ func (s *Service) UpdateSettings(ctx context.Context, saccoID string, req *Updat
 		}
 		settings.ReconciliationToleranceLitres = *req.ReconciliationToleranceLitres
 	}
+	if req.InactiveAfterDays != nil {
+		if *req.InactiveAfterDays < 0 || *req.InactiveAfterDays > 365 {
+			return nil, fmt.Errorf("inactive_after_days must be between 0 (never) and 365")
+		}
+		settings.InactiveAfterDays = *req.InactiveAfterDays
+	}
 
 	if err := s.repo.UpdateSettings(ctx, settings); err != nil {
 		return nil, fmt.Errorf("failed to update settings: %w", err)

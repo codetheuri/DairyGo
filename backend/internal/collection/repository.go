@@ -145,12 +145,31 @@ func (r *Repository) ListPrices(ctx context.Context, q query.Query) ([]MilkPrice
 // --- COLLECTION REPOSITORY METHODS ---
 
 // CreateCollection saves a new collection and its CREATE audit entry atomically.
-func (r *Repository) CreateCollection(ctx context.Context, c *MilkCollection, entry audit.Entry) error {
+// CreateCollection saves a collection and its audit entry. With reactivation,
+// it also makes the (inactive) farmer active and records that, all in one
+// transaction.
+func (r *Repository) CreateCollection(ctx context.Context, c *MilkCollection, entry audit.Entry, reactivation *audit.Entry) error {
 	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		if err := tx.Create(c).Error; err != nil {
 			return err
 		}
-		return audit.Record(tx, entry)
+		if err := audit.Record(tx, entry); err != nil {
+			return err
+		}
+		if reactivation == nil {
+			return nil
+		}
+		now := time.Now()
+		res := tx.Table("members").
+			Where("id = ? AND sacco_id = ? AND status = ?", c.MemberID, c.SaccoID, memberInactive).
+			Updates(map[string]any{"status": memberActive, "status_changed_at": now, "updated_at": now})
+		if res.Error != nil {
+			return res.Error
+		}
+		if res.RowsAffected == 0 {
+			return nil // already made active by someone else
+		}
+		return audit.Record(tx, *reactivation)
 	})
 }
 

@@ -55,6 +55,8 @@ func RegisterRoutes(api huma.API, db *gorm.DB, cfg *config.Config, log logger.Lo
 		"Sacco farmers", "Lists and searches a Sacco's farmers."), h.Members)
 	huma.Register(api, op("platform-add-member", http.MethodPost, "/api/v1/admin/saccos/{id}/members",
 		"Register a farmer for a Sacco", "Registers a farmer on the Sacco's behalf, with the same rules as a Sacco admin."), h.AddMember)
+	huma.Register(api, op("platform-member-status", http.MethodPatch, "/api/v1/admin/saccos/{id}/members/{member_id}/status",
+		"Change a farmer's status", "Makes a farmer active, inactive or suspended, with the same rules as a Sacco admin (a suspension needs a reason)."), h.SetMemberStatus)
 
 	huma.Register(api, op("platform-audit-logs", http.MethodGet, "/api/v1/admin/audit-logs",
 		"Audit trail", "Who changed what across all Saccos, newest first."), h.AuditLogs)

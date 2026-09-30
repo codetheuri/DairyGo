@@ -115,6 +115,21 @@ func (h *Handler) AddMember(ctx context.Context, in *AddMemberInput) (*MemberOut
 	return resp, nil
 }
 
+func (h *Handler) SetMemberStatus(ctx context.Context, in *MemberStatusInput) (*MemberOutput, error) {
+	reason := ""
+	if in.Body.Reason != nil {
+		reason = *in.Body.Reason
+	}
+	m, err := h.service.SetMemberStatus(ctx, in.ID, in.MemberID, in.Body.Status, reason)
+	if err != nil {
+		return nil, toHTTPError(err)
+	}
+	resp := &MemberOutput{}
+	resp.Body.Success, resp.Body.Message = true, "Farmer status changed"
+	resp.Body.Data = map[string]*member.Member{"member": m}
+	return resp, nil
+}
+
 func (h *Handler) AuditLogs(ctx context.Context, in *LogsInput) (*AuditLogsOutput, error) {
 	logs, meta, err := h.service.AuditLogs(ctx, in.filter())
 	if err != nil {

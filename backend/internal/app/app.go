@@ -46,6 +46,7 @@ type App struct {
 	platform    *superadmin.Repository
 	idempotency *idempotency.Store
 	auth        *auth.Repository
+	members     *member.Repository
 }
 
 func New(cfg *config.Config, log logger.Logger) (*App, error) {
@@ -245,6 +246,7 @@ func New(cfg *config.Config, log logger.Logger) (*App, error) {
 		platform:    platformRepo,
 		idempotency: idempotencyStore,
 		auth:        authRepo,
+		members:     member.NewRepository(db),
 	}, nil
 }
 
@@ -286,6 +288,16 @@ func (a *App) Run() error {
 		_, err := a.auth.PurgeRefreshTokens(ctx, time.Now().Add(-7*24*time.Hour))
 		return err
 	}, func(err error) { a.log.Error("Failed to purge idempotency keys or old sessions", err) })
+
+	// Farmers who stop bringing milk become inactive after their Sacco's
+	// period (see member.MarkIdleInactive); checked at start and daily.
+	go runDaily(retentionCtx, func(ctx context.Context) error {
+		n, err := a.members.MarkIdleInactive(ctx, time.Now())
+		if n > 0 {
+			a.log.Info(fmt.Sprintf("Marked %d farmers inactive after a period without milk", n))
+		}
+		return err
+	}, func(err error) { a.log.Error("Failed to mark idle farmers inactive", err) })
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)

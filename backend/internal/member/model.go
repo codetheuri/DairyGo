@@ -38,6 +38,8 @@ type Member struct {
 	NextOfKinRelationship *string        `json:"next_of_kin_relationship,omitempty"`
 	NextOfKinPhone        *string        `json:"next_of_kin_phone,omitempty"`
 	RegisteredByID        *uint          `json:"registered_by_id,omitempty"`
+	// StatusChangedAt is when the status last changed; see status.go.
+	StatusChangedAt *time.Time `json:"status_changed_at,omitempty"`
 	CreatedAt             time.Time      `json:"created_at"`
 	UpdatedAt             time.Time      `json:"updated_at"`
 	DeletedAt             gorm.DeletedAt `json:"deleted_at,omitempty" gorm:"index"`

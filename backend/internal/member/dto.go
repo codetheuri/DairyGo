@@ -55,7 +55,8 @@ type UpdateMemberInput struct {
 }
 
 type UpdateMemberStatusRequest struct {
-	Status Status `json:"status" enum:"ACTIVE,INACTIVE,SUSPENDED" doc:"New operational status"`
+	Status Status  `json:"status" enum:"ACTIVE,INACTIVE,SUSPENDED" doc:"New operational status. SUSPENDED farmers cannot supply milk; INACTIVE ones can, and become ACTIVE when they do."`
+	Reason *string `json:"reason,omitempty" maxLength:"500" doc:"Why; required to suspend. Kept in the farmer's history."`
 }
 
 type UpdateMemberStatusInput struct {
@@ -73,6 +74,8 @@ type ListMembersInput struct {
 	Search  string `query:"search" doc:"Search by membership number, name, phone, or national ID"`
 	Sort    string `query:"sort" doc:"Sort field e.g. -created_at or membership_number"`
 	Status  string `query:"status" doc:"Filter by status (ACTIVE, INACTIVE, SUSPENDED)"`
+	// CanSupply lists the farmers milk may be taken from (not suspended).
+	CanSupply bool `query:"can_supply" doc:"Only farmers who can supply milk: ACTIVE and INACTIVE (not SUSPENDED)"`
 }
 
 type MemberData struct {

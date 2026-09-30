@@ -101,6 +101,10 @@ func (s *Service) ListPrices(ctx context.Context, q query.Query) ([]MilkPrice, q
 // auditEntityCollection is the entity_type used for collection audit entries.
 const auditEntityCollection = "milk_collection"
 
+// auditEntityMember is the member module's entity type, for status changes
+// made when an inactive farmer brings milk.
+const auditEntityMember = "member"
+
 // collectionSnapshot is the audited view of a collection's editable values.
 type collectionSnapshot struct {
 	QuantityLitres float64          `json:"quantity_litres"`
@@ -143,8 +147,9 @@ func (s *Service) RecordCollection(ctx context.Context, req *RecordCollectionReq
 	if err != nil {
 		return nil, err
 	}
-	if member.Status != "ACTIVE" {
-		return nil, fmt.Errorf("member is %s and cannot supply milk; reactivate the member first", member.Status)
+	reactivate, err := supplyRule(member.Status)
+	if err != nil {
+		return nil, err
 	}
 
 	// Default collection date to today if omitted
@@ -205,7 +210,23 @@ func (s *Service) RecordCollection(ctx context.Context, req *RecordCollectionReq
 		ActorID:    collectorID,
 		NewValues:  snapshotOf(collection),
 	}
-	if err := s.repo.CreateCollection(ctx, collection, entry); err != nil {
+	// An inactive farmer bringing milk is active again, recorded with the
+	// collection so the two cannot disagree.
+	var reactivation *audit.Entry
+	if reactivate {
+		reason := "Brought milk: made active again automatically"
+		reactivation = &audit.Entry{
+			SaccoID:    saccoID,
+			EntityType: auditEntityMember,
+			EntityID:   member.ID,
+			Action:     audit.ActionStatus,
+			ActorID:    collectorID,
+			Reason:     &reason,
+			OldValues:  map[string]string{"status": memberInactive},
+			NewValues:  map[string]string{"status": memberActive},
+		}
+	}
+	if err := s.repo.CreateCollection(ctx, collection, entry, reactivation); err != nil {
 		return nil, fmt.Errorf("failed to record milk collection: %w", err)
 	}
 

@@ -62,6 +62,9 @@ func (h *Handler) List(ctx context.Context, input *ListMembersInput) (*ListMembe
 	if input.Status != "" {
 		q.Filters["status"] = input.Status
 	}
+	if input.CanSupply {
+		q.Filters[filterCanSupply] = "true"
+	}
 
 	members, meta, err := h.service.ListMembers(ctx, q)
 	if err != nil {
@@ -90,13 +93,16 @@ func (h *Handler) Update(ctx context.Context, input *UpdateMemberInput) (*Member
 }
 
 func (h *Handler) UpdateStatus(ctx context.Context, input *UpdateMemberStatusInput) (*MemberOutput, error) {
-	if err := h.service.UpdateStatus(ctx, input.ID, input.Body.Status); err != nil {
-		return nil, huma.Error400BadRequest(err.Error(), err)
+	reason := ""
+	if input.Body.Reason != nil {
+		reason = *input.Body.Reason
 	}
-
-	member, err := h.service.GetMemberByID(ctx, input.ID)
+	member, err := h.service.UpdateStatus(ctx, input.ID, input.Body.Status, reason)
 	if err != nil {
-		return nil, huma.Error500InternalServerError("Failed to reload member profile", err)
+		if err.Error() == "member not found" {
+			return nil, huma.Error404NotFound(err.Error())
+		}
+		return nil, huma.Error400BadRequest(err.Error(), err)
 	}
 
 	resp := &MemberOutput{}

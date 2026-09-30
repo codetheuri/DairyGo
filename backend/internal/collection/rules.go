@@ -164,3 +164,26 @@ func canChangeTransfer(a actor, t *MilkTransfer, today string) error {
 	}
 	return nil
 }
+
+// Farmer statuses, as the member module stores them.
+const (
+	memberActive    = "ACTIVE"
+	memberInactive  = "INACTIVE"
+	memberSuspended = "SUSPENDED"
+)
+
+// supplyRule says whether milk may be taken from a farmer with this status,
+// and whether taking it makes the farmer active again. Suspended farmers are
+// refused; inactive farmers are taken and reactivated.
+func supplyRule(status string) (reactivate bool, err error) {
+	switch status {
+	case memberActive:
+		return false, nil
+	case memberInactive:
+		return true, nil
+	case memberSuspended:
+		return false, fmt.Errorf("%w: this farmer is suspended and cannot supply milk; an administrator must make them active first", ErrLocked)
+	default:
+		return false, fmt.Errorf("%w: this farmer's status (%s) does not allow supplying milk", ErrLocked, status)
+	}
+}

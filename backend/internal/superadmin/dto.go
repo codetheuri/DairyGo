@@ -106,6 +106,13 @@ type AddMemberInput struct {
 	Body member.CreateMemberRequest
 }
 
+// MemberStatusInput changes a farmer's status in a Sacco.
+type MemberStatusInput struct {
+	ID       string `path:"id" doc:"Sacco id"`
+	MemberID string `path:"member_id" doc:"Farmer id"`
+	Body     member.UpdateMemberStatusRequest
+}
+
 type MemberOutput struct {
 	Body response.Data[map[string]*member.Member]
 }

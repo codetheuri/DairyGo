@@ -44,7 +44,13 @@ async function api(method, path, body) {
   if (!res.ok || (json && json.success === false)) {
     let msg = (json && json.message) || `Request failed (${res.status})`;
     if (json && json.errors) {
-      msg += ': ' + Object.entries(json.errors).map(([k, v]) => `${k} ${v}`).join('; ');
+      // A rule the server refused ("server") is already a sentence; a
+      // field error names its field.
+      const errs = Object.entries(json.errors);
+      const sentence = (t) => String(t).charAt(0).toUpperCase() + String(t).slice(1);
+      msg = errs.length === 1 && errs[0][0] === 'server'
+        ? sentence(errs[0][1])
+        : msg + ': ' + errs.map(([k, v]) => (k === 'server' ? v : `${k} ${v}`)).join('; ');
     }
     throw new ApiError(msg);
   }
@@ -442,6 +448,19 @@ async function saccoPage(id, tab = 'staff') {
     },
   });
 
+  const inactiveAfter = sacco.settings?.inactive_after_days ?? 60;
+  const editInactivity = () => openForm({
+    title: 'Mark farmers inactive',
+    intro: 'An active farmer who brings no milk for this many days becomes inactive (checked daily). '
+      + 'Their milk is still taken, and taking it makes them active again. 0 = never.',
+    fields: [{ name: 'inactive_after_days', label: 'Days without milk (0 to 365)', type: 'number', required: true, value: String(inactiveAfter) }],
+    onSubmit: async (v) => {
+      await api('PUT', `/admin/saccos/${id}/settings`, { inactive_after_days: Number(v.inactive_after_days) });
+      toast('Saved');
+      render();
+    },
+  });
+
   const statusActions = sacco.status === 'ACTIVE'
     ? [h('button', { class: 'danger', text: 'Suspend', onclick: () => setStatus('SUSPENDED', 'Suspend') }),
       h('button', { text: 'Deactivate', onclick: () => setStatus('INACTIVE', 'Deactivate') })]
@@ -457,7 +476,10 @@ async function saccoPage(id, tab = 'staff') {
     h('div', { class: 'page-head' },
       h('div', {}, h('a', { href: '#/saccos', class: 'small', text: '← All Saccos' }),
         h('h1', {}, sacco.name, ' ', pill(sacco.status)),
-        h('div', { class: 'muted small', text: [sacco.code, sacco.phone, sacco.email, sacco.address].filter(Boolean).join(' · ') })),
+        h('div', { class: 'muted small', text: [sacco.code, sacco.phone, sacco.email, sacco.address].filter(Boolean).join(' · ') }),
+        h('div', { class: 'muted small' },
+          inactiveAfter > 0 ? `Farmers become inactive after ${inactiveAfter} days without milk ` : 'Farmers never become inactive automatically ',
+          h('button', { class: 'small', text: 'Change', onclick: editInactivity }))),
       h('div', { class: 'actions' }, h('button', { text: 'Edit details', onclick: edit }), statusActions)),
     h('nav', { class: 'tabs' }, tabs.map(([key, label]) =>
       h('a', { href: `#/saccos/${id}/${key}`, text: label, class: key === tab ? 'active' : '' }))),
@@ -662,10 +684,31 @@ async function farmersTab(sacco) {
           { label: 'Payout', render: (m) => m.mpesa_number ? `M-Pesa ${m.mpesa_number}` : (m.bank_account_number ? `${m.bank_name || 'Bank'} ${m.bank_account_number}` : '—') },
           { label: 'Status', render: (m) => pill(m.status) },
           { label: 'Registered', render: (m) => fmt.date(m.created_at) },
+          { label: '', render: (m) => h('button', { class: 'small', text: 'Change status', onclick: () => changeStatus(m) }) },
         ], data.members, { empty: 'No farmers found.' }),
         pager(data.meta, (p) => { page = p; load(); }));
     } catch (err) { holder.replaceChildren(h('p', { class: 'form-error', text: err.message })); }
   };
+
+  // Same rules as in the app: suspended farmers cannot supply milk; inactive
+  // ones can, and become active when they do. A suspension needs a reason.
+  const changeStatus = (m) => openForm({
+    title: `Status of ${m.first_name} ${m.last_name}`,
+    intro: 'Active: brings milk. Inactive: milk is still taken, and taking it makes the farmer active again. '
+      + 'Suspended: no milk is taken until the farmer is made active.',
+    submitLabel: 'Change status',
+    fields: [
+      { name: 'status', label: 'Status', type: 'select', required: true, value: m.status,
+        options: [['ACTIVE', 'Active'], ['INACTIVE', 'Inactive'], ['SUSPENDED', 'Suspended']] },
+      { name: 'reason', label: 'Reason (required to suspend; kept in the history)', type: 'textarea', full: true },
+    ],
+    onSubmit: async (v) => {
+      if (v.status === m.status) throw new Error(`The farmer is already ${m.status.toLowerCase()}.`);
+      await api('PATCH', `/admin/saccos/${sacco.id}/members/${m.id}/status`, compact(v));
+      toast(`${m.first_name} is now ${v.status.toLowerCase()}`);
+      load();
+    },
+  });
 
   let timer;
   search.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(() => { page = 1; load(); }, 300); });

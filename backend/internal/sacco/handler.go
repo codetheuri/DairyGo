@@ -171,6 +171,25 @@ func (h *Handler) GetSettings(ctx context.Context, input *GetCurrentSaccoInput) 
 }
 
 // UpdateSettings modifies the operational parameters for the tenant Sacco.
+// AdminUpdateSettings changes a Sacco's settings for a platform operator.
+func (h *Handler) AdminUpdateSettings(ctx context.Context, input *UpdateSaccoSettingsInput) (*SettingsOutput, error) {
+	if !middleware.IsSuperUser(ctx) {
+		return nil, huma.Error403Forbidden("Only Platform Super Users can change another Sacco's settings")
+	}
+	if _, err := h.service.GetSaccoByID(ctx, input.ID); err != nil {
+		return nil, huma.Error404NotFound("Sacco not found", err)
+	}
+	settings, err := h.service.UpdateSettings(ctx, input.ID, &input.Body)
+	if err != nil {
+		return nil, huma.Error400BadRequest(err.Error(), err)
+	}
+	resp := &SettingsOutput{}
+	resp.Body.Success = true
+	resp.Body.Message = "Sacco settings updated successfully"
+	resp.Body.Data.Settings = settings
+	return resp, nil
+}
+
 func (h *Handler) UpdateSettings(ctx context.Context, input *UpdateSettingsInput) (*SettingsOutput, error) {
 	saccoID, ok := middleware.GetSaccoID(ctx)
 	if !ok || saccoID == "" {

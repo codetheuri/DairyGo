@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -183,11 +184,37 @@ func (s *Service) UpdateMember(ctx context.Context, id string, req *UpdateMember
 	return member, nil
 }
 
-func (s *Service) UpdateStatus(ctx context.Context, id string, status Status) error {
-	if status != StatusActive && status != StatusInactive && status != StatusSuspended {
-		return fmt.Errorf("invalid member status: %s", status)
+// UpdateStatus changes a farmer's status (see status.go) and records who did
+// it, and why, in the farmer's history.
+func (s *Service) UpdateStatus(ctx context.Context, id string, status Status, reason string) (*Member, error) {
+	member, err := s.repo.FindByID(ctx, id)
+	if err != nil {
+		return nil, err
 	}
-	return s.repo.UpdateStatus(ctx, id, status)
+	reason, err = checkStatusChange(member.Status, status, reason)
+	if err != nil {
+		return nil, err
+	}
+	old := member.Status
+	now := time.Now()
+	member.Status, member.StatusChangedAt = status, &now
+
+	entry := audit.Entry{
+		SaccoID:    member.SaccoID,
+		EntityType: auditEntityMember,
+		EntityID:   member.ID,
+		Action:     audit.ActionStatus,
+		ActorID:    middleware.GetUserID(ctx),
+		OldValues:  map[string]Status{"status": old},
+		NewValues:  map[string]Status{"status": status},
+	}
+	if reason != "" {
+		entry.Reason = &reason
+	}
+	if err := s.repo.UpdateWithAudit(ctx, member, entry); err != nil {
+		return nil, fmt.Errorf("failed to change the farmer's status: %w", err)
+	}
+	return member, nil
 }
 
 // History returns the changes made to a farmer of the caller's Sacco.

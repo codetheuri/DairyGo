@@ -9,6 +9,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 
 ### Added
+- **Farmer status rules** (migration `00018`):
+  - suspended farmers cannot supply milk (`409`);
+  - inactive farmers can, and become active when they do;
+  - active farmers with no milk for the Sacco's period become inactive automatically (daily). The period is `sacco_settings.inactive_after_days`: 60 by default, 0 = never, and changeable in the app, the console (`PUT /api/v1/admin/saccos/{id}/settings`) or the API.
+  - Status changes (`PATCH /sacco/members/{id}/status`, now with `reason`, required to suspend) are recorded in the farmer's history, and the console can change a farmer's status.
+  - `GET /sacco/members?can_supply=true` lists farmers whose milk may be taken.
+
+  See [docs/farmer-status.md](docs/farmer-status.md).
+
+### Changed
+- Collection errors no longer start with `locked: `, `forbidden: ` or `not found: `; the message is a plain sentence for the user.
+- The console shows a rule the server refused as a plain sentence ("Give a reason for suspending the farmer").
 - **Import a Sacco's farmer register** (`dairy-cli members import`): loads farmers from CSV, checking the whole file first; `--replace` (with `--confirm <code>`) first clears that Sacco's test farmers, milk records, customers and their history, keeping staff, settings and prices; `--dry-run` reports without changing anything; all in one transaction. See [docs/importing-farmers.md](docs/importing-farmers.md).
 
 ### Changed

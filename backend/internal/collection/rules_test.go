@@ -167,3 +167,35 @@ func TestResolveUnitPrice(t *testing.T) {
 		t.Fatal("expected error for zero requested price")
 	}
 }
+
+func TestSupplyRule(t *testing.T) {
+	tests := []struct {
+		status         string
+		wantReactivate bool
+		wantErr        bool
+	}{
+		{"ACTIVE", false, false},
+		{"INACTIVE", true, false},
+		{"SUSPENDED", false, true},
+		{"", false, true},
+	}
+	for _, tt := range tests {
+		reactivate, err := supplyRule(tt.status)
+		if reactivate != tt.wantReactivate || (err != nil) != tt.wantErr {
+			t.Errorf("supplyRule(%q) = %v, %v; want %v, error %v", tt.status, reactivate, err, tt.wantReactivate, tt.wantErr)
+		}
+		if err != nil && !errors.Is(err, ErrLocked) {
+			t.Errorf("supplyRule(%q) error %v is not ErrLocked", tt.status, err)
+		}
+	}
+}
+
+func TestUserMessage(t *testing.T) {
+	_, err := supplyRule("SUSPENDED")
+	if got := userMessage(err, ErrLocked); got != "This farmer is suspended and cannot supply milk; an administrator must make them active first" {
+		t.Errorf("userMessage = %q", got)
+	}
+	if got := userMessage(ErrNotFound, ErrNotFound); got != "Not found" {
+		t.Errorf("bare sentinel = %q", got)
+	}
+}

@@ -55,6 +55,9 @@ func (r *Repository) MembershipNumbers(ctx context.Context, saccoID string) ([]s
 	return numbers, err
 }
 
+// filterCanSupply limits a list to farmers milk may be taken from.
+const filterCanSupply = "can_supply"
+
 func (r *Repository) List(ctx context.Context, q query.Query) ([]Member, query.Meta, error) {
 	cfg := query.Config{
 		DefaultSort:    "-created_at",
@@ -77,6 +80,10 @@ func (r *Repository) List(ctx context.Context, q query.Query) ([]Member, query.M
 	}
 
 	session := r.db.Model(&Member{}).Scopes(query.TenantScope(ctx))
+	if q.Filters[filterCanSupply] == "true" {
+		session = session.Where("members.status <> ?", StatusSuspended)
+	}
+	delete(q.Filters, filterCanSupply)
 	return query.Paginate[Member](ctx, session, q, cfg)
 }
 
@@ -95,9 +102,7 @@ func (r *Repository) UpdateWithAudit(ctx context.Context, m *Member, entry audit
 	})
 }
 
-func (r *Repository) UpdateStatus(ctx context.Context, id string, status Status) error {
-	return r.db.WithContext(ctx).Model(&Member{}).Scopes(query.TenantScope(ctx)).Where("id = ?", id).Update("status", status).Error
-}
+
 
 // History lists a farmer's audit entries, oldest first.
 func (r *Repository) History(ctx context.Context, m *Member) ([]audit.Log, error) {

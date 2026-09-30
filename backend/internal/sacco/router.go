@@ -67,6 +67,15 @@ func RegisterRoutes(api huma.API, db *gorm.DB, cfg *config.Config, log logger.Lo
 		Tags:        []string{"Sacco Management (Admin)"},
 	}, PermSaccosUpdateStatus), handler.UpdateStatus)
 
+	huma.Register(api, guard.Protected(huma.Operation{
+		OperationID: "admin-update-sacco-settings",
+		Method:      http.MethodPut,
+		Path:        "/api/v1/admin/saccos/{id}/settings",
+		Summary:     "Update a Sacco's settings",
+		Description: "Changes a Sacco's operational settings on its behalf (for example the days without milk after which farmers become inactive).",
+		Tags:        []string{"Sacco Management (Admin)"},
+	}, PermSaccosUpdate), handler.AdminUpdateSettings)
+
 	// -------------------------------------------------------------
 	// TENANT SACCO PROFILE & SETTINGS ENDPOINTS
 	// -------------------------------------------------------------

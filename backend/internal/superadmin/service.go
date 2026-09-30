@@ -204,6 +204,22 @@ func (s *Service) AddMember(ctx context.Context, saccoID string, req *member.Cre
 	return s.members.CreateMember(inSacco(ctx, saccoID), req)
 }
 
+// SetMemberStatus changes a farmer's status on a Sacco's behalf, with the same
+// rules and history as a Sacco admin doing it.
+func (s *Service) SetMemberStatus(ctx context.Context, saccoID, memberID string, status member.Status, reason string) (*member.Member, error) {
+	if err := requirePlatform(ctx); err != nil {
+		return nil, err
+	}
+	if _, err := s.repo.SaccoStatus(ctx, saccoID); err != nil {
+		return nil, err
+	}
+	m, err := s.members.UpdateStatus(inSacco(ctx, saccoID), memberID, status, reason)
+	if err != nil && err.Error() == "member not found" {
+		return nil, fmt.Errorf("%w: farmer not found in this Sacco", ErrNotFound)
+	}
+	return m, err
+}
+
 // AuditLogs lists audit entries across Saccos.
 func (s *Service) AuditLogs(ctx context.Context, f LogFilter) ([]AuditEntry, query.Meta, error) {
 	if err := requirePlatform(ctx); err != nil {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"strconv"
+	"strings"
 
 	"github.com/danielgtaylor/huma/v2"
 
@@ -208,14 +209,24 @@ func (h *Handler) GetCollectionHistory(ctx context.Context, input *CollectionIDI
 func toHTTPError(err error) error {
 	switch {
 	case errors.Is(err, ErrNotFound):
-		return huma.Error404NotFound(err.Error())
+		return huma.Error404NotFound(userMessage(err, ErrNotFound))
 	case errors.Is(err, ErrForbidden):
-		return huma.Error403Forbidden(err.Error())
+		return huma.Error403Forbidden(userMessage(err, ErrForbidden))
 	case errors.Is(err, ErrLocked):
-		return huma.Error409Conflict(err.Error())
+		return huma.Error409Conflict(userMessage(err, ErrLocked))
 	default:
 		return huma.Error400BadRequest(err.Error(), err)
 	}
+}
+
+// userMessage is err's text for the person using the app, without the
+// "locked: " style prefix the domain error adds for errors.Is.
+func userMessage(err, kind error) string {
+	msg := strings.TrimPrefix(err.Error(), kind.Error()+": ")
+	if msg == "" {
+		return msg
+	}
+	return strings.ToUpper(msg[:1]) + msg[1:]
 }
 
 // --- SALES HANDLERS ---

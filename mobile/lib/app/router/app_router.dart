@@ -15,6 +15,7 @@ import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
 import '../../features/field_operations/presentation/screens/field_operations_history_screen.dart';
 import '../../features/field_operations/presentation/screens/record_field_sale_screen.dart';
 import '../../features/field_operations/presentation/screens/record_spoilage_screen.dart';
+import '../../features/transfers/presentation/screens/record_transfer_screen.dart';
 import '../../features/members/presentation/screens/farmer_directory_screen.dart';
 import '../../features/members/presentation/screens/farmer_profile_screen.dart';
 import '../../features/members/presentation/screens/register_farmer_screen.dart';
@@ -35,6 +36,7 @@ abstract class AppRoutes {
   static const String recordCollection = '/collections/record';
   static const String recordSale = '/field-sales/record';
   static const String recordSpoilage = '/spoilage/record';
+  static const String recordTransfer = '/transfers/record';
   static const String fieldOperations = '/field-operations';
   static const String reports = '/reports';
   static const String settings = '/settings';
@@ -204,6 +206,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.recordSpoilage,
         builder: (context, state) => const RecordSpoilageScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.recordTransfer,
+        builder: (context, state) => const RecordTransferScreen(),
       ),
     ],
   );

@@ -9,9 +9,17 @@ abstract class ApiConstants {
   // Generous so a page still arrives on a ~100 kbps rural connection.
   static const Duration receiveTimeout = Duration(seconds: 45);
 
+  // The latest app release, for the in-app updater (public).
+  static const String appVersion = '/api/v1/app/version';
+
+  /// The download page to share instead of APK files.
+  static const String appPage = '$baseUrl/app';
+
   // Auth Routes
   static const String login = '/api/v1/auth/login';
   static const String me = '/api/v1/auth/me';
+  static const String refresh = '/api/v1/auth/refresh';
+  static const String logout = '/api/v1/auth/logout';
 
   // Member Routes
   static const String members = '/api/v1/sacco/members';
@@ -23,6 +31,7 @@ abstract class ApiConstants {
   static const String sales = '/api/v1/sacco/milk-sales';
   static const String spoilage = '/api/v1/sacco/milk-spoilage';
   static const String reconciliation = '/api/v1/sacco/reconciliation';
+  static const String transfers = '/api/v1/sacco/milk-transfers';
 
   // Sacco Settings
   static const String saccoSettings = '/api/v1/sacco/settings';

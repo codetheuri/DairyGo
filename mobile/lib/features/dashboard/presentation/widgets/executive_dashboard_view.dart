@@ -9,7 +9,7 @@ import '../../../../core/widgets/balance_badge.dart';
 
 class ExecutiveDashboardView extends StatelessWidget {
   final ExecutiveDashboardModel data;
-  final VoidCallback onRefresh;
+  final Future<void> Function() onRefresh;
 
   const ExecutiveDashboardView({
     super.key,
@@ -22,7 +22,7 @@ class ExecutiveDashboardView extends StatelessWidget {
     final cards = data.summaryCards;
 
     return RefreshIndicator(
-      onRefresh: () async => onRefresh(),
+      onRefresh: onRefresh,
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(16.0),
@@ -172,6 +172,14 @@ class ExecutiveDashboardView extends StatelessWidget {
                   icon: Icons.error_outline_rounded,
                   iconColor: AppColors.error,
                   backgroundColor: AppColors.error.withValues(alpha: 0.1),
+                ),
+                StatCard(
+                  title: 'Transfers Today',
+                  value: '${cards.todayTransferredLitres.toStringAsFixed(1)} L',
+                  subtitle: 'Moved between collectors',
+                  icon: Icons.swap_horiz_rounded,
+                  iconColor: AppColors.info,
+                  backgroundColor: AppColors.infoContainer,
                 ),
               ],
             ),

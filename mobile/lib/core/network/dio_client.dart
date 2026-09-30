@@ -1,23 +1,46 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
+import 'package:dio/io.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../features/auth/presentation/controllers/auth_controller.dart';
+import '../cache/response_cache.dart';
 import '../constants/api_constants.dart';
 import '../storage/secure_storage_service.dart';
-import '../cache/response_cache.dart';
 import 'auth_interceptor.dart';
 import 'cache_interceptor.dart';
+import 'connection_monitor.dart';
+import 'idempotency_interceptor.dart';
 import 'network_connectivity_interceptor.dart';
 import 'network_connectivity_service.dart';
 import 'retry_interceptor.dart';
+import 'token_refresher.dart';
+
+/// One connection pool for the whole app. Opening a connection costs a TCP
+/// and TLS handshake, measured at 0.6–2.6 s on a slow link, so connections
+/// are kept for 55 s between requests (Dart's default is 15 s) instead of
+/// being reopened after every short pause. The server keeps them for 60 s.
+final HttpClient _sharedHttpClient = HttpClient()
+  ..idleTimeout = const Duration(seconds: 55)
+  ..connectionTimeout = ApiConstants.connectionTimeout;
+
+/// Renews the session. Shared by every client so concurrent renewals become
+/// one request (the server rotates the refresh token on each use).
+final tokenRefresherProvider = Provider<TokenRefresher>((ref) {
+  return TokenRefresher(ref.watch(secureStorageServiceProvider));
+});
 
 /// Dio for the auth endpoints (login, current user, staff). The session is
 /// built from these calls, so this client must not depend on it.
 final authDioProvider = Provider<Dio>((ref) {
-  final storageService = ref.watch(secureStorageServiceProvider);
-  final connectivityService = ref.watch(networkConnectivityServiceProvider);
-  return DioClient.createDio(storageService, connectivityService);
+  return DioClient.createDio(
+    ref.watch(secureStorageServiceProvider),
+    ref.watch(networkConnectivityServiceProvider),
+    refresher: ref.watch(tokenRefresherProvider),
+    monitor: ref.read(connectionMonitorProvider.notifier),
+  );
 });
 
 /// Dio for all Sacco data. It is rebuilt whenever the signed-in user changes,
@@ -25,12 +48,12 @@ final authDioProvider = Provider<Dio>((ref) {
 /// instead of briefly showing the previous user's data or errors.
 final dioClientProvider = Provider<Dio>((ref) {
   ref.watch(sessionUserIdProvider);
-  final storageService = ref.watch(secureStorageServiceProvider);
-  final connectivityService = ref.watch(networkConnectivityServiceProvider);
   final auth = ref.read(authControllerProvider.notifier);
   return DioClient.createDio(
-    storageService,
-    connectivityService,
+    ref.watch(secureStorageServiceProvider),
+    ref.watch(networkConnectivityServiceProvider),
+    refresher: ref.watch(tokenRefresherProvider),
+    monitor: ref.read(connectionMonitorProvider.notifier),
     onSessionExpired: auth.expireSession,
     cache: ref.watch(responseCacheProvider),
   );
@@ -64,38 +87,61 @@ class DioClient {
   static Dio createDio(
     SecureStorageService storageService,
     NetworkConnectivityService connectivityService, {
+    TokenRefresher? refresher,
+    ConnectionMonitor? monitor,
     VoidCallback? onSessionExpired,
     ResponseCache? cache,
   }) {
-    final dio = Dio(
-      BaseOptions(
-        baseUrl: ApiConstants.baseUrl,
-        connectTimeout: ApiConstants.connectionTimeout,
-        receiveTimeout: ApiConstants.receiveTimeout,
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
+    final dio =
+        Dio(
+            BaseOptions(
+              baseUrl: ApiConstants.baseUrl,
+              connectTimeout: ApiConstants.connectionTimeout,
+              receiveTimeout: ApiConstants.receiveTimeout,
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+              },
+            ),
+          )
+          ..httpClientAdapter = IOHttpClientAdapter(
+            createHttpClient: () => _sharedHttpClient,
+          );
+
+    // Order matters:
+    // 1. a saved copy is served before any network work;
+    // 2. no connection stops the request early;
+    // 3. the monitor times what really goes out;
+    // 4. the session is renewed and the token attached;
+    // 5. saves get their Idempotency-Key before any retry;
+    // 6. dropped reads and keyed saves are retried;
+    // 7. successful reads are saved on the phone.
+    if (cache != null) dio.interceptors.add(CacheFirstInterceptor(dio, cache));
+    dio.interceptors.add(
+      NetworkConnectivityInterceptor(connectivityService, monitor: monitor),
+    );
+    if (monitor != null) {
+      dio.interceptors.add(ConnectionMonitorInterceptor(monitor));
+    }
+    dio.interceptors.add(
+      AuthInterceptor(
+        dio,
+        storageService,
+        refresher: refresher,
+        onSessionExpired: onSessionExpired,
       ),
     );
-
-    // Order matters: a saved copy is served before any network work, and
-    // responses are saved after auth and retries have run.
-    if (cache != null) dio.interceptors.add(CacheFirstInterceptor(dio, cache));
-    dio.interceptors.add(NetworkConnectivityInterceptor(connectivityService));
-    dio.interceptors.add(
-      AuthInterceptor(storageService, onSessionExpired: onSessionExpired),
-    );
+    dio.interceptors.add(IdempotencyInterceptor());
     dio.interceptors.add(RetryInterceptor(dio));
     if (cache != null) dio.interceptors.add(CacheStoreInterceptor(cache));
 
     if (kDebugMode) {
       dio.interceptors.add(
         LogInterceptor(
-          requestHeader: true,
+          requestHeader: false,
           requestBody: true,
           responseHeader: false,
-          responseBody: true,
+          responseBody: false,
           error: true,
         ),
       );

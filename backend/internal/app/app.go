@@ -16,10 +16,12 @@ import (
 	chimw "github.com/go-chi/chi/v5/middleware"
 
 	"github.com/codetheuri/tusk/config"
+	"github.com/codetheuri/tusk/internal/appupdate"
 	"github.com/codetheuri/tusk/internal/auth"
 	"github.com/codetheuri/tusk/internal/collection"
 	"github.com/codetheuri/tusk/internal/customer"
 	"github.com/codetheuri/tusk/internal/dashboard"
+	"github.com/codetheuri/tusk/internal/idempotency"
 	"github.com/codetheuri/tusk/internal/member"
 	"github.com/codetheuri/tusk/internal/middleware"
 	"github.com/codetheuri/tusk/internal/notification"
@@ -35,10 +37,12 @@ import (
 )
 
 type App struct {
-	cfg      *config.Config
-	router   *chi.Mux
-	log      logger.Logger
-	platform *superadmin.Repository
+	cfg         *config.Config
+	router      *chi.Mux
+	log         logger.Logger
+	platform    *superadmin.Repository
+	idempotency *idempotency.Store
+	auth        *auth.Repository
 }
 
 func New(cfg *config.Config, log logger.Logger) (*App, error) {
@@ -49,6 +53,8 @@ func New(cfg *config.Config, log logger.Logger) (*App, error) {
 
 	r := chi.NewRouter()
 	platformRepo := superadmin.NewRepository(db)
+	idempotencyStore := idempotency.NewStore(db)
+	authRepo := auth.NewRepository(db, log)
 
 	// Middlewares. RecordFailures sits outside Recovery so recovered panics
 	// (500s) are recorded too.
@@ -63,6 +69,9 @@ func New(cfg *config.Config, log logger.Logger) (*App, error) {
 	r.Use(middleware.Recovery(log))
 	r.Use(middleware.CORS(cfg.CORSOrigins, log))
 	r.Use(middleware.SecurityHeaders)
+	// A save retried with the same Idempotency-Key (double tap, or a response
+	// lost on a slow connection) is performed once.
+	r.Use(idempotency.Middleware(idempotencyStore, cfg.JWTSecret))
 
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -108,11 +117,13 @@ func New(cfg *config.Config, log logger.Logger) (*App, error) {
 		{Name: "Milk Collections", Description: "Farmer milk intake recording and status verification"},
 		{Name: "Milk Sales", Description: "Direct field sales to hotels, processors, or local buyers"},
 		{Name: "Milk Spoilage", Description: "Milk loss, acidity testing failure, and transport damage logging"},
+		{Name: "Milk Transfers", Description: "Milk handed from one collector to another; counts for both at once"},
 		{Name: "Customers & Ledger", Description: "Milk buyers (coolers, processors, hotels, shops, individuals), customer payments, statements and outstanding balances"},
 		{Name: "Collector Reconciliation", Description: "Collector daily intake, sales, spoilage, and net delivery overview"},
 		{Name: "Reports & Reconciliation", Description: "Farmer payroll statements, Sacco balancing ledgers, and collector audit reports"},
 		{Name: "Executive & Mobile Dashboards", Description: "Sacco summary cards, trend time series charts, and collector field shift metrics"},
 		{Name: "Platform Console", Description: "DairyGo operator console: overview of all Saccos, Sacco staff and farmers, audit trail, failed requests and SMS logs"},
+		{Name: "Mobile App", Description: "Latest Android release for the in-app updater; the APKs and the download page are served at /app"},
 		{Name: "SMS Notifications", Description: "Pluggable SMS dispatching (httpSMS Android SIM Gateway, Africa's Talking) and audit logs"},
 	}
 
@@ -175,6 +186,7 @@ func New(cfg *config.Config, log logger.Logger) (*App, error) {
 				"Milk Collections",
 				"Milk Sales",
 				"Milk Spoilage",
+				"Milk Transfers",
 				"Customers & Ledger",
 				"Collector Reconciliation",
 				"Reports & Reconciliation",
@@ -190,6 +202,7 @@ func New(cfg *config.Config, log logger.Logger) (*App, error) {
 			"name": "Communications",
 			"tags": []string{
 				"SMS Notifications",
+				"Mobile App",
 			},
 		},
 	}
@@ -207,12 +220,15 @@ func New(cfg *config.Config, log logger.Logger) (*App, error) {
 	dashboard.RegisterRoutes(api, db, cfg, log)
 	notification.RegisterRoutes(api, db, cfg, log)
 	superadmin.RegisterRoutes(api, db, cfg, log)
+	appupdate.RegisterRoutes(api, r, appupdate.NewStore(cfg.AppReleasesDir), log)
 
 	return &App{
-		cfg:      cfg,
-		router:   r,
-		log:      log,
-		platform: platformRepo,
+		cfg:         cfg,
+		router:      r,
+		log:         log,
+		platform:    platformRepo,
+		idempotency: idempotencyStore,
+		auth:        authRepo,
 	}, nil
 }
 
@@ -245,6 +261,15 @@ func (a *App) Run() error {
 	go superadmin.RunLogRetention(retentionCtx, a.platform, 30*24*time.Hour, func(err error) {
 		a.log.Error("Failed to purge old system logs", err)
 	})
+	// Idempotency keys only matter while a client may retry (minutes), and
+	// ended sessions only while they could be presented again.
+	go runDaily(retentionCtx, func(ctx context.Context) error {
+		if _, err := a.idempotency.Purge(ctx, time.Now().Add(-48*time.Hour)); err != nil {
+			return err
+		}
+		_, err := a.auth.PurgeRefreshTokens(ctx, time.Now().Add(-7*24*time.Hour))
+		return err
+	}, func(err error) { a.log.Error("Failed to purge idempotency keys or old sessions", err) })
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
@@ -261,4 +286,24 @@ func (a *App) Run() error {
 
 	a.log.Info("Server shut down gracefully.")
 	return nil
+}
+
+// runDaily runs job once now and then every 24 hours until ctx ends.
+func runDaily(ctx context.Context, job func(context.Context) error, onError func(error)) {
+	run := func() {
+		if err := job(ctx); err != nil && ctx.Err() == nil {
+			onError(err)
+		}
+	}
+	run()
+	ticker := time.NewTicker(24 * time.Hour)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			run()
+		}
+	}
 }

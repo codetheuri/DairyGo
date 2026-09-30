@@ -28,7 +28,9 @@ mixin _$ExecutiveSummaryCards {
   @JsonKey(name: 'today_sales_litres')
   double get todaySalesLitres => throw _privateConstructorUsedError;
   @JsonKey(name: 'today_spoilage_litres')
-  double get todaySpoilageLitres => throw _privateConstructorUsedError; // collected - sold - spoiled today; > 0 missing, < 0 oversold
+  double get todaySpoilageLitres => throw _privateConstructorUsedError; // Moved between collectors today; does not change the Sacco's balance.
+  @JsonKey(name: 'today_transferred_litres')
+  double get todayTransferredLitres => throw _privateConstructorUsedError; // collected - sold - spoiled today; > 0 missing, < 0 oversold
   @JsonKey(name: 'today_unaccounted_litres')
   double get todayUnaccountedLitres => throw _privateConstructorUsedError;
   @JsonKey(name: 'today_balance_status')
@@ -69,6 +71,7 @@ abstract class $ExecutiveSummaryCardsCopyWith<$Res> {
     @JsonKey(name: 'today_collected_litres') double todayCollectedLitres,
     @JsonKey(name: 'today_sales_litres') double todaySalesLitres,
     @JsonKey(name: 'today_spoilage_litres') double todaySpoilageLitres,
+    @JsonKey(name: 'today_transferred_litres') double todayTransferredLitres,
     @JsonKey(name: 'today_unaccounted_litres') double todayUnaccountedLitres,
     @JsonKey(name: 'today_balance_status') String todayBalanceStatus,
     @JsonKey(name: 'month_collected_litres') double monthCollectedLitres,
@@ -102,6 +105,7 @@ class _$ExecutiveSummaryCardsCopyWithImpl<
     Object? todayCollectedLitres = null,
     Object? todaySalesLitres = null,
     Object? todaySpoilageLitres = null,
+    Object? todayTransferredLitres = null,
     Object? todayUnaccountedLitres = null,
     Object? todayBalanceStatus = null,
     Object? monthCollectedLitres = null,
@@ -125,6 +129,10 @@ class _$ExecutiveSummaryCardsCopyWithImpl<
             todaySpoilageLitres: null == todaySpoilageLitres
                 ? _value.todaySpoilageLitres
                 : todaySpoilageLitres // ignore: cast_nullable_to_non_nullable
+                      as double,
+            todayTransferredLitres: null == todayTransferredLitres
+                ? _value.todayTransferredLitres
+                : todayTransferredLitres // ignore: cast_nullable_to_non_nullable
                       as double,
             todayUnaccountedLitres: null == todayUnaccountedLitres
                 ? _value.todayUnaccountedLitres
@@ -181,6 +189,7 @@ abstract class _$$ExecutiveSummaryCardsImplCopyWith<$Res>
     @JsonKey(name: 'today_collected_litres') double todayCollectedLitres,
     @JsonKey(name: 'today_sales_litres') double todaySalesLitres,
     @JsonKey(name: 'today_spoilage_litres') double todaySpoilageLitres,
+    @JsonKey(name: 'today_transferred_litres') double todayTransferredLitres,
     @JsonKey(name: 'today_unaccounted_litres') double todayUnaccountedLitres,
     @JsonKey(name: 'today_balance_status') String todayBalanceStatus,
     @JsonKey(name: 'month_collected_litres') double monthCollectedLitres,
@@ -211,6 +220,7 @@ class __$$ExecutiveSummaryCardsImplCopyWithImpl<$Res>
     Object? todayCollectedLitres = null,
     Object? todaySalesLitres = null,
     Object? todaySpoilageLitres = null,
+    Object? todayTransferredLitres = null,
     Object? todayUnaccountedLitres = null,
     Object? todayBalanceStatus = null,
     Object? monthCollectedLitres = null,
@@ -234,6 +244,10 @@ class __$$ExecutiveSummaryCardsImplCopyWithImpl<$Res>
         todaySpoilageLitres: null == todaySpoilageLitres
             ? _value.todaySpoilageLitres
             : todaySpoilageLitres // ignore: cast_nullable_to_non_nullable
+                  as double,
+        todayTransferredLitres: null == todayTransferredLitres
+            ? _value.todayTransferredLitres
+            : todayTransferredLitres // ignore: cast_nullable_to_non_nullable
                   as double,
         todayUnaccountedLitres: null == todayUnaccountedLitres
             ? _value.todayUnaccountedLitres
@@ -283,6 +297,8 @@ class _$ExecutiveSummaryCardsImpl implements _ExecutiveSummaryCards {
     @JsonKey(name: 'today_collected_litres') this.todayCollectedLitres = 0.0,
     @JsonKey(name: 'today_sales_litres') this.todaySalesLitres = 0.0,
     @JsonKey(name: 'today_spoilage_litres') this.todaySpoilageLitres = 0.0,
+    @JsonKey(name: 'today_transferred_litres')
+    this.todayTransferredLitres = 0.0,
     @JsonKey(name: 'today_unaccounted_litres')
     this.todayUnaccountedLitres = 0.0,
     @JsonKey(name: 'today_balance_status') this.todayBalanceStatus = 'BALANCED',
@@ -308,6 +324,10 @@ class _$ExecutiveSummaryCardsImpl implements _ExecutiveSummaryCards {
   @override
   @JsonKey(name: 'today_spoilage_litres')
   final double todaySpoilageLitres;
+  // Moved between collectors today; does not change the Sacco's balance.
+  @override
+  @JsonKey(name: 'today_transferred_litres')
+  final double todayTransferredLitres;
   // collected - sold - spoiled today; > 0 missing, < 0 oversold
   @override
   @JsonKey(name: 'today_unaccounted_litres')
@@ -339,7 +359,7 @@ class _$ExecutiveSummaryCardsImpl implements _ExecutiveSummaryCards {
 
   @override
   String toString() {
-    return 'ExecutiveSummaryCards(todayCollectedLitres: $todayCollectedLitres, todaySalesLitres: $todaySalesLitres, todaySpoilageLitres: $todaySpoilageLitres, todayUnaccountedLitres: $todayUnaccountedLitres, todayBalanceStatus: $todayBalanceStatus, monthCollectedLitres: $monthCollectedLitres, monthPayoutLiabilityKes: $monthPayoutLiabilityKes, monthSalesRevenueKes: $monthSalesRevenueKes, monthGrossMarginKes: $monthGrossMarginKes, receivablesKes: $receivablesKes, activeMembersCount: $activeMembersCount, activeCollectorsCount: $activeCollectorsCount)';
+    return 'ExecutiveSummaryCards(todayCollectedLitres: $todayCollectedLitres, todaySalesLitres: $todaySalesLitres, todaySpoilageLitres: $todaySpoilageLitres, todayTransferredLitres: $todayTransferredLitres, todayUnaccountedLitres: $todayUnaccountedLitres, todayBalanceStatus: $todayBalanceStatus, monthCollectedLitres: $monthCollectedLitres, monthPayoutLiabilityKes: $monthPayoutLiabilityKes, monthSalesRevenueKes: $monthSalesRevenueKes, monthGrossMarginKes: $monthGrossMarginKes, receivablesKes: $receivablesKes, activeMembersCount: $activeMembersCount, activeCollectorsCount: $activeCollectorsCount)';
   }
 
   @override
@@ -353,6 +373,8 @@ class _$ExecutiveSummaryCardsImpl implements _ExecutiveSummaryCards {
                 other.todaySalesLitres == todaySalesLitres) &&
             (identical(other.todaySpoilageLitres, todaySpoilageLitres) ||
                 other.todaySpoilageLitres == todaySpoilageLitres) &&
+            (identical(other.todayTransferredLitres, todayTransferredLitres) ||
+                other.todayTransferredLitres == todayTransferredLitres) &&
             (identical(other.todayUnaccountedLitres, todayUnaccountedLitres) ||
                 other.todayUnaccountedLitres == todayUnaccountedLitres) &&
             (identical(other.todayBalanceStatus, todayBalanceStatus) ||
@@ -383,6 +405,7 @@ class _$ExecutiveSummaryCardsImpl implements _ExecutiveSummaryCards {
     todayCollectedLitres,
     todaySalesLitres,
     todaySpoilageLitres,
+    todayTransferredLitres,
     todayUnaccountedLitres,
     todayBalanceStatus,
     monthCollectedLitres,
@@ -417,6 +440,8 @@ abstract class _ExecutiveSummaryCards implements ExecutiveSummaryCards {
     @JsonKey(name: 'today_collected_litres') final double todayCollectedLitres,
     @JsonKey(name: 'today_sales_litres') final double todaySalesLitres,
     @JsonKey(name: 'today_spoilage_litres') final double todaySpoilageLitres,
+    @JsonKey(name: 'today_transferred_litres')
+    final double todayTransferredLitres,
     @JsonKey(name: 'today_unaccounted_litres')
     final double todayUnaccountedLitres,
     @JsonKey(name: 'today_balance_status') final String todayBalanceStatus,
@@ -441,7 +466,10 @@ abstract class _ExecutiveSummaryCards implements ExecutiveSummaryCards {
   double get todaySalesLitres;
   @override
   @JsonKey(name: 'today_spoilage_litres')
-  double get todaySpoilageLitres; // collected - sold - spoiled today; > 0 missing, < 0 oversold
+  double get todaySpoilageLitres; // Moved between collectors today; does not change the Sacco's balance.
+  @override
+  @JsonKey(name: 'today_transferred_litres')
+  double get todayTransferredLitres; // collected - sold - spoiled today; > 0 missing, < 0 oversold
   @override
   @JsonKey(name: 'today_unaccounted_litres')
   double get todayUnaccountedLitres;

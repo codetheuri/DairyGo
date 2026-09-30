@@ -67,7 +67,7 @@ func (r *Repository) Overview(ctx context.Context) (*Overview, error) {
 		return nil, err
 	}
 	if err := db.Table("users").Select("sacco_id, COUNT(*) AS n").
-		Where("sacco_id IS NOT NULL").Group("sacco_id").Scan(&staff).Error; err != nil {
+		Where("sacco_id IS NOT NULL AND deleted_at IS NULL").Group("sacco_id").Scan(&staff).Error; err != nil {
 		return nil, err
 	}
 
@@ -198,20 +198,21 @@ func (r *Repository) StaffUsers(ctx context.Context, saccoID string) ([]StaffUse
 		Joins("LEFT JOIN user_profiles p ON p.user_id = u.id").
 		Joins("LEFT JOIN user_roles ur ON ur.user_id = u.id").
 		Joins("LEFT JOIN roles ro ON ro.id = ur.role_id").
-		Where("u.sacco_id = ?", saccoID).
+		Where("u.sacco_id = ? AND u.deleted_at IS NULL", saccoID).
 		Group("u.id, p.first_name, p.last_name").
 		Order("u.created_at").
 		Scan(&users).Error
 	return users, err
 }
 
-// FindStaffUser loads a Sacco-bound user; platform accounts are never returned.
+// FindStaffUser loads a Sacco-bound user; platform accounts and removed
+// accounts are never returned.
 func (r *Repository) FindStaffUser(ctx context.Context, userID uint) (id uint, saccoID string, err error) {
 	var row struct {
 		ID      uint
 		SaccoID *string
 	}
-	err = r.db.WithContext(ctx).Table("users").Select("id, sacco_id").Where("id = ?", userID).Take(&row).Error
+	err = r.db.WithContext(ctx).Table("users").Select("id, sacco_id").Where("id = ? AND deleted_at IS NULL", userID).Take(&row).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) || (err == nil && (row.SaccoID == nil || *row.SaccoID == "")) {
 		return 0, "", fmt.Errorf("%w: sacco user not found", ErrNotFound)
 	}

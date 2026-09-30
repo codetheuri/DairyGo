@@ -22,7 +22,7 @@ SELECT id, username FROM users WHERE is_super_user = true AND sacco_id IS NULL;
 | :--- | :--- |
 | **Overview** | Saccos by status, active farmers, staff, milk today/this month, sales, owed to farmers, what customers owe, failed requests and server errors in the last 24h; one row per Sacco |
 | **Saccos** | Search, onboard a Sacco with its first admin |
-| **Sacco → Staff** | Add staff (roles 1/2/3), deactivate/reactivate, unlock after failed logins, reset password |
+| **Sacco → Staff** | Add staff (roles 1/2/3), change role, deactivate/reactivate, unlock after failed logins, reset password, remove (see [staff-management.md](staff-management.md)) |
 | **Sacco → Farmers** | Search farmers, register a farmer on the Sacco's behalf (same rules as the Sacco admin) |
 | **Sacco → Activity / Errors** | That Sacco's audit trail and failed requests |
 | **Sacco actions** | Edit details, suspend, deactivate, reactivate (with a reason, kept in the audit trail) |
@@ -31,7 +31,7 @@ SELECT id, username FROM users WHERE is_super_user = true AND sacco_id IS NULL;
 | **SMS logs** | Messages sent by all Saccos, with delivery status |
 
 API: `/api/v1/admin/overview`, `/admin/saccos/{id}/users`, `/admin/saccos/{id}/members`,
-`/admin/users/{id}/status|unlock|reset-password`, `/admin/audit-logs`,
+`/admin/users/{id}/status|unlock|reset-password|role`, `DELETE /admin/users/{id}`, `/admin/audit-logs`,
 `/admin/error-logs`, `/admin/sms-logs`, plus the existing `/admin/saccos` endpoints.
 See `/docs` under **Platform Console**.
 

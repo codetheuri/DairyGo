@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/cache/keep_fresh.dart';
 import '../../../../app/router/app_router.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/widgets/error_view.dart';
@@ -79,12 +80,14 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(width: 12),
-          Text(
-            message,
-            style: const TextStyle(
-              fontSize: 13,
-              color: AppColors.textSecondary,
-              fontWeight: FontWeight.w500,
+          Flexible(
+            child: Text(
+              message,
+              style: const TextStyle(
+                fontSize: 13,
+                color: AppColors.textSecondary,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
         ],
@@ -112,11 +115,11 @@ class SettingsScreen extends ConsumerWidget {
       ),
       body: ReadableWidth(
         child: RefreshIndicator(
-          onRefresh: () async {
-            ref.invalidate(saccoProfileProvider);
-            ref.invalidate(activeMilkPriceProvider);
-            ref.invalidate(milkPriceHistoryProvider);
-          },
+          onRefresh: () => ref.refreshFromServer([
+            saccoProfileProvider.future,
+            activeMilkPriceProvider.future,
+            milkPriceHistoryProvider.future,
+          ]),
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.all(16),
@@ -221,7 +224,7 @@ class SettingsScreen extends ConsumerWidget {
                       _buildLoadingCard('Loading organization profile...'),
                   error: (err, stack) => ErrorView(
                     message: err.toString().replaceAll('Exception: ', ''),
-                    onRetry: () => ref.refresh(saccoProfileProvider),
+                    onRetry: () => ref.refresh(saccoProfileProvider.future),
                   ),
                 ),
                 const SizedBox(height: 22),
@@ -396,7 +399,8 @@ class SettingsScreen extends ConsumerWidget {
 
                     return ErrorView(
                       message: msg,
-                      onRetry: () => ref.refresh(activeMilkPriceProvider),
+                      onRetry: () =>
+                          ref.refresh(activeMilkPriceProvider.future),
                     );
                   },
                 ),
@@ -597,7 +601,7 @@ class SettingsScreen extends ConsumerWidget {
                                   Icons.people_outline_rounded,
                                   size: 18,
                                 ),
-                                label: const Text('Staff Roster'),
+                                label: const Text('All Staff'),
                                 onPressed: () => context.push(AppRoutes.staff),
                               ),
                             ),

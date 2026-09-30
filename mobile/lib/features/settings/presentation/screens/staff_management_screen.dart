@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/cache/keep_fresh.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/status_pill.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../widgets/register_staff_dialog.dart';
+import '../widgets/staff_actions_sheet.dart';
 import '../../../../core/layout/breakpoints.dart';
+import '../../../../core/widgets/skeleton.dart';
 
 class StaffManagementScreen extends ConsumerWidget {
   const StaffManagementScreen({super.key});
@@ -14,6 +17,7 @@ class StaffManagementScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final staffAsync = ref.watch(saccoStaffListProvider);
+    final myId = ref.watch(sessionUserIdProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -53,9 +57,8 @@ class StaffManagementScreen extends ConsumerWidget {
       ),
       body: ReadableWidth(
         child: RefreshIndicator(
-          onRefresh: () async {
-            ref.invalidate(saccoStaffListProvider);
-          },
+          onRefresh: () =>
+              ref.refreshFromServer([saccoStaffListProvider.future]),
           child: staffAsync.when(
             data: (users) {
               if (users.isEmpty) {
@@ -106,10 +109,11 @@ class StaffManagementScreen extends ConsumerWidget {
                   final staff = users[index];
                   final isAdmin = staff.isSaccoAdmin;
 
-                  return Container(
+                  final isMe = staff.id == myId;
+
+                  final card = Container(
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: Colors.white,
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(color: AppColors.cardBorder),
                     ),
@@ -196,11 +200,15 @@ class StaffManagementScreen extends ConsumerWidget {
                                 ),
                               ),
                               const SizedBox(height: 6),
-                              const Text(
-                                'Active Duty',
+                              // Your own account is changed by another
+                              // administrator, never by you.
+                              Text(
+                                isMe ? 'You' : 'Manage ›',
                                 style: TextStyle(
-                                  fontSize: 10,
-                                  color: AppColors.success,
+                                  fontSize: 11,
+                                  color: isMe
+                                      ? AppColors.textMuted
+                                      : AppColors.primary,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -210,15 +218,24 @@ class StaffManagementScreen extends ConsumerWidget {
                       ],
                     ),
                   );
+                  return Material(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(14),
+                      onTap: isMe
+                          ? null
+                          : () => StaffActionsSheet.show(context, staff),
+                      child: card,
+                    ),
+                  );
                 },
               );
             },
-            loading: () => const Center(
-              child: CircularProgressIndicator(color: AppColors.primary),
-            ),
+            loading: () => const ListSkeleton(),
             error: (err, stack) => ErrorView(
               message: err.toString().replaceAll('Exception: ', ''),
-              onRetry: () => ref.invalidate(saccoStaffListProvider),
+              onRetry: () => ref.refresh(saccoStaffListProvider.future),
             ),
           ),
         ),

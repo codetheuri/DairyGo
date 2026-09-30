@@ -15,6 +15,10 @@ flutter run                       # on a connected phone or emulator
 flutter build apk --release --split-per-abi
 ```
 
+Releases for users are built with `scripts/release.sh`, signed with the
+release key, and published through the download page and the in-app
+updater: see [Releasing the app](docs/releases.md).
+
 `--split-per-abi` builds one APK per phone type, about 20 MB each instead of
 one 56 MB file, which matters on slow connections. Almost every current phone
 needs `app-arm64-v8a-release.apk`; very old phones need
@@ -55,11 +59,25 @@ server in `test/layout/fixtures`.
   writes them to `test/layout/screenshots/` (not committed).
 - New fixtures after an API change: run `test/layout/capture_fixtures.sh`
   against a local API with test data.
+- `test/layout/safe_area_test.dart` and `test/layout/states_test.dart` check
+  system bars, cutouts, curved edges, loading placeholders and the
+  connection strips.
+- `test/layout/live_changes_test.dart` checks that a sale saved on another
+  phone shows when Sales is opened again, and that Home reloads every minute
+  only while it shows.
+- `test/live_api_test.dart` runs the real network layer (sessions, safe
+  retries) against a local API; see the file header. Never against
+  production.
 
 ## Docs
 
 - [Navigation and layout](docs/navigation-and-layout.md): menus per role,
   screen sizes, text size, the layout test.
 - [Speed and offline](docs/performance-and-offline.md): what makes the app
-  usable on a 100 kbps connection or with no signal.
+  usable on a 100 kbps connection or with no signal, and how screens show
+  records saved on other phones.
+- Milk transfers between collectors: `../backend/docs/milk-transfers.md`
+  (the Transfers tab, the Transfer milk form, and where they show).
+- [Releasing the app](docs/releases.md): release key, download page,
+  in-app updates, forcing an update.
 - Backend and business rules: `../backend/docs/`.

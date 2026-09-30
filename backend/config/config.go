@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-
 	_ "github.com/go-sql-driver/mysql" // MySQL driver
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"     // PostgreSQL driver
@@ -15,25 +14,31 @@ import (
 )
 
 type Config struct {
-	DBUser            string
-	DBPass            string
-	DBHost            string
-	DBPort            string
-	DBName            string
-	DBDriver          string
-	ServerPort        int
-	LOG_LEVEL         string
-	JWTSecret         string
-	AccessTokenTTL    time.Duration 
-	AppName           string
-	AppVersion        string
-	AppMode           string
-	AppTimezone       string
-	DbURL             string
-	DBMaxIdleConns    int
-	DBMaxOpenConns    int
-	DBConnMaxLifetime int
-	CORSOrigins    []string
+	DBUser         string
+	DBPass         string
+	DBHost         string
+	DBPort         string
+	DBName         string
+	DBDriver       string
+	ServerPort     int
+	LOG_LEVEL      string
+	JWTSecret      string
+	AccessTokenTTL time.Duration
+	// SessionIdleTimeout signs a user out after this long without using the
+	// app: each token refresh extends the session by this much.
+	SessionIdleTimeout time.Duration
+	AppName            string
+	AppVersion         string
+	AppMode            string
+	AppTimezone        string
+	DbURL              string
+	DBMaxIdleConns     int
+	DBMaxOpenConns     int
+	DBConnMaxLifetime  int
+	CORSOrigins        []string
+	// AppReleasesDir holds the published Android app (APKs and
+	// latest.json), served for download and the in-app updater.
+	AppReleasesDir string
 
 	//mailer config
 	MailerHost     string
@@ -52,6 +57,36 @@ type Config struct {
 	ATIsSandbox      bool
 }
 
+// placeholderJWTSecret is the example value committed in docker-compose.yml.
+// Anyone who has seen the repository knows it, so it must never sign tokens.
+const placeholderJWTSecret = "generate_a_secure_random_string_for_production"
+
+// validateJWTSecret refuses secrets that would let anyone forge a login.
+func validateJWTSecret(secret, appMode string) error {
+	switch {
+	case secret == "":
+		return fmt.Errorf("JWT_SECRET not set in .env")
+	case secret == placeholderJWTSecret:
+		return fmt.Errorf("JWT_SECRET is the public placeholder from docker-compose.yml; set a random secret (openssl rand -hex 32)")
+	case appMode == "prod" && len(secret) < 32:
+		return fmt.Errorf("JWT_SECRET must be at least 32 characters in production (openssl rand -hex 32)")
+	}
+	return nil
+}
+
+// durationEnv reads a duration such as "1h" or "720h", or returns def.
+func durationEnv(name string, def time.Duration) (time.Duration, error) {
+	raw := os.Getenv(name)
+	if raw == "" {
+		return def, nil
+	}
+	d, err := time.ParseDuration(raw)
+	if err != nil || d <= 0 {
+		return 0, fmt.Errorf("invalid %s value %q: use a duration such as 1h or 720h", name, raw)
+	}
+	return d, nil
+}
+
 func LoadConfig() (*Config, error) {
 	err := godotenv.Load(".env")
 	if err != nil && !os.IsNotExist(err) {
@@ -62,15 +97,16 @@ func LoadConfig() (*Config, error) {
 		DBPass: os.Getenv("DB_PASS"),
 		DBHost: os.Getenv("DB_HOST"),
 		// DBPort: os.Getenv("DB_PORT"),
-		DBName:            os.Getenv("DB_NAME"),
-		DBDriver:          os.Getenv("DB_DRIVER"),
-		LOG_LEVEL:         os.Getenv("LOG_LEVEL"),
-		JWTSecret:         os.Getenv("JWT_SECRET"),
+		DBName:    os.Getenv("DB_NAME"),
+		DBDriver:  os.Getenv("DB_DRIVER"),
+		LOG_LEVEL: os.Getenv("LOG_LEVEL"),
+		JWTSecret: os.Getenv("JWT_SECRET"),
 		// AccessTokenTTL:    os.Getenv("ACCESS_TOKEN_TTL"),
 		AppName:           os.Getenv("APP_NAME"),
 		AppVersion:        os.Getenv("APP_VERSION"),
 		AppMode:           os.Getenv("APP_MODE"),
 		AppTimezone:       os.Getenv("APP_TIMEZONE"),
+		AppReleasesDir:    os.Getenv("APP_RELEASES_DIR"),
 		DBMaxIdleConns:    10,
 		DBMaxOpenConns:    100,
 		DBConnMaxLifetime: 60, // default value in seconds
@@ -83,22 +119,20 @@ func LoadConfig() (*Config, error) {
 		ATSenderID:       os.Getenv("AT_SENDER_ID"),
 		ATIsSandbox:      os.Getenv("AT_IS_SANDBOX") == "true",
 	}
-	JWTSecret :=   os.Getenv("JWT_SECRET")
-	if JWTSecret == "" {
-		return nil, fmt.Errorf("JWT_SECRET not set in .env")
+	if err := validateJWTSecret(cfg.JWTSecret, cfg.AppMode); err != nil {
+		return nil, err
 	}
-	 accessTokenTTLStr := os.Getenv("ACCESS_TOKEN_TTL")
-    if accessTokenTTLStr == "" {
-        
-        accessTokenTTLStr = "24h" 
-    }
-    // Parse the duration string (e.g., "3600s", "1h", "24h")
-    parsedTTL, err := time.ParseDuration(accessTokenTTLStr)
-    if err != nil {
-        return nil, fmt.Errorf("invalid ACCESS_TOKEN_TTL value: %s, error: %w", accessTokenTTLStr, err)
-    }
-    cfg.AccessTokenTTL = parsedTTL
+	// Access tokens are short-lived; the app refreshes them silently.
+	if cfg.AccessTokenTTL, err = durationEnv("ACCESS_TOKEN_TTL", time.Hour); err != nil {
+		return nil, err
+	}
+	if cfg.SessionIdleTimeout, err = durationEnv("SESSION_IDLE_TIMEOUT", 30*24*time.Hour); err != nil {
+		return nil, err
+	}
 
+	if cfg.AppReleasesDir == "" {
+		cfg.AppReleasesDir = "releases"
+	}
 	if cfg.AppTimezone == "" {
 		cfg.AppTimezone = "Africa/Nairobi"
 	}
@@ -120,8 +154,7 @@ func LoadConfig() (*Config, error) {
 		}
 		cfg.DBPort = strconv.Itoa(dbPort)
 	}
-	// app mode 
-	
+	// app mode
 
 	//server port
 	serverPortStr := os.Getenv("SERVER_PORT")
@@ -133,9 +166,9 @@ func LoadConfig() (*Config, error) {
 		return nil, fmt.Errorf("invalid SERVER_PORT value %s: %w", serverPortStr, err)
 	}
 	cfg.ServerPort = serverPort
-      //mail port
+	//mail port
 	mailerPortStr := os.Getenv("MAIL_PORT")
-     if mailerPortStr != "" { 
+	if mailerPortStr != "" {
 		mailPort, err := strconv.Atoi(mailerPortStr)
 		if err != nil {
 			return nil, fmt.Errorf("invalid MAIL_PORT value %s: %w", mailerPortStr, err)

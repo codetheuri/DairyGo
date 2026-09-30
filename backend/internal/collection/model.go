@@ -120,6 +120,39 @@ func (MilkSpoilage) TableName() string {
 	return "milk_spoilage"
 }
 
+// MilkTransfer is milk handed from one collector to another. It counts for
+// both at once: out of the sender's balance and into the receiver's.
+type MilkTransfer struct {
+	ID              string `json:"id" gorm:"primaryKey;type:varchar(36)"`
+	SaccoID         string `json:"sacco_id" gorm:"index;type:varchar(36);not null"`
+	FromCollectorID uint   `json:"from_collector_id" gorm:"not null"`
+	ToCollectorID   uint   `json:"to_collector_id" gorm:"not null"`
+	// Display names, filled in on reads.
+	FromCollectorName string    `json:"from_collector_name,omitempty" gorm:"-"`
+	ToCollectorName   string    `json:"to_collector_name,omitempty" gorm:"-"`
+	TransferDate      time.Time `json:"transfer_date" gorm:"type:date;not null"`
+	QuantityLitres    float64   `json:"quantity_litres" gorm:"type:decimal(10,2);not null"`
+	Notes             *string   `json:"notes,omitempty"`
+	// RecordedByID is the sender, or an admin recording it for them.
+	RecordedByID uint           `json:"recorded_by_id" gorm:"not null"`
+	VoidedAt     *time.Time     `json:"voided_at,omitempty"`
+	VoidReason   *string        `json:"void_reason,omitempty"`
+	CreatedAt    time.Time      `json:"created_at" doc:"When it was recorded"`
+	UpdatedAt    time.Time      `json:"updated_at"`
+	DeletedAt    gorm.DeletedAt `json:"-" gorm:"index"`
+}
+
+func (MilkTransfer) TableName() string {
+	return "milk_transfers"
+}
+
+// TransferRecipient is a colleague milk can be transferred to.
+type TransferRecipient struct {
+	ID       uint   `json:"id"`
+	Name     string `json:"name"`
+	Username string `json:"username"`
+}
+
 // CollectorReconciliation balances one collector's day: every litre collected
 // must be sold (coolers included) or logged as spoilage; the rest is unaccounted.
 type CollectorReconciliation struct {
@@ -129,10 +162,15 @@ type CollectorReconciliation struct {
 	TotalCollectedLitres float64 `json:"total_collected_litres"`
 	TotalSoldLitres      float64 `json:"total_sold_litres"`
 	TotalSpoiledLitres   float64 `json:"total_spoiled_litres"`
+	// Milk from and to other collectors on the day.
+	TotalReceivedLitres       float64 `json:"total_received_litres"`
+	TotalTransferredOutLitres float64 `json:"total_transferred_out_litres"`
 	reconcile.Result
 	TotalSalesAmount     float64               `json:"total_sales_amount"`
 	CashReceivedAmount   float64               `json:"cash_received_amount" doc:"Paid at the time of sale (cash, M-Pesa, bank)"`
 	CreditSalesAmount    float64               `json:"credit_sales_amount" doc:"Sold on credit; added to customer balances"`
 	TotalPurchasesAmount float64               `json:"total_purchases_amount"`
 	SalesByCustomerType  []reconcile.TypeTotal `json:"sales_by_customer_type"`
+	// Transfers is the day's transfers to and from the collector, oldest first.
+	Transfers []MilkTransfer `json:"transfers"`
 }

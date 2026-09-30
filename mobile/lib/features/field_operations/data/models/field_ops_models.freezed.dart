@@ -1579,7 +1579,12 @@ mixin _$ReconciliationModel {
   @JsonKey(name: 'total_sold_litres')
   double get totalSoldLitres => throw _privateConstructorUsedError;
   @JsonKey(name: 'total_spoiled_litres')
-  double get totalSpoiledLitres => throw _privateConstructorUsedError; // collected - sold - spoiled; > 0 missing, < 0 oversold
+  double get totalSpoiledLitres => throw _privateConstructorUsedError; // Milk from and to other collectors on the day.
+  @JsonKey(name: 'total_received_litres')
+  double get totalReceivedLitres => throw _privateConstructorUsedError;
+  @JsonKey(name: 'total_transferred_out_litres')
+  double get totalTransferredOutLitres => throw _privateConstructorUsedError; // collected + received - sold - transferred out - spoiled;
+  // > 0 missing, < 0 oversold
   @JsonKey(name: 'unaccounted_litres')
   double get unaccountedLitres => throw _privateConstructorUsedError;
   @JsonKey(name: 'balance_status')
@@ -1595,6 +1600,7 @@ mixin _$ReconciliationModel {
       throw _privateConstructorUsedError;
   @JsonKey(name: 'total_purchases_amount')
   double get totalPurchasesAmount => throw _privateConstructorUsedError;
+  List<MilkTransferModel> get transfers => throw _privateConstructorUsedError;
 
   /// Serializes this ReconciliationModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -1620,6 +1626,9 @@ abstract class $ReconciliationModelCopyWith<$Res> {
     @JsonKey(name: 'total_collected_litres') double totalCollectedLitres,
     @JsonKey(name: 'total_sold_litres') double totalSoldLitres,
     @JsonKey(name: 'total_spoiled_litres') double totalSpoiledLitres,
+    @JsonKey(name: 'total_received_litres') double totalReceivedLitres,
+    @JsonKey(name: 'total_transferred_out_litres')
+    double totalTransferredOutLitres,
     @JsonKey(name: 'unaccounted_litres') double unaccountedLitres,
     @JsonKey(name: 'balance_status') String balanceStatus,
     @JsonKey(name: 'total_sales_amount') double totalSalesAmount,
@@ -1628,6 +1637,7 @@ abstract class $ReconciliationModelCopyWith<$Res> {
     @JsonKey(name: 'sales_by_customer_type')
     List<CustomerTypeTotalModel> salesByCustomerType,
     @JsonKey(name: 'total_purchases_amount') double totalPurchasesAmount,
+    List<MilkTransferModel> transfers,
   });
 }
 
@@ -1652,6 +1662,8 @@ class _$ReconciliationModelCopyWithImpl<$Res, $Val extends ReconciliationModel>
     Object? totalCollectedLitres = null,
     Object? totalSoldLitres = null,
     Object? totalSpoiledLitres = null,
+    Object? totalReceivedLitres = null,
+    Object? totalTransferredOutLitres = null,
     Object? unaccountedLitres = null,
     Object? balanceStatus = null,
     Object? totalSalesAmount = null,
@@ -1659,6 +1671,7 @@ class _$ReconciliationModelCopyWithImpl<$Res, $Val extends ReconciliationModel>
     Object? creditSalesAmount = null,
     Object? salesByCustomerType = null,
     Object? totalPurchasesAmount = null,
+    Object? transfers = null,
   }) {
     return _then(
       _value.copyWith(
@@ -1685,6 +1698,14 @@ class _$ReconciliationModelCopyWithImpl<$Res, $Val extends ReconciliationModel>
             totalSpoiledLitres: null == totalSpoiledLitres
                 ? _value.totalSpoiledLitres
                 : totalSpoiledLitres // ignore: cast_nullable_to_non_nullable
+                      as double,
+            totalReceivedLitres: null == totalReceivedLitres
+                ? _value.totalReceivedLitres
+                : totalReceivedLitres // ignore: cast_nullable_to_non_nullable
+                      as double,
+            totalTransferredOutLitres: null == totalTransferredOutLitres
+                ? _value.totalTransferredOutLitres
+                : totalTransferredOutLitres // ignore: cast_nullable_to_non_nullable
                       as double,
             unaccountedLitres: null == unaccountedLitres
                 ? _value.unaccountedLitres
@@ -1714,6 +1735,10 @@ class _$ReconciliationModelCopyWithImpl<$Res, $Val extends ReconciliationModel>
                 ? _value.totalPurchasesAmount
                 : totalPurchasesAmount // ignore: cast_nullable_to_non_nullable
                       as double,
+            transfers: null == transfers
+                ? _value.transfers
+                : transfers // ignore: cast_nullable_to_non_nullable
+                      as List<MilkTransferModel>,
           )
           as $Val,
     );
@@ -1736,6 +1761,9 @@ abstract class _$$ReconciliationModelImplCopyWith<$Res>
     @JsonKey(name: 'total_collected_litres') double totalCollectedLitres,
     @JsonKey(name: 'total_sold_litres') double totalSoldLitres,
     @JsonKey(name: 'total_spoiled_litres') double totalSpoiledLitres,
+    @JsonKey(name: 'total_received_litres') double totalReceivedLitres,
+    @JsonKey(name: 'total_transferred_out_litres')
+    double totalTransferredOutLitres,
     @JsonKey(name: 'unaccounted_litres') double unaccountedLitres,
     @JsonKey(name: 'balance_status') String balanceStatus,
     @JsonKey(name: 'total_sales_amount') double totalSalesAmount,
@@ -1744,6 +1772,7 @@ abstract class _$$ReconciliationModelImplCopyWith<$Res>
     @JsonKey(name: 'sales_by_customer_type')
     List<CustomerTypeTotalModel> salesByCustomerType,
     @JsonKey(name: 'total_purchases_amount') double totalPurchasesAmount,
+    List<MilkTransferModel> transfers,
   });
 }
 
@@ -1767,6 +1796,8 @@ class __$$ReconciliationModelImplCopyWithImpl<$Res>
     Object? totalCollectedLitres = null,
     Object? totalSoldLitres = null,
     Object? totalSpoiledLitres = null,
+    Object? totalReceivedLitres = null,
+    Object? totalTransferredOutLitres = null,
     Object? unaccountedLitres = null,
     Object? balanceStatus = null,
     Object? totalSalesAmount = null,
@@ -1774,6 +1805,7 @@ class __$$ReconciliationModelImplCopyWithImpl<$Res>
     Object? creditSalesAmount = null,
     Object? salesByCustomerType = null,
     Object? totalPurchasesAmount = null,
+    Object? transfers = null,
   }) {
     return _then(
       _$ReconciliationModelImpl(
@@ -1800,6 +1832,14 @@ class __$$ReconciliationModelImplCopyWithImpl<$Res>
         totalSpoiledLitres: null == totalSpoiledLitres
             ? _value.totalSpoiledLitres
             : totalSpoiledLitres // ignore: cast_nullable_to_non_nullable
+                  as double,
+        totalReceivedLitres: null == totalReceivedLitres
+            ? _value.totalReceivedLitres
+            : totalReceivedLitres // ignore: cast_nullable_to_non_nullable
+                  as double,
+        totalTransferredOutLitres: null == totalTransferredOutLitres
+            ? _value.totalTransferredOutLitres
+            : totalTransferredOutLitres // ignore: cast_nullable_to_non_nullable
                   as double,
         unaccountedLitres: null == unaccountedLitres
             ? _value.unaccountedLitres
@@ -1829,6 +1869,10 @@ class __$$ReconciliationModelImplCopyWithImpl<$Res>
             ? _value.totalPurchasesAmount
             : totalPurchasesAmount // ignore: cast_nullable_to_non_nullable
                   as double,
+        transfers: null == transfers
+            ? _value._transfers
+            : transfers // ignore: cast_nullable_to_non_nullable
+                  as List<MilkTransferModel>,
       ),
     );
   }
@@ -1844,6 +1888,9 @@ class _$ReconciliationModelImpl implements _ReconciliationModel {
     @JsonKey(name: 'total_collected_litres') this.totalCollectedLitres = 0.0,
     @JsonKey(name: 'total_sold_litres') this.totalSoldLitres = 0.0,
     @JsonKey(name: 'total_spoiled_litres') this.totalSpoiledLitres = 0.0,
+    @JsonKey(name: 'total_received_litres') this.totalReceivedLitres = 0.0,
+    @JsonKey(name: 'total_transferred_out_litres')
+    this.totalTransferredOutLitres = 0.0,
     @JsonKey(name: 'unaccounted_litres') this.unaccountedLitres = 0.0,
     @JsonKey(name: 'balance_status') this.balanceStatus = 'BALANCED',
     @JsonKey(name: 'total_sales_amount') this.totalSalesAmount = 0.0,
@@ -1852,7 +1899,9 @@ class _$ReconciliationModelImpl implements _ReconciliationModel {
     @JsonKey(name: 'sales_by_customer_type')
     final List<CustomerTypeTotalModel> salesByCustomerType = const [],
     @JsonKey(name: 'total_purchases_amount') this.totalPurchasesAmount = 0.0,
-  }) : _salesByCustomerType = salesByCustomerType;
+    final List<MilkTransferModel> transfers = const [],
+  }) : _salesByCustomerType = salesByCustomerType,
+       _transfers = transfers;
 
   factory _$ReconciliationModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$ReconciliationModelImplFromJson(json);
@@ -1875,7 +1924,15 @@ class _$ReconciliationModelImpl implements _ReconciliationModel {
   @override
   @JsonKey(name: 'total_spoiled_litres')
   final double totalSpoiledLitres;
-  // collected - sold - spoiled; > 0 missing, < 0 oversold
+  // Milk from and to other collectors on the day.
+  @override
+  @JsonKey(name: 'total_received_litres')
+  final double totalReceivedLitres;
+  @override
+  @JsonKey(name: 'total_transferred_out_litres')
+  final double totalTransferredOutLitres;
+  // collected + received - sold - transferred out - spoiled;
+  // > 0 missing, < 0 oversold
   @override
   @JsonKey(name: 'unaccounted_litres')
   final double unaccountedLitres;
@@ -1904,10 +1961,18 @@ class _$ReconciliationModelImpl implements _ReconciliationModel {
   @override
   @JsonKey(name: 'total_purchases_amount')
   final double totalPurchasesAmount;
+  final List<MilkTransferModel> _transfers;
+  @override
+  @JsonKey()
+  List<MilkTransferModel> get transfers {
+    if (_transfers is EqualUnmodifiableListView) return _transfers;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_transfers);
+  }
 
   @override
   String toString() {
-    return 'ReconciliationModel(collectorId: $collectorId, collectorName: $collectorName, date: $date, totalCollectedLitres: $totalCollectedLitres, totalSoldLitres: $totalSoldLitres, totalSpoiledLitres: $totalSpoiledLitres, unaccountedLitres: $unaccountedLitres, balanceStatus: $balanceStatus, totalSalesAmount: $totalSalesAmount, cashReceivedAmount: $cashReceivedAmount, creditSalesAmount: $creditSalesAmount, salesByCustomerType: $salesByCustomerType, totalPurchasesAmount: $totalPurchasesAmount)';
+    return 'ReconciliationModel(collectorId: $collectorId, collectorName: $collectorName, date: $date, totalCollectedLitres: $totalCollectedLitres, totalSoldLitres: $totalSoldLitres, totalSpoiledLitres: $totalSpoiledLitres, totalReceivedLitres: $totalReceivedLitres, totalTransferredOutLitres: $totalTransferredOutLitres, unaccountedLitres: $unaccountedLitres, balanceStatus: $balanceStatus, totalSalesAmount: $totalSalesAmount, cashReceivedAmount: $cashReceivedAmount, creditSalesAmount: $creditSalesAmount, salesByCustomerType: $salesByCustomerType, totalPurchasesAmount: $totalPurchasesAmount, transfers: $transfers)';
   }
 
   @override
@@ -1926,6 +1991,13 @@ class _$ReconciliationModelImpl implements _ReconciliationModel {
                 other.totalSoldLitres == totalSoldLitres) &&
             (identical(other.totalSpoiledLitres, totalSpoiledLitres) ||
                 other.totalSpoiledLitres == totalSpoiledLitres) &&
+            (identical(other.totalReceivedLitres, totalReceivedLitres) ||
+                other.totalReceivedLitres == totalReceivedLitres) &&
+            (identical(
+                  other.totalTransferredOutLitres,
+                  totalTransferredOutLitres,
+                ) ||
+                other.totalTransferredOutLitres == totalTransferredOutLitres) &&
             (identical(other.unaccountedLitres, unaccountedLitres) ||
                 other.unaccountedLitres == unaccountedLitres) &&
             (identical(other.balanceStatus, balanceStatus) ||
@@ -1941,7 +2013,11 @@ class _$ReconciliationModelImpl implements _ReconciliationModel {
               _salesByCustomerType,
             ) &&
             (identical(other.totalPurchasesAmount, totalPurchasesAmount) ||
-                other.totalPurchasesAmount == totalPurchasesAmount));
+                other.totalPurchasesAmount == totalPurchasesAmount) &&
+            const DeepCollectionEquality().equals(
+              other._transfers,
+              _transfers,
+            ));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1954,6 +2030,8 @@ class _$ReconciliationModelImpl implements _ReconciliationModel {
     totalCollectedLitres,
     totalSoldLitres,
     totalSpoiledLitres,
+    totalReceivedLitres,
+    totalTransferredOutLitres,
     unaccountedLitres,
     balanceStatus,
     totalSalesAmount,
@@ -1961,6 +2039,7 @@ class _$ReconciliationModelImpl implements _ReconciliationModel {
     creditSalesAmount,
     const DeepCollectionEquality().hash(_salesByCustomerType),
     totalPurchasesAmount,
+    const DeepCollectionEquality().hash(_transfers),
   );
 
   /// Create a copy of ReconciliationModel
@@ -1988,6 +2067,9 @@ abstract class _ReconciliationModel implements ReconciliationModel {
     @JsonKey(name: 'total_collected_litres') final double totalCollectedLitres,
     @JsonKey(name: 'total_sold_litres') final double totalSoldLitres,
     @JsonKey(name: 'total_spoiled_litres') final double totalSpoiledLitres,
+    @JsonKey(name: 'total_received_litres') final double totalReceivedLitres,
+    @JsonKey(name: 'total_transferred_out_litres')
+    final double totalTransferredOutLitres,
     @JsonKey(name: 'unaccounted_litres') final double unaccountedLitres,
     @JsonKey(name: 'balance_status') final String balanceStatus,
     @JsonKey(name: 'total_sales_amount') final double totalSalesAmount,
@@ -1996,6 +2078,7 @@ abstract class _ReconciliationModel implements ReconciliationModel {
     @JsonKey(name: 'sales_by_customer_type')
     final List<CustomerTypeTotalModel> salesByCustomerType,
     @JsonKey(name: 'total_purchases_amount') final double totalPurchasesAmount,
+    final List<MilkTransferModel> transfers,
   }) = _$ReconciliationModelImpl;
 
   factory _ReconciliationModel.fromJson(Map<String, dynamic> json) =
@@ -2017,7 +2100,14 @@ abstract class _ReconciliationModel implements ReconciliationModel {
   double get totalSoldLitres;
   @override
   @JsonKey(name: 'total_spoiled_litres')
-  double get totalSpoiledLitres; // collected - sold - spoiled; > 0 missing, < 0 oversold
+  double get totalSpoiledLitres; // Milk from and to other collectors on the day.
+  @override
+  @JsonKey(name: 'total_received_litres')
+  double get totalReceivedLitres;
+  @override
+  @JsonKey(name: 'total_transferred_out_litres')
+  double get totalTransferredOutLitres; // collected + received - sold - transferred out - spoiled;
+  // > 0 missing, < 0 oversold
   @override
   @JsonKey(name: 'unaccounted_litres')
   double get unaccountedLitres;
@@ -2039,6 +2129,8 @@ abstract class _ReconciliationModel implements ReconciliationModel {
   @override
   @JsonKey(name: 'total_purchases_amount')
   double get totalPurchasesAmount;
+  @override
+  List<MilkTransferModel> get transfers;
 
   /// Create a copy of ReconciliationModel
   /// with the given fields replaced by the non-null parameter values.

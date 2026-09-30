@@ -2,13 +2,18 @@
 
 ## The balancing rule
 
-Every litre a collector receives from farmers must leave as a **sale to a
-customer** (coolers included) or be logged as **spoilage**:
+Every litre a collector receives, from farmers or from another collector,
+must leave as a **sale to a customer** (coolers included), a **transfer to
+another collector**, or be logged as **spoilage**:
 
 ```
-collected (non-rejected)  =  sold (non-voided)  +  spoiled  +  unaccounted
-unaccounted = collected − sold − spoiled
+collected + received  =  sold + transferred out + spoiled + unaccounted
+unaccounted = collected + received − sold − transferred out − spoiled
 ```
+
+(collected: non-rejected; sold: non-voided; transfers: non-cancelled.)
+Across a whole Sacco, transfers cancel out: each litre transferred out is
+received by someone. See [milk-transfers.md](milk-transfers.md).
 
 | Unaccounted | Status | Meaning |
 | :--- | :--- | :--- |
@@ -19,8 +24,9 @@ unaccounted = collected − sold − spoiled
 Before this change, "net delivered to cooler" was *assumed* to be whatever was not
 sold or spoiled, so every day balanced by definition and losses were invisible.
 
-The rule lives in one place, `pkg/reconcile.Compute`, and is used by collector
-reconciliation, both reports and both dashboards.
+The rule lives in one place, `pkg/reconcile` (`Balance` with `Flows` for a
+collector; `Compute` for Sacco totals, where transfers cancel out), and is used
+by collector reconciliation, both reports and both dashboards.
 
 ### Tolerance
 
@@ -39,9 +45,19 @@ the **collectors to check** separately.
 | :--- | :--- |
 | `GET /sacco/reconciliation?date=` | One collector's day. Collectors see only their own. |
 | `GET /sacco/reports/reconciliation?from_date&to_date` | Sacco ledger: volumes, sales by customer type, unaccounted litres, money (owed to farmers, revenue, paid at sale, credit, gross margin, customers owe now), per-collector summaries |
-| `GET /sacco/reports/collector-audit` | Per-collector balance over a period |
+| `GET /sacco/reports/collector-audit` | Per-collector balance over a period, with `tolerance_litres` (per collector per day) so the app balances each day of the period the same way |
 | `GET /sacco/dashboard/summary?days=` | Executive cards (today's balance status, month gross margin, receivables) and daily trend including unaccounted litres |
-| `GET /sacco/dashboard/collector` | A collector's day, including unaccounted litres and cash received |
+| `GET /sacco/dashboard/collector` | A collector's day, including unaccounted litres, cash received, and litres received from / transferred to other collectors |
+
+Per-collector views (`/sacco/reconciliation`, the collector audit, the ledger's
+collector summaries and the collector dashboard) include
+`total_received_litres` and `total_transferred_out_litres`; the day view also
+lists the day's `transfers`. The ledger has `total_transferred_litres` and the
+executive cards `today_transferred_litres`, for information: they do not change
+the Sacco's balance.
+
+There is no "to station" or "net handover" figure: deliveries to coolers and
+stations are sales to a customer like any other.
 
 **Breaking change:** `net_delivered_litres`, `net_coolant_*` and `discrepancy_litres`
 were removed. Use `unaccounted_litres`, `balance_status`, `is_balanced` and

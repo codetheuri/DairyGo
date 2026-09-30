@@ -7,16 +7,6 @@ final networkConnectivityServiceProvider = Provider<NetworkConnectivityService>(
   },
 );
 
-final networkConnectivityProvider = StreamProvider.autoDispose<bool>((ref) {
-  final service = ref.watch(networkConnectivityServiceProvider);
-  return service.onConnectivityChanged;
-});
-
-final isConnectedProvider = Provider.autoDispose<bool>((ref) {
-  final asyncVal = ref.watch(networkConnectivityProvider);
-  return asyncVal.valueOrNull ?? true;
-});
-
 class NetworkConnectivityService {
   final Connectivity _connectivity = Connectivity();
 

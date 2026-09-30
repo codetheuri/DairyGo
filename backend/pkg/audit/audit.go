@@ -24,6 +24,7 @@ const (
 	ActionUpdate Action = "UPDATE"
 	ActionStatus Action = "STATUS"
 	ActionVoid   Action = "VOID"
+	ActionDelete Action = "DELETE"
 )
 
 // Entry describes one change to an audited record.

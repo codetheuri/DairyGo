@@ -523,10 +523,16 @@ mixin _$CollectorAuditSummaryModel {
   double get cashReceivedAmount => throw _privateConstructorUsedError;
   @JsonKey(name: 'total_spoiled_litres')
   double get totalSpoiledLitres => throw _privateConstructorUsedError; // collected - sold - spoiled; > 0 missing, < 0 oversold
+  @JsonKey(name: 'total_received_litres')
+  double get totalReceivedLitres => throw _privateConstructorUsedError;
+  @JsonKey(name: 'total_transferred_out_litres')
+  double get totalTransferredOutLitres => throw _privateConstructorUsedError;
   @JsonKey(name: 'unaccounted_litres')
   double get unaccountedLitres => throw _privateConstructorUsedError;
   @JsonKey(name: 'balance_status')
-  String get balanceStatus => throw _privateConstructorUsedError;
+  String get balanceStatus => throw _privateConstructorUsedError; // Allowed difference per collector per day, to balance each day alike.
+  @JsonKey(name: 'tolerance_litres')
+  double get toleranceLitres => throw _privateConstructorUsedError;
   @JsonKey(name: 'active_days')
   int get activeDays => throw _privateConstructorUsedError;
   @JsonKey(name: 'farmers_serviced_count')
@@ -562,8 +568,12 @@ abstract class $CollectorAuditSummaryModelCopyWith<$Res> {
     @JsonKey(name: 'total_sales_revenue') double totalSalesRevenue,
     @JsonKey(name: 'cash_received_amount') double cashReceivedAmount,
     @JsonKey(name: 'total_spoiled_litres') double totalSpoiledLitres,
+    @JsonKey(name: 'total_received_litres') double totalReceivedLitres,
+    @JsonKey(name: 'total_transferred_out_litres')
+    double totalTransferredOutLitres,
     @JsonKey(name: 'unaccounted_litres') double unaccountedLitres,
     @JsonKey(name: 'balance_status') String balanceStatus,
+    @JsonKey(name: 'tolerance_litres') double toleranceLitres,
     @JsonKey(name: 'active_days') int activeDays,
     @JsonKey(name: 'farmers_serviced_count') int farmersServicedCount,
   });
@@ -595,8 +605,11 @@ class _$CollectorAuditSummaryModelCopyWithImpl<
     Object? totalSalesRevenue = null,
     Object? cashReceivedAmount = null,
     Object? totalSpoiledLitres = null,
+    Object? totalReceivedLitres = null,
+    Object? totalTransferredOutLitres = null,
     Object? unaccountedLitres = null,
     Object? balanceStatus = null,
+    Object? toleranceLitres = null,
     Object? activeDays = null,
     Object? farmersServicedCount = null,
   }) {
@@ -634,6 +647,14 @@ class _$CollectorAuditSummaryModelCopyWithImpl<
                 ? _value.totalSpoiledLitres
                 : totalSpoiledLitres // ignore: cast_nullable_to_non_nullable
                       as double,
+            totalReceivedLitres: null == totalReceivedLitres
+                ? _value.totalReceivedLitres
+                : totalReceivedLitres // ignore: cast_nullable_to_non_nullable
+                      as double,
+            totalTransferredOutLitres: null == totalTransferredOutLitres
+                ? _value.totalTransferredOutLitres
+                : totalTransferredOutLitres // ignore: cast_nullable_to_non_nullable
+                      as double,
             unaccountedLitres: null == unaccountedLitres
                 ? _value.unaccountedLitres
                 : unaccountedLitres // ignore: cast_nullable_to_non_nullable
@@ -642,6 +663,10 @@ class _$CollectorAuditSummaryModelCopyWithImpl<
                 ? _value.balanceStatus
                 : balanceStatus // ignore: cast_nullable_to_non_nullable
                       as String,
+            toleranceLitres: null == toleranceLitres
+                ? _value.toleranceLitres
+                : toleranceLitres // ignore: cast_nullable_to_non_nullable
+                      as double,
             activeDays: null == activeDays
                 ? _value.activeDays
                 : activeDays // ignore: cast_nullable_to_non_nullable
@@ -674,8 +699,12 @@ abstract class _$$CollectorAuditSummaryModelImplCopyWith<$Res>
     @JsonKey(name: 'total_sales_revenue') double totalSalesRevenue,
     @JsonKey(name: 'cash_received_amount') double cashReceivedAmount,
     @JsonKey(name: 'total_spoiled_litres') double totalSpoiledLitres,
+    @JsonKey(name: 'total_received_litres') double totalReceivedLitres,
+    @JsonKey(name: 'total_transferred_out_litres')
+    double totalTransferredOutLitres,
     @JsonKey(name: 'unaccounted_litres') double unaccountedLitres,
     @JsonKey(name: 'balance_status') String balanceStatus,
+    @JsonKey(name: 'tolerance_litres') double toleranceLitres,
     @JsonKey(name: 'active_days') int activeDays,
     @JsonKey(name: 'farmers_serviced_count') int farmersServicedCount,
   });
@@ -707,8 +736,11 @@ class __$$CollectorAuditSummaryModelImplCopyWithImpl<$Res>
     Object? totalSalesRevenue = null,
     Object? cashReceivedAmount = null,
     Object? totalSpoiledLitres = null,
+    Object? totalReceivedLitres = null,
+    Object? totalTransferredOutLitres = null,
     Object? unaccountedLitres = null,
     Object? balanceStatus = null,
+    Object? toleranceLitres = null,
     Object? activeDays = null,
     Object? farmersServicedCount = null,
   }) {
@@ -746,6 +778,14 @@ class __$$CollectorAuditSummaryModelImplCopyWithImpl<$Res>
             ? _value.totalSpoiledLitres
             : totalSpoiledLitres // ignore: cast_nullable_to_non_nullable
                   as double,
+        totalReceivedLitres: null == totalReceivedLitres
+            ? _value.totalReceivedLitres
+            : totalReceivedLitres // ignore: cast_nullable_to_non_nullable
+                  as double,
+        totalTransferredOutLitres: null == totalTransferredOutLitres
+            ? _value.totalTransferredOutLitres
+            : totalTransferredOutLitres // ignore: cast_nullable_to_non_nullable
+                  as double,
         unaccountedLitres: null == unaccountedLitres
             ? _value.unaccountedLitres
             : unaccountedLitres // ignore: cast_nullable_to_non_nullable
@@ -754,6 +794,10 @@ class __$$CollectorAuditSummaryModelImplCopyWithImpl<$Res>
             ? _value.balanceStatus
             : balanceStatus // ignore: cast_nullable_to_non_nullable
                   as String,
+        toleranceLitres: null == toleranceLitres
+            ? _value.toleranceLitres
+            : toleranceLitres // ignore: cast_nullable_to_non_nullable
+                  as double,
         activeDays: null == activeDays
             ? _value.activeDays
             : activeDays // ignore: cast_nullable_to_non_nullable
@@ -779,8 +823,12 @@ class _$CollectorAuditSummaryModelImpl implements _CollectorAuditSummaryModel {
     @JsonKey(name: 'total_sales_revenue') this.totalSalesRevenue = 0.0,
     @JsonKey(name: 'cash_received_amount') this.cashReceivedAmount = 0.0,
     @JsonKey(name: 'total_spoiled_litres') this.totalSpoiledLitres = 0.0,
+    @JsonKey(name: 'total_received_litres') this.totalReceivedLitres = 0.0,
+    @JsonKey(name: 'total_transferred_out_litres')
+    this.totalTransferredOutLitres = 0.0,
     @JsonKey(name: 'unaccounted_litres') this.unaccountedLitres = 0.0,
     @JsonKey(name: 'balance_status') this.balanceStatus = 'BALANCED',
+    @JsonKey(name: 'tolerance_litres') this.toleranceLitres = 0.0,
     @JsonKey(name: 'active_days') this.activeDays = 0,
     @JsonKey(name: 'farmers_serviced_count') this.farmersServicedCount = 0,
   });
@@ -815,11 +863,21 @@ class _$CollectorAuditSummaryModelImpl implements _CollectorAuditSummaryModel {
   final double totalSpoiledLitres;
   // collected - sold - spoiled; > 0 missing, < 0 oversold
   @override
+  @JsonKey(name: 'total_received_litres')
+  final double totalReceivedLitres;
+  @override
+  @JsonKey(name: 'total_transferred_out_litres')
+  final double totalTransferredOutLitres;
+  @override
   @JsonKey(name: 'unaccounted_litres')
   final double unaccountedLitres;
   @override
   @JsonKey(name: 'balance_status')
   final String balanceStatus;
+  // Allowed difference per collector per day, to balance each day alike.
+  @override
+  @JsonKey(name: 'tolerance_litres')
+  final double toleranceLitres;
   @override
   @JsonKey(name: 'active_days')
   final int activeDays;
@@ -829,7 +887,7 @@ class _$CollectorAuditSummaryModelImpl implements _CollectorAuditSummaryModel {
 
   @override
   String toString() {
-    return 'CollectorAuditSummaryModel(collectorId: $collectorId, collectorName: $collectorName, totalCollectedLitres: $totalCollectedLitres, totalPurchasesAmount: $totalPurchasesAmount, totalSoldLitres: $totalSoldLitres, totalSalesRevenue: $totalSalesRevenue, cashReceivedAmount: $cashReceivedAmount, totalSpoiledLitres: $totalSpoiledLitres, unaccountedLitres: $unaccountedLitres, balanceStatus: $balanceStatus, activeDays: $activeDays, farmersServicedCount: $farmersServicedCount)';
+    return 'CollectorAuditSummaryModel(collectorId: $collectorId, collectorName: $collectorName, totalCollectedLitres: $totalCollectedLitres, totalPurchasesAmount: $totalPurchasesAmount, totalSoldLitres: $totalSoldLitres, totalSalesRevenue: $totalSalesRevenue, cashReceivedAmount: $cashReceivedAmount, totalSpoiledLitres: $totalSpoiledLitres, totalReceivedLitres: $totalReceivedLitres, totalTransferredOutLitres: $totalTransferredOutLitres, unaccountedLitres: $unaccountedLitres, balanceStatus: $balanceStatus, toleranceLitres: $toleranceLitres, activeDays: $activeDays, farmersServicedCount: $farmersServicedCount)';
   }
 
   @override
@@ -853,10 +911,19 @@ class _$CollectorAuditSummaryModelImpl implements _CollectorAuditSummaryModel {
                 other.cashReceivedAmount == cashReceivedAmount) &&
             (identical(other.totalSpoiledLitres, totalSpoiledLitres) ||
                 other.totalSpoiledLitres == totalSpoiledLitres) &&
+            (identical(other.totalReceivedLitres, totalReceivedLitres) ||
+                other.totalReceivedLitres == totalReceivedLitres) &&
+            (identical(
+                  other.totalTransferredOutLitres,
+                  totalTransferredOutLitres,
+                ) ||
+                other.totalTransferredOutLitres == totalTransferredOutLitres) &&
             (identical(other.unaccountedLitres, unaccountedLitres) ||
                 other.unaccountedLitres == unaccountedLitres) &&
             (identical(other.balanceStatus, balanceStatus) ||
                 other.balanceStatus == balanceStatus) &&
+            (identical(other.toleranceLitres, toleranceLitres) ||
+                other.toleranceLitres == toleranceLitres) &&
             (identical(other.activeDays, activeDays) ||
                 other.activeDays == activeDays) &&
             (identical(other.farmersServicedCount, farmersServicedCount) ||
@@ -875,8 +942,11 @@ class _$CollectorAuditSummaryModelImpl implements _CollectorAuditSummaryModel {
     totalSalesRevenue,
     cashReceivedAmount,
     totalSpoiledLitres,
+    totalReceivedLitres,
+    totalTransferredOutLitres,
     unaccountedLitres,
     balanceStatus,
+    toleranceLitres,
     activeDays,
     farmersServicedCount,
   );
@@ -909,8 +979,12 @@ abstract class _CollectorAuditSummaryModel
     @JsonKey(name: 'total_sales_revenue') final double totalSalesRevenue,
     @JsonKey(name: 'cash_received_amount') final double cashReceivedAmount,
     @JsonKey(name: 'total_spoiled_litres') final double totalSpoiledLitres,
+    @JsonKey(name: 'total_received_litres') final double totalReceivedLitres,
+    @JsonKey(name: 'total_transferred_out_litres')
+    final double totalTransferredOutLitres,
     @JsonKey(name: 'unaccounted_litres') final double unaccountedLitres,
     @JsonKey(name: 'balance_status') final String balanceStatus,
+    @JsonKey(name: 'tolerance_litres') final double toleranceLitres,
     @JsonKey(name: 'active_days') final int activeDays,
     @JsonKey(name: 'farmers_serviced_count') final int farmersServicedCount,
   }) = _$CollectorAuditSummaryModelImpl;
@@ -943,11 +1017,20 @@ abstract class _CollectorAuditSummaryModel
   @JsonKey(name: 'total_spoiled_litres')
   double get totalSpoiledLitres; // collected - sold - spoiled; > 0 missing, < 0 oversold
   @override
+  @JsonKey(name: 'total_received_litres')
+  double get totalReceivedLitres;
+  @override
+  @JsonKey(name: 'total_transferred_out_litres')
+  double get totalTransferredOutLitres;
+  @override
   @JsonKey(name: 'unaccounted_litres')
   double get unaccountedLitres;
   @override
   @JsonKey(name: 'balance_status')
-  String get balanceStatus;
+  String get balanceStatus; // Allowed difference per collector per day, to balance each day alike.
+  @override
+  @JsonKey(name: 'tolerance_litres')
+  double get toleranceLitres;
   @override
   @JsonKey(name: 'active_days')
   int get activeDays;
@@ -993,6 +1076,9 @@ mixin _$SaccoReconciliationLedgerModel {
   double get creditSalesKes => throw _privateConstructorUsedError;
   @JsonKey(name: 'total_spoilage_litres')
   double get totalSpoilageLitres => throw _privateConstructorUsedError; // collected - sold - spoiled; > 0 missing, < 0 oversold
+  // Moved between collectors; cancels out across the Sacco.
+  @JsonKey(name: 'total_transferred_litres')
+  double get totalTransferredLitres => throw _privateConstructorUsedError;
   @JsonKey(name: 'unaccounted_litres')
   double get unaccountedLitres => throw _privateConstructorUsedError;
   @JsonKey(name: 'allowance_litres')
@@ -1045,6 +1131,7 @@ abstract class $SaccoReconciliationLedgerModelCopyWith<$Res> {
     @JsonKey(name: 'cash_received_kes') double cashReceivedKes,
     @JsonKey(name: 'credit_sales_kes') double creditSalesKes,
     @JsonKey(name: 'total_spoilage_litres') double totalSpoilageLitres,
+    @JsonKey(name: 'total_transferred_litres') double totalTransferredLitres,
     @JsonKey(name: 'unaccounted_litres') double unaccountedLitres,
     @JsonKey(name: 'allowance_litres') double allowanceLitres,
     @JsonKey(name: 'is_balanced') bool isBalanced,
@@ -1087,6 +1174,7 @@ class _$SaccoReconciliationLedgerModelCopyWithImpl<
     Object? cashReceivedKes = null,
     Object? creditSalesKes = null,
     Object? totalSpoilageLitres = null,
+    Object? totalTransferredLitres = null,
     Object? unaccountedLitres = null,
     Object? allowanceLitres = null,
     Object? isBalanced = null,
@@ -1141,6 +1229,10 @@ class _$SaccoReconciliationLedgerModelCopyWithImpl<
             totalSpoilageLitres: null == totalSpoilageLitres
                 ? _value.totalSpoilageLitres
                 : totalSpoilageLitres // ignore: cast_nullable_to_non_nullable
+                      as double,
+            totalTransferredLitres: null == totalTransferredLitres
+                ? _value.totalTransferredLitres
+                : totalTransferredLitres // ignore: cast_nullable_to_non_nullable
                       as double,
             unaccountedLitres: null == unaccountedLitres
                 ? _value.unaccountedLitres
@@ -1201,6 +1293,7 @@ abstract class _$$SaccoReconciliationLedgerModelImplCopyWith<$Res>
     @JsonKey(name: 'cash_received_kes') double cashReceivedKes,
     @JsonKey(name: 'credit_sales_kes') double creditSalesKes,
     @JsonKey(name: 'total_spoilage_litres') double totalSpoilageLitres,
+    @JsonKey(name: 'total_transferred_litres') double totalTransferredLitres,
     @JsonKey(name: 'unaccounted_litres') double unaccountedLitres,
     @JsonKey(name: 'allowance_litres') double allowanceLitres,
     @JsonKey(name: 'is_balanced') bool isBalanced,
@@ -1243,6 +1336,7 @@ class __$$SaccoReconciliationLedgerModelImplCopyWithImpl<$Res>
     Object? cashReceivedKes = null,
     Object? creditSalesKes = null,
     Object? totalSpoilageLitres = null,
+    Object? totalTransferredLitres = null,
     Object? unaccountedLitres = null,
     Object? allowanceLitres = null,
     Object? isBalanced = null,
@@ -1297,6 +1391,10 @@ class __$$SaccoReconciliationLedgerModelImplCopyWithImpl<$Res>
         totalSpoilageLitres: null == totalSpoilageLitres
             ? _value.totalSpoilageLitres
             : totalSpoilageLitres // ignore: cast_nullable_to_non_nullable
+                  as double,
+        totalTransferredLitres: null == totalTransferredLitres
+            ? _value.totalTransferredLitres
+            : totalTransferredLitres // ignore: cast_nullable_to_non_nullable
                   as double,
         unaccountedLitres: null == unaccountedLitres
             ? _value.unaccountedLitres
@@ -1353,6 +1451,8 @@ class _$SaccoReconciliationLedgerModelImpl
     @JsonKey(name: 'cash_received_kes') this.cashReceivedKes = 0.0,
     @JsonKey(name: 'credit_sales_kes') this.creditSalesKes = 0.0,
     @JsonKey(name: 'total_spoilage_litres') this.totalSpoilageLitres = 0.0,
+    @JsonKey(name: 'total_transferred_litres')
+    this.totalTransferredLitres = 0.0,
     @JsonKey(name: 'unaccounted_litres') this.unaccountedLitres = 0.0,
     @JsonKey(name: 'allowance_litres') this.allowanceLitres = 0.0,
     @JsonKey(name: 'is_balanced') this.isBalanced = true,
@@ -1404,6 +1504,10 @@ class _$SaccoReconciliationLedgerModelImpl
   @JsonKey(name: 'total_spoilage_litres')
   final double totalSpoilageLitres;
   // collected - sold - spoiled; > 0 missing, < 0 oversold
+  // Moved between collectors; cancels out across the Sacco.
+  @override
+  @JsonKey(name: 'total_transferred_litres')
+  final double totalTransferredLitres;
   @override
   @JsonKey(name: 'unaccounted_litres')
   final double unaccountedLitres;
@@ -1444,7 +1548,7 @@ class _$SaccoReconciliationLedgerModelImpl
 
   @override
   String toString() {
-    return 'SaccoReconciliationLedgerModel(saccoId: $saccoId, saccoName: $saccoName, fromDate: $fromDate, toDate: $toDate, totalFarmerIntakeLitres: $totalFarmerIntakeLitres, totalFarmerLiabilityKes: $totalFarmerLiabilityKes, totalSoldLitres: $totalSoldLitres, totalSalesRevenueKes: $totalSalesRevenueKes, cashReceivedKes: $cashReceivedKes, creditSalesKes: $creditSalesKes, totalSpoilageLitres: $totalSpoilageLitres, unaccountedLitres: $unaccountedLitres, allowanceLitres: $allowanceLitres, isBalanced: $isBalanced, balanceStatus: $balanceStatus, grossMarginKes: $grossMarginKes, receivablesKes: $receivablesKes, salesByCustomerType: $salesByCustomerType, collectorsSummary: $collectorsSummary)';
+    return 'SaccoReconciliationLedgerModel(saccoId: $saccoId, saccoName: $saccoName, fromDate: $fromDate, toDate: $toDate, totalFarmerIntakeLitres: $totalFarmerIntakeLitres, totalFarmerLiabilityKes: $totalFarmerLiabilityKes, totalSoldLitres: $totalSoldLitres, totalSalesRevenueKes: $totalSalesRevenueKes, cashReceivedKes: $cashReceivedKes, creditSalesKes: $creditSalesKes, totalSpoilageLitres: $totalSpoilageLitres, totalTransferredLitres: $totalTransferredLitres, unaccountedLitres: $unaccountedLitres, allowanceLitres: $allowanceLitres, isBalanced: $isBalanced, balanceStatus: $balanceStatus, grossMarginKes: $grossMarginKes, receivablesKes: $receivablesKes, salesByCustomerType: $salesByCustomerType, collectorsSummary: $collectorsSummary)';
   }
 
   @override
@@ -1478,6 +1582,8 @@ class _$SaccoReconciliationLedgerModelImpl
                 other.creditSalesKes == creditSalesKes) &&
             (identical(other.totalSpoilageLitres, totalSpoilageLitres) ||
                 other.totalSpoilageLitres == totalSpoilageLitres) &&
+            (identical(other.totalTransferredLitres, totalTransferredLitres) ||
+                other.totalTransferredLitres == totalTransferredLitres) &&
             (identical(other.unaccountedLitres, unaccountedLitres) ||
                 other.unaccountedLitres == unaccountedLitres) &&
             (identical(other.allowanceLitres, allowanceLitres) ||
@@ -1515,6 +1621,7 @@ class _$SaccoReconciliationLedgerModelImpl
     cashReceivedKes,
     creditSalesKes,
     totalSpoilageLitres,
+    totalTransferredLitres,
     unaccountedLitres,
     allowanceLitres,
     isBalanced,
@@ -1560,6 +1667,8 @@ abstract class _SaccoReconciliationLedgerModel
     @JsonKey(name: 'cash_received_kes') final double cashReceivedKes,
     @JsonKey(name: 'credit_sales_kes') final double creditSalesKes,
     @JsonKey(name: 'total_spoilage_litres') final double totalSpoilageLitres,
+    @JsonKey(name: 'total_transferred_litres')
+    final double totalTransferredLitres,
     @JsonKey(name: 'unaccounted_litres') final double unaccountedLitres,
     @JsonKey(name: 'allowance_litres') final double allowanceLitres,
     @JsonKey(name: 'is_balanced') final bool isBalanced,
@@ -1608,6 +1717,10 @@ abstract class _SaccoReconciliationLedgerModel
   @override
   @JsonKey(name: 'total_spoilage_litres')
   double get totalSpoilageLitres; // collected - sold - spoiled; > 0 missing, < 0 oversold
+  // Moved between collectors; cancels out across the Sacco.
+  @override
+  @JsonKey(name: 'total_transferred_litres')
+  double get totalTransferredLitres;
   @override
   @JsonKey(name: 'unaccounted_litres')
   double get unaccountedLitres;

@@ -7,6 +7,7 @@ type ExecutiveSummaryCards struct {
 	TodayCollectedLitres    float64          `json:"today_collected_litres"`
 	TodaySalesLitres        float64          `json:"today_sales_litres"`
 	TodaySpoilageLitres     float64          `json:"today_spoilage_litres"`
+	TodayTransferredLitres  float64          `json:"today_transferred_litres" doc:"Moved between collectors today; does not change the Sacco's balance"`
 	TodayUnaccountedLitres  float64          `json:"today_unaccounted_litres" doc:"Collected minus sold minus spoiled today; positive is missing, negative is oversold"`
 	TodayBalanceStatus      reconcile.Status `json:"today_balance_status"`
 	MonthCollectedLitres    float64          `json:"month_collected_litres"`
@@ -35,16 +36,18 @@ type ExecutiveDashboardData struct {
 
 // CollectorDashboardData represents real-time mobile dashboard metrics for a field collector.
 type CollectorDashboardData struct {
-	CollectorID            uint             `json:"collector_id"`
-	CollectorName          string           `json:"collector_name"`
-	Date                   string           `json:"date"`
-	TodayCollectedLitres   float64          `json:"today_collected_litres"`
-	TodayPurchasesAmount   float64          `json:"today_purchases_amount"`
-	TodayFarmersServiced   int64            `json:"today_farmers_serviced"`
-	TodaySoldLitres        float64          `json:"today_sold_litres"`
-	TodaySalesRevenue      float64          `json:"today_sales_revenue"`
-	TodayCashReceived      float64          `json:"today_cash_received"`
-	TodaySpoiledLitres     float64          `json:"today_spoiled_litres"`
-	TodayUnaccountedLitres float64          `json:"today_unaccounted_litres"`
-	TodayBalanceStatus     reconcile.Status `json:"today_balance_status"`
+	CollectorID               uint             `json:"collector_id"`
+	CollectorName             string           `json:"collector_name"`
+	Date                      string           `json:"date"`
+	TodayCollectedLitres      float64          `json:"today_collected_litres"`
+	TodayPurchasesAmount      float64          `json:"today_purchases_amount"`
+	TodayFarmersServiced      int64            `json:"today_farmers_serviced"`
+	TodaySoldLitres           float64          `json:"today_sold_litres"`
+	TodaySalesRevenue         float64          `json:"today_sales_revenue"`
+	TodayCashReceived         float64          `json:"today_cash_received"`
+	TodaySpoiledLitres        float64          `json:"today_spoiled_litres"`
+	TodayReceivedLitres       float64          `json:"today_received_litres" doc:"From other collectors"`
+	TodayTransferredOutLitres float64          `json:"today_transferred_out_litres" doc:"To other collectors"`
+	TodayUnaccountedLitres    float64          `json:"today_unaccounted_litres"`
+	TodayBalanceStatus        reconcile.Status `json:"today_balance_status"`
 }

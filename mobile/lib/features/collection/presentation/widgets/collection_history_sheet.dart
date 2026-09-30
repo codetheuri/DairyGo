@@ -6,6 +6,7 @@ import '../../../../core/widgets/audit_history_list.dart';
 import '../../../../core/widgets/status_pill.dart';
 import '../../data/models/milk_collection_model.dart';
 import '../controllers/collection_controller.dart';
+import '../../../../core/widgets/skeleton.dart';
 
 /// Bottom sheet showing a collection's current status and its audit history:
 /// who recorded it, every edit and status change, with reasons.
@@ -90,14 +91,7 @@ class CollectionHistorySheet extends ConsumerWidget {
                         'Rate: KES ${v['price_per_litre']}/L',
                     ],
                   ),
-                  loading: () => const Padding(
-                    padding: EdgeInsets.all(16),
-                    child: Center(
-                      child: CircularProgressIndicator(
-                        color: AppColors.primary,
-                      ),
-                    ),
-                  ),
+                  loading: () => const ListSkeleton(),
                   error: (err, _) => Text(
                     err.toString().replaceAll('Exception: ', ''),
                     style: const TextStyle(

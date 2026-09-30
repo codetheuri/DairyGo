@@ -6,6 +6,7 @@ import '../../../../app/router/app_router.dart';
 import '../../../../app/shell/app_destinations.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/layout/breakpoints.dart';
+import '../../../app_update/presentation/widgets/app_update_tile.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../../settings/presentation/widgets/change_password_dialog.dart';
 
@@ -130,6 +131,7 @@ class MoreScreen extends ConsumerWidget {
                     builder: (_) => const ChangePasswordDialog(),
                   ),
                 ),
+                const AppUpdateTile(),
                 const Divider(),
                 ListTile(
                   leading: const Icon(

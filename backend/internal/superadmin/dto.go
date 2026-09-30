@@ -60,6 +60,19 @@ type UserStatusInput struct {
 	}
 }
 
+type UserRoleInput struct {
+	ID   uint `path:"id" doc:"User ID"`
+	Body struct {
+		RoleID uint    `json:"role_id" doc:"1 = Sacco Administrator, 2 = Milk Collector, 3 = Board Member / Executive"`
+		Reason *string `json:"reason,omitempty" maxLength:"255" doc:"Why (kept in the audit trail)"`
+	}
+}
+
+type RemoveUserInput struct {
+	ID     uint   `path:"id" doc:"User ID"`
+	Reason string `query:"reason" maxLength:"255" doc:"Why (kept in the audit trail)"`
+}
+
 type ResetPasswordInput struct {
 	ID   uint `path:"id" doc:"User ID"`
 	Body struct {
@@ -100,7 +113,7 @@ type MemberOutput struct {
 type LogsInput struct {
 	SaccoID    string `query:"sacco_id" doc:"Only this Sacco"`
 	EntityType string `query:"entity_type" doc:"Audit: milk_collection, milk_sale, customer, customer_payment, user, sacco"`
-	Action     string `query:"action" doc:"Audit: CREATE, UPDATE, STATUS, VOID"`
+	Action     string `query:"action" doc:"Audit: CREATE, UPDATE, STATUS, VOID, DELETE"`
 	Level      string `query:"level" doc:"Errors: WARN (4xx) or ERROR (5xx)"`
 	Status     string `query:"status" doc:"Errors: status code or class (e.g. 500, 4xx); SMS: SENT, FAILED"`
 	Search     string `query:"search" doc:"Errors: path or message; SMS: phone"`

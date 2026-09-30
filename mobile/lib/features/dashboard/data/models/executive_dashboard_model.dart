@@ -13,6 +13,10 @@ class ExecutiveSummaryCards with _$ExecutiveSummaryCards {
     @JsonKey(name: 'today_spoilage_litres')
     @Default(0.0)
     double todaySpoilageLitres,
+    // Moved between collectors today; does not change the Sacco's balance.
+    @JsonKey(name: 'today_transferred_litres')
+    @Default(0.0)
+    double todayTransferredLitres,
     // collected - sold - spoiled today; > 0 missing, < 0 oversold
     @JsonKey(name: 'today_unaccounted_litres')
     @Default(0.0)

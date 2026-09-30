@@ -19,7 +19,38 @@
         "cash_received_amount": 0,
         "credit_sales_amount": 0,
         "total_purchases_amount": 0,
-        "sales_by_customer_type": null
+        "sales_by_customer_type": null,
+        "total_received_litres": 12.5,
+        "total_transferred_out_litres": 20,
+        "transfers": [
+          {
+            "id": "9b1c0d6e-0001-4a51-9f0e-000000000001",
+            "sacco_id": "ee937809-8894-4f7c-8fe0-6bd7d2890fa8",
+            "from_collector_id": 29,
+            "to_collector_id": 31,
+            "from_collector_name": "uxcol",
+            "to_collector_name": "Grace Wambui",
+            "transfer_date": "2026-09-28T00:00:00Z",
+            "quantity_litres": 20,
+            "recorded_by_id": 29,
+            "created_at": "2026-09-28T10:42:10.1+03:00",
+            "updated_at": "2026-09-28T10:42:10.1+03:00",
+            "notes": "Handed over at Kiawairia junction"
+          },
+          {
+            "id": "9b1c0d6e-0002-4a51-9f0e-000000000002",
+            "sacco_id": "ee937809-8894-4f7c-8fe0-6bd7d2890fa8",
+            "from_collector_id": 32,
+            "to_collector_id": 29,
+            "from_collector_name": "Peter Mwangi Kariuki Njoroge",
+            "to_collector_name": "uxcol",
+            "transfer_date": "2026-09-28T00:00:00Z",
+            "quantity_litres": 12.5,
+            "recorded_by_id": 32,
+            "created_at": "2026-09-28T08:15:02.4+03:00",
+            "updated_at": "2026-09-28T08:15:02.4+03:00"
+          }
+        ]
       }
     }
   }

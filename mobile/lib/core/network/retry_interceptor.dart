@@ -1,11 +1,17 @@
 import 'package:dio/dio.dart';
 
+import 'idempotency_interceptor.dart';
 import 'network_connectivity_interceptor.dart';
 
-/// Retries reads (GET) that failed because the connection dropped or timed
-/// out, which is common on weak rural networks. Writes are never retried: a
-/// POST whose response was lost may already have been saved, and repeating it
-/// could record the same milk twice.
+/// Retries requests that failed because the connection dropped or timed
+/// out, which is common on weak rural networks.
+///
+/// - Reads (GET) are always safe to retry.
+/// - Saves are retried only when they carry an Idempotency-Key: the server
+///   then performs them once, however many times they arrive. A save the
+///   server reports as "still processing" (409) is retried too, to collect
+///   its result.
+/// - Nothing is retried when the phone has no connection at all.
 class RetryInterceptor extends Interceptor {
   final Dio _dio;
 
@@ -19,7 +25,7 @@ class RetryInterceptor extends Interceptor {
 
   static const _attemptKey = 'retry_attempt';
 
-  static bool _isTransient(DioException err) {
+  static bool _noAnswer(DioException err) {
     switch (err.type) {
       case DioExceptionType.connectionError:
       case DioExceptionType.connectionTimeout:
@@ -30,6 +36,14 @@ class RetryInterceptor extends Interceptor {
     }
   }
 
+  static bool _retryable(DioException err) {
+    final o = err.requestOptions;
+    if (o.extra[offlineExtra] == true) return false;
+    if (o.method == 'GET') return _noAnswer(err);
+    if (!o.headers.containsKey(IdempotencyInterceptor.header)) return false;
+    return _noAnswer(err) || err.response?.statusCode == 409;
+  }
+
   @override
   Future<void> onError(
     DioException err,
@@ -37,10 +51,7 @@ class RetryInterceptor extends Interceptor {
   ) async {
     final options = err.requestOptions;
     final attempt = (options.extra[_attemptKey] as int?) ?? 0;
-    if (options.method != 'GET' ||
-        options.extra[offlineExtra] == true ||
-        !_isTransient(err) ||
-        attempt >= delays.length) {
+    if (!_retryable(err) || attempt >= delays.length) {
       return handler.next(err);
     }
 

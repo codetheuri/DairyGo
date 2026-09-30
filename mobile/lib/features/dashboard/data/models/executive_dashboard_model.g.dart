@@ -14,6 +14,8 @@ _$ExecutiveSummaryCardsImpl _$$ExecutiveSummaryCardsImplFromJson(
   todaySalesLitres: (json['today_sales_litres'] as num?)?.toDouble() ?? 0.0,
   todaySpoilageLitres:
       (json['today_spoilage_litres'] as num?)?.toDouble() ?? 0.0,
+  todayTransferredLitres:
+      (json['today_transferred_litres'] as num?)?.toDouble() ?? 0.0,
   todayUnaccountedLitres:
       (json['today_unaccounted_litres'] as num?)?.toDouble() ?? 0.0,
   todayBalanceStatus: json['today_balance_status'] as String? ?? 'BALANCED',
@@ -37,6 +39,7 @@ Map<String, dynamic> _$$ExecutiveSummaryCardsImplToJson(
   'today_collected_litres': instance.todayCollectedLitres,
   'today_sales_litres': instance.todaySalesLitres,
   'today_spoilage_litres': instance.todaySpoilageLitres,
+  'today_transferred_litres': instance.todayTransferredLitres,
   'today_unaccounted_litres': instance.todayUnaccountedLitres,
   'today_balance_status': instance.todayBalanceStatus,
   'month_collected_litres': instance.monthCollectedLitres,

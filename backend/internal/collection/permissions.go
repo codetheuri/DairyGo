@@ -15,6 +15,9 @@ const (
 	PermMilkSpoilageRead        = "milk.spoilage.read"
 	PermMilkSpoilageCreate      = "milk.spoilage.create"
 	PermMilkReconciliationRead  = "milk.reconciliation.read"
+	PermMilkTransfersRead       = "milk.transfers.read"
+	PermMilkTransfersCreate     = "milk.transfers.create"
+	PermMilkTransfersManage     = "milk.transfers.manage"
 )
 
 // Permissions exported by the collection module.
@@ -62,6 +65,18 @@ var Permissions = []authz.Permission{
 	{
 		Name:        PermMilkReconciliationRead,
 		Description: "Allows viewing collector daily milk reconciliation summaries",
+	},
+	{
+		Name:        PermMilkTransfersRead,
+		Description: "Allows viewing milk transfers between collectors",
+	},
+	{
+		Name:        PermMilkTransfersCreate,
+		Description: "Allows transferring milk to another collector, and correcting or cancelling own transfers the same day",
+	},
+	{
+		Name:        PermMilkTransfersManage,
+		Description: "Allows recording transfers for any collector and correcting or cancelling any transfer",
 	},
 }
 

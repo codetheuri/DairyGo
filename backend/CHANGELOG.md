@@ -9,6 +9,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 
 ### Added
+- **Change a staff member's role and remove staff** (migration `00016`): `PUT /api/v1/auth/users/{user_id}/role` and `DELETE /api/v1/auth/users/{user_id}` for Sacco administrators (own Sacco only), and `PUT /api/v1/admin/users/{id}/role`, `DELETE /api/v1/admin/users/{id}` plus buttons in the platform console. You cannot change your own account, and a Sacco's only administrator cannot be demoted or removed. Removal is a soft delete: the person is signed out at once, their records keep their name, and their username, email and phone can be reused. Both are audited. See [docs/staff-management.md](docs/staff-management.md).
+- The role used for "sees everyone's records" checks is read from the database on every request instead of the token, so a role change applies immediately.
+- **Milk transfers between collectors** (`/api/v1/sacco/milk-transfers`, migration `00015`): a collector hands milk to another; it counts at once for both (`collected + received − sold − transferred out − spoiled = unaccounted`). Same-day correction or cancellation by the sender, any time by admins with a reason, full history. Reconciliation, collector audit, ledger and dashboards include the figures. See [docs/milk-transfers.md](docs/milk-transfers.md).
+- **App releases (`internal/appupdate`)**: `GET /api/v1/app/version` for the in-app updater (with `min_build` to force an update), resumable APK downloads at `/app/download/{arm64,armv7}` served as Android packages, and a download page at `/app` to share instead of APK files. Releases are read from `APP_RELEASES_DIR` (`./releases` in Docker). See [docs/app-releases.md](docs/app-releases.md).
+- Response writers in the logger, failure recorder and idempotency middleware implement `Unwrap()`, so `http.ResponseController` works through them.
+- **`make env`** (`scripts/init-env.sh`): creates `.env` with a random `JWT_SECRET`, or replaces a missing or weak one; never changes a good secret or prints it. Safe on every deploy.
+- The collector audit report returns `tolerance_litres` (per collector per day), so clients can balance each day of a period by the same rule.
+- **Safe retries (`internal/idempotency`)**: writes with an `Idempotency-Key` header run once per user and key; retries get the stored response (`Idempotent-Replayed: true`), so a lost response on a slow connection or a double tap never records a sale, payment or collection twice. Migration `00014`. See [docs/sessions-and-idempotency.md](docs/sessions-and-idempotency.md).
+- **Sessions that follow activity**: access tokens last `ACCESS_TOKEN_TTL` (default 1h) and are refreshed silently; each refresh extends the session by `SESSION_IDLE_TIMEOUT` (default 720h), so users are signed out only after 30 days without using the app. Login and refresh return `access_expires_at` and `session_expires_at`.
+- **Refresh token rotation with a 2-minute grace period and reuse detection**: a lost refresh response no longer signs the user out; reuse of an old token after the grace period revokes every session of that user.
+- **Daily cleanup** of idempotency keys (48h) and ended sessions (7 days).
+
+### Security
+- The API refuses to start with an empty `JWT_SECRET`, the public example value from `docker-compose.yml`, or (in production) a secret shorter than 32 characters. `docker-compose.yml` now requires `JWT_SECRET` to be set.
 - **Compressed responses**: JSON and console assets are gzip-compressed (`chi` `Compress`, outside `RecordFailures`); API responses shrink by about 85%, which matters on the slow connections collectors use.
 - **Collections carry farmer names**: list rows include `member_name` and `membership_number`, so the app no longer downloads the farmer directory to label them.
 - **Search collections by farmer**: `search` on `/sacco/milk-collections` matches the farmer's name and membership number, not only notes.

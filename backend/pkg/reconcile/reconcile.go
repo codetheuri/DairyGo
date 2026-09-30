@@ -1,10 +1,13 @@
 // Package reconcile holds the milk balancing rule shared by collector
 // reconciliation, reports and dashboards.
 //
-// Every litre a collector receives must leave as a sale (coolers included) or
-// be logged as spoilage:
+// Every litre a collector receives, from farmers or from another collector,
+// must leave as a sale (coolers included), a transfer to another collector,
+// or be logged as spoilage:
 //
-//	collected = sold + spoiled + unaccounted
+//	collected + received = sold + transferred out + spoiled + unaccounted
+//
+// Across a whole Sacco, transfers cancel out (each is received by someone).
 //
 // Unaccounted milk above zero is missing (loss or theft); below zero means
 // more was sold than collected (a recording error or added water). A Sacco sets
@@ -36,10 +39,31 @@ type Result struct {
 	Status            Status  `json:"balance_status"`
 }
 
-// Compute balances collected against sold and spoiled litres. allowance is the
-// tolerated difference in litres (tolerance × collector-days being checked).
+// Flows are the litres that came to and left a collector (or a Sacco) in a
+// period.
+type Flows struct {
+	Collected      float64 // from farmers
+	Received       float64 // from other collectors
+	Sold           float64
+	TransferredOut float64 // to other collectors
+	Spoiled        float64
+}
+
+// Unaccounted is what came in minus what is accounted for.
+func (f Flows) Unaccounted() float64 {
+	return round2(f.Collected + f.Received - f.Sold - f.TransferredOut - f.Spoiled)
+}
+
+// Compute balances collected against sold and spoiled litres, for totals
+// where transfers cancel out (a whole Sacco). allowance is the tolerated
+// difference in litres (tolerance × collector-days being checked).
 func Compute(collected, sold, spoiled, allowance float64) Result {
-	unaccounted := round2(collected - sold - spoiled)
+	return Balance(Flows{Collected: collected, Sold: sold, Spoiled: spoiled}, allowance)
+}
+
+// Balance checks one collector's (or a Sacco's) flows against allowance.
+func Balance(f Flows, allowance float64) Result {
+	unaccounted := f.Unaccounted()
 	allowance = round2(math.Max(allowance, 0))
 
 	r := Result{UnaccountedLitres: unaccounted, AllowanceLitres: allowance}

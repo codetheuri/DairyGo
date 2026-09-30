@@ -119,9 +119,10 @@ func (r *Repository) GetSaccoReconciliationLedger(ctx context.Context, fromDateS
 		return nil, err
 	}
 
-	var collected, liability, sold, revenue, paid, spoiled float64
+	var collected, liability, sold, revenue, paid, spoiled, transferred float64
 	var collectorDays int64
 	for _, c := range collectors {
+		transferred += c.TotalTransferredOutLitres
 		collected += c.TotalCollectedLitres
 		liability += c.TotalPurchasesAmount
 		sold += c.TotalSoldLitres
@@ -138,6 +139,7 @@ func (r *Repository) GetSaccoReconciliationLedger(ctx context.Context, fromDateS
 	ledger.CashReceivedKES = round2(paid)
 	ledger.CreditSalesKES = round2(revenue - paid)
 	ledger.TotalSpoilageLitres = round2(spoiled)
+	ledger.TotalTransferredLitres = round2(transferred)
 	ledger.GrossMarginKES = round2(revenue - liability)
 
 	tolerance := reconcile.ToleranceLitres(ctx, r.db, saccoID)
@@ -171,8 +173,9 @@ func (r *Repository) GetCollectorAuditSummaries(ctx context.Context, fromDateStr
 	return summaries, meta, nil
 }
 
-// collectorTotals builds per-collector summaries with three grouped queries
-// (collections, sales, spoilage) regardless of the number of collectors.
+// collectorTotals builds per-collector summaries with five grouped queries
+// (collections, sales, spoilage, transfers sent and received) regardless of
+// the number of collectors.
 // Only collectors with activity are returned, unless collectorID is given.
 func (r *Repository) collectorTotals(ctx context.Context, saccoID, fromDateStr, toDateStr string, collectorID uint) ([]CollectorAuditSummary, error) {
 	scope := func(table, dateCol string) *gorm.DB {
@@ -221,6 +224,30 @@ func (r *Repository) collectorTotals(ctx context.Context, saccoID, fromDateStr, 
 		return nil, err
 	}
 
+	// Transfers, grouped by sender and by receiver. A collector who only
+	// received milk still has days to be allowed the tolerance for.
+	transferScope := func(side string) *gorm.DB {
+		q := r.db.WithContext(ctx).Table("milk_transfers").
+			Select(side+" AS collector_id, SUM(quantity_litres) AS litres, COUNT(DISTINCT transfer_date) AS days").
+			Where("sacco_id = ? AND deleted_at IS NULL AND voided_at IS NULL AND transfer_date BETWEEN ? AND ?", saccoID, fromDateStr, toDateStr)
+		if collectorID > 0 {
+			q = q.Where(side+" = ?", collectorID)
+		}
+		return q.Group(side)
+	}
+	type transferRow struct {
+		CollectorID uint
+		Litres      float64
+		Days        int64
+	}
+	var sent, received []transferRow
+	if err := transferScope("from_collector_id").Scan(&sent).Error; err != nil {
+		return nil, err
+	}
+	if err := transferScope("to_collector_id").Scan(&received).Error; err != nil {
+		return nil, err
+	}
+
 	byID := map[uint]*CollectorAuditSummary{}
 	get := func(id uint) *CollectorAuditSummary {
 		if s, ok := byID[id]; ok {
@@ -245,6 +272,14 @@ func (r *Repository) collectorTotals(ctx context.Context, saccoID, fromDateStr, 
 	for _, row := range spoilage {
 		get(row.CollectorID).TotalSpoiledLitres = round2(row.Litres)
 	}
+	for _, row := range sent {
+		get(row.CollectorID).TotalTransferredOutLitres = round2(row.Litres)
+	}
+	receivingDays := map[uint]int64{}
+	for _, row := range received {
+		get(row.CollectorID).TotalReceivedLitres = round2(row.Litres)
+		receivingDays[row.CollectorID] = row.Days
+	}
 
 	ids := make([]uint, 0, len(byID))
 	for id := range byID {
@@ -266,11 +301,15 @@ func (r *Repository) collectorTotals(ctx context.Context, saccoID, fromDateStr, 
 	summaries := make([]CollectorAuditSummary, 0, len(byID))
 	for _, s := range byID {
 		s.CollectorName = names[s.CollectorID]
-		days := s.ActiveDays
-		if days == 0 && (s.TotalSoldLitres > 0 || s.TotalSpoiledLitres > 0) {
-			days = 1 // sold or spoiled without collecting still gets one day's allowance
+		days := max(s.ActiveDays, receivingDays[s.CollectorID])
+		if days == 0 && (s.TotalSoldLitres > 0 || s.TotalSpoiledLitres > 0 || s.TotalTransferredOutLitres > 0) {
+			days = 1 // milk moved without collecting still gets one day's allowance
 		}
-		s.Result = reconcile.Compute(s.TotalCollectedLitres, s.TotalSoldLitres, s.TotalSpoiledLitres, tolerance*float64(days))
+		s.Result = reconcile.Balance(reconcile.Flows{
+			Collected: s.TotalCollectedLitres, Received: s.TotalReceivedLitres,
+			Sold: s.TotalSoldLitres, TransferredOut: s.TotalTransferredOutLitres, Spoiled: s.TotalSpoiledLitres,
+		}, tolerance*float64(days))
+		s.ToleranceLitres = tolerance
 		summaries = append(summaries, *s)
 	}
 	sort.Slice(summaries, func(i, j int) bool {

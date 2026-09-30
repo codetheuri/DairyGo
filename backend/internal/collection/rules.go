@@ -143,3 +143,24 @@ func canEditSale(a actor, s *MilkSale, today string) error {
 	}
 	return nil
 }
+
+// canChangeTransfer decides who may correct or cancel a transfer: voided
+// transfers are locked; admins (milk.transfers.manage) may change any
+// other; the sending collector may change their own on the day it was
+// recorded. The receiver cannot: the transfer is the sender's statement,
+// and a mistake is for the sender or an admin to fix.
+func canChangeTransfer(a actor, t *MilkTransfer, today string) error {
+	if t.VoidedAt != nil {
+		return fmt.Errorf("%w: transfer is cancelled", ErrLocked)
+	}
+	if a.canManage {
+		return nil
+	}
+	if t.FromCollectorID != a.userID {
+		return fmt.Errorf("%w: only the collector who sent the milk, or an admin, can change a transfer", ErrForbidden)
+	}
+	if t.CreatedAt.In(time.Local).Format(dateLayout) != today {
+		return fmt.Errorf("%w: transfers can only be changed on the day they were recorded; ask an admin", ErrLocked)
+	}
+	return nil
+}

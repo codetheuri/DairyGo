@@ -29,11 +29,11 @@ var Permissions = []authz.Permission{
 	},
 	{
 		Name:        PermUsersUpdate,
-		Description: "Allows editing existing user accounts",
+		Description: "Allows changing a staff account's role",
 	},
 	{
 		Name:        PermUsersDelete,
-		Description: "Allows deleting or deactivating user accounts",
+		Description: "Allows removing staff accounts",
 	},
 	{
 		Name:        PermRolesRead,

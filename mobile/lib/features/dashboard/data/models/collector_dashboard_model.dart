@@ -28,7 +28,14 @@ class CollectorDashboardModel with _$CollectorDashboardModel {
     @JsonKey(name: 'today_spoiled_litres')
     @Default(0.0)
     double todaySpoiledLitres,
-    // collected - sold - spoiled today; > 0 missing, < 0 oversold
+    @JsonKey(name: 'today_received_litres')
+    @Default(0.0)
+    double todayReceivedLitres,
+    @JsonKey(name: 'today_transferred_out_litres')
+    @Default(0.0)
+    double todayTransferredOutLitres,
+    // collected + received - sold - transferred out - spoiled today;
+    // > 0 missing, < 0 oversold
     @JsonKey(name: 'today_unaccounted_litres')
     @Default(0.0)
     double todayUnaccountedLitres,

@@ -157,6 +157,33 @@ func (r *Repository) FindRefreshToken(ctx context.Context, tokenHash string) (*R
 	return &token, nil
 }
 
+// FindRefreshTokenByHash returns a refresh token in any state (revoked,
+// replaced or expired), so the caller can tell reuse from an unknown token.
+func (r *Repository) FindRefreshTokenByHash(ctx context.Context, tokenHash string) (*RefreshToken, error) {
+	var token RefreshToken
+	if err := r.db.WithContext(ctx).Where("token_hash = ?", tokenHash).First(&token).Error; err != nil {
+		return nil, err
+	}
+	return &token, nil
+}
+
+// MarkRefreshTokenReplaced records when a token was first rotated. Later
+// calls keep the first time, so the grace period cannot be extended.
+func (r *Repository) MarkRefreshTokenReplaced(ctx context.Context, tokenHash string, at time.Time) error {
+	return r.db.WithContext(ctx).Model(&RefreshToken{}).
+		Where("token_hash = ? AND replaced_at IS NULL", tokenHash).
+		Update("replaced_at", at).Error
+}
+
+// PurgeRefreshTokens deletes tokens that expired or were revoked before
+// cutoff; they can no longer be used or tell us anything.
+func (r *Repository) PurgeRefreshTokens(ctx context.Context, cutoff time.Time) (int64, error) {
+	res := r.db.WithContext(ctx).
+		Where("expires_at < ? OR revoked_at < ?", cutoff, cutoff).
+		Delete(&RefreshToken{})
+	return res.RowsAffected, res.Error
+}
+
 // RevokeRefreshToken marks a token as revoked.
 func (r *Repository) RevokeRefreshToken(ctx context.Context, tokenHash string) error {
 	return r.db.WithContext(ctx).

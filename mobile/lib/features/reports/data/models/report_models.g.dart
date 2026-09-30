@@ -56,8 +56,13 @@ _$CollectorAuditSummaryModelImpl _$$CollectorAuditSummaryModelImplFromJson(
   totalSalesRevenue: (json['total_sales_revenue'] as num?)?.toDouble() ?? 0.0,
   cashReceivedAmount: (json['cash_received_amount'] as num?)?.toDouble() ?? 0.0,
   totalSpoiledLitres: (json['total_spoiled_litres'] as num?)?.toDouble() ?? 0.0,
+  totalReceivedLitres:
+      (json['total_received_litres'] as num?)?.toDouble() ?? 0.0,
+  totalTransferredOutLitres:
+      (json['total_transferred_out_litres'] as num?)?.toDouble() ?? 0.0,
   unaccountedLitres: (json['unaccounted_litres'] as num?)?.toDouble() ?? 0.0,
   balanceStatus: json['balance_status'] as String? ?? 'BALANCED',
+  toleranceLitres: (json['tolerance_litres'] as num?)?.toDouble() ?? 0.0,
   activeDays: (json['active_days'] as num?)?.toInt() ?? 0,
   farmersServicedCount: (json['farmers_serviced_count'] as num?)?.toInt() ?? 0,
 );
@@ -73,8 +78,11 @@ Map<String, dynamic> _$$CollectorAuditSummaryModelImplToJson(
   'total_sales_revenue': instance.totalSalesRevenue,
   'cash_received_amount': instance.cashReceivedAmount,
   'total_spoiled_litres': instance.totalSpoiledLitres,
+  'total_received_litres': instance.totalReceivedLitres,
+  'total_transferred_out_litres': instance.totalTransferredOutLitres,
   'unaccounted_litres': instance.unaccountedLitres,
   'balance_status': instance.balanceStatus,
+  'tolerance_litres': instance.toleranceLitres,
   'active_days': instance.activeDays,
   'farmers_serviced_count': instance.farmersServicedCount,
 };
@@ -98,6 +106,8 @@ _$$SaccoReconciliationLedgerModelImplFromJson(
   creditSalesKes: (json['credit_sales_kes'] as num?)?.toDouble() ?? 0.0,
   totalSpoilageLitres:
       (json['total_spoilage_litres'] as num?)?.toDouble() ?? 0.0,
+  totalTransferredLitres:
+      (json['total_transferred_litres'] as num?)?.toDouble() ?? 0.0,
   unaccountedLitres: (json['unaccounted_litres'] as num?)?.toDouble() ?? 0.0,
   allowanceLitres: (json['allowance_litres'] as num?)?.toDouble() ?? 0.0,
   isBalanced: json['is_balanced'] as bool? ?? true,
@@ -135,6 +145,7 @@ Map<String, dynamic> _$$SaccoReconciliationLedgerModelImplToJson(
   'cash_received_kes': instance.cashReceivedKes,
   'credit_sales_kes': instance.creditSalesKes,
   'total_spoilage_litres': instance.totalSpoilageLitres,
+  'total_transferred_litres': instance.totalTransferredLitres,
   'unaccounted_litres': instance.unaccountedLitres,
   'allowance_litres': instance.allowanceLitres,
   'is_balanced': instance.isBalanced,

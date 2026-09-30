@@ -15,7 +15,9 @@
       "today_cash_received": 0,
       "today_spoiled_litres": 0,
       "today_unaccounted_litres": 0,
-      "today_balance_status": "BALANCED"
+      "today_balance_status": "BALANCED",
+      "today_received_litres": 12.5,
+      "today_transferred_out_litres": 20
     }
   }
 }

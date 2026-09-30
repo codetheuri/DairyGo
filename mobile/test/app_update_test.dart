@@ -1,0 +1,372 @@
+import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
+
+import 'package:crypto/crypto.dart';
+import 'package:dairy_sacco_mobile/features/app_update/data/app_release.dart';
+import 'package:dairy_sacco_mobile/features/app_update/data/app_update_service.dart';
+import 'package:dairy_sacco_mobile/features/app_update/presentation/app_update_controller.dart';
+import 'package:dairy_sacco_mobile/features/app_update/presentation/widgets/app_update_tile.dart';
+import 'package:dairy_sacco_mobile/features/app_update/presentation/widgets/update_gate.dart';
+import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+import 'layout/harness.dart';
+import 'support/fake_app_update.dart';
+
+/// Serves one APK, like the API's /app/download.
+class _ApkServer implements HttpClientAdapter {
+  final List<int> apk;
+
+  /// Honour Range requests (the API does; a proxy might not).
+  bool resumes = true;
+
+  /// Close the connection after this many bytes of the body.
+  int? cutAfter;
+  final List<String?> ranges = [];
+
+  _ApkServer(this.apk);
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
+    final range = options.headers['Range'] as String?;
+    ranges.add(range);
+    var start = 0;
+    var status = 200;
+    if (range != null && resumes) {
+      start = int.parse(RegExp(r'bytes=(\d+)-').firstMatch(range)!.group(1)!);
+      status = 206;
+    }
+    var body = apk.sublist(start);
+    if (cutAfter != null) body = body.sublist(0, cutAfter);
+    return ResponseBody(
+      Stream.value(Uint8List.fromList(body)),
+      status,
+      headers: {
+        Headers.contentTypeHeader: ['application/vnd.android.package-archive'],
+      },
+    );
+  }
+
+  @override
+  void close({bool force = false}) {}
+}
+
+AppRelease _releaseOf(List<int> apk, {String? sha}) => AppRelease(
+  version: '1.4.1',
+  build: 11,
+  minBuild: 10,
+  files: {
+    'arm64': ReleaseFile(
+      url: '/app/download/arm64',
+      sha256: sha ?? sha256.convert(apk).toString(),
+      size: apk.length,
+    ),
+  },
+);
+
+void main() {
+  group('downloading an update', () {
+    late Directory dir;
+    late _ApkServer server;
+    late AppUpdateService service;
+    final apk = utf8.encode('APK' * 5000);
+
+    setUp(() {
+      dir = Directory.systemTemp.createTempSync('updates');
+      server = _ApkServer(apk);
+      service = AppUpdateService(
+        Dio(BaseOptions(baseUrl: 'http://api'))..httpClientAdapter = server,
+        FakeInstaller(dir: dir.path),
+      );
+    });
+    tearDown(() => dir.deleteSync(recursive: true));
+
+    test('saves the checked file and reports progress', () async {
+      final seen = <int>[];
+      final path = await service.download(
+        _releaseOf(apk),
+        'arm64',
+        onProgress: (received, total) => seen.add(received),
+      );
+      expect(File(path).readAsBytesSync(), apk);
+      expect(seen.last, apk.length);
+      expect(File('$path.part').existsSync(), isFalse);
+    });
+
+    test('continues where a dropped download stopped', () async {
+      server.cutAfter = 4000;
+      await expectLater(
+        service.download(_releaseOf(apk), 'arm64'),
+        throwsA(
+          isA<UpdateException>().having(
+            (e) => e.message,
+            'message',
+            contains('continue'),
+          ),
+        ),
+      );
+
+      server.cutAfter = null;
+      final path = await service.download(_releaseOf(apk), 'arm64');
+      expect(server.ranges.last, 'bytes=4000-');
+      expect(File(path).readAsBytesSync(), apk);
+    });
+
+    test('starts again when the server sends the whole file', () async {
+      server.cutAfter = 4000;
+      await expectLater(
+        service.download(_releaseOf(apk), 'arm64'),
+        throwsA(isA<UpdateException>()),
+      );
+      server
+        ..cutAfter = null
+        ..resumes = false;
+      final path = await service.download(_releaseOf(apk), 'arm64');
+      expect(File(path).readAsBytesSync(), apk);
+    });
+
+    test('throws away a damaged file', () async {
+      final wrong = sha256.convert(utf8.encode('other')).toString();
+      await expectLater(
+        service.download(_releaseOf(apk, sha: wrong), 'arm64'),
+        throwsA(
+          isA<UpdateException>().having(
+            (e) => e.message,
+            'message',
+            contains('damaged'),
+          ),
+        ),
+      );
+      expect(dir.listSync(), isEmpty, reason: 'nothing damaged is kept');
+    });
+
+    test('reuses a finished download without asking again', () async {
+      await service.download(_releaseOf(apk), 'arm64');
+      final requests = server.ranges.length;
+      await service.download(_releaseOf(apk), 'arm64');
+      expect(server.ranges.length, requests);
+    });
+
+    test('removes downloads of other versions', () async {
+      final path = await service.download(_releaseOf(apk), 'arm64');
+      File('${dir.path}/DairyGo-9-arm64.apk').writeAsStringSync('old');
+      await service.removeOldDownloads(keepBuild: 11);
+      expect(dir.listSync().map((f) => f.path), [path]);
+    });
+  });
+
+  group('AppUpdateController', () {
+    late FakeAppUpdateService service;
+    late ProviderContainer container;
+    AppUpdateController controller() =>
+        container.read(appUpdateProvider.notifier);
+    AppUpdateState state() => container.read(appUpdateProvider);
+
+    setUp(() {
+      service = FakeAppUpdateService();
+      container = ProviderContainer(overrides: fakeUpdateOverrides(service));
+    });
+    tearDown(() => container.dispose());
+
+    test('finds a newer version', () async {
+      service.latest = releaseForTests(build: 11, minBuild: 10);
+      await controller().check();
+      expect(state().available, isTrue);
+      expect(state().required, isFalse);
+    });
+
+    test('requires the update when this version is too old', () async {
+      service.latest = releaseForTests(build: 12, minBuild: 11);
+      await controller().check();
+      expect(state().required, isTrue);
+    });
+
+    test('nothing to do when up to date or nothing is published', () async {
+      await controller().check(manual: true);
+      expect(state().available, isFalse);
+      expect(state().confirmedUpToDate, isTrue);
+
+      service.latest = releaseForTests(build: 10, minBuild: 10);
+      await controller().check(manual: true);
+      expect(state().available, isFalse);
+      expect(state().required, isFalse);
+    });
+
+    test('checks automatically at most every few hours', () async {
+      await controller().check();
+      await controller().check();
+      await controller().onResume();
+      expect(service.checks, 1);
+      await controller().check(manual: true);
+      expect(service.checks, 2);
+    });
+
+    test('says so only when a check the user asked for fails', () async {
+      service.checkError = Exception('offline');
+      await controller().check();
+      expect(state().error, isNull);
+      await controller().check(manual: true);
+      expect(state().error, contains('Could not check'));
+    });
+
+    test('asks for permission, then installs on return to the app', () async {
+      service.latest = releaseForTests();
+      service.fakeInstaller.allowed = false;
+      await controller().check();
+      await controller().update();
+      expect(state().step, UpdateStep.needsPermission);
+      expect(service.fakeInstaller.installed, isEmpty);
+
+      await controller().allowInstalls();
+      expect(service.fakeInstaller.settingsOpened, 1);
+      service.fakeInstaller.allowed = true;
+      await controller().onResume();
+      expect(state().step, UpdateStep.readyToInstall);
+      expect(service.fakeInstaller.installed, [
+        '/updates/DairyGo-11-arm64.apk',
+      ]);
+    });
+
+    test('a failed download can be tried again', () async {
+      service.latest = releaseForTests();
+      service.downloadError = UpdateException.stopped;
+      await controller().check();
+      await controller().update();
+      expect(state().step, UpdateStep.failed);
+      expect(state().error, contains('continue'));
+
+      service.downloadError = null;
+      await controller().update();
+      expect(state().step, UpdateStep.readyToInstall);
+    });
+
+    test('a phone type without an APK is not offered the update', () async {
+      container.dispose();
+      container = ProviderContainer(
+        overrides: [
+          ...fakeUpdateOverrides(service),
+          deviceAbiProvider.overrideWithValue(null),
+        ],
+      );
+      service.latest = releaseForTests();
+      await controller().check();
+      expect(state().available, isFalse);
+    });
+  });
+
+  group('update screens', () {
+    // Real fonts, so widths match the phone.
+    setUpAll(loadFonts);
+
+    Future<FakeAppUpdateService> pumpGate(
+      WidgetTester tester,
+      AppRelease? latest,
+    ) async {
+      final service = FakeAppUpdateService(latest: latest);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: fakeUpdateOverrides(service),
+          child: MaterialApp(
+            home: const Scaffold(body: Text('the app')),
+            builder: (context, child) => UpdateGate(child: child!),
+          ),
+        ),
+      );
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(UpdateGate)),
+      );
+      await container.read(appUpdateProvider.notifier).check();
+      await tester.pumpAndSettle();
+      return service;
+    }
+
+    testWidgets('a new version is offered and can be put off', (tester) async {
+      await pumpGate(tester, releaseForTests());
+      expect(find.text('the app'), findsOneWidget);
+      expect(find.text('New version 1.4.11 is ready'), findsOneWidget);
+
+      await tester.tap(find.text('Later'));
+      await tester.pumpAndSettle();
+      expect(find.text('New version 1.4.11 is ready'), findsNothing);
+    });
+
+    testWidgets('a too-old app shows only the update screen', (tester) async {
+      await pumpGate(tester, releaseForTests(build: 12, minBuild: 11));
+      expect(find.text('the app'), findsNothing);
+      expect(find.text('Please update DairyGo'), findsOneWidget);
+      expect(find.text('Later'), findsNothing);
+
+      await tester.tap(find.text('Update now'));
+      await tester.pumpAndSettle();
+      expect(find.text('Install'), findsOneWidget);
+    });
+
+    testWidgets('More shows the version and checks when asked', (tester) async {
+      final service = FakeAppUpdateService();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: fakeUpdateOverrides(service),
+          child: const MaterialApp(home: Scaffold(body: AppUpdateTile())),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('App version 1.4.0'), findsOneWidget);
+
+      await tester.tap(find.text('Check'));
+      await tester.pumpAndSettle();
+      expect(find.text('Up to date'), findsOneWidget);
+
+      service.latest = releaseForTests();
+      await tester.tap(find.text('Check'));
+      await tester.pumpAndSettle();
+      expect(find.text('New version 1.4.11 is ready'), findsOneWidget);
+      expect(find.widgetWithText(FilledButton, 'Update'), findsOneWidget);
+    });
+
+    // The smallest phone with the largest text, in the real app.
+    for (final (name, release) in [
+      ('update strip', releaseForTests()),
+      ('update screen', releaseForTests(build: 12, minBuild: 11)),
+    ]) {
+      testWidgets('the $name fits a 320 dp phone with large text', (
+        tester,
+      ) async {
+        tester.view
+          ..physicalSize = const Size(320, 640)
+          ..devicePixelRatio = 1;
+        tester.platformDispatcher.textScaleFactorTestValue = 1.3;
+        addTearDown(tester.view.reset);
+        addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+        final app = await AppUnderTest.open(
+          tester,
+          'collector',
+          '/dashboard',
+          updates: FakeAppUpdateService(latest: release),
+        );
+        final container = app.container;
+        await container.read(appUpdateProvider.notifier).check(manual: true);
+        for (var i = 0; i < 4; i++) {
+          await tester.pump(const Duration(milliseconds: 250));
+        }
+        final shown = find
+            .textContaining(
+              release.minBuild > 10 ? 'Please update' : 'is ready',
+            )
+            .evaluate()
+            .length;
+        final errors = [...app.errors];
+        await app.close();
+        expect(shown, 1);
+        expect(errors, isEmpty);
+      });
+    }
+  });
+}

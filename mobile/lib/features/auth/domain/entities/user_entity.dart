@@ -53,6 +53,14 @@ class UserEntity with _$UserEntity {
     return lower.contains('admin');
   }
 
+  /// The Sacco role as the server numbers it: 1 administrator, 2 collector,
+  /// 3 board member.
+  int get saccoRoleId {
+    if (isSaccoAdmin) return 1;
+    if (isExecutive) return 3;
+    return 2;
+  }
+
   bool get canManageStaff => isSaccoAdmin || isSuperUser;
   bool get canSetPrice => isSaccoAdmin || isSuperUser;
 

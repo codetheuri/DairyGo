@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/cache/keep_fresh.dart';
 import '../../../../app/router/app_router.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/widgets/error_view.dart';
@@ -11,6 +12,7 @@ import '../../data/models/customer_models.dart';
 import '../controllers/customer_controller.dart';
 import '../widgets/record_payment_dialog.dart';
 import '../../../../core/layout/breakpoints.dart';
+import '../../../../core/widgets/skeleton.dart';
 
 /// A customer's details and, for admins and board members, their monthly
 /// statement. Admins can record and void payments and (de)activate the customer.
@@ -100,86 +102,92 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
     final canSell = isAdmin || !(user?.isExecutive ?? false); // not board
     final customerAsync = ref.watch(customerDetailProvider(widget.customerId));
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Customer',
-          style: TextStyle(fontWeight: FontWeight.bold),
+    return RefreshOnShow(
+      providers: [
+        customerDetailProvider(widget.customerId),
+        customerStatementProvider(_query),
+      ],
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text(
+            'Customer',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
         ),
-      ),
-      body: ReadableWidth(
-        child: customerAsync.when(
-          loading: () => const Center(
-            child: CircularProgressIndicator(color: AppColors.primary),
-          ),
-          error: (e, _) => ErrorView(
-            message: e.toString().replaceAll('Exception: ', ''),
-            onRetry: () =>
-                ref.refresh(customerDetailProvider(widget.customerId)),
-          ),
-          data: (customer) => RefreshIndicator(
-            onRefresh: () async {
-              ref.invalidate(customerDetailProvider(widget.customerId));
-              ref.invalidate(customerStatementProvider(_query));
-            },
-            child: ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                _header(customer),
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    if (canSell && customer.isActive)
-                      ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: Colors.white,
+        body: ReadableWidth(
+          child: customerAsync.when(
+            loading: () => const ListSkeleton(rows: 4),
+            error: (e, _) => ErrorView(
+              message: e.toString().replaceAll('Exception: ', ''),
+              onRetry: () =>
+                  ref.refresh(customerDetailProvider(widget.customerId).future),
+            ),
+            data: (customer) => RefreshIndicator(
+              onRefresh: () => ref.refreshFromServer([
+                customerDetailProvider(widget.customerId).future,
+                customerStatementProvider(_query).future,
+              ]),
+              child: ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
+                  _header(customer),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      if (canSell && customer.isActive)
+                        ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.white,
+                          ),
+                          icon: const Icon(
+                            Icons.add_shopping_cart_rounded,
+                            size: 18,
+                          ),
+                          label: const Text('Record Sale'),
+                          onPressed: () => context.push(
+                            AppRoutes.recordSale,
+                            extra: customer,
+                          ),
                         ),
-                        icon: const Icon(
-                          Icons.add_shopping_cart_rounded,
-                          size: 18,
-                        ),
-                        label: const Text('Record Sale'),
-                        onPressed: () =>
-                            context.push(AppRoutes.recordSale, extra: customer),
-                      ),
-                    if (isAdmin)
-                      OutlinedButton.icon(
-                        icon: const Icon(Icons.payments_rounded, size: 18),
-                        label: const Text('Record Payment'),
-                        onPressed: () async {
-                          final ok = await RecordPaymentDialog.show(
-                            context,
-                            customer,
-                          );
-                          if (ok == true && context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Payment recorded'),
-                                backgroundColor: AppColors.success,
-                              ),
+                      if (isAdmin)
+                        OutlinedButton.icon(
+                          icon: const Icon(Icons.payments_rounded, size: 18),
+                          label: const Text('Record Payment'),
+                          onPressed: () async {
+                            final ok = await RecordPaymentDialog.show(
+                              context,
+                              customer,
                             );
-                          }
-                        },
-                      ),
-                    if (isAdmin)
-                      TextButton(
-                        onPressed: () => _toggleStatus(customer),
-                        child: Text(
-                          customer.isActive ? 'Deactivate' : 'Reactivate',
+                            if (ok == true && context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Payment recorded'),
+                                  backgroundColor: AppColors.success,
+                                ),
+                              );
+                            }
+                          },
                         ),
-                      ),
+                      if (isAdmin)
+                        TextButton(
+                          onPressed: () => _toggleStatus(customer),
+                          child: Text(
+                            customer.isActive ? 'Deactivate' : 'Reactivate',
+                          ),
+                        ),
+                    ],
+                  ),
+                  if (seesStatement) ...[
+                    const SizedBox(height: 20),
+                    _monthSelector(),
+                    const SizedBox(height: 8),
+                    _statement(isAdmin),
                   ],
-                ),
-                if (seesStatement) ...[
-                  const SizedBox(height: 20),
-                  _monthSelector(),
-                  const SizedBox(height: 8),
-                  _statement(isAdmin),
                 ],
-              ],
+              ),
             ),
           ),
         ),
@@ -282,12 +290,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
   Widget _statement(bool isAdmin) {
     final statementAsync = ref.watch(customerStatementProvider(_query));
     return statementAsync.when(
-      loading: () => const Padding(
-        padding: EdgeInsets.all(24),
-        child: Center(
-          child: CircularProgressIndicator(color: AppColors.primary),
-        ),
-      ),
+      loading: () => const ListSkeleton(rows: 4),
       error: (e, _) => Text(
         e.toString().replaceAll('Exception: ', ''),
         style: const TextStyle(color: AppColors.error),

@@ -4,21 +4,13 @@ part 'customer_models.freezed.dart';
 part 'customer_models.g.dart';
 
 /// Customer types. Coolers are customers like any other buyer.
-const customerTypes = [
-  'COOLER',
-  'PROCESSOR',
-  'HOTEL',
-  'SHOP',
-  'INDIVIDUAL',
-  'OTHER',
-];
+const customerTypes = ['INDIVIDUAL', 'HOTEL', 'SHOP', 'COOLER', 'OTHER'];
 
 String customerTypeLabel(String type) {
   switch (type) {
     case 'COOLER':
       return 'Cooler';
-    case 'PROCESSOR':
-      return 'Processor';
+
     case 'HOTEL':
       return 'Hotel';
     case 'SHOP':

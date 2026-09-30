@@ -356,10 +356,9 @@ class _RecordFieldSaleScreenState extends ConsumerState<RecordFieldSaleScreen> {
                       segments: const [
                         ButtonSegment(
                           value: _Settlement.full,
-                          label: Text(
-                            'Paid in full',
-                            style: TextStyle(fontSize: 12),
-                          ),
+                          // Short labels so all three fit on one line on a
+                          // small phone.
+                          label: Text('Paid', style: TextStyle(fontSize: 12)),
                         ),
                         ButtonSegment(
                           value: _Settlement.partial,
@@ -393,7 +392,7 @@ class _RecordFieldSaleScreenState extends ConsumerState<RecordFieldSaleScreen> {
                             return 'Enter the amount paid';
                           }
                           if (d >= _total) {
-                            return 'Less than the total, or choose "Paid in full"';
+                            return 'Less than the total, or choose "Paid"';
                           }
                           return null;
                         },

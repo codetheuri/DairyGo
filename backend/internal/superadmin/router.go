@@ -42,6 +42,10 @@ func RegisterRoutes(api huma.API, db *gorm.DB, cfg *config.Config, log logger.Lo
 		"Add Sacco staff", "Creates a staff account in the Sacco with role 1, 2 or 3."), h.AddStaff)
 	huma.Register(api, op("platform-user-status", http.MethodPatch, "/api/v1/admin/users/{id}/status",
 		"Activate / deactivate a Sacco user", "Deactivation takes effect immediately and ends the user's sessions."), h.SetUserStatus)
+	huma.Register(api, op("platform-user-role", http.MethodPut, "/api/v1/admin/users/{id}/role",
+		"Change a Sacco user's role", "Makes the user an administrator, collector or board member. A Sacco's only administrator cannot be demoted."), h.ChangeRole)
+	huma.Register(api, op("platform-remove-user", http.MethodDelete, "/api/v1/admin/users/{id}",
+		"Remove a Sacco user", "The user is signed out at once and cannot sign in. Records they made keep their name. A Sacco's only administrator cannot be removed."), h.RemoveUser)
 	huma.Register(api, op("platform-unlock-user", http.MethodPost, "/api/v1/admin/users/{id}/unlock",
 		"Unlock a Sacco user", "Clears a lockout caused by repeated wrong passwords."), h.UnlockUser)
 	huma.Register(api, op("platform-reset-password", http.MethodPost, "/api/v1/admin/users/{id}/reset-password",

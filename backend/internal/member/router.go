@@ -50,11 +50,20 @@ func RegisterRoutes(api huma.API, db *gorm.DB, cfg *config.Config, log logger.Lo
 	}, PermMembersRead), handler.GetByID)
 
 	huma.Register(api, guard.Protected(huma.Operation{
+		OperationID: "get-member-history",
+		Method:      http.MethodGet,
+		Path:        "/api/v1/sacco/members/{id}/history",
+		Summary:     "Farmer change history",
+		Description: "Who changed a farmer's details and when, with the old and new values (oldest first).",
+		Tags:        []string{"Member Management"},
+	}, PermMembersRead), handler.History)
+
+	huma.Register(api, guard.Protected(huma.Operation{
 		OperationID: "update-member",
 		Method:      http.MethodPut,
 		Path:        "/api/v1/sacco/members/{id}",
 		Summary:     "Update Member profile",
-		Description: "Modifies farmer contact, identity, and payment details.",
+		Description: "Modifies farmer contact, identity, payment and next of kin details. Only the fields sent change; an optional field sent empty is cleared. Every change is kept in the farmer's history.",
 		Tags:        []string{"Member Management"},
 	}, PermMembersUpdate), handler.Update)
 

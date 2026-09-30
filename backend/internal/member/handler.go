@@ -105,3 +105,16 @@ func (h *Handler) UpdateStatus(ctx context.Context, input *UpdateMemberStatusInp
 	resp.Body.Data.Member = member
 	return resp, nil
 }
+
+// History returns who changed a farmer's details and when.
+func (h *Handler) History(ctx context.Context, input *MemberIDInput) (*MemberHistoryOutput, error) {
+	history, err := h.service.History(ctx, input.ID)
+	if err != nil {
+		return nil, huma.Error404NotFound(err.Error())
+	}
+	resp := &MemberHistoryOutput{}
+	resp.Body.Success = true
+	resp.Body.Message = "Farmer history"
+	resp.Body.Data.History = history
+	return resp, nil
+}

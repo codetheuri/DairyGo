@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Added
+- **Edit a farmer's details and see who changed them**: `PUT /sacco/members/{id}` validates names, phone and M-Pesa number, clears an optional field sent empty, and records every change (old and new values) in the audit trail; `GET /sacco/members/{id}/history` lists them. Payout details decide where money goes, so their changes are always traceable.
+- `TestAllRoutesRegister` registers every module's routes in a test, so a start-up panic (e.g. two response types with the same schema name) is caught before deploy.
+
 ### Fixed
 - **In-app updates were never offered** by apps 1.4.0 and 1.4.1: they compared Android's `versionCode` (build + 2000 on arm64) with the published build. `GET /api/v1/app/version` now answers apps that send no `scheme` in that scale; fixed apps send `scheme=2`.
 

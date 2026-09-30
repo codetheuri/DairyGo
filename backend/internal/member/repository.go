@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/codetheuri/tusk/pkg/audit"
 	"github.com/codetheuri/tusk/pkg/query"
 	"gorm.io/gorm"
 )
@@ -80,6 +81,22 @@ func (r *Repository) Update(ctx context.Context, m *Member) error {
 	return r.db.WithContext(ctx).Scopes(query.TenantScope(ctx)).Save(m).Error
 }
 
+// UpdateWithAudit saves a farmer's details and the audit entry describing
+// the change, in one transaction.
+func (r *Repository) UpdateWithAudit(ctx context.Context, m *Member, entry audit.Entry) error {
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Scopes(query.TenantScope(ctx)).Save(m).Error; err != nil {
+			return err
+		}
+		return audit.Record(tx, entry)
+	})
+}
+
 func (r *Repository) UpdateStatus(ctx context.Context, id string, status Status) error {
 	return r.db.WithContext(ctx).Model(&Member{}).Scopes(query.TenantScope(ctx)).Where("id = ?", id).Update("status", status).Error
+}
+
+// History lists a farmer's audit entries, oldest first.
+func (r *Repository) History(ctx context.Context, m *Member) ([]audit.Log, error) {
+	return audit.List(ctx, r.db, m.SaccoID, auditEntityMember, m.ID)
 }

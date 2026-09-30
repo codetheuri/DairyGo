@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/codetheuri/tusk/internal/middleware"
+	"github.com/codetheuri/tusk/pkg/audit"
 	"github.com/codetheuri/tusk/pkg/query"
 )
 
@@ -98,11 +99,15 @@ func (s *Service) ListMembers(ctx context.Context, q query.Query) ([]Member, que
 	return s.repo.List(ctx, q)
 }
 
+// UpdateMember changes a farmer's details. Only the fields sent change; an
+// optional field sent empty is cleared. The change is audited with the old
+// and new values, since payout details decide where the farmer's money goes.
 func (s *Service) UpdateMember(ctx context.Context, id string, req *UpdateMemberRequest) (*Member, error) {
 	member, err := s.repo.FindByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
+	before := auditFields(member)
 
 	if req.FirstName != nil {
 		member.FirstName = strings.TrimSpace(*req.FirstName)
@@ -110,36 +115,32 @@ func (s *Service) UpdateMember(ctx context.Context, id string, req *UpdateMember
 	if req.LastName != nil {
 		member.LastName = strings.TrimSpace(*req.LastName)
 	}
-	if req.NationalID != nil {
-		member.NationalID = req.NationalID
-	}
 	if req.Phone != nil {
 		member.Phone = strings.TrimSpace(*req.Phone)
 	}
-	if req.Email != nil {
-		member.Email = req.Email
-	}
 	if req.Gender != nil {
-		gender := strings.ToUpper(*req.Gender)
+		gender := strings.ToUpper(strings.TrimSpace(*req.Gender))
+		if gender != "MALE" && gender != "FEMALE" && gender != "OTHER" {
+			return nil, fmt.Errorf("gender must be MALE, FEMALE or OTHER")
+		}
 		member.Gender = &gender
 	}
-	if req.Location != nil {
-		member.Location = req.Location
-	}
-	if req.MpesaNumber != nil {
-		member.MpesaNumber = req.MpesaNumber
-	}
-	if req.MpesaName != nil {
-		member.MpesaName = req.MpesaName
-	}
-	if req.BankName != nil {
-		member.BankName = req.BankName
-	}
-	if req.BankAccountNumber != nil {
-		member.BankAccountNumber = req.BankAccountNumber
-	}
-	if req.BankBranch != nil {
-		member.BankBranch = req.BankBranch
+	setOptional(&member.NationalID, req.NationalID)
+	setOptional(&member.Email, req.Email)
+	setOptional(&member.Location, req.Location)
+	setOptional(&member.MpesaNumber, req.MpesaNumber)
+	setOptional(&member.MpesaName, req.MpesaName)
+	setOptional(&member.BankName, req.BankName)
+	setOptional(&member.BankAccountNumber, req.BankAccountNumber)
+	setOptional(&member.BankBranch, req.BankBranch)
+
+	switch {
+	case len(member.FirstName) < 2 || len(member.LastName) < 2:
+		return nil, fmt.Errorf("first and last name are required")
+	case countDigits(member.Phone) < 10:
+		return nil, fmt.Errorf("phone number must have at least 10 digits")
+	case member.MpesaNumber != nil && countDigits(*member.MpesaNumber) < 10:
+		return nil, fmt.Errorf("M-Pesa number must have at least 10 digits")
 	}
 
 	// Editing any next of kin detail must leave all three complete.
@@ -155,10 +156,18 @@ func (s *Service) UpdateMember(ctx context.Context, id string, req *UpdateMember
 		member.NextOfKinName, member.NextOfKinRelationship, member.NextOfKinPhone = &kin.Name, &kin.Relationship, &kin.Phone
 	}
 
-	if err := s.repo.Update(ctx, member); err != nil {
+	old, changed := diffFields(before, auditFields(member))
+	if len(changed) == 0 {
+		return member, nil
+	}
+	entry := audit.Entry{
+		SaccoID: member.SaccoID, EntityType: auditEntityMember, EntityID: member.ID,
+		Action: audit.ActionUpdate, ActorID: middleware.GetUserID(ctx),
+		OldValues: old, NewValues: changed,
+	}
+	if err := s.repo.UpdateWithAudit(ctx, member, entry); err != nil {
 		return nil, fmt.Errorf("failed to update member: %w", err)
 	}
-
 	return member, nil
 }
 
@@ -167,4 +176,13 @@ func (s *Service) UpdateStatus(ctx context.Context, id string, status Status) er
 		return fmt.Errorf("invalid member status: %s", status)
 	}
 	return s.repo.UpdateStatus(ctx, id, status)
+}
+
+// History returns the changes made to a farmer of the caller's Sacco.
+func (s *Service) History(ctx context.Context, id string) ([]audit.Log, error) {
+	m, err := s.repo.FindByID(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("member not found")
+	}
+	return s.repo.History(ctx, m)
 }

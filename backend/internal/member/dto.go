@@ -1,6 +1,7 @@
 package member
 
 import (
+	"github.com/codetheuri/tusk/pkg/audit"
 	"github.com/codetheuri/tusk/pkg/query"
 	"github.com/codetheuri/tusk/pkg/response"
 )
@@ -89,4 +90,12 @@ type ListMembersData struct {
 
 type ListMembersOutput struct {
 	Body response.Data[ListMembersData]
+}
+
+type MemberHistoryData struct {
+	History []audit.Log `json:"history"`
+}
+
+type MemberHistoryOutput struct {
+	Body response.Data[MemberHistoryData]
 }

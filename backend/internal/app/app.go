@@ -14,6 +14,7 @@ import (
 	"github.com/danielgtaylor/huma/v2/adapters/humachi"
 	"github.com/go-chi/chi/v5"
 	chimw "github.com/go-chi/chi/v5/middleware"
+	"gorm.io/gorm"
 
 	"github.com/codetheuri/tusk/config"
 	"github.com/codetheuri/tusk/database"
@@ -235,16 +236,7 @@ func New(cfg *config.Config, log logger.Logger) (*App, error) {
 	api.UseMiddleware(middleware.HumaAuthenticate(api, cfg.JWTSecret, db))
 
 	// Register Domain Module Routes
-	auth.RegisterRoutes(api, db, cfg, log)
-	sacco.RegisterRoutes(api, db, cfg, log)
-	member.RegisterRoutes(api, db, cfg, log)
-	collection.RegisterRoutes(api, db, cfg, log)
-	customer.RegisterRoutes(api, db, cfg, log)
-	report.RegisterRoutes(api, db, cfg, log)
-	dashboard.RegisterRoutes(api, db, cfg, log)
-	notification.RegisterRoutes(api, db, cfg, log)
-	superadmin.RegisterRoutes(api, db, cfg, log)
-	appupdate.RegisterRoutes(api, r, appupdate.NewStore(cfg.AppReleasesDir), log)
+	registerModules(api, r, db, cfg, log)
 
 	return &App{
 		cfg:         cfg,
@@ -330,4 +322,20 @@ func runDaily(ctx context.Context, job func(context.Context) error, onError func
 			run()
 		}
 	}
+}
+
+// registerModules registers every module's routes. Huma refuses two response
+// types with the same schema name at registration, which would stop the API
+// from starting; TestAllRoutesRegister runs this to catch that in tests.
+func registerModules(api huma.API, r chi.Router, db *gorm.DB, cfg *config.Config, log logger.Logger) {
+	auth.RegisterRoutes(api, db, cfg, log)
+	sacco.RegisterRoutes(api, db, cfg, log)
+	member.RegisterRoutes(api, db, cfg, log)
+	collection.RegisterRoutes(api, db, cfg, log)
+	customer.RegisterRoutes(api, db, cfg, log)
+	report.RegisterRoutes(api, db, cfg, log)
+	dashboard.RegisterRoutes(api, db, cfg, log)
+	notification.RegisterRoutes(api, db, cfg, log)
+	superadmin.RegisterRoutes(api, db, cfg, log)
+	appupdate.RegisterRoutes(api, r, appupdate.NewStore(cfg.AppReleasesDir), log)
 }

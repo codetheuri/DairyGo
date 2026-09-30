@@ -96,7 +96,7 @@ else
 fi
 if [[ "$APP" == "yes" ]]; then
   echo "App:      publish $VERSION (build $BUILD); published now: build $PUBLISHED_BUILD$( ((REQUIRED)) && echo '; REQUIRED update')"
-  [[ -n "$NOTES" ]] || die 'give --notes "what changed" (users see it on the update bar)'
+  [[ -n "$NOTES" || $DRY == 1 ]] || die 'give --notes "what changed" (users see it on the update bar)'
   [[ -f mobile/android/key.properties ]] || die "no signing key (mobile/android/key.properties); see mobile/docs/releases.md"
 else
   echo "App:      not published (no change in mobile/ since $LAST_TAG)"

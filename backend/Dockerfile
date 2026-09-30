@@ -17,9 +17,10 @@ RUN go mod download
 COPY . .
 
 # Build statically-linked binaries for Linux
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o /app/dairy-api ./cmd/api/main.go
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o /app/dairy-migrate ./cmd/migrate/main.go
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o /app/dairy-cli ./cmd/tusk/main.go
+# Build packages, not single files, so every file of a command is included.
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o /app/dairy-api ./cmd/api
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o /app/dairy-migrate ./cmd/migrate
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o /app/dairy-cli ./cmd/tusk
 
 # Runtime stage
 FROM alpine:latest  

@@ -143,7 +143,14 @@ if git diff --quiet "$SERVER_HEAD" HEAD -- backend; then
   echo "backend unchanged; API left running"
 else
   remote "set -e; cd '$SERVER_PATH/backend'; sh scripts/init-env.sh >/dev/null; mkdir -p releases
-    docker compose up -d --build dairy-api 2>&1 | tail -3
+    # A failed build leaves the old container running (and healthy), so
+    # check the build itself, not only the health.
+    if ! docker compose up -d --build dairy-api > /tmp/dairy-build.log 2>&1; then
+      tail -30 /tmp/dairy-build.log >&2
+      echo 'The build failed; the previous version is still running.' >&2
+      exit 1
+    fi
+    tail -3 /tmp/dairy-build.log
     for i in \$(seq 1 40); do
       curl -fs http://localhost:9002/health >/dev/null 2>&1 && { echo 'API is healthy'; exit 0; }
       sleep 3

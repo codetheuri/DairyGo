@@ -20,6 +20,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - `TestAllRoutesRegister` registers every module's routes in a test, so a start-up panic (e.g. two response types with the same schema name) is caught before deploy.
 
 ### Fixed
+- **The Docker image built each command from its `main.go` only**, so a command split over several files (the CLI's `members import`) failed to build. It now builds each command's package.
+- **`ship.sh` reported "Shipped" when the server's build failed**: the old container kept running and passed the health check. It now stops with the build's error.
 - **In-app updates were never offered** by apps 1.4.0 and 1.4.1: they compared Android's `versionCode` (build + 2000 on arm64) with the published build. `GET /api/v1/app/version` now answers apps that send no `scheme` in that scale; fixed apps send `scheme=2`.
 
 ### Added

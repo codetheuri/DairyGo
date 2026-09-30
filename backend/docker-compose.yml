@@ -32,6 +32,10 @@ services:
       - MAIL_USERNAME=${MAIL_USERNAME}
       - MAIL_PASSWORD=${MAIL_PASSWORD}
       - MAIL_SENDER=${MAIL_SENDER}
+      # The published Android app (mobile/scripts/release.sh), served at /app.
+      - APP_RELEASES_DIR=/app/releases
+    volumes:
+      - ./releases:/app/releases:ro
     restart: unless-stopped
     networks:
       tigerforge-db:

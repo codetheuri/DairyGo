@@ -9,6 +9,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 
 ### Added
+- **App releases (`internal/appupdate`)**: `GET /api/v1/app/version` for the in-app updater (with `min_build` to force an update), resumable APK downloads at `/app/download/{arm64,armv7}` served as Android packages, and a download page at `/app` to share instead of APK files. Releases are read from `APP_RELEASES_DIR` (`./releases` in Docker). See [docs/app-releases.md](docs/app-releases.md).
+- Response writers in the logger, failure recorder and idempotency middleware implement `Unwrap()`, so `http.ResponseController` works through them.
 - **`make env`** (`scripts/init-env.sh`): creates `.env` with a random `JWT_SECRET`, or replaces a missing or weak one; never changes a good secret or prints it. Safe on every deploy.
 - The collector audit report returns `tolerance_litres` (per collector per day), so clients can balance each day of a period by the same rule.
 - **Safe retries (`internal/idempotency`)**: writes with an `Idempotency-Key` header run once per user and key; retries get the stored response (`Idempotent-Replayed: true`), so a lost response on a slow connection or a double tap never records a sale, payment or collection twice. Migration `00014`. See [docs/sessions-and-idempotency.md](docs/sessions-and-idempotency.md).

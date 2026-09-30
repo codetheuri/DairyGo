@@ -38,3 +38,6 @@ vendor/
 
 # Go test cache
 .cache/
+
+# Published Android app (mobile/scripts/release.sh); copied to the server, not committed.
+releases/

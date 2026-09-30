@@ -90,6 +90,9 @@ type capturingWriter struct {
 	body   bytes.Buffer
 }
 
+// Unwrap lets http.ResponseController reach the connection.
+func (c *capturingWriter) Unwrap() http.ResponseWriter { return c.ResponseWriter }
+
 func (c *capturingWriter) WriteHeader(code int) {
 	c.status = code
 	c.ResponseWriter.WriteHeader(code)

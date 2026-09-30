@@ -187,6 +187,9 @@ type captureWriter struct {
 	wrote     bool
 }
 
+// Unwrap lets http.ResponseController reach the connection.
+func (c *captureWriter) Unwrap() http.ResponseWriter { return c.ResponseWriter }
+
 func (c *captureWriter) WriteHeader(code int) {
 	if !c.wrote {
 		c.status = code

@@ -36,6 +36,9 @@ type Config struct {
 	DBMaxOpenConns     int
 	DBConnMaxLifetime  int
 	CORSOrigins        []string
+	// AppReleasesDir holds the published Android app (APKs and
+	// latest.json), served for download and the in-app updater.
+	AppReleasesDir string
 
 	//mailer config
 	MailerHost     string
@@ -103,6 +106,7 @@ func LoadConfig() (*Config, error) {
 		AppVersion:        os.Getenv("APP_VERSION"),
 		AppMode:           os.Getenv("APP_MODE"),
 		AppTimezone:       os.Getenv("APP_TIMEZONE"),
+		AppReleasesDir:    os.Getenv("APP_RELEASES_DIR"),
 		DBMaxIdleConns:    10,
 		DBMaxOpenConns:    100,
 		DBConnMaxLifetime: 60, // default value in seconds
@@ -126,6 +130,9 @@ func LoadConfig() (*Config, error) {
 		return nil, err
 	}
 
+	if cfg.AppReleasesDir == "" {
+		cfg.AppReleasesDir = "releases"
+	}
 	if cfg.AppTimezone == "" {
 		cfg.AppTimezone = "Africa/Nairobi"
 	}

@@ -16,6 +16,7 @@ import (
 	chimw "github.com/go-chi/chi/v5/middleware"
 
 	"github.com/codetheuri/tusk/config"
+	"github.com/codetheuri/tusk/internal/appupdate"
 	"github.com/codetheuri/tusk/internal/auth"
 	"github.com/codetheuri/tusk/internal/collection"
 	"github.com/codetheuri/tusk/internal/customer"
@@ -121,6 +122,7 @@ func New(cfg *config.Config, log logger.Logger) (*App, error) {
 		{Name: "Reports & Reconciliation", Description: "Farmer payroll statements, Sacco balancing ledgers, and collector audit reports"},
 		{Name: "Executive & Mobile Dashboards", Description: "Sacco summary cards, trend time series charts, and collector field shift metrics"},
 		{Name: "Platform Console", Description: "DairyGo operator console: overview of all Saccos, Sacco staff and farmers, audit trail, failed requests and SMS logs"},
+		{Name: "Mobile App", Description: "Latest Android release for the in-app updater; the APKs and the download page are served at /app"},
 		{Name: "SMS Notifications", Description: "Pluggable SMS dispatching (httpSMS Android SIM Gateway, Africa's Talking) and audit logs"},
 	}
 
@@ -198,6 +200,7 @@ func New(cfg *config.Config, log logger.Logger) (*App, error) {
 			"name": "Communications",
 			"tags": []string{
 				"SMS Notifications",
+				"Mobile App",
 			},
 		},
 	}
@@ -215,6 +218,7 @@ func New(cfg *config.Config, log logger.Logger) (*App, error) {
 	dashboard.RegisterRoutes(api, db, cfg, log)
 	notification.RegisterRoutes(api, db, cfg, log)
 	superadmin.RegisterRoutes(api, db, cfg, log)
+	appupdate.RegisterRoutes(api, r, appupdate.NewStore(cfg.AppReleasesDir), log)
 
 	return &App{
 		cfg:         cfg,

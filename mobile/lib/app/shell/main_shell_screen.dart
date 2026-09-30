@@ -6,6 +6,7 @@ import '../../core/layout/breakpoints.dart';
 import '../../features/auth/presentation/controllers/auth_controller.dart';
 import '../theme/app_colors.dart';
 import 'app_destinations.dart';
+import 'shell_back_handler.dart';
 import 'tab_warm_up.dart';
 
 /// The frame around the main sections. It adapts to the screen width:
@@ -41,8 +42,27 @@ class MainShellScreen extends ConsumerWidget {
     final current = AppSection.values[navigationShell.currentIndex];
     final body = TabWarmUp(child: navigationShell);
     final width = MediaQuery.sizeOf(context).width;
+    final compact = width < Breakpoints.medium;
 
-    if (width < Breakpoints.medium) {
+    // The phone's back button on a section never closes the app by surprise.
+    return ShellBackHandler(
+      onHome: current == AppSection.home,
+      // On a phone, sections missing from the bar are opened from More.
+      openedFromMore: compact && !nav.bar.contains(current),
+      goHome: () => navigationShell.goBranch(AppSection.home.branch),
+      goMore: () => navigationShell.goBranch(AppSection.more.branch),
+      child: _frame(nav, current, body, compact, width),
+    );
+  }
+
+  Widget _frame(
+    RoleNavigation nav,
+    AppSection current,
+    Widget body,
+    bool compact,
+    double width,
+  ) {
+    if (compact) {
       return Scaffold(
         body: body,
         // Bar labels stay one line: they barely grow with the phone's font

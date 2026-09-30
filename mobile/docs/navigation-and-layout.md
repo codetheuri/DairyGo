@@ -97,3 +97,18 @@ of each screen on each device (`screenshots/safe_*.png`).
 back, so the loading placeholders are on screen, and shows the slow, offline
 and back-online strips, all on a 320 dp phone with the largest text. It
 fails on any layout error.
+
+## The phone's back button
+
+On a main section's first screen, back never closes the app by surprise
+(`lib/app/shell/shell_back_handler.dart`):
+
+- a section opened from **More** (on a phone: not on the bottom bar) goes back to More;
+- any other section goes back to **Home**;
+- on Home, the first press shows "Press back again to close DairyGo" and a
+  second press within 2 seconds closes the app.
+
+A screen opened on top of a section (Settings, a farmer, a form) simply
+closes first. Open such screens with `context.push`, not `context.go`, so
+there is always something to go back to. Tested in
+`test/layout/back_button_test.dart`.

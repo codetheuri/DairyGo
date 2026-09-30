@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/router/app_router.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../core/widgets/audit_history_list.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/status_pill.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
@@ -31,6 +32,14 @@ class FarmerProfileScreen extends ConsumerWidget {
           'Farmer Member Profile',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
+        actions: [
+          if (canEdit)
+            IconButton(
+              tooltip: 'Edit farmer details',
+              icon: const Icon(Icons.edit_outlined),
+              onPressed: () => context.push('/members/$memberId/edit'),
+            ),
+        ],
       ),
       body: ReadableWidth(
         child: memberAsync.when(
@@ -298,10 +307,70 @@ class FarmerProfileScreen extends ConsumerWidget {
                             member.mpesaName!,
                           ),
                         ],
+                        if ((member.bankAccountNumber ?? '').isNotEmpty) ...[
+                          const Divider(
+                            height: 20,
+                            color: AppColors.cardBorder,
+                          ),
+                          _buildInfoRow(
+                            Icons.account_balance_outlined,
+                            'Bank',
+                            [
+                              member.bankName,
+                              member.bankAccountNumber,
+                              member.bankBranch,
+                            ].where((v) => (v ?? '').isNotEmpty).join(' · '),
+                          ),
+                        ],
                       ],
                     ),
                   ),
+                  const SizedBox(height: 20),
+
+                  // Who changed this farmer's details (loaded when opened).
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.cardBorder),
+                    ),
+                    child: ExpansionTile(
+                      shape: const Border(),
+                      leading: const Icon(
+                        Icons.history_rounded,
+                        color: AppColors.primary,
+                      ),
+                      title: const Text(
+                        'Change history',
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                      childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                      children: [_FarmerHistory(memberId: member.id)],
+                    ),
+                  ),
                   const SizedBox(height: 24),
+
+                  if (canEdit) ...[
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                        icon: const Icon(Icons.edit_outlined),
+                        label: const Text(
+                          'Edit Farmer Details',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        onPressed: () =>
+                            context.push('/members/${member.id}/edit'),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
 
                   // Action Button
                   SizedBox(
@@ -375,5 +444,43 @@ class FarmerProfileScreen extends ConsumerWidget {
         ),
       ],
     );
+  }
+}
+
+class _FarmerHistory extends ConsumerWidget {
+  final String memberId;
+
+  const _FarmerHistory({required this.memberId});
+
+  static const _fieldLabels = {
+    'first_name': 'First name',
+    'last_name': 'Last name',
+    'phone': 'Phone',
+    'national_id': 'National ID',
+    'gender': 'Gender',
+    'location': 'Location',
+    'mpesa_number': 'M-Pesa number',
+    'mpesa_name': 'M-Pesa name',
+    'bank_name': 'Bank',
+    'bank_account_number': 'Bank account',
+    'bank_branch': 'Bank branch',
+    'next_of_kin_name': 'Next of kin',
+    'next_of_kin_relationship': 'Relationship',
+    'next_of_kin_phone': 'Next of kin phone',
+  };
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return ref
+        .watch(memberHistoryProvider(memberId))
+        .when(
+          data: (entries) =>
+              AuditHistoryList(entries: entries, fieldLabels: _fieldLabels),
+          loading: () => const ListSkeleton(rows: 2),
+          error: (e, _) => Text(
+            e.toString().replaceAll('Exception: ', ''),
+            style: const TextStyle(fontSize: 12, color: AppColors.error),
+          ),
+        );
   }
 }

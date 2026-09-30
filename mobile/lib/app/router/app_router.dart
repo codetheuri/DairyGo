@@ -17,6 +17,7 @@ import '../../features/field_operations/presentation/screens/record_field_sale_s
 import '../../features/field_operations/presentation/screens/record_spoilage_screen.dart';
 import '../../features/transfers/presentation/screens/record_transfer_screen.dart';
 import '../../features/members/presentation/screens/farmer_directory_screen.dart';
+import '../../features/members/presentation/screens/edit_farmer_screen.dart';
 import '../../features/members/presentation/screens/farmer_profile_screen.dart';
 import '../../features/members/presentation/screens/register_farmer_screen.dart';
 import '../../features/reports/presentation/screens/reports_screen.dart';
@@ -175,6 +176,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.registerMember,
         builder: (context, state) => const RegisterFarmerScreen(),
+      ),
+      GoRoute(
+        path: '/members/:id/edit',
+        builder: (context, state) =>
+            EditFarmerScreen(memberId: state.pathParameters['id'] ?? ''),
       ),
       GoRoute(
         path: '/members/:id',

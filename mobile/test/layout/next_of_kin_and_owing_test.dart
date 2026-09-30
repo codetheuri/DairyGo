@@ -32,8 +32,11 @@ void _setScreen(WidgetTester tester, Size size, double scale) {
 }
 
 Future<void> _tap(WidgetTester tester, Finder finder) async {
+  // Let a focused field finish scrolling itself into view first.
+  FocusManager.instance.primaryFocus?.unfocus();
+  await _settle(tester);
   await tester.ensureVisible(finder);
-  await tester.pump();
+  await _settle(tester);
   await tester.tap(finder);
   await _settle(tester);
 }

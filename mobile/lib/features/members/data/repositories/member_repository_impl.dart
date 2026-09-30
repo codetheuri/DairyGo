@@ -1,3 +1,4 @@
+import '../../../../core/models/audit_log_model.dart';
 import '../datasources/member_remote_data_source.dart';
 import '../models/member_model.dart';
 import '../../../../core/pagination/page_result.dart';
@@ -34,15 +35,10 @@ class MemberRepositoryImpl implements MemberRepository {
   }
 
   @override
-  Future<MemberModel> updateNextOfKin(
-    String id, {
-    required String name,
-    required String relationship,
-    required String phone,
-  }) => _remoteDataSource.updateNextOfKin(
-    id,
-    name: name,
-    relationship: relationship,
-    phone: phone,
-  );
+  Future<MemberModel> updateMember(String id, Map<String, dynamic> changes) =>
+      _remoteDataSource.updateMember(id, changes);
+
+  @override
+  Future<List<AuditLogModel>> history(String id) =>
+      _remoteDataSource.history(id);
 }

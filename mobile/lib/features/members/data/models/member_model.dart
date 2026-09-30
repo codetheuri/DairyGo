@@ -52,6 +52,9 @@ class CreateMemberRequestModel with _$CreateMemberRequestModel {
     String? location,
     @JsonKey(name: 'mpesa_number') String? mpesaNumber,
     @JsonKey(name: 'mpesa_name') String? mpesaName,
+    @JsonKey(name: 'bank_name') String? bankName,
+    @JsonKey(name: 'bank_account_number') String? bankAccountNumber,
+    @JsonKey(name: 'bank_branch') String? bankBranch,
     @JsonKey(name: 'next_of_kin_name') required String nextOfKinName,
     @JsonKey(name: 'next_of_kin_relationship')
     required String nextOfKinRelationship,

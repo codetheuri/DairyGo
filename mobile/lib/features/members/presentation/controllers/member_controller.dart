@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/models/audit_log_model.dart';
 
 import '../../../../core/network/dio_client.dart';
 import '../../../../core/pagination/paged_list_notifier.dart';
@@ -68,6 +69,12 @@ final memberDetailsProvider = FutureProvider.family<MemberModel, String>((
   return repository.getMemberById(id);
 });
 
+/// Who changed a farmer's details and when.
+final memberHistoryProvider = FutureProvider.autoDispose
+    .family<List<AuditLogModel>, String>(
+      (ref, id) => ref.watch(memberRepositoryProvider).history(id),
+    );
+
 /// Changes to a farmer's profile. Each method returns null on success or the
 /// message to show.
 class MemberActions {
@@ -75,27 +82,31 @@ class MemberActions {
 
   MemberActions(this._ref);
 
-  Future<String?> saveNextOfKin(
-    String memberId, {
-    required String name,
-    required String relationship,
-    required String phone,
-  }) async {
+  /// Saves [changes] to a farmer's details (see
+  /// [MemberRepository.updateMember]).
+  Future<String?> update(String memberId, Map<String, dynamic> changes) async {
     try {
-      await _ref
-          .read(memberRepositoryProvider)
-          .updateNextOfKin(
-            memberId,
-            name: name,
-            relationship: relationship,
-            phone: phone,
-          );
+      await _ref.read(memberRepositoryProvider).updateMember(memberId, changes);
       _ref.invalidate(memberDetailsProvider(memberId));
+      _ref.invalidate(memberHistoryProvider(memberId));
+      _ref.invalidate(membersListProvider);
+      _ref.invalidate(farmerPickerResultsProvider);
       return null;
     } catch (e) {
       return e.toString().replaceAll('Exception: ', '');
     }
   }
+
+  Future<String?> saveNextOfKin(
+    String memberId, {
+    required String name,
+    required String relationship,
+    required String phone,
+  }) => update(memberId, {
+    'next_of_kin_name': name,
+    'next_of_kin_relationship': relationship,
+    'next_of_kin_phone': phone,
+  });
 }
 
 final memberActionsProvider = Provider<MemberActions>(MemberActions.new);

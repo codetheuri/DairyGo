@@ -4,13 +4,11 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_router.dart';
 import '../../../../app/theme/app_colors.dart';
-import '../../../../core/widgets/app_text_field.dart';
+import '../../../../core/layout/breakpoints.dart';
 import '../../../../core/widgets/loading_overlay.dart';
 import '../../../../core/widgets/primary_button.dart';
-import '../../data/models/member_model.dart';
 import '../controllers/member_controller.dart';
-import '../widgets/next_of_kin_fields.dart';
-import '../../../../core/layout/breakpoints.dart';
+import '../widgets/farmer_details_fields.dart';
 
 class RegisterFarmerScreen extends ConsumerStatefulWidget {
   const RegisterFarmerScreen({super.key});
@@ -22,67 +20,26 @@ class RegisterFarmerScreen extends ConsumerStatefulWidget {
 
 class _RegisterFarmerScreenState extends ConsumerState<RegisterFarmerScreen> {
   final _formKey = GlobalKey<FormState>();
-
-  final _firstNameController = TextEditingController();
-  final _lastNameController = TextEditingController();
-  final _phoneController = TextEditingController();
-  final _membershipNoController = TextEditingController();
-  final _nationalIdController = TextEditingController();
-  final _locationController = TextEditingController();
-  final _mpesaNoController = TextEditingController();
-  final _kinNameController = TextEditingController();
-  final _kinPhoneController = TextEditingController();
-  String? _kinRelationship;
-  String? _selectedGender;
+  final _data = FarmerFormData();
 
   @override
   void dispose() {
-    _firstNameController.dispose();
-    _lastNameController.dispose();
-    _phoneController.dispose();
-    _membershipNoController.dispose();
-    _nationalIdController.dispose();
-    _locationController.dispose();
-    _mpesaNoController.dispose();
-    _kinNameController.dispose();
-    _kinPhoneController.dispose();
+    _data.dispose();
     super.dispose();
   }
 
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final request = CreateMemberRequestModel(
-      firstName: _firstNameController.text.trim(),
-      lastName: _lastNameController.text.trim(),
-      phone: _phoneController.text.trim(),
-      membershipNumber: _membershipNoController.text.trim().isNotEmpty
-          ? _membershipNoController.text.trim()
-          : null,
-      nationalId: _nationalIdController.text.trim().isNotEmpty
-          ? _nationalIdController.text.trim()
-          : null,
-      location: _locationController.text.trim().isNotEmpty
-          ? _locationController.text.trim()
-          : null,
-      gender: _selectedGender,
-      mpesaNumber: _mpesaNoController.text.trim().isNotEmpty
-          ? _mpesaNoController.text.trim()
-          : null,
-      nextOfKinName: _kinNameController.text.trim(),
-      nextOfKinRelationship: _kinRelationship ?? '',
-      nextOfKinPhone: _kinPhoneController.text.trim(),
-    );
-
     final success = await ref
         .read(registerMemberControllerProvider.notifier)
-        .registerMember(request);
+        .registerMember(_data.toCreateRequest());
 
     if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Farmer ${_firstNameController.text} registered successfully!',
+            'Farmer ${_data.firstName.text.trim()} registered successfully!',
           ),
           backgroundColor: AppColors.success,
         ),
@@ -115,202 +72,14 @@ class _RegisterFarmerScreenState extends ConsumerState<RegisterFarmerScreen> {
               child: Form(
                 key: _formKey,
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     if (errorMessage != null) ...[
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: AppColors.errorContainer,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: AppColors.error),
-                        ),
-                        child: Text(
-                          errorMessage,
-                          style: const TextStyle(
-                            color: AppColors.error,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ),
+                      FormErrorBanner(message: errorMessage),
                       const SizedBox(height: 16),
                     ],
-
-                    Text(
-                      'Farmer Identity',
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    Row(
-                      children: [
-                        Expanded(
-                          child: AppTextField(
-                            label: 'First Name *',
-                            controller: _firstNameController,
-                            hint: 'e.g. John',
-                            prefixIcon: Icons.person_outline_rounded,
-                            validator: (val) {
-                              if (val == null || val.trim().isEmpty) {
-                                return 'First name is required';
-                              }
-                              return null;
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: AppTextField(
-                            label: 'Last Name *',
-                            controller: _lastNameController,
-                            hint: 'e.g. Doe',
-                            prefixIcon: Icons.person_outline_rounded,
-                            validator: (val) {
-                              if (val == null || val.trim().isEmpty) {
-                                return 'Last name is required';
-                              }
-                              return null;
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 14),
-
-                    AppTextField(
-                      label: 'Phone Number *',
-                      controller: _phoneController,
-                      hint: 'e.g. 0712345678 or +254712345678',
-                      keyboardType: TextInputType.phone,
-                      prefixIcon: Icons.phone_android_rounded,
-                      validator: (val) {
-                        if (val == null || val.trim().isEmpty) {
-                          return 'Phone number is required';
-                        }
-                        if (val.trim().length < 10) {
-                          return 'Enter a valid phone number (min 10 digits)';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 14),
-
-                    Row(
-                      children: [
-                        Expanded(
-                          child: AppTextField(
-                            label: 'Membership Number',
-                            controller: _membershipNoController,
-                            hint: 'Auto if blank (M-XXXX)',
-                            prefixIcon: Icons.badge_outlined,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: AppTextField(
-                            label: 'National ID / Passport',
-                            controller: _nationalIdController,
-                            hint: 'e.g. 12345678',
-                            keyboardType: TextInputType.number,
-                            prefixIcon: Icons.credit_card_rounded,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-
-                    Text(
-                      'Next of Kin',
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      'Who the Sacco contacts if the farmer cannot be reached.',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    NextOfKinFields(
-                      nameController: _kinNameController,
-                      phoneController: _kinPhoneController,
-                      relationship: _kinRelationship,
-                      onRelationshipChanged: (v) =>
-                          setState(() => _kinRelationship = v),
-                      farmerPhone: () => _phoneController.text,
-                    ),
-                    const SizedBox(height: 24),
-
-                    Text(
-                      'Location & Payment Information',
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    AppTextField(
-                      label: 'Collection Route / Village Location',
-                      controller: _locationController,
-                      hint: 'e.g. Nyeri Route A / Station B',
-                      prefixIcon: Icons.location_on_outlined,
-                    ),
-                    const SizedBox(height: 14),
-
-                    AppTextField(
-                      label: 'M-Pesa Payout Number',
-                      controller: _mpesaNoController,
-                      hint: 'Optional M-Pesa phone number',
-                      keyboardType: TextInputType.phone,
-                      prefixIcon: Icons.account_balance_wallet_outlined,
-                    ),
-                    const SizedBox(height: 14),
-
-                    // Gender Selection Dropdown
-                    DropdownButtonFormField<String>(
-                      initialValue: _selectedGender,
-                      decoration: InputDecoration(
-                        labelText: 'Gender (Optional)',
-                        prefixIcon: const Icon(
-                          Icons.wc_rounded,
-                          color: AppColors.textSecondary,
-                        ),
-                        filled: true,
-                        fillColor: AppColors.surface,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(
-                            color: AppColors.cardBorder,
-                          ),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(
-                            color: AppColors.cardBorder,
-                          ),
-                        ),
-                      ),
-                      items: const [
-                        DropdownMenuItem(value: 'MALE', child: Text('Male')),
-                        DropdownMenuItem(
-                          value: 'FEMALE',
-                          child: Text('Female'),
-                        ),
-                        DropdownMenuItem(value: 'OTHER', child: Text('Other')),
-                      ],
-                      onChanged: (val) => setState(() => _selectedGender = val),
-                    ),
+                    FarmerDetailsFields(data: _data),
                     const SizedBox(height: 30),
-
                     PrimaryButton(
                       label: 'Register Farmer Member',
                       icon: Icons.check_circle_outline_rounded,
@@ -327,4 +96,26 @@ class _RegisterFarmerScreenState extends ConsumerState<RegisterFarmerScreen> {
       ),
     );
   }
+}
+
+/// The server's reason a save failed, shown above the form.
+class FormErrorBanner extends StatelessWidget {
+  final String message;
+
+  const FormErrorBanner({super.key, required this.message});
+
+  @override
+  Widget build(BuildContext context) => Container(
+    width: double.infinity,
+    padding: const EdgeInsets.all(12),
+    decoration: BoxDecoration(
+      color: AppColors.errorContainer,
+      borderRadius: BorderRadius.circular(12),
+      border: Border.all(color: AppColors.error),
+    ),
+    child: Text(
+      message,
+      style: const TextStyle(color: AppColors.error, fontSize: 13),
+    ),
+  );
 }

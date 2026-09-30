@@ -664,6 +664,12 @@ mixin _$CreateMemberRequestModel {
   String? get mpesaNumber => throw _privateConstructorUsedError;
   @JsonKey(name: 'mpesa_name')
   String? get mpesaName => throw _privateConstructorUsedError;
+  @JsonKey(name: 'bank_name')
+  String? get bankName => throw _privateConstructorUsedError;
+  @JsonKey(name: 'bank_account_number')
+  String? get bankAccountNumber => throw _privateConstructorUsedError;
+  @JsonKey(name: 'bank_branch')
+  String? get bankBranch => throw _privateConstructorUsedError;
   @JsonKey(name: 'next_of_kin_name')
   String get nextOfKinName => throw _privateConstructorUsedError;
   @JsonKey(name: 'next_of_kin_relationship')
@@ -699,6 +705,9 @@ abstract class $CreateMemberRequestModelCopyWith<$Res> {
     String? location,
     @JsonKey(name: 'mpesa_number') String? mpesaNumber,
     @JsonKey(name: 'mpesa_name') String? mpesaName,
+    @JsonKey(name: 'bank_name') String? bankName,
+    @JsonKey(name: 'bank_account_number') String? bankAccountNumber,
+    @JsonKey(name: 'bank_branch') String? bankBranch,
     @JsonKey(name: 'next_of_kin_name') String nextOfKinName,
     @JsonKey(name: 'next_of_kin_relationship') String nextOfKinRelationship,
     @JsonKey(name: 'next_of_kin_phone') String nextOfKinPhone,
@@ -733,6 +742,9 @@ class _$CreateMemberRequestModelCopyWithImpl<
     Object? location = freezed,
     Object? mpesaNumber = freezed,
     Object? mpesaName = freezed,
+    Object? bankName = freezed,
+    Object? bankAccountNumber = freezed,
+    Object? bankBranch = freezed,
     Object? nextOfKinName = null,
     Object? nextOfKinRelationship = null,
     Object? nextOfKinPhone = null,
@@ -779,6 +791,18 @@ class _$CreateMemberRequestModelCopyWithImpl<
                 ? _value.mpesaName
                 : mpesaName // ignore: cast_nullable_to_non_nullable
                       as String?,
+            bankName: freezed == bankName
+                ? _value.bankName
+                : bankName // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            bankAccountNumber: freezed == bankAccountNumber
+                ? _value.bankAccountNumber
+                : bankAccountNumber // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            bankBranch: freezed == bankBranch
+                ? _value.bankBranch
+                : bankBranch // ignore: cast_nullable_to_non_nullable
+                      as String?,
             nextOfKinName: null == nextOfKinName
                 ? _value.nextOfKinName
                 : nextOfKinName // ignore: cast_nullable_to_non_nullable
@@ -817,6 +841,9 @@ abstract class _$$CreateMemberRequestModelImplCopyWith<$Res>
     String? location,
     @JsonKey(name: 'mpesa_number') String? mpesaNumber,
     @JsonKey(name: 'mpesa_name') String? mpesaName,
+    @JsonKey(name: 'bank_name') String? bankName,
+    @JsonKey(name: 'bank_account_number') String? bankAccountNumber,
+    @JsonKey(name: 'bank_branch') String? bankBranch,
     @JsonKey(name: 'next_of_kin_name') String nextOfKinName,
     @JsonKey(name: 'next_of_kin_relationship') String nextOfKinRelationship,
     @JsonKey(name: 'next_of_kin_phone') String nextOfKinPhone,
@@ -851,6 +878,9 @@ class __$$CreateMemberRequestModelImplCopyWithImpl<$Res>
     Object? location = freezed,
     Object? mpesaNumber = freezed,
     Object? mpesaName = freezed,
+    Object? bankName = freezed,
+    Object? bankAccountNumber = freezed,
+    Object? bankBranch = freezed,
     Object? nextOfKinName = null,
     Object? nextOfKinRelationship = null,
     Object? nextOfKinPhone = null,
@@ -897,6 +927,18 @@ class __$$CreateMemberRequestModelImplCopyWithImpl<$Res>
             ? _value.mpesaName
             : mpesaName // ignore: cast_nullable_to_non_nullable
                   as String?,
+        bankName: freezed == bankName
+            ? _value.bankName
+            : bankName // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        bankAccountNumber: freezed == bankAccountNumber
+            ? _value.bankAccountNumber
+            : bankAccountNumber // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        bankBranch: freezed == bankBranch
+            ? _value.bankBranch
+            : bankBranch // ignore: cast_nullable_to_non_nullable
+                  as String?,
         nextOfKinName: null == nextOfKinName
             ? _value.nextOfKinName
             : nextOfKinName // ignore: cast_nullable_to_non_nullable
@@ -928,6 +970,9 @@ class _$CreateMemberRequestModelImpl implements _CreateMemberRequestModel {
     this.location,
     @JsonKey(name: 'mpesa_number') this.mpesaNumber,
     @JsonKey(name: 'mpesa_name') this.mpesaName,
+    @JsonKey(name: 'bank_name') this.bankName,
+    @JsonKey(name: 'bank_account_number') this.bankAccountNumber,
+    @JsonKey(name: 'bank_branch') this.bankBranch,
     @JsonKey(name: 'next_of_kin_name') required this.nextOfKinName,
     @JsonKey(name: 'next_of_kin_relationship')
     required this.nextOfKinRelationship,
@@ -964,6 +1009,15 @@ class _$CreateMemberRequestModelImpl implements _CreateMemberRequestModel {
   @JsonKey(name: 'mpesa_name')
   final String? mpesaName;
   @override
+  @JsonKey(name: 'bank_name')
+  final String? bankName;
+  @override
+  @JsonKey(name: 'bank_account_number')
+  final String? bankAccountNumber;
+  @override
+  @JsonKey(name: 'bank_branch')
+  final String? bankBranch;
+  @override
   @JsonKey(name: 'next_of_kin_name')
   final String nextOfKinName;
   @override
@@ -975,7 +1029,7 @@ class _$CreateMemberRequestModelImpl implements _CreateMemberRequestModel {
 
   @override
   String toString() {
-    return 'CreateMemberRequestModel(membershipNumber: $membershipNumber, firstName: $firstName, lastName: $lastName, nationalId: $nationalId, phone: $phone, email: $email, gender: $gender, location: $location, mpesaNumber: $mpesaNumber, mpesaName: $mpesaName, nextOfKinName: $nextOfKinName, nextOfKinRelationship: $nextOfKinRelationship, nextOfKinPhone: $nextOfKinPhone)';
+    return 'CreateMemberRequestModel(membershipNumber: $membershipNumber, firstName: $firstName, lastName: $lastName, nationalId: $nationalId, phone: $phone, email: $email, gender: $gender, location: $location, mpesaNumber: $mpesaNumber, mpesaName: $mpesaName, bankName: $bankName, bankAccountNumber: $bankAccountNumber, bankBranch: $bankBranch, nextOfKinName: $nextOfKinName, nextOfKinRelationship: $nextOfKinRelationship, nextOfKinPhone: $nextOfKinPhone)';
   }
 
   @override
@@ -1000,6 +1054,12 @@ class _$CreateMemberRequestModelImpl implements _CreateMemberRequestModel {
                 other.mpesaNumber == mpesaNumber) &&
             (identical(other.mpesaName, mpesaName) ||
                 other.mpesaName == mpesaName) &&
+            (identical(other.bankName, bankName) ||
+                other.bankName == bankName) &&
+            (identical(other.bankAccountNumber, bankAccountNumber) ||
+                other.bankAccountNumber == bankAccountNumber) &&
+            (identical(other.bankBranch, bankBranch) ||
+                other.bankBranch == bankBranch) &&
             (identical(other.nextOfKinName, nextOfKinName) ||
                 other.nextOfKinName == nextOfKinName) &&
             (identical(other.nextOfKinRelationship, nextOfKinRelationship) ||
@@ -1022,6 +1082,9 @@ class _$CreateMemberRequestModelImpl implements _CreateMemberRequestModel {
     location,
     mpesaNumber,
     mpesaName,
+    bankName,
+    bankAccountNumber,
+    bankBranch,
     nextOfKinName,
     nextOfKinRelationship,
     nextOfKinPhone,
@@ -1056,6 +1119,9 @@ abstract class _CreateMemberRequestModel implements CreateMemberRequestModel {
     final String? location,
     @JsonKey(name: 'mpesa_number') final String? mpesaNumber,
     @JsonKey(name: 'mpesa_name') final String? mpesaName,
+    @JsonKey(name: 'bank_name') final String? bankName,
+    @JsonKey(name: 'bank_account_number') final String? bankAccountNumber,
+    @JsonKey(name: 'bank_branch') final String? bankBranch,
     @JsonKey(name: 'next_of_kin_name') required final String nextOfKinName,
     @JsonKey(name: 'next_of_kin_relationship')
     required final String nextOfKinRelationship,
@@ -1091,6 +1157,15 @@ abstract class _CreateMemberRequestModel implements CreateMemberRequestModel {
   @override
   @JsonKey(name: 'mpesa_name')
   String? get mpesaName;
+  @override
+  @JsonKey(name: 'bank_name')
+  String? get bankName;
+  @override
+  @JsonKey(name: 'bank_account_number')
+  String? get bankAccountNumber;
+  @override
+  @JsonKey(name: 'bank_branch')
+  String? get bankBranch;
   @override
   @JsonKey(name: 'next_of_kin_name')
   String get nextOfKinName;

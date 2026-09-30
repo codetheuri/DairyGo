@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import '../../../../core/models/audit_log_model.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/pagination/page_result.dart';
 import '../models/member_model.dart';
@@ -12,12 +13,8 @@ abstract class MemberRemoteDataSource {
   });
   Future<MemberModel> getMemberById(String id);
   Future<MemberModel> createMember(CreateMemberRequestModel request);
-  Future<MemberModel> updateNextOfKin(
-    String id, {
-    required String name,
-    required String relationship,
-    required String phone,
-  });
+  Future<MemberModel> updateMember(String id, Map<String, dynamic> changes);
+  Future<List<AuditLogModel>> history(String id);
 }
 
 class MemberRemoteDataSourceImpl implements MemberRemoteDataSource {
@@ -107,20 +104,14 @@ class MemberRemoteDataSourceImpl implements MemberRemoteDataSource {
   }
 
   @override
-  Future<MemberModel> updateNextOfKin(
-    String id, {
-    required String name,
-    required String relationship,
-    required String phone,
-  }) async {
+  Future<MemberModel> updateMember(
+    String id,
+    Map<String, dynamic> changes,
+  ) async {
     try {
       final response = await _dio.put(
         '${ApiConstants.members}/$id',
-        data: {
-          'next_of_kin_name': name,
-          'next_of_kin_relationship': relationship,
-          'next_of_kin_phone': phone,
-        },
+        data: changes,
       );
       final data = response.data as Map<String, dynamic>;
       if (data['success'] == true && data['data'] != null) {
@@ -128,10 +119,25 @@ class MemberRemoteDataSourceImpl implements MemberRemoteDataSource {
           data['data']['member'] as Map<String, dynamic>,
         );
       }
-      throw Exception(data['message'] ?? 'Could not save the next of kin');
+      throw Exception(data['message'] ?? 'Could not save the changes');
     } on DioException catch (e) {
       throw Exception(
-        _serverMessage(e) ?? e.message ?? 'Could not save the next of kin',
+        _serverMessage(e) ?? e.message ?? 'Could not save the changes',
+      );
+    }
+  }
+
+  @override
+  Future<List<AuditLogModel>> history(String id) async {
+    try {
+      final response = await _dio.get('${ApiConstants.members}/$id/history');
+      final list = (response.data['data']?['history'] as List?) ?? const [];
+      return list
+          .map((e) => AuditLogModel.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } on DioException catch (e) {
+      throw Exception(
+        _serverMessage(e) ?? e.message ?? 'Could not load the history',
       );
     }
   }

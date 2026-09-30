@@ -157,7 +157,7 @@ func (r *Repository) ListTransfers(ctx context.Context, q query.Query, f Transfe
 	}
 	session := r.db.Model(&MilkTransfer{}).Scopes(query.TenantScope(ctx))
 
-	if !middleware.IsSuperUser(ctx) && !middleware.IsExecutiveOrAdmin(ctx) {
+	if !middleware.SeesAllRecords(ctx) {
 		me := middleware.GetUserID(ctx)
 		session = session.Where("(milk_transfers.from_collector_id = ? OR milk_transfers.to_collector_id = ?)", me, me)
 	}

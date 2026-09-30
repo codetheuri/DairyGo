@@ -178,3 +178,8 @@ dialog .dialog-actions { display: flex; justify-content: flex-end; gap: 8px; mar
 }
 #toast.error { background: var(--danger); color: #fff; }
 .loading { color: var(--muted); padding: 24px 0; }
+
+/* Roles & permissions matrix */
+.matrix th.check, .matrix td.check { text-align: center; width: 150px; }
+.matrix td.check input { width: 18px; height: 18px; cursor: pointer; }
+.matrix tr.group td { background: var(--surface-2); font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--text-2); }

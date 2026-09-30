@@ -1,27 +1,35 @@
 package collection
 
-import "github.com/codetheuri/tusk/pkg/authz"
+import (
+	"github.com/codetheuri/tusk/internal/middleware"
+	"github.com/codetheuri/tusk/pkg/authz"
+)
 
 // Milk domain permission constants.
 const (
-	PermMilkPricesRead          = "milk.prices.read"
-	PermMilkPricesManage        = "milk.prices.manage"
-	PermMilkCollectionsRead     = "milk.collections.read"
-	PermMilkCollectionsCreate   = "milk.collections.create"
-	PermMilkCollectionsManage   = "milk.collections.manage"
-	PermMilkSalesRead           = "milk.sales.read"
-	PermMilkSalesCreate         = "milk.sales.create"
-	PermMilkSalesManage         = "milk.sales.manage"
-	PermMilkSpoilageRead        = "milk.spoilage.read"
-	PermMilkSpoilageCreate      = "milk.spoilage.create"
-	PermMilkReconciliationRead  = "milk.reconciliation.read"
-	PermMilkTransfersRead       = "milk.transfers.read"
-	PermMilkTransfersCreate     = "milk.transfers.create"
-	PermMilkTransfersManage     = "milk.transfers.manage"
+	PermMilkPricesRead         = "milk.prices.read"
+	PermMilkPricesManage       = "milk.prices.manage"
+	PermMilkCollectionsRead    = "milk.collections.read"
+	PermMilkCollectionsCreate  = "milk.collections.create"
+	PermMilkCollectionsManage  = "milk.collections.manage"
+	PermMilkSalesRead          = "milk.sales.read"
+	PermMilkSalesCreate        = "milk.sales.create"
+	PermMilkSalesManage        = "milk.sales.manage"
+	PermMilkSpoilageRead       = "milk.spoilage.read"
+	PermMilkSpoilageCreate     = "milk.spoilage.create"
+	PermMilkReconciliationRead = "milk.reconciliation.read"
+	PermMilkTransfersRead      = "milk.transfers.read"
+	PermMilkTransfersCreate    = "milk.transfers.create"
+	PermMilkTransfersManage    = "milk.transfers.manage"
+	PermMilkRecordsReadAll     = middleware.PermReadAllRecords
 )
 
 // Permissions exported by the collection module.
 var Permissions = []authz.Permission{
+	{
+		Name:        PermMilkRecordsReadAll,
+		Description: "Allows seeing every collector's records, not only your own",
+	},
 	{
 		Name:        PermMilkPricesRead,
 		Description: "Allows viewing current and historical milk buying prices",

@@ -1,10 +1,10 @@
 package auth
 
 import (
-	"time"
 	"github.com/codetheuri/tusk/pkg/authz"
 	"github.com/codetheuri/tusk/pkg/query"
 	"github.com/codetheuri/tusk/pkg/response"
+	"time"
 )
 
 // -------------------------------------------------------------
@@ -180,5 +180,3 @@ type RemoveUserRoleInput struct {
 	UserID uint `path:"user_id" doc:"User ID"`
 	RoleID uint `path:"role_id" doc:"Role ID to revoke"`
 }
-
-

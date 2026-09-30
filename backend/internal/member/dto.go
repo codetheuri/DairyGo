@@ -19,6 +19,11 @@ type CreateMemberRequest struct {
 	BankName          *string `json:"bank_name,omitempty" doc:"Bank name for direct deposit"`
 	BankAccountNumber *string `json:"bank_account_number,omitempty" doc:"Bank account number"`
 	BankBranch        *string `json:"bank_branch,omitempty" doc:"Bank branch name"`
+	// Next of kin is required, but checked in the service (not the schema) so
+	// an app that does not send it yet gets a message its user can act on.
+	NextOfKinName         *string `json:"next_of_kin_name,omitempty" maxLength:"191" doc:"Next of kin's full name (required)"`
+	NextOfKinRelationship *string `json:"next_of_kin_relationship,omitempty" maxLength:"50" doc:"How the next of kin is related, e.g. Spouse, Son, Daughter, Parent, Sibling (required)"`
+	NextOfKinPhone        *string `json:"next_of_kin_phone,omitempty" maxLength:"50" doc:"Next of kin's phone number (required)"`
 }
 
 type CreateMemberInput struct {
@@ -26,18 +31,21 @@ type CreateMemberInput struct {
 }
 
 type UpdateMemberRequest struct {
-	FirstName         *string `json:"first_name,omitempty" minLength:"2" doc:"Farmer first name"`
-	LastName          *string `json:"last_name,omitempty" minLength:"2" doc:"Farmer last name"`
-	NationalID        *string `json:"national_id,omitempty" doc:"National ID"`
-	Phone             *string `json:"phone,omitempty" minLength:"10" doc:"Phone number"`
-	Email             *string `json:"email,omitempty" format:"email" doc:"Email address"`
-	Gender            *string `json:"gender,omitempty" doc:"Gender"`
-	Location          *string `json:"location,omitempty" doc:"Location"`
-	MpesaNumber       *string `json:"mpesa_number,omitempty" doc:"M-Pesa phone number"`
-	MpesaName         *string `json:"mpesa_name,omitempty" doc:"M-Pesa account name"`
-	BankName          *string `json:"bank_name,omitempty" doc:"Bank name"`
-	BankAccountNumber *string `json:"bank_account_number,omitempty" doc:"Bank account number"`
-	BankBranch        *string `json:"bank_branch,omitempty" doc:"Bank branch"`
+	FirstName             *string `json:"first_name,omitempty" minLength:"2" doc:"Farmer first name"`
+	LastName              *string `json:"last_name,omitempty" minLength:"2" doc:"Farmer last name"`
+	NationalID            *string `json:"national_id,omitempty" doc:"National ID"`
+	Phone                 *string `json:"phone,omitempty" minLength:"10" doc:"Phone number"`
+	Email                 *string `json:"email,omitempty" format:"email" doc:"Email address"`
+	Gender                *string `json:"gender,omitempty" doc:"Gender"`
+	Location              *string `json:"location,omitempty" doc:"Location"`
+	MpesaNumber           *string `json:"mpesa_number,omitempty" doc:"M-Pesa phone number"`
+	MpesaName             *string `json:"mpesa_name,omitempty" doc:"M-Pesa account name"`
+	BankName              *string `json:"bank_name,omitempty" doc:"Bank name"`
+	BankAccountNumber     *string `json:"bank_account_number,omitempty" doc:"Bank account number"`
+	BankBranch            *string `json:"bank_branch,omitempty" doc:"Bank branch"`
+	NextOfKinName         *string `json:"next_of_kin_name,omitempty" maxLength:"191" doc:"Next of kin's full name"`
+	NextOfKinRelationship *string `json:"next_of_kin_relationship,omitempty" maxLength:"50" doc:"How the next of kin is related"`
+	NextOfKinPhone        *string `json:"next_of_kin_phone,omitempty" maxLength:"50" doc:"Next of kin's phone number"`
 }
 
 type UpdateMemberInput struct {

@@ -223,6 +223,7 @@ const routes = [
   { pattern: /^$/, page: overviewPage, nav: 'overview' },
   { pattern: /^saccos$/, page: saccosPage, nav: 'saccos' },
   { pattern: /^saccos\/([^/]+)(?:\/(staff|farmers|activity|errors))?$/, page: saccoPage, nav: 'saccos' },
+  { pattern: /^roles$/, page: rolesPage, nav: 'roles' },
   { pattern: /^audit$/, page: auditPage, nav: 'audit' },
   { pattern: /^errors$/, page: errorsPage, nav: 'errors' },
   { pattern: /^sms$/, page: smsPage, nav: 'sms' },
@@ -255,6 +256,7 @@ function layout(main, active) {
       h('nav', { class: 'nav' },
         link('overview', '#/', 'Overview'),
         link('saccos', '#/saccos', 'Saccos'),
+        link('roles', '#/roles', 'Roles & permissions'),
         link('audit', '#/audit', 'Audit trail'),
         link('errors', '#/errors', 'Errors'),
         link('sms', '#/sms', 'SMS logs')),
@@ -462,6 +464,71 @@ async function saccoPage(id, tab = 'staff') {
     content);
 }
 
+// ---------- roles & permissions ----------
+
+const PERMISSION_AREAS = [
+  ['milk.records', 'Whose records they see'],
+  ['milk.collections', 'Milk intake'], ['milk.sales', 'Sales'], ['milk.transfers', 'Transfers'],
+  ['milk.spoilage', 'Spoilage'], ['milk.reconciliation', 'Daily balance'], ['milk.prices', 'Milk price'],
+  ['members', 'Farmers'], ['customers', 'Customers'], ['dashboard', 'Dashboards'], ['reports', 'Reports'],
+  ['users', 'Staff'], ['sacco', 'Sacco settings'], ['notifications', 'SMS'],
+];
+// Never given to Sacco roles: they reach across Saccos (the API refuses too).
+const isPlatformOnly = (name) => name === 'platform.manage' || name === 'users.roles.manage'
+  || name === 'permissions.read' || name.startsWith('roles.');
+
+async function rolesPage() {
+  const [{ roles }, { permissions }] = await Promise.all([api('GET', '/auth/roles'), api('GET', '/auth/permissions')]);
+  const saccoRoles = roles.filter((r) => r.id >= 1 && r.id <= 3).sort((a, b) => a.id - b.id);
+  const held = new Map(saccoRoles.map((r) => [r.id, new Set(r.permissions || [])]));
+  const usable = permissions.filter((p) => !isPlatformOnly(p.name)).sort((a, b) => a.name.localeCompare(b.name));
+
+  const toggle = async (box, role, perm) => {
+    box.disabled = true;
+    try {
+      if (box.checked) {
+        await api('POST', `/auth/roles/${role.id}/permissions`, { permission_name: perm.name });
+        held.get(role.id).add(perm.name);
+      } else {
+        await api('DELETE', `/auth/roles/${role.id}/permissions/${encodeURIComponent(perm.name)}`);
+        held.get(role.id).delete(perm.name);
+      }
+      const what = (perm.description || perm.name).replace(/^Allows /, '');
+      toast(`${role.name}: ${box.checked ? 'now allowed' : 'no longer allowed'}: ${what}`);
+    } catch (err) {
+      box.checked = !box.checked;
+      toast(err.message, true);
+    } finally { box.disabled = false; }
+  };
+
+  const areaOf = (name) => (PERMISSION_AREAS.find(([prefix]) => name.startsWith(prefix + '.')) || [null, 'Other'])[1];
+  const areas = [...PERMISSION_AREAS.map(([, label]) => label), 'Other'];
+  const tbody = h('tbody');
+  areas.forEach((area) => {
+    const rows = usable.filter((p) => areaOf(p.name) === area);
+    if (!rows.length) return;
+    tbody.append(h('tr', { class: 'group' }, h('td', { attrs: { colspan: saccoRoles.length + 1 }, text: area })));
+    rows.forEach((perm) => {
+      tbody.append(h('tr', {},
+        h('td', {}, h('div', { text: (perm.description || perm.name).replace(/^Allows /, '') }), h('div', { class: 'sub', text: perm.name })),
+        saccoRoles.map((role) => {
+          const box = h('input', { type: 'checkbox', attrs: { 'aria-label': `${role.name}: ${perm.name}` } });
+          box.checked = held.get(role.id).has(perm.name);
+          box.addEventListener('change', () => toggle(box, role, perm));
+          return h('td', { class: 'check' }, box);
+        })));
+    });
+  });
+
+  return h('div', {},
+    h('div', { class: 'page-head' }, h('h1', { text: 'Roles & permissions' })),
+    h('p', { class: 'muted', text: 'What each Sacco role may do, in every Sacco. A change applies at once on the server; the app shows or hides the matching screens the next time it is opened. Each change is kept in the audit trail.' }),
+    h('div', { class: 'table-wrap' },
+      h('table', { class: 'matrix' },
+        h('thead', {}, h('tr', {}, h('th', { text: 'Permission' }), saccoRoles.map((r) => h('th', { class: 'check', text: r.name })))),
+        tbody)));
+}
+
 // ---------- sacco tabs ----------
 
 const ROLE_OPTIONS = [['1', 'Sacco Administrator'], ['2', 'Milk Collector'], ['3', 'Board Member / Executive']];
@@ -571,6 +638,8 @@ async function staffTab(sacco) {
     ], users, { empty: 'No staff accounts.' }));
 }
 
+const KIN_RELATIONSHIPS = ['Spouse', 'Son', 'Daughter', 'Parent', 'Sibling', 'Other relative', 'Friend'];
+
 async function farmersTab(sacco) {
   const holder = h('div', { class: 'loading', text: 'Loading…' });
   const search = h('input', { type: 'search', placeholder: 'Search name, number, phone or ID' });
@@ -587,6 +656,9 @@ async function farmersTab(sacco) {
           { label: 'Name', render: (m) => `${m.first_name} ${m.last_name}` },
           { label: 'Phone', render: (m) => m.phone },
           { label: 'Location', render: (m) => m.location || '—' },
+          { label: 'Next of kin', render: (m) => m.next_of_kin_name
+            ? h('div', {}, h('div', { text: `${m.next_of_kin_name} (${m.next_of_kin_relationship || '—'})` }), h('div', { class: 'sub', text: m.next_of_kin_phone || '' }))
+            : '—' },
           { label: 'Payout', render: (m) => m.mpesa_number ? `M-Pesa ${m.mpesa_number}` : (m.bank_account_number ? `${m.bank_name || 'Bank'} ${m.bank_account_number}` : '—') },
           { label: 'Status', render: (m) => pill(m.status) },
           { label: 'Registered', render: (m) => fmt.date(m.created_at) },
@@ -612,6 +684,11 @@ async function farmersTab(sacco) {
       { name: 'gender', label: 'Gender', type: 'select', options: [['', '—'], ['FEMALE', 'Female'], ['MALE', 'Male'], ['OTHER', 'Other']] },
       { name: 'location', label: 'Location / route' },
       { name: 'membership_number', label: 'Membership number' },
+      { section: 'Next of kin' },
+      { name: 'next_of_kin_name', label: 'Full name', required: true },
+      { name: 'next_of_kin_relationship', label: 'Relationship', type: 'select', required: true,
+        options: [['', 'Choose…'], ...KIN_RELATIONSHIPS.map((r) => [r, r])] },
+      { name: 'next_of_kin_phone', label: 'Phone', required: true, placeholder: '07XXXXXXXX' },
       { section: 'Payout details' },
       { name: 'mpesa_number', label: 'M-Pesa number' },
       { name: 'mpesa_name', label: 'M-Pesa name' },
@@ -713,7 +790,7 @@ function auditView(fixed = {}, withSacco = true) {
   const build = (options) => {
     if (withSacco) controls.sacco_id = select(options);
     controls.entity_type = select([['', 'All records'], ['milk_collection', 'Collections'], ['milk_sale', 'Sales'], ['milk_transfer', 'Transfers'],
-      ['customer', 'Customers'], ['customer_payment', 'Customer payments'], ['user', 'Users'], ['sacco', 'Saccos']]);
+      ['customer', 'Customers'], ['customer_payment', 'Customer payments'], ['user', 'Users'], ['role', 'Roles'], ['sacco', 'Saccos']]);
     controls.action = select([['', 'All actions'], ['CREATE', 'Created'], ['UPDATE', 'Edited'], ['STATUS', 'Status change'], ['VOID', 'Voided'], ['DELETE', 'Removed']]);
     controls.from_date = dateInput('From date');
     controls.to_date = dateInput('To date');

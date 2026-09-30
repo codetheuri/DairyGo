@@ -212,7 +212,7 @@ func (s *Service) visibleTransfer(ctx context.Context, id string) (*MilkTransfer
 	if err != nil {
 		return nil, err
 	}
-	if !middleware.IsSuperUser(ctx) && !middleware.IsExecutiveOrAdmin(ctx) {
+	if !middleware.SeesAllRecords(ctx) {
 		me := middleware.GetUserID(ctx)
 		if t.FromCollectorID != me && t.ToCollectorID != me {
 			return nil, fmt.Errorf("%w: milk transfer not found", ErrNotFound)

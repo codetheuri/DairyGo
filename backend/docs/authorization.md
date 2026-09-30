@@ -119,3 +119,52 @@ Tusk provides endpoints to manage security roles and permission assignments:
 - `DELETE /api/v1/auth/roles/{id}/permissions/{permission_name}`: Detach a permission from a role.
 - `POST /api/v1/auth/users/{user_id}/roles`: Assign a role to a user.
 - `DELETE /api/v1/auth/users/{user_id}/roles/{role_id}`: Revoke a role from a user.
+
+
+---
+
+## DairyGo: what a role may do is data, not code
+
+The three Sacco roles (1 Sacco Administrator, 2 Milk Collector, 3 Board Member /
+Executive) are rows in `roles`; what each may do is rows in `role_permissions`.
+Neither the API nor the mobile app decides anything from a role's *name*.
+
+**Changing it needs no code and no deploy.** A platform operator uses the
+console's **Roles & permissions** page (a tick box per role and permission), or:
+
+```
+POST   /api/v1/auth/roles/{id}/permissions        {"permission_name": "reports.collector.read"}
+DELETE /api/v1/auth/roles/{id}/permissions/{permission_name}
+```
+
+- **The server applies it on the user's next request**: guards read
+  `role_permissions` every time.
+- **The app follows**: login, refresh and `GET /auth/me` return the user's
+  `permissions`, and screens ask `user.can(...)` (see `user_entity.dart`). The
+  app re-reads the profile when opened or brought to the front, then shows or
+  hides the matching menus and buttons.
+- **Every change is audited** (`entity_type = role`).
+- Roles are shared by all Saccos, so a change applies to every Sacco.
+
+### Guardrails
+
+- `platform.manage`, `roles.*`, `users.roles.manage` and `permissions.read`
+  cannot be given to a Sacco role: those endpoints reach across Saccos.
+- Only platform operators can change role permissions; Sacco administrators
+  cannot (they have no `roles.permissions.manage`).
+
+### Seeing everyone's records
+
+`milk.records.read_all` decides whether a user sees every collector's
+collections, sales, spoilage, transfers and reconciliation, or only their own
+(`middleware.SeesAllRecords`). Administrators and board members hold it by
+default.
+
+### Adding a permission in code
+
+1. Add the constant and description in the module's `permissions.go`.
+2. Guard the route with it.
+3. That is enough for it to appear: the API syncs code permissions into the
+   database at start-up (with `AUTO_MIGRATE=true`), so it shows in the console.
+4. Write a migration **only** if a role should hold it from day one; otherwise
+   tick it in the console.

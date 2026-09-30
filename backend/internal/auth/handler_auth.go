@@ -193,8 +193,6 @@ func (h *Handler) ListPermissions(ctx context.Context, input *ListPermissionsInp
 	return resp, nil
 }
 
-
-
 // ChangePassword updates the authenticated user's password.
 func (h *Handler) ChangePassword(ctx context.Context, input *ChangePasswordInput) (*MessageOutput, error) {
 	userID := middleware.GetUserID(ctx)

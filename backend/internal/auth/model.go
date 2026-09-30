@@ -59,7 +59,10 @@ type User struct {
 	DeletedAt   gorm.DeletedAt `json:"-" gorm:"index"`
 	DeletedByID *uint          `json:"-"`
 
-	RoleName            string     `json:"role_name,omitempty" gorm:"-"`
+	RoleName string `json:"role_name,omitempty" gorm:"-"`
+	// Permissions the user holds through their role, sent with the profile
+	// (login, refresh, /auth/me) so the app shows only what they may use.
+	Permissions []string `json:"permissions,omitempty" gorm:"-"`
 
 	// 1-to-1 Profile relationship
 	Profile *UserProfile `json:"profile,omitempty" gorm:"foreignKey:UserID"`

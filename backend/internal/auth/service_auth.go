@@ -1,11 +1,11 @@
 package auth
 
 import (
-	"errors"
 	"context"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -171,6 +171,9 @@ func (s *Service) Login(ctx context.Context, req *LoginRequest) (*AuthTokens, er
 
 // issueTokens creates a new access token and refresh token for user.
 func (s *Service) issueTokens(ctx context.Context, user *User) (*AuthTokens, error) {
+	if perms, err := s.repo.GetUserPermissions(ctx, user.ID); err == nil {
+		user.Permissions = perms
+	}
 	accessToken, accessExpiry, err := s.generateAccessToken(user)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate access token: %w", err)
@@ -268,6 +271,7 @@ func (s *Service) GetCurrentUser(ctx context.Context, userID uint) (*User, []str
 	if err != nil {
 		perms = []string{}
 	}
+	user.Permissions = perms
 
 	return user, perms, nil
 }

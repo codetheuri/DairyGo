@@ -33,6 +33,7 @@ import (
 
 	appDatabase "github.com/codetheuri/tusk/internal/platform/database"
 
+	"github.com/codetheuri/tusk/pkg/authz"
 	"github.com/codetheuri/tusk/pkg/logger"
 	"github.com/codetheuri/tusk/pkg/response"
 )
@@ -63,6 +64,15 @@ func New(cfg *config.Config, log logger.Logger) (*App, error) {
 			return nil, fmt.Errorf("database migrations failed: %w", err)
 		}
 		log.Info("Database migrations are up to date")
+
+		// Permissions defined in code appear in the database (and so in the
+		// console) without a manual step. Nothing is removed and no role is
+		// granted anything here: grants are data, changed in the console.
+		synced, err := authz.NewSynchronizer(db, authz.DefaultRegistry()).Sync(context.Background(), false)
+		if err != nil {
+			return nil, fmt.Errorf("permission sync failed: %w", err)
+		}
+		log.Info("Permissions are in sync", "added", synced.Inserted, "updated", synced.Updated)
 	}
 
 	r := chi.NewRouter()

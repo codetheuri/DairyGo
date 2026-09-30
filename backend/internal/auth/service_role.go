@@ -3,7 +3,10 @@ package auth
 import (
 	"context"
 	"fmt"
+	"strings"
 
+	"github.com/codetheuri/tusk/internal/middleware"
+	"github.com/codetheuri/tusk/pkg/audit"
 	"github.com/codetheuri/tusk/pkg/authz"
 )
 
@@ -72,23 +75,57 @@ func (s *Service) DeleteRole(ctx context.Context, id uint) error {
 	return s.repo.DeleteRole(ctx, id)
 }
 
-// AddRolePermission attaches a permission string to a role.
+// platformOnly reports whether a permission must never be given to a Sacco
+// role: roles are shared by every Sacco and these endpoints are not limited
+// to one Sacco, so holding one would let a Sacco's staff reach other Saccos.
+func platformOnly(permName string) bool {
+	switch permName {
+	case "platform.manage", PermUserRolesManage, PermPermissionsRead:
+		return true
+	}
+	return strings.HasPrefix(permName, "roles.")
+}
+
+// AddRolePermission attaches a permission string to a role. It applies to
+// every user of the role from their next request.
 func (s *Service) AddRolePermission(ctx context.Context, roleID uint, permName string) error {
 	perm, exists := authz.DefaultRegistry().Find(permName)
 	if !exists {
 		return fmt.Errorf("permission '%s' is not a valid system permission", permName)
+	}
+	if IsSaccoRole(roleID) && platformOnly(permName) {
+		return fmt.Errorf("'%s' is for platform operators only and cannot be given to a Sacco role", permName)
+	}
+	if _, err := s.repo.GetRoleByID(ctx, roleID); err != nil {
+		return fmt.Errorf("role with ID %d does not exist", roleID)
 	}
 
 	if err := s.repo.EnsurePermission(ctx, perm.Name, perm.Description); err != nil {
 		return fmt.Errorf("failed to sync permission to database: %w", err)
 	}
 
-	return s.repo.AddRolePermission(ctx, roleID, permName)
+	if err := s.repo.AddRolePermission(ctx, roleID, permName); err != nil {
+		return err
+	}
+	return s.repo.RecordAudit(ctx, rolePermissionEntry(ctx, roleID, permName, "permission granted"))
 }
 
-// RemoveRolePermission detaches a permission string from a role.
+// RemoveRolePermission detaches a permission string from a role. It applies
+// to every user of the role from their next request.
 func (s *Service) RemoveRolePermission(ctx context.Context, roleID uint, permName string) error {
-	return s.repo.RemoveRolePermission(ctx, roleID, permName)
+	if err := s.repo.RemoveRolePermission(ctx, roleID, permName); err != nil {
+		return err
+	}
+	return s.repo.RecordAudit(ctx, rolePermissionEntry(ctx, roleID, permName, "permission removed"))
+}
+
+// rolePermissionEntry is the audit entry for a change to a role's permissions.
+func rolePermissionEntry(ctx context.Context, roleID uint, permName, change string) audit.Entry {
+	return audit.Entry{
+		EntityType: "role", EntityID: fmt.Sprint(roleID), Action: audit.ActionUpdate,
+		ActorID:   middleware.GetUserID(ctx),
+		NewValues: map[string]any{"change": change, "permission": permName},
+	}
 }
 
 // AssignUserRole assigns a role to a user after checking existence.

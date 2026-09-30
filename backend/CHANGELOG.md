@@ -9,6 +9,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 
 ### Added
+- **Next of kin for farmers** (migration `00017`): name, relationship and phone are required when registering a farmer (`POST /sacco/members`, and the console). Farmers registered earlier have none until edited; editing any of the three must leave all three complete.
+- **Role permissions are data**: the console has a **Roles & permissions** page; changes apply on the next request, in every Sacco, and are audited. Login, refresh and `/auth/me` return the user's `permissions` for the app. Platform-only permissions cannot be given to Sacco roles. `GET /auth/permissions` now returns `name`/`description` in lower case.
+- **`milk.records.read_all`** replaces the check on the role's name for who sees every collector's records (granted to administrators and board members by migration `00017`).
+- **Permissions sync at start-up** (with `AUTO_MIGRATE=true`): permissions added in code appear in the database without running `auth sync` by hand.
 - **Migrations on start-up**: with `AUTO_MIGRATE=true` (set in `docker-compose.yml`) the API applies pending migrations before it serves, and refuses to start if one fails. A deploy is now `git pull` and `docker compose up -d --build dairy-api`. See [docs/deployment.md](docs/deployment.md).
 - **Change a staff member's role and remove staff** (migration `00016`): `PUT /api/v1/auth/users/{user_id}/role` and `DELETE /api/v1/auth/users/{user_id}` for Sacco administrators (own Sacco only), and `PUT /api/v1/admin/users/{id}/role`, `DELETE /api/v1/admin/users/{id}` plus buttons in the platform console. You cannot change your own account, and a Sacco's only administrator cannot be demoted or removed. Removal is a soft delete: the person is signed out at once, their records keep their name, and their username, email and phone can be reused. Both are audited. See [docs/staff-management.md](docs/staff-management.md).
 - The role used for "sees everyone's records" checks is read from the database on every request instead of the token, so a role change applies immediately.

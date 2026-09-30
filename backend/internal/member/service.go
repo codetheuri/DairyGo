@@ -25,6 +25,11 @@ func (s *Service) CreateMember(ctx context.Context, req *CreateMemberRequest) (*
 		return nil, fmt.Errorf("sacco context is required to register members")
 	}
 
+	kin, err := cleanNextOfKin(req.NextOfKinName, req.NextOfKinRelationship, req.NextOfKinPhone)
+	if err != nil {
+		return nil, err
+	}
+
 	var membershipNo string
 	if req.MembershipNumber != nil && strings.TrimSpace(*req.MembershipNumber) != "" {
 		membershipNo = strings.ToUpper(strings.TrimSpace(*req.MembershipNumber))
@@ -52,23 +57,27 @@ func (s *Service) CreateMember(ctx context.Context, req *CreateMemberRequest) (*
 	}
 
 	member := &Member{
-		ID:               uuid.New().String(),
-		SaccoID:          saccoID,
-		MembershipNumber: membershipNo,
-		FirstName:        strings.TrimSpace(req.FirstName),
-		LastName:         strings.TrimSpace(req.LastName),
-		NationalID:       req.NationalID,
-		Phone:            strings.TrimSpace(req.Phone),
-		Email:            req.Email,
-		Gender:           &gender,
-		Location:         req.Location,
-		Status:           StatusActive,
-		MpesaNumber:      req.MpesaNumber,
-		MpesaName:        req.MpesaName,
-		BankName:         req.BankName,
+		ID:                uuid.New().String(),
+		SaccoID:           saccoID,
+		MembershipNumber:  membershipNo,
+		FirstName:         strings.TrimSpace(req.FirstName),
+		LastName:          strings.TrimSpace(req.LastName),
+		NationalID:        req.NationalID,
+		Phone:             strings.TrimSpace(req.Phone),
+		Email:             req.Email,
+		Gender:            &gender,
+		Location:          req.Location,
+		Status:            StatusActive,
+		MpesaNumber:       req.MpesaNumber,
+		MpesaName:         req.MpesaName,
+		BankName:          req.BankName,
 		BankAccountNumber: req.BankAccountNumber,
-		BankBranch:       req.BankBranch,
-		RegisteredByID:   registeredByID,
+		BankBranch:        req.BankBranch,
+		RegisteredByID:    registeredByID,
+
+		NextOfKinName:         &kin.Name,
+		NextOfKinRelationship: &kin.Relationship,
+		NextOfKinPhone:        &kin.Phone,
 	}
 
 	if err := s.repo.Create(ctx, member); err != nil {
@@ -131,6 +140,19 @@ func (s *Service) UpdateMember(ctx context.Context, id string, req *UpdateMember
 	}
 	if req.BankBranch != nil {
 		member.BankBranch = req.BankBranch
+	}
+
+	// Editing any next of kin detail must leave all three complete.
+	if req.NextOfKinName != nil || req.NextOfKinRelationship != nil || req.NextOfKinPhone != nil {
+		kin, err := cleanNextOfKin(
+			firstSet(req.NextOfKinName, member.NextOfKinName),
+			firstSet(req.NextOfKinRelationship, member.NextOfKinRelationship),
+			firstSet(req.NextOfKinPhone, member.NextOfKinPhone),
+		)
+		if err != nil {
+			return nil, err
+		}
+		member.NextOfKinName, member.NextOfKinRelationship, member.NextOfKinPhone = &kin.Name, &kin.Relationship, &kin.Phone
 	}
 
 	if err := s.repo.Update(ctx, member); err != nil {

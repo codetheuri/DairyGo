@@ -17,6 +17,8 @@ const (
 	ContextKeySaccoID contextKey = "sacco_id"
 	ContextKeyRole    contextKey = "role"
 	ContextKeyJTI     contextKey = "jti"
+
+	contextKeySeesAll contextKey = "sees_all_records"
 )
 
 type Claims struct {
@@ -142,12 +144,24 @@ func GetUserRole(ctx context.Context) string {
 	return ""
 }
 
-func IsExecutiveOrAdmin(ctx context.Context) bool {
+// PermReadAllRecords is the permission to see every collector's records
+// (collections, sales, spoilage, transfers, reconciliation) and not only
+// your own. It is registered by the collection module.
+const PermReadAllRecords = "milk.records.read_all"
+
+// SeesAllRecords reports whether the caller may see every collector's
+// records. It follows the PermReadAllRecords permission of the caller's role,
+// read from the database on each request, so it changes as soon as the
+// role's permissions do. Platform super users always may.
+func SeesAllRecords(ctx context.Context) bool {
 	if IsSuperUser(ctx) {
 		return true
 	}
-	role := strings.ToLower(GetUserRole(ctx))
-	return strings.Contains(role, "admin") || strings.Contains(role, "board") || strings.Contains(role, "executive")
+	if ctx == nil {
+		return false
+	}
+	all, _ := ctx.Value(contextKeySeesAll).(bool)
+	return all
 }
 
 // HumaAuthenticate decodes the JWT Authorization header into the Huma request context.
@@ -182,12 +196,15 @@ func HumaAuthenticate(api huma.API, jwtSecret string, db *gorm.DB) func(huma.Con
 					IsActive    bool
 					SaccoStatus *string
 					RoleName    *string
+					SeesAll     bool
 				}
 				if db != nil {
 					err := db.WithContext(reqCtx).Table("users").
 						Select(`users.is_super_user, users.sacco_id, users.is_active, saccos.status AS sacco_status,
 							(SELECT MIN(roles.name) FROM user_roles JOIN roles ON roles.id = user_roles.role_id
-								WHERE user_roles.user_id = users.id) AS role_name`).
+								WHERE user_roles.user_id = users.id) AS role_name,
+							EXISTS (SELECT 1 FROM user_roles JOIN role_permissions ON role_permissions.role_id = user_roles.role_id
+								WHERE user_roles.user_id = users.id AND role_permissions.permission_name = ?) AS sees_all`, PermReadAllRecords).
 						Joins("LEFT JOIN saccos ON saccos.id = users.sacco_id").
 						Where("users.id = ? AND users.deleted_at IS NULL", claims.UserID).
 						Take(&account).Error
@@ -215,6 +232,7 @@ func HumaAuthenticate(api huma.API, jwtSecret string, db *gorm.DB) func(huma.Con
 				}
 				reqCtx = context.WithValue(reqCtx, ContextKeyRole, role)
 				reqCtx = context.WithValue(reqCtx, "role", role)
+				reqCtx = context.WithValue(reqCtx, contextKeySeesAll, account.SeesAll)
 				// A platform super user is never bound to a Sacco. Ignoring the flag on
 				// Sacco-bound accounts keeps a tenant admin inside its own tenant.
 				reqCtx = context.WithValue(reqCtx, "is_super_user", account.IsSuperUser && !boundToSacco)

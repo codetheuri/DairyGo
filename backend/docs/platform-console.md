@@ -23,6 +23,7 @@ SELECT id, username FROM users WHERE is_super_user = true AND sacco_id IS NULL;
 | **Overview** | Saccos by status, active farmers, staff, milk today/this month, sales, owed to farmers, what customers owe, failed requests and server errors in the last 24h; one row per Sacco |
 | **Saccos** | Search, onboard a Sacco with its first admin |
 | **Sacco → Staff** | Add staff (roles 1/2/3), change role, deactivate/reactivate, unlock after failed logins, reset password, remove (see [staff-management.md](staff-management.md)) |
+| **Roles & permissions** | What each Sacco role may do, as tick boxes; applies at once in every Sacco and is audited (see [authorization.md](authorization.md)) |
 | **Sacco → Farmers** | Search farmers, register a farmer on the Sacco's behalf (same rules as the Sacco admin) |
 | **Sacco → Activity / Errors** | That Sacco's audit trail and failed requests |
 | **Sacco actions** | Edit details, suspend, deactivate, reactivate (with a reason, kept in the audit trail) |

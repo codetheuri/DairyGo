@@ -74,3 +74,9 @@ func (r *Repository) RemoveStaff(ctx context.Context, userID, actorID uint, entr
 		return audit.Record(tx, entry)
 	})
 }
+
+// RecordAudit stores an audit entry for a change that has no transaction of
+// its own.
+func (r *Repository) RecordAudit(ctx context.Context, entry audit.Entry) error {
+	return audit.Record(r.db.WithContext(ctx), entry)
+}

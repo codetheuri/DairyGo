@@ -218,7 +218,7 @@ func (r *Repository) ListCollections(ctx context.Context, q query.Query) ([]Milk
 	session := r.db.Model(&MilkCollection{}).Scopes(query.TenantScope(ctx))
 
 	// Enforce Role-Based Scoping: Collectors only see their own collections unless authorized Admin/Executive
-	if !middleware.IsSuperUser(ctx) && !middleware.IsExecutiveOrAdmin(ctx) {
+	if !middleware.SeesAllRecords(ctx) {
 		collectorID := middleware.GetUserID(ctx)
 		if collectorID > 0 {
 			session = session.Where("milk_collections.collector_id = ?", collectorID)
@@ -350,7 +350,7 @@ func (r *Repository) ListSales(ctx context.Context, q query.Query) ([]MilkSale, 
 	session := r.db.Model(&MilkSale{}).Scopes(query.TenantScope(ctx))
 
 	// Enforce Role-Based Scoping: Collectors only see their own sales unless authorized Admin/Executive
-	if !middleware.IsSuperUser(ctx) && !middleware.IsExecutiveOrAdmin(ctx) {
+	if !middleware.SeesAllRecords(ctx) {
 		collectorID := middleware.GetUserID(ctx)
 		if collectorID > 0 {
 			session = session.Where("milk_sales.collector_id = ?", collectorID)
@@ -422,7 +422,7 @@ func (r *Repository) ListSpoilage(ctx context.Context, q query.Query) ([]MilkSpo
 	session := r.db.Model(&MilkSpoilage{}).Scopes(query.TenantScope(ctx))
 
 	// Enforce Role-Based Scoping: Collectors only see their own spoilage unless authorized Admin/Executive
-	if !middleware.IsSuperUser(ctx) && !middleware.IsExecutiveOrAdmin(ctx) {
+	if !middleware.SeesAllRecords(ctx) {
 		collectorID := middleware.GetUserID(ctx)
 		if collectorID > 0 {
 			session = session.Where("milk_spoilage.collector_id = ?", collectorID)

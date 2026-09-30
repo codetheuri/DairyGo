@@ -3,9 +3,9 @@ package authz
 // Permission represents a developer-defined, immutable permission declared in code.
 type Permission struct {
 	// Name is the unique hierarchical identifier (e.g., "users.create", "finance.invoice.approve").
-	Name string
+	Name string `json:"name"`
 	// Description provides context for administrators configuring roles.
-	Description string
+	Description string `json:"description"`
 }
 
 // Global default registry instance for convenient application-wide access.

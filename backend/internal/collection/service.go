@@ -655,7 +655,7 @@ func (s *Service) GetReconciliation(ctx context.Context, targetCollectorID *uint
 	collectorID := middleware.GetUserID(ctx)
 	if targetCollectorID != nil && *targetCollectorID > 0 && *targetCollectorID != collectorID {
 		// Collectors may only reconcile their own shift; supervisors can audit anyone.
-		if !middleware.IsSuperUser(ctx) && !middleware.IsExecutiveOrAdmin(ctx) {
+		if !middleware.SeesAllRecords(ctx) {
 			return nil, fmt.Errorf("you can only view your own reconciliation")
 		}
 		collectorID = *targetCollectorID

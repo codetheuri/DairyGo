@@ -8,6 +8,7 @@ import (
 
 	"github.com/codetheuri/tusk/config"
 	"github.com/codetheuri/tusk/internal/auth"
+	"github.com/codetheuri/tusk/internal/jobs"
 	"github.com/codetheuri/tusk/internal/member"
 	"github.com/codetheuri/tusk/pkg/authz"
 	"github.com/codetheuri/tusk/pkg/logger"
@@ -17,13 +18,14 @@ const tag = "Platform Console"
 
 // RegisterRoutes wires the platform console endpoints. Onboarding, editing and
 // suspending Saccos use the existing /api/v1/admin/saccos endpoints.
-func RegisterRoutes(api huma.API, db *gorm.DB, cfg *config.Config, log logger.Logger) {
+func RegisterRoutes(api huma.API, db *gorm.DB, cfg *config.Config, log logger.Logger, runner *jobs.Runner) {
 	service := NewService(
 		NewRepository(db),
 		member.NewService(member.NewRepository(db)),
 		auth.NewService(auth.NewRepository(db, log), cfg),
 	)
 	h := NewHandler(service)
+	jh := &JobsHandler{runner: runner}
 	guard := authz.NewGuard(api, db)
 
 	op := func(id, method, path, summary, description string) huma.Operation {
@@ -64,4 +66,11 @@ func RegisterRoutes(api huma.API, db *gorm.DB, cfg *config.Config, log logger.Lo
 		"Failed requests", "Every API request that ended with status 400 or above (kept 30 days)."), h.SystemLogs)
 	huma.Register(api, op("platform-sms-logs", http.MethodGet, "/api/v1/admin/sms-logs",
 		"SMS logs", "SMS messages sent by all Saccos, with delivery status."), h.SMSLogs)
+
+	huma.Register(api, op("platform-jobs", http.MethodGet, "/api/v1/admin/jobs",
+		"Background jobs", "The API's scheduled jobs: what each does, how often, whether it is running, its last run and next run."), jh.List)
+	huma.Register(api, op("platform-job-runs", http.MethodGet, "/api/v1/admin/jobs/{name}/runs",
+		"A job's recent runs", "The latest runs of a job, newest first (kept 90 days)."), jh.Runs)
+	huma.Register(api, op("platform-run-job", http.MethodPost, "/api/v1/admin/jobs/{name}/run",
+		"Run a job now", "Starts the job now, in the background; the run appears in its history. Refused (409) while it is running."), jh.RunNow)
 }

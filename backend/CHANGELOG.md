@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 
 ### Added
+- **Background jobs are visible in the console** (migration `00019`, `internal/jobs`): **Background jobs** lists each job (mark idle farmers inactive, clear old logs, clear saved retries and ended sessions) with its schedule, last run and result, next run and history, and can **Run now**. Every run is recorded in `job_runs` (kept 90 days); a panicking job is recorded as failed instead of crashing the API, and runs cut off by a restart are marked interrupted. See [docs/background-jobs.md](docs/background-jobs.md).
 - **Farmer status rules** (migration `00018`):
   - suspended farmers cannot supply milk (`409`);
   - inactive farmers can, and become active when they do;

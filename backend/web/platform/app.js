@@ -107,9 +107,9 @@ function pill(text, kind) {
 
 function pillKind(status) {
   switch (String(status).toUpperCase()) {
-    case 'ACTIVE': case 'SENT': case 'CREATE': return 'ok';
+    case 'ACTIVE': case 'SENT': case 'CREATE': case 'OK': return 'ok';
     case 'SUSPENDED': case 'FAILED': case 'ERROR': case 'VOID': case 'DEACTIVATED': return 'bad';
-    case 'INACTIVE': case 'WARN': case 'LOCKED': case 'STATUS': return 'warn';
+    case 'INACTIVE': case 'WARN': case 'LOCKED': case 'STATUS': case 'RUNNING': return 'warn';
     case 'UPDATE': return 'info';
     default: return 'neutral';
   }
@@ -233,6 +233,7 @@ const routes = [
   { pattern: /^audit$/, page: auditPage, nav: 'audit' },
   { pattern: /^errors$/, page: errorsPage, nav: 'errors' },
   { pattern: /^sms$/, page: smsPage, nav: 'sms' },
+  { pattern: /^jobs$/, page: jobsPage, nav: 'jobs' },
 ];
 
 function go(path) { location.hash = `#/${path}`; }
@@ -265,7 +266,8 @@ function layout(main, active) {
         link('roles', '#/roles', 'Roles & permissions'),
         link('audit', '#/audit', 'Audit trail'),
         link('errors', '#/errors', 'Errors'),
-        link('sms', '#/sms', 'SMS logs')),
+        link('sms', '#/sms', 'SMS logs'),
+        link('jobs', '#/jobs', 'Background jobs')),
       h('div', { class: 'spacer' }),
       h('div', { class: 'whoami' },
         h('div', { text: `Signed in as ${user.username || ''}` }),
@@ -925,6 +927,88 @@ async function smsPage() {
         { label: 'Provider', render: (l) => l.provider },
       ],
     }));
+}
+
+// ---------- background jobs ----------
+
+/** "every day", "every 6 hours" from a number of seconds. */
+function everyText(seconds) {
+  const hours = seconds / 3600;
+  if (hours === 24) return 'Every day';
+  if (hours % 24 === 0) return `Every ${hours / 24} days`;
+  if (hours >= 1) return hours === 1 ? 'Every hour' : `Every ${hours} hours`;
+  return `Every ${Math.round(seconds / 60)} minutes`;
+}
+
+/** How long a run took, from its start and end. */
+function tookText(run) {
+  if (!run.finished_at) return 'running…';
+  const ms = new Date(run.finished_at) - new Date(run.started_at);
+  return ms < 1000 ? `${ms} ms` : `${(ms / 1000).toFixed(1)} s`;
+}
+
+const TRIGGERS = { START: 'API start', SCHEDULE: 'Schedule', MANUAL: 'Run now' };
+
+// The API's scheduled jobs: what each does, when it last ran and how that
+// went, when it runs next, and a button to run it now. Refreshes itself
+// while a job is running.
+async function jobsPage() {
+  const holder = h('div', { class: 'loading', text: 'Loading…' });
+  const history = h('div');
+  let timer;
+
+  const showRuns = async (job) => {
+    history.replaceChildren(h('p', { class: 'loading', text: 'Loading…' }));
+    try {
+      const data = await api('GET', `/admin/jobs/${job.name}/runs?limit=20`);
+      history.replaceChildren(
+        h('h2', { text: `${job.title}: last runs` }),
+        table([
+          { label: 'Started', render: (r) => fmt.dateTime(r.started_at) },
+          { label: 'How', render: (r) => TRIGGERS[r.trigger] || r.trigger },
+          { label: 'Result', render: (r) => pill(r.status) },
+          { label: 'Took', render: (r) => tookText(r) },
+          { label: 'What it did', render: (r) => (r.error ? h('div', { class: 'form-error', text: r.error.split('\n')[0] }) : (r.summary || '—')) },
+        ], data.runs, { empty: 'This job has not run yet.' }));
+    } catch (err) { history.replaceChildren(h('p', { class: 'form-error', text: err.message })); }
+  };
+
+  const load = async () => {
+    clearTimeout(timer);
+    if (!document.body.contains(holder) && holder.dataset.loaded) return; // left the page
+    try {
+      const data = await api('GET', '/admin/jobs');
+      holder.dataset.loaded = '1';
+      holder.replaceChildren(table([
+        { label: 'Job', render: (j) => h('div', {}, h('div', { text: j.title }), h('div', { class: 'sub', text: j.description })) },
+        { label: 'How often', render: (j) => everyText(j.every_seconds) },
+        { label: 'Last run', render: (j) => (j.running ? pill('RUNNING')
+          : j.last_run ? h('div', {}, h('div', { class: 'actions' }, pill(j.last_run.status), fmt.dateTime(j.last_run.started_at)),
+            h('div', { class: 'sub', text: j.last_run.error ? j.last_run.error.split('\n')[0] : (j.last_run.summary || '') }))
+            : '—') },
+        { label: 'Next run', render: (j) => fmt.dateTime(j.next_run) },
+        { label: '', render: (j) => h('div', { class: 'actions' },
+          h('button', { class: 'small', text: 'History', onclick: () => showRuns(j) }),
+          h('button', { class: 'small', text: 'Run now', disabled: j.running, onclick: async (e) => {
+            e.target.disabled = true;
+            try {
+              await api('POST', `/admin/jobs/${j.name}/run`);
+              toast(`${j.title}: started`);
+            } catch (err) { toast(err.message, true); }
+            setTimeout(() => { load(); showRuns(j); }, 800);
+          } })) },
+      ], data.jobs, { empty: 'No background jobs.' }));
+      // Keep a running job's status fresh.
+      if (data.jobs.some((j) => j.running)) timer = setTimeout(load, 2000);
+    } catch (err) { holder.replaceChildren(h('p', { class: 'form-error', text: err.message })); }
+  };
+  load();
+
+  return h('div', {},
+    h('div', { class: 'page-head' }, h('h1', { text: 'Background jobs' }),
+      h('button', { text: 'Refresh', onclick: load })),
+    h('p', { class: 'muted small', text: 'Work the API does by itself: each job runs when the API starts and then on its schedule. Runs are kept 90 days.' }),
+    holder, history);
 }
 
 window.addEventListener('hashchange', render);

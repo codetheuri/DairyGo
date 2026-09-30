@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-	"time"
 
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -242,25 +241,4 @@ func (s *Service) SMSLogs(ctx context.Context, f LogFilter) ([]SMSEntry, query.M
 		return nil, query.Meta{}, err
 	}
 	return s.repo.SMSLogs(ctx, f)
-}
-
-// RunLogRetention deletes failed-request logs older than keep, once at start
-// and then daily, until ctx is cancelled.
-func RunLogRetention(ctx context.Context, repo *Repository, keep time.Duration, onError func(error)) {
-	purge := func() {
-		if _, err := repo.PurgeSystemLogs(ctx, time.Now().Add(-keep)); err != nil && ctx.Err() == nil {
-			onError(err)
-		}
-	}
-	purge()
-	ticker := time.NewTicker(24 * time.Hour)
-	defer ticker.Stop()
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case <-ticker.C:
-			purge()
-		}
-	}
 }

@@ -24,6 +24,7 @@ import (
 	"github.com/codetheuri/tusk/internal/customer"
 	"github.com/codetheuri/tusk/internal/dashboard"
 	"github.com/codetheuri/tusk/internal/idempotency"
+	"github.com/codetheuri/tusk/internal/jobs"
 	"github.com/codetheuri/tusk/internal/member"
 	"github.com/codetheuri/tusk/internal/middleware"
 	"github.com/codetheuri/tusk/internal/notification"
@@ -40,13 +41,10 @@ import (
 )
 
 type App struct {
-	cfg         *config.Config
-	router      *chi.Mux
-	log         logger.Logger
-	platform    *superadmin.Repository
-	idempotency *idempotency.Store
-	auth        *auth.Repository
-	members     *member.Repository
+	cfg    *config.Config
+	router *chi.Mux
+	log    logger.Logger
+	jobs   *jobs.Runner
 }
 
 func New(cfg *config.Config, log logger.Logger) (*App, error) {
@@ -237,16 +235,14 @@ func New(cfg *config.Config, log logger.Logger) (*App, error) {
 	api.UseMiddleware(middleware.HumaAuthenticate(api, cfg.JWTSecret, db))
 
 	// Register Domain Module Routes
-	registerModules(api, r, db, cfg, log)
+	runner := newJobRunner(db, log, platformRepo, idempotencyStore, authRepo)
+	registerModules(api, r, db, cfg, log, runner)
 
 	return &App{
-		cfg:         cfg,
-		router:      r,
-		log:         log,
-		platform:    platformRepo,
-		idempotency: idempotencyStore,
-		auth:        authRepo,
-		members:     member.NewRepository(db),
+		cfg:    cfg,
+		router: r,
+		log:    log,
+		jobs:   runner,
 	}, nil
 }
 
@@ -273,31 +269,11 @@ func (a *App) Run() error {
 		}
 	}()
 
-	// Keep failed-request logs for 30 days.
-	retentionCtx, stopRetention := context.WithCancel(context.Background())
-	defer stopRetention()
-	go superadmin.RunLogRetention(retentionCtx, a.platform, 30*24*time.Hour, func(err error) {
-		a.log.Error("Failed to purge old system logs", err)
-	})
-	// Idempotency keys only matter while a client may retry (minutes), and
-	// ended sessions only while they could be presented again.
-	go runDaily(retentionCtx, func(ctx context.Context) error {
-		if _, err := a.idempotency.Purge(ctx, time.Now().Add(-48*time.Hour)); err != nil {
-			return err
-		}
-		_, err := a.auth.PurgeRefreshTokens(ctx, time.Now().Add(-7*24*time.Hour))
-		return err
-	}, func(err error) { a.log.Error("Failed to purge idempotency keys or old sessions", err) })
-
-	// Farmers who stop bringing milk become inactive after their Sacco's
-	// period (see member.MarkIdleInactive); checked at start and daily.
-	go runDaily(retentionCtx, func(ctx context.Context) error {
-		n, err := a.members.MarkIdleInactive(ctx, time.Now())
-		if n > 0 {
-			a.log.Info(fmt.Sprintf("Marked %d farmers inactive after a period without milk", n))
-		}
-		return err
-	}, func(err error) { a.log.Error("Failed to mark idle farmers inactive", err) })
+	// Background jobs (see jobs.go) run in their own goroutines until
+	// shutdown cancels jobsCtx.
+	jobsCtx, stopJobs := context.WithCancel(context.Background())
+	defer stopJobs()
+	a.jobs.Start(jobsCtx)
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
@@ -312,34 +288,25 @@ func (a *App) Run() error {
 		return fmt.Errorf("server shutdown failed: %w", err)
 	}
 
+	// Stop the jobs and give a run in progress until the same deadline to
+	// finish; an unfinished run is marked interrupted at the next start.
+	stopJobs()
+	jobsDone := make(chan struct{})
+	go func() { a.jobs.Wait(); close(jobsDone) }()
+	select {
+	case <-jobsDone:
+	case <-ctx.Done():
+		a.log.Warn("Background jobs did not stop in time")
+	}
+
 	a.log.Info("Server shut down gracefully.")
 	return nil
-}
-
-// runDaily runs job once now and then every 24 hours until ctx ends.
-func runDaily(ctx context.Context, job func(context.Context) error, onError func(error)) {
-	run := func() {
-		if err := job(ctx); err != nil && ctx.Err() == nil {
-			onError(err)
-		}
-	}
-	run()
-	ticker := time.NewTicker(24 * time.Hour)
-	defer ticker.Stop()
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case <-ticker.C:
-			run()
-		}
-	}
 }
 
 // registerModules registers every module's routes. Huma refuses two response
 // types with the same schema name at registration, which would stop the API
 // from starting; TestAllRoutesRegister runs this to catch that in tests.
-func registerModules(api huma.API, r chi.Router, db *gorm.DB, cfg *config.Config, log logger.Logger) {
+func registerModules(api huma.API, r chi.Router, db *gorm.DB, cfg *config.Config, log logger.Logger, runner *jobs.Runner) {
 	auth.RegisterRoutes(api, db, cfg, log)
 	sacco.RegisterRoutes(api, db, cfg, log)
 	member.RegisterRoutes(api, db, cfg, log)
@@ -348,6 +315,6 @@ func registerModules(api huma.API, r chi.Router, db *gorm.DB, cfg *config.Config
 	report.RegisterRoutes(api, db, cfg, log)
 	dashboard.RegisterRoutes(api, db, cfg, log)
 	notification.RegisterRoutes(api, db, cfg, log)
-	superadmin.RegisterRoutes(api, db, cfg, log)
+	superadmin.RegisterRoutes(api, db, cfg, log, runner)
 	appupdate.RegisterRoutes(api, r, appupdate.NewStore(cfg.AppReleasesDir), log)
 }

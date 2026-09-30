@@ -9,6 +9,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/codetheuri/tusk/config"
+	"github.com/codetheuri/tusk/internal/jobs"
 	"github.com/codetheuri/tusk/pkg/logger"
 )
 
@@ -26,5 +27,5 @@ func TestAllRoutesRegister(t *testing.T) {
 			t.Fatalf("registering routes panicked: %v", p)
 		}
 	}()
-	registerModules(api, chi.NewRouter(), db, cfg, logger.NewConsoleLogger())
+	registerModules(api, chi.NewRouter(), db, cfg, logger.NewConsoleLogger(), jobs.NewRunner(db, logger.NewConsoleLogger()))
 }

@@ -35,7 +35,9 @@ Choosing the status a farmer already has is refused.
 
 Once a day, and when the API starts, every **active** farmer who has brought
 no milk for the Sacco's period is marked **inactive**. The code is
-`member.MarkIdleInactive`, run from `app.Run`.
+`member.MarkIdleInactive`, run as the background job `mark-idle-farmers`
+([background-jobs.md](background-jobs.md)). Its runs and results are shown
+in Console → Background jobs, which can also run it now.
 
 - **The period** is the setting `inactive_after_days`:
   - 60 by default;

@@ -110,8 +110,6 @@ func (r *Repository) UpdateWithAudit(ctx context.Context, m *Member, entry audit
 	})
 }
 
-
-
 // History lists a farmer's audit entries, oldest first.
 func (r *Repository) History(ctx context.Context, m *Member) ([]audit.Log, error) {
 	return audit.List(ctx, r.db, m.SaccoID, auditEntityMember, m.ID)

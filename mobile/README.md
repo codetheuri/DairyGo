@@ -15,6 +15,10 @@ flutter run                       # on a connected phone or emulator
 flutter build apk --release --split-per-abi
 ```
 
+Releases for users are built with `scripts/release.sh`, signed with the
+release key, and published through the download page and the in-app
+updater: see [Releasing the app](docs/releases.md).
+
 `--split-per-abi` builds one APK per phone type, about 20 MB each instead of
 one 56 MB file, which matters on slow connections. Almost every current phone
 needs `app-arm64-v8a-release.apk`; very old phones need
@@ -72,4 +76,6 @@ server in `test/layout/fixtures`.
 - [Speed and offline](docs/performance-and-offline.md): what makes the app
   usable on a 100 kbps connection or with no signal, and how screens show
   records saved on other phones.
+- [Releasing the app](docs/releases.md): release key, download page,
+  in-app updates, forcing an update.
 - Backend and business rules: `../backend/docs/`.

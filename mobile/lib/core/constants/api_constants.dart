@@ -9,6 +9,12 @@ abstract class ApiConstants {
   // Generous so a page still arrives on a ~100 kbps rural connection.
   static const Duration receiveTimeout = Duration(seconds: 45);
 
+  // The latest app release, for the in-app updater (public).
+  static const String appVersion = '/api/v1/app/version';
+
+  /// The download page to share instead of APK files.
+  static const String appPage = '$baseUrl/app';
+
   // Auth Routes
   static const String login = '/api/v1/auth/login';
   static const String me = '/api/v1/auth/me';

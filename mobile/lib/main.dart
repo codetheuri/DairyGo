@@ -5,6 +5,8 @@ import 'app/router/app_router.dart';
 import 'app/theme/app_theme.dart';
 import 'core/network/connection_monitor.dart';
 import 'core/widgets/connection_banner.dart';
+import 'features/app_update/presentation/app_update_controller.dart';
+import 'features/app_update/presentation/widgets/update_gate.dart';
 import 'features/auth/presentation/controllers/auth_controller.dart';
 
 void main() {
@@ -32,7 +34,12 @@ class _DairySaccoAppState extends ConsumerState<DairySaccoApp> {
         ref.read(authControllerProvider.notifier).checkIdleSession();
         final monitor = ref.read(connectionMonitorProvider.notifier);
         if (monitor.current.isOffline) monitor.checkNow();
+        ref.read(appUpdateProvider.notifier).onResume();
       },
+    );
+    // Look for a new version once the first screen is up.
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => ref.read(appUpdateProvider.notifier).check(),
     );
   }
 
@@ -53,10 +60,11 @@ class _DairySaccoAppState extends ConsumerState<DairySaccoApp> {
       routerConfig: router,
       // Follow the phone's font-size setting, but only up to 1.3x: beyond that
       // the dense field screens stop fitting on a phone. The connection banner
-      // covers every screen, forms included.
+      // and the update strip cover every screen, forms and login included;
+      // an app too old to use shows only the update screen.
       builder: (context, child) => MediaQuery.withClampedTextScaling(
         maxScaleFactor: 1.3,
-        child: ConnectionBanner(child: child!),
+        child: UpdateGate(child: ConnectionBanner(child: child!)),
       ),
     );
   }

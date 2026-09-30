@@ -21,6 +21,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../support/fake_app_update.dart';
+
 const commonRoutes = [
   '/dashboard',
   '/collections',
@@ -179,7 +181,8 @@ class AppUnderTest {
 
   /// [responseDelay] holds every API answer, to show loading states;
   /// [settle] waits for the screen to finish loading; with [cache], reads go
-  /// through the saved-copy interceptors as in the app.
+  /// through the saved-copy interceptors as in the app; [updates] plays the
+  /// update server (nothing published by default).
   static Future<AppUnderTest> open(
     WidgetTester tester,
     String role,
@@ -187,6 +190,7 @@ class AppUnderTest {
     Duration responseDelay = Duration.zero,
     bool settle = true,
     ResponseCache? cache,
+    FakeAppUpdateService? updates,
   }) async {
     final server = FixtureAdapter(role, delay: responseDelay);
     final dio = Dio(BaseOptions(baseUrl: 'http://fixtures'))
@@ -203,6 +207,8 @@ class AppUnderTest {
         authDioProvider.overrideWithValue(dio),
         networkConnectivityServiceProvider.overrideWithValue(_Online()),
         if (cache != null) responseCacheProvider.overrideWithValue(cache),
+        // Never the real update server or installer.
+        ...fakeUpdateOverrides(updates),
       ],
     );
     final app = AppUnderTest._(tester, container, server, FlutterError.onError);

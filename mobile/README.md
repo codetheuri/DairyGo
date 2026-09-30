@@ -15,8 +15,8 @@ flutter run                       # on a connected phone or emulator
 flutter build apk --release --split-per-abi
 ```
 
-Releases for users are built with `scripts/release.sh`, signed with the
-release key, and published through the download page and the in-app
+Releases for users are shipped with `./ship.sh` from the repository root
+(it runs `scripts/release.sh`), signed with the DairyGo key, and published through the download page and the in-app
 updater: see [Releasing the app](docs/releases.md).
 
 `--split-per-abi` builds one APK per phone type, about 20 MB each instead of

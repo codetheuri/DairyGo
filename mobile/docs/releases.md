@@ -14,31 +14,43 @@ and many phones then offer a PDF reader instead of the installer. The page
 serves the file as an Android package, so Chrome opens the installer. It
 has install steps in English and Swahili, and fixes for common problems.
 
-## The release key (once)
+## The signing key
 
 Android installs an update only when it is signed with the same key as the
-installed app. Up to 1.3.x the app was signed with this laptop's debug key.
-From 1.4.0 it uses a release key:
+installed app. DairyGo keeps **the key the first versions (1.3.x) were signed
+with**, so 1.4.0 and everything after installs over them with no uninstall
+and users stay logged in. (That key began as this laptop's Android debug key;
+it was copied under a new random password.)
 
-```bash
-mobile/scripts/create-release-key.sh
-```
+- The key: `~/.dairygo/dairygo-release.jks`
+- Its password: `mobile/android/key.properties`
+- Its public fingerprint: `mobile/android/release-cert.sha256` (in git)
 
-This creates `~/.dairygo/dairygo-release.jks` and
-`mobile/android/key.properties` (its password), both outside git.
-**Back up both files in two places**, for example a password manager and a
-USB drive. Without them no future update can be installed over the app, and
-every user would have to uninstall and reinstall. On another computer, copy
-both files back to the same places.
+The first two are outside git. **Back up both files in two places**, for
+example a password manager and a USB drive. Without them no future update can
+be installed over the app, and every user would have to uninstall and
+reinstall. On another computer, copy both files back to the same places.
 
-A release build fails without the key rather than falling back to the debug
-key.
+A release build fails without the key, and `release.sh` refuses to publish
+an APK whose signature does not match the fingerprint.
 
-Moving from 1.3.x to 1.4.0 needs **one** uninstall and reinstall on each
-phone, because the key changes. Records are on the server; users only log in
-again. The download page explains this under "If it does not work".
+`scripts/create-release-key.sh --from-installed` is how the key was set up;
+it refuses to run when a key already exists. Without the flag it would make a
+brand-new key, which is only right for an app nobody has installed yet.
+
+Users on 1.3.x install 1.4.0 once from the download page (1.3.x has no
+Update button). After that the app updates itself.
 
 ## Publishing a version
+
+The short way, from the repository root, does everything below and deploys
+the backend too (see [deployment](../../backend/docs/deployment.md)):
+
+```bash
+./ship.sh --notes "Faster sales screen. Fixes the report totals."
+```
+
+By hand:
 
 1. Raise `version:` in `pubspec.yaml` (for example `1.4.1+11`; the number
    after `+` must go up).
@@ -56,7 +68,7 @@ again. The download page explains this under "If it does not work".
    `DAIRYGO_RELEASE_TARGET=user@server:/path/to/backend/releases` is set.
    No restart is needed.
 
-The script builds one APK per phone type, refuses a debug-signed APK, keeps
+The script builds one APK per phone type, refuses an APK not signed with the DairyGo key, keeps
 only the new APKs in the repository root, and writes `latest.json` with each
 file's size and SHA-256.
 

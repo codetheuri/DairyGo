@@ -3,6 +3,30 @@
 What to do on the server after new code is merged. The API runs in Docker
 (`docker-compose.yml`, container `dairy-api`, port 9002).
 
+## The one command
+
+From the repository root on the development machine:
+
+```bash
+./ship.sh --dry-run                       # shows the plan, changes nothing
+./ship.sh --notes "What changed"          # ships
+./ship.sh --notes "..." --required        # older apps must update before use
+```
+
+`ship.sh` checks that everything is committed and the tests pass, builds and
+signs the app if `mobile/` changed since the last published version (raising
+the version number itself), pushes to GitHub, updates the server, restarts the
+API only if `backend/` changed and waits until it is healthy, uploads the app,
+and confirms the public address reports the new version. If the server update
+fails, the app is not published.
+
+Set the server once in `.ship.env` (copy `.ship.env.example`; it is not in
+git). Access is by SSH key, so no password is stored. `--backend-only` never
+publishes the app; `--app` publishes it even when `mobile/` did not change;
+`--tests` also runs the app's full test suite.
+
+The rest of this page is what the script does, for doing it by hand.
+
 ## Every backend update
 
 ```bash
@@ -52,7 +76,6 @@ machine (see [mobile/docs/releases.md](../../mobile/docs/releases.md)):
 
 ```bash
 cd mobile
-scripts/create-release-key.sh      # once only; back up the key and its passwords
 scripts/release.sh --notes "What changed"  # builds, signs and writes backend/releases/
 ```
 

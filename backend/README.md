@@ -73,7 +73,8 @@ The server will start at `http://localhost:8080`.
 
 ### 3. Updating the server
 
-After merging, on the server:
+From the development machine, `./ship.sh --notes "What changed"` (repository
+root) does all of this and publishes the app. By hand, on the server:
 
 ```bash
 git pull && cd backend

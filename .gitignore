@@ -34,3 +34,4 @@ mobile/android/local.properties
 *.swp
 *.sqlite
 *.db
+.ship.env

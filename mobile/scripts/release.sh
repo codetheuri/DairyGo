@@ -7,7 +7,7 @@
 #
 # Raise `version:` in pubspec.yaml first. The script:
 #   1. builds one APK per phone type, signed with the release key;
-#   2. refuses an APK signed with a debug key;
+#   2. refuses an APK not signed with the DairyGo key;
 #   3. keeps only this version's APKs in the repository root;
 #   4. writes backend/releases/ (APKs + latest.json) to copy to the server.
 #
@@ -54,18 +54,22 @@ if (( REQUIRED )); then MIN_BUILD=$BUILD; else MIN_BUILD=$PREVIOUS_MIN; fi
 "$FLUTTER" build apk --release --split-per-abi
 
 OUT="$MOBILE/build/app/outputs/flutter-apk"
-APKSIGNER="$(ls -d "${ANDROID_HOME:-$HOME/Android/Sdk}"/build-tools/*/apksigner 2>/dev/null | tail -1 || true)"
+# Only an APK signed with the DairyGo key is published: phones refuse any
+# other as an update. The fingerprint is public (android/release-cert.sha256).
+SDK="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-$(sed -n 's/^sdk\.dir=//p' android/local.properties 2>/dev/null)}}"
+APKSIGNER="$(ls -d "${SDK:-$HOME/Android/Sdk}"/build-tools/*/apksigner 2>/dev/null | sort -V | tail -1 || true)"
+[[ -x "$APKSIGNER" ]] || { echo "apksigner not found (Android SDK build-tools); cannot check the signature." >&2; exit 1; }
+EXPECTED="$(tr -d '[:space:]' < android/release-cert.sha256 2>/dev/null || true)"
+[[ -n "$EXPECTED" ]] || { echo "android/release-cert.sha256 is missing. See docs/releases.md." >&2; exit 1; }
 declare -A ABI_FILE=([arm64]=app-arm64-v8a-release.apk [armv7]=app-armeabi-v7a-release.apk)
 
 mkdir -p "$RELEASES"
 rm -f "$ROOT"/DairyGo-v*.apk "$ROOT"/DairyGo.apk
 for abi in arm64 armv7; do
   src="$OUT/${ABI_FILE[$abi]}"
-  if [[ -n "$APKSIGNER" ]]; then
-    certs="$("$APKSIGNER" verify --print-certs "$src" 2>/dev/null)"
-    if grep -q "CN=Android Debug" <<<"$certs"; then
-      echo "$src is signed with a debug key; refusing to publish it." >&2; exit 1
-    fi
+  signer="$("$APKSIGNER" verify --print-certs "$src" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')"
+  if [[ "$signer" != "$EXPECTED" ]]; then
+    echo "$src is not signed with the DairyGo key (got ${signer:-none}); refusing to publish it." >&2; exit 1
   fi
   cp "$src" "$ROOT/DairyGo-v$VERSION-$abi.apk"
   cp "$src" "$RELEASES/DairyGo-v$VERSION-$abi.apk"

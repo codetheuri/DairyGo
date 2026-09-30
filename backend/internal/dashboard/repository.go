@@ -56,6 +56,11 @@ func (r *Repository) GetExecutiveDashboard(ctx context.Context, days int) (*Exec
 	cards.TodaySpoilageLitres = round2(t.spoiled)
 	cards.TodayUnaccountedLitres = balance.UnaccountedLitres
 	cards.TodayBalanceStatus = balance.Status
+	r.db.WithContext(ctx).Table("milk_transfers").
+		Select("COALESCE(SUM(quantity_litres), 0)").
+		Where("sacco_id = ? AND deleted_at IS NULL AND voided_at IS NULL AND transfer_date = ?", saccoID, today.Format(dateLayout)).
+		Scan(&cards.TodayTransferredLitres)
+	cards.TodayTransferredLitres = round2(cards.TodayTransferredLitres)
 
 	var monthRevenue, monthLiability, monthLitres float64
 	for d := monthStart; !d.After(today); d = d.AddDate(0, 0, 1) {
@@ -157,7 +162,7 @@ func (r *Repository) dailyTotals(ctx context.Context, saccoID string, from, to t
 	return result, nil
 }
 
-// GetCollectorDashboard computes a collector's day on the new balancing rule.
+// GetCollectorDashboard computes a collector's day, transfers included.
 func (r *Repository) GetCollectorDashboard(ctx context.Context, collectorID uint, dateStr string) (*CollectorDashboardData, error) {
 	saccoID, _ := middleware.GetSaccoID(ctx)
 	data := &CollectorDashboardData{CollectorID: collectorID, Date: dateStr}
@@ -188,7 +193,24 @@ func (r *Repository) GetCollectorDashboard(ctx context.Context, collectorID uint
 		Where("sacco_id = ? AND collector_id = ? AND deleted_at IS NULL AND spoilage_date = ?", saccoID, collectorID, dateStr).
 		Scan(&spoiled)
 
-	balance := reconcile.Compute(intake.Litres, sales.Litres, spoiled, reconcile.ToleranceLitres(ctx, r.db, saccoID))
+	var transfers struct {
+		Received       float64
+		TransferredOut float64
+	}
+	r.db.WithContext(ctx).Table("milk_transfers").
+		Select(`COALESCE(SUM(CASE WHEN to_collector_id = ? THEN quantity_litres ELSE 0 END), 0) AS received,
+			COALESCE(SUM(CASE WHEN from_collector_id = ? THEN quantity_litres ELSE 0 END), 0) AS transferred_out`,
+			collectorID, collectorID).
+		Where("sacco_id = ? AND deleted_at IS NULL AND voided_at IS NULL AND transfer_date = ?", saccoID, dateStr).
+		Where("(from_collector_id = ? OR to_collector_id = ?)", collectorID, collectorID).
+		Scan(&transfers)
+
+	balance := reconcile.Balance(reconcile.Flows{
+		Collected: intake.Litres, Received: transfers.Received,
+		Sold: sales.Litres, TransferredOut: transfers.TransferredOut, Spoiled: spoiled,
+	}, reconcile.ToleranceLitres(ctx, r.db, saccoID))
+	data.TodayReceivedLitres = round2(transfers.Received)
+	data.TodayTransferredOutLitres = round2(transfers.TransferredOut)
 	data.TodayCollectedLitres = round2(intake.Litres)
 	data.TodayPurchasesAmount = round2(intake.Amount)
 	data.TodayFarmersServiced = intake.FarmerCount

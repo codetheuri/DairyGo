@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 
 ### Added
+- **Milk transfers between collectors** (`/api/v1/sacco/milk-transfers`, migration `00015`): a collector hands milk to another; it counts at once for both (`collected + received − sold − transferred out − spoiled = unaccounted`). Same-day correction or cancellation by the sender, any time by admins with a reason, full history. Reconciliation, collector audit, ledger and dashboards include the figures. See [docs/milk-transfers.md](docs/milk-transfers.md).
 - **App releases (`internal/appupdate`)**: `GET /api/v1/app/version` for the in-app updater (with `min_build` to force an update), resumable APK downloads at `/app/download/{arm64,armv7}` served as Android packages, and a download page at `/app` to share instead of APK files. Releases are read from `APP_RELEASES_DIR` (`./releases` in Docker). See [docs/app-releases.md](docs/app-releases.md).
 - Response writers in the logger, failure recorder and idempotency middleware implement `Unwrap()`, so `http.ResponseController` works through them.
 - **`make env`** (`scripts/init-env.sh`): creates `.env` with a random `JWT_SECRET`, or replaces a missing or weak one; never changes a good secret or prints it. Safe on every deploy.

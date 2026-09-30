@@ -30,3 +30,25 @@ func TestCompute(t *testing.T) {
 		})
 	}
 }
+
+// The owner's example: A collects 80, sells 55, gives B 20, spoils 5.
+func TestBalanceWithTransfers(t *testing.T) {
+	a := Balance(Flows{Collected: 80, Sold: 55, TransferredOut: 20, Spoiled: 5}, 0)
+	if a.UnaccountedLitres != 0 || a.Status != StatusBalanced {
+		t.Fatalf("sender: got %+v", a)
+	}
+	// B collected 100, received A's 20 and sold 110: 10 L are missing.
+	b := Balance(Flows{Collected: 100, Received: 20, Sold: 110}, 0)
+	if b.UnaccountedLitres != 10 || b.Status != StatusMissing {
+		t.Fatalf("receiver: got %+v", b)
+	}
+	// Forgetting the transfer would blame the wrong collector.
+	if Compute(80, 55, 5, 0).Status != StatusMissing || Compute(100, 110, 0, 0).Status != StatusOversold {
+		t.Fatal("without transfers the balances should be off")
+	}
+	// Across the Sacco the transfer cancels out.
+	sacco := Balance(Flows{Collected: 180, Received: 20, Sold: 165, TransferredOut: 20, Spoiled: 5}, 0)
+	if sacco != Compute(180, 165, 5, 0) {
+		t.Fatalf("sacco: %+v vs %+v", sacco, Compute(180, 165, 5, 0))
+	}
+}

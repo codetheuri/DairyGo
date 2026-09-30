@@ -180,6 +180,71 @@ func RegisterRoutes(api huma.API, db *gorm.DB, cfg *config.Config, log logger.Lo
 	}, PermMilkSpoilageRead), handler.ListSpoilage)
 
 	// -------------------------------------------------------------
+	// MILK TRANSFERS BETWEEN COLLECTORS
+	// -------------------------------------------------------------
+
+	huma.Register(api, guard.Protected(huma.Operation{
+		OperationID: "list-transfer-recipients",
+		Method:      http.MethodGet,
+		Path:        "/api/v1/sacco/milk-transfers/recipients",
+		Summary:     "Collectors milk can be transferred to",
+		Description: "Active staff of the Sacco who record milk, except the caller, by name.",
+		Tags:        []string{"Milk Transfers"},
+	}, PermMilkTransfersCreate), handler.TransferRecipients)
+
+	huma.Register(api, guard.Protected(huma.Operation{
+		OperationID: "record-milk-transfer",
+		Method:      http.MethodPost,
+		Path:        "/api/v1/sacco/milk-transfers",
+		Summary:     "Transfer milk to another collector",
+		Description: "Records milk handed to another collector. It counts at once for both: collected + received - sold - transferred out - spoiled = unaccounted. Collectors transfer their own milk; admins (milk.transfers.manage) may give from_collector_id.",
+		Tags:        []string{"Milk Transfers"},
+	}, PermMilkTransfersCreate), handler.RecordTransfer)
+
+	huma.Register(api, guard.Protected(huma.Operation{
+		OperationID: "list-milk-transfers",
+		Method:      http.MethodGet,
+		Path:        "/api/v1/sacco/milk-transfers",
+		Summary:     "List milk transfers",
+		Description: "Newest first. Collectors see transfers they sent or received; admins and board members see all. Cancelled transfers are left out unless include_cancelled=true.",
+		Tags:        []string{"Milk Transfers"},
+	}, PermMilkTransfersRead), handler.ListTransfers)
+
+	huma.Register(api, guard.Protected(huma.Operation{
+		OperationID: "get-milk-transfer",
+		Method:      http.MethodGet,
+		Path:        "/api/v1/sacco/milk-transfers/{id}",
+		Summary:     "Get a milk transfer",
+		Tags:        []string{"Milk Transfers"},
+	}, PermMilkTransfersRead), handler.GetTransfer)
+
+	huma.Register(api, guard.Protected(huma.Operation{
+		OperationID: "update-milk-transfer",
+		Method:      http.MethodPut,
+		Path:        "/api/v1/sacco/milk-transfers/{id}",
+		Summary:     "Correct a milk transfer",
+		Description: "The sender may correct the receiver, litres or notes on the day it was recorded; admins may correct any transfer and must give a reason for another collector's. Cancelled transfers are locked (409).",
+		Tags:        []string{"Milk Transfers"},
+	}, PermMilkTransfersCreate), handler.UpdateTransfer)
+
+	huma.Register(api, guard.Protected(huma.Operation{
+		OperationID: "cancel-milk-transfer",
+		Method:      http.MethodPost,
+		Path:        "/api/v1/sacco/milk-transfers/{id}/cancel",
+		Summary:     "Cancel a milk transfer",
+		Description: "Same rules as correcting. The transfer stays on record for the history but no longer counts for either collector.",
+		Tags:        []string{"Milk Transfers"},
+	}, PermMilkTransfersCreate), handler.CancelTransfer)
+
+	huma.Register(api, guard.Protected(huma.Operation{
+		OperationID: "get-milk-transfer-history",
+		Method:      http.MethodGet,
+		Path:        "/api/v1/sacco/milk-transfers/{id}/history",
+		Summary:     "Milk transfer change history",
+		Tags:        []string{"Milk Transfers"},
+	}, PermMilkTransfersRead), handler.GetTransferHistory)
+
+	// -------------------------------------------------------------
 	// COLLECTOR RECONCILIATION SUMMARY
 	// -------------------------------------------------------------
 
@@ -188,7 +253,7 @@ func RegisterRoutes(api huma.API, db *gorm.DB, cfg *config.Config, log logger.Lo
 		Method:      http.MethodGet,
 		Path:        "/api/v1/sacco/reconciliation",
 		Summary:     "Collector Daily Reconciliation Overview",
-		Description: "Calculates total collected litres, total field sales, total spoilage, and net litres delivered to the cooling station.",
+		Description: "Balances a collector's day: collected + received from other collectors - sold - transferred out - spoiled = unaccounted. Includes the day's transfers.",
 		Tags:        []string{"Collector Reconciliation"},
 	}, PermMilkReconciliationRead), handler.GetReconciliation)
 }

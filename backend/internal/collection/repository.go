@@ -451,7 +451,8 @@ func (r *Repository) ListSpoilage(ctx context.Context, q query.Query) ([]MilkSpo
 
 // --- RECONCILIATION SUMMARY METHOD ---
 
-// GetCollectorReconciliation balances one collector's day. Queries use plain
+// GetCollectorReconciliation balances one collector's day, transfers to and
+// from other collectors included. Queries use plain
 // date equality (not DATE(col)) so the (sacco_id, collector_id, date) indexes apply.
 func (r *Repository) GetCollectorReconciliation(ctx context.Context, collectorID uint, dateStr string) (*CollectorReconciliation, error) {
 	saccoID, _ := middleware.GetSaccoID(ctx)
@@ -501,6 +502,14 @@ func (r *Repository) GetCollectorReconciliation(ctx context.Context, collectorID
 		return nil, err
 	}
 
+	transfers, err := r.collectorTransferTotals(ctx, saccoID, collectorID, dateStr, dateStr)
+	if err != nil {
+		return nil, err
+	}
+	if recon.Transfers, err = r.dayTransfers(ctx, saccoID, collectorID, dateStr); err != nil {
+		return nil, err
+	}
+
 	recon.TotalCollectedLitres = round2(intake.Litres)
 	recon.TotalPurchasesAmount = round2(intake.Amount)
 	recon.TotalSoldLitres = round2(sales.Litres)
@@ -509,7 +518,12 @@ func (r *Repository) GetCollectorReconciliation(ctx context.Context, collectorID
 	recon.CreditSalesAmount = round2(sales.Revenue - sales.Paid)
 	recon.TotalSpoiledLitres = round2(spoiled)
 	recon.SalesByCustomerType = byType
-	recon.Result = reconcile.Compute(intake.Litres, sales.Litres, spoiled, reconcile.ToleranceLitres(ctx, r.db, saccoID))
+	recon.TotalReceivedLitres = round2(transfers.Received)
+	recon.TotalTransferredOutLitres = round2(transfers.TransferredOut)
+	recon.Result = reconcile.Balance(reconcile.Flows{
+		Collected: intake.Litres, Received: transfers.Received,
+		Sold: sales.Litres, TransferredOut: transfers.TransferredOut, Spoiled: spoiled,
+	}, reconcile.ToleranceLitres(ctx, r.db, saccoID))
 
 	var username string
 	r.db.WithContext(ctx).Table("users").Where("id = ?", collectorID).Select("username").Scan(&username)

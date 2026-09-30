@@ -38,13 +38,9 @@ func (s *Service) CreateMember(ctx context.Context, req *CreateMemberRequest) (*
 		if err == nil && existing != nil {
 			return nil, fmt.Errorf("membership number '%s' already exists in this Sacco", membershipNo)
 		}
-	} else {
-		seq, err := s.repo.GetNextMembershipSequence(ctx, saccoID)
-		if err != nil {
-			return nil, fmt.Errorf("failed to generate membership sequence: %w", err)
-		}
-		membershipNo = fmt.Sprintf("MEM-%04d", seq)
 	}
+	// Left blank: numbered after the Sacco's highest number, below.
+	autoNumber := membershipNo == ""
 
 	userID := middleware.GetUserID(ctx)
 	var registeredByID *uint
@@ -81,11 +77,27 @@ func (s *Service) CreateMember(ctx context.Context, req *CreateMemberRequest) (*
 		NextOfKinPhone:        &kin.Phone,
 	}
 
-	if err := s.repo.Create(ctx, member); err != nil {
+	// Two farmers registered at the same moment can be given the same
+	// number; the unique index refuses the second, which takes the next.
+	for attempt := 1; ; attempt++ {
+		if autoNumber {
+			used, err := s.repo.MembershipNumbers(ctx, saccoID)
+			if err != nil {
+				return nil, fmt.Errorf("failed to number the farmer: %w", err)
+			}
+			member.MembershipNumber = nextMembershipNumber(used)
+		}
+		err := s.repo.Create(ctx, member)
+		if err == nil {
+			return member, nil
+		}
+		if autoNumber && attempt < 3 {
+			if taken, _ := s.repo.FindByMembershipNumber(ctx, saccoID, member.MembershipNumber); taken != nil {
+				continue
+			}
+		}
 		return nil, fmt.Errorf("failed to create member: %w", err)
 	}
-
-	return member, nil
 }
 
 func (s *Service) GetMemberByID(ctx context.Context, id string) (*Member, error) {

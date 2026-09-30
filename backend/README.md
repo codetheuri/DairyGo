@@ -20,7 +20,7 @@ Explore the full documentation guides in the [`docs/`](docs/) directory:
 - 🗄️ **[Database & Migrations](docs/database-and-migrations.md)** - GORM connectivity, seeder tools, and schema migration CLI (`cmd/migrate`).
 - 🔍 **[Querying, Filtering & Pagination](docs/querying-and-pagination.md)** - Dynamic searching, sorting, field filtering, and metadata envelopes (`pkg/query`).
 - 🚢 **[Deploying an update](docs/deployment.md)** - What to run on the server after a merge, checks and rollback.
-- 🥛 **DairyGo features** - [collections and pricing](docs/collections-and-pricing.md), [customers and ledger](docs/customers-and-ledger.md), [milk transfers](docs/milk-transfers.md), [reconciliation and dashboards](docs/reconciliation-and-dashboards.md), [staff management](docs/staff-management.md), [platform console](docs/platform-console.md), [app releases](docs/app-releases.md), [sessions and safe retries](docs/sessions-and-idempotency.md), [multi-tenancy](docs/multi-tenancy.md).
+- 🥛 **DairyGo features** - [collections and pricing](docs/collections-and-pricing.md), [customers and ledger](docs/customers-and-ledger.md), [milk transfers](docs/milk-transfers.md), [reconciliation and dashboards](docs/reconciliation-and-dashboards.md), [staff management](docs/staff-management.md), [importing farmers](docs/importing-farmers.md), [platform console](docs/platform-console.md), [app releases](docs/app-releases.md), [sessions and safe retries](docs/sessions-and-idempotency.md), [multi-tenancy](docs/multi-tenancy.md).
 - 📬 **[Standardized Responses & Error Handling](docs/responses-and-errors.md)** - Uniform JSON response structure (`pkg/response`) and status code conventions.
 
 ---

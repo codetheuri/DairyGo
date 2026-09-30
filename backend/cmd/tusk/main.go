@@ -33,6 +33,8 @@ func main() {
 	switch command {
 	case "auth":
 		handleAuthCommand(os.Args[2:])
+	case "members":
+		handleMembersCommand(os.Args[2:])
 	default:
 		fmt.Printf("Unknown command: %s\n", command)
 		printUsage()
@@ -99,4 +101,5 @@ func printUsage() {
 	fmt.Println("  tusk <command> [arguments]")
 	fmt.Println("\nAvailable Commands:")
 	fmt.Println("  auth sync [--prune]    Sync registered code permissions to runtime database")
+	fmt.Println("  members import         Load a Sacco's farmer register from CSV (see: members import --help)")
 }

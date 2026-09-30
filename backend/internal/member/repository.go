@@ -46,10 +46,13 @@ func (r *Repository) FindByMembershipNumber(ctx context.Context, saccoID, member
 	return &m, nil
 }
 
-func (r *Repository) GetNextMembershipSequence(ctx context.Context, saccoID string) (int64, error) {
-	var count int64
-	err := r.db.WithContext(ctx).Model(&Member{}).Where("sacco_id = ?", saccoID).Unscoped().Count(&count).Error
-	return count + 1, err
+// MembershipNumbers returns every membership number used in a Sacco,
+// including those of removed farmers, so none is given out twice.
+func (r *Repository) MembershipNumbers(ctx context.Context, saccoID string) ([]string, error) {
+	var numbers []string
+	err := r.db.WithContext(ctx).Model(&Member{}).Unscoped().
+		Where("sacco_id = ?", saccoID).Pluck("membership_number", &numbers).Error
+	return numbers, err
 }
 
 func (r *Repository) List(ctx context.Context, q query.Query) ([]Member, query.Meta, error) {

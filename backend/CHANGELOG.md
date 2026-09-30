@@ -9,6 +9,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 
 ### Added
+- **Import a Sacco's farmer register** (`dairy-cli members import`): loads farmers from CSV, checking the whole file first; `--replace` (with `--confirm <code>`) first clears that Sacco's test farmers, milk records, customers and their history, keeping staff, settings and prices; `--dry-run` reports without changing anything; all in one transaction. See [docs/importing-farmers.md](docs/importing-farmers.md).
+
+### Changed
+- **Farmers registered without a membership number continue the Sacco's own numbering** (after `150` comes `151`, at least three digits) instead of `MEM-0001`, and a number is never given out twice, even after farmers are removed.
+
+### Added
 - **App updates with one tap** (mobile): on Wi-Fi a new version downloads by itself and the app offers **Restart**; the install uses Android's `PackageInstaller`, so on Android 12+ updates after the first install without Android's "Update?" question, and the app asks to reopen after updating. On mobile data the user still starts the download. See `mobile/docs/releases.md`.
 - **Edit a farmer's details and see who changed them**: `PUT /sacco/members/{id}` validates names, phone and M-Pesa number, clears an optional field sent empty, and records every change (old and new values) in the audit trail; `GET /sacco/members/{id}/history` lists them. Payout details decide where money goes, so their changes are always traceable.
 - `TestAllRoutesRegister` registers every module's routes in a test, so a start-up panic (e.g. two response types with the same schema name) is caught before deploy.

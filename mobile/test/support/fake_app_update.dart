@@ -1,6 +1,8 @@
 // Stand-ins for the in-app updater, so tests never reach the real server or
 // Android's installer.
 
+import 'dart:async';
+
 import 'package:dairy_sacco_mobile/features/app_update/data/app_release.dart';
 import 'package:dairy_sacco_mobile/features/app_update/data/app_update_service.dart';
 import 'package:dairy_sacco_mobile/features/app_update/presentation/app_update_controller.dart';
@@ -28,6 +30,13 @@ class FakeInstaller extends UpdateInstaller {
   final List<String> installed = [];
   int settingsOpened = 0;
   final String dir;
+  final _results = StreamController<InstallResult>.broadcast();
+
+  /// Answers as Android would about the last install.
+  void answer(InstallResult result) => _results.add(result);
+
+  @override
+  Stream<InstallResult> get results => _results.stream;
 
   FakeInstaller({this.allowed = true, this.dir = '/nowhere'});
 
@@ -56,6 +65,13 @@ class FakeAppUpdateService extends AppUpdateService {
   /// Thrown by [download] instead of finishing, when set.
   Object? downloadError;
 
+  /// The phone is on Wi-Fi, so updates download by themselves.
+  bool wifi = false;
+
+  /// A finished download is already on the phone.
+  bool alreadyDownloaded = false;
+  int downloads = 0;
+
   FakeAppUpdateService({this.latest, FakeInstaller? installer})
     : super(Dio(), installer ?? FakeInstaller());
 
@@ -69,12 +85,20 @@ class FakeAppUpdateService extends AppUpdateService {
   }
 
   @override
+  Future<bool> onWifi() async => wifi;
+
+  @override
+  Future<String?> downloaded(AppRelease release, String abi) async =>
+      alreadyDownloaded ? '/updates/DairyGo-${release.build}-$abi.apk' : null;
+
+  @override
   Future<String> download(
     AppRelease release,
     String abi, {
     CancelToken? cancel,
     void Function(int received, int total)? onProgress,
   }) async {
+    downloads++;
     final size = release.files[abi]!.size;
     onProgress?.call(size ~/ 2, size);
     if (downloadError != null) throw downloadError!;

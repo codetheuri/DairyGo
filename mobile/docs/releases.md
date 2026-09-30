@@ -87,18 +87,36 @@ update. The server answers apps that send no `scheme` in that scale (build +
 
 ## What users see
 
-- **A green bar at the bottom of every screen**: "New version … is ready",
-  with **Update** and **Later**. Later hides it until the app is next opened.
-- **Update** downloads in the background, with progress, while they keep
-  working. A dropped connection continues where it stopped (21 MB takes
-  about half an hour at 100 kbps). The file is checked against the
+- **On Wi-Fi the new version downloads by itself**, with nothing shown.
+  When it is ready, a green bar at the bottom says "Version … is ready to
+  install" with **Restart** and **Later**. Restart installs it: DairyGo
+  closes and opens again on the new version.
+- **On mobile data nothing downloads unasked** (21 MB costs the user money).
+  The bar says "New version … is ready" with **Update** and **Later**.
+  Update downloads while they keep working, with progress, then installs
+  straight away. A dropped connection continues where it stopped (21 MB
+  takes about half an hour at 100 kbps). Every file is checked against the
   release's SHA-256.
+- Later hides the bar until the app is next opened. A finished download is
+  kept, so next time Restart is offered at once, with no data used.
 - **The first time**, Android asks to allow installs from DairyGo. The bar
   says so and its **Allow** button opens the switch. After the user turns it
-  on and presses Back, the install continues by itself.
-- Android's installer then asks **Update?**. No app outside an app store can
-  skip this tap.
-- **More → App version** shows the version, with **Check** and **Update**.
+  on and presses Back, the install continues by itself. Android remembers
+  this, so it is asked once per phone.
+- **Whether Android asks "Update?"** depends on the phone:
+  - **Android 12 and newer:** no question when the installed version was
+    itself installed by DairyGo. So the first update after installing from
+    the download page (Chrome was the installer) asks once; every update
+    after that installs straight away.
+  - **Android 7 to 11:** Android asks every time. No app outside an app
+    store can avoid this.
+- **Reopening after an update:** Android closes the app to replace it.
+  DairyGo then asks to be opened again (`UpdatedReceiver.kt`). Some phones
+  do not let an app open itself, and there the user taps the DairyGo icon.
+- Play Protect may still scan the new version, as it does for any app not
+  from Play. It does this less once many phones have the same signed app.
+- **More → App version** shows the version, with **Check** and the current
+  step (Update, Restart, progress).
 - With `--required`, older apps show only the update screen, even before
   login, with the download page address as a fallback.
 
@@ -108,8 +126,9 @@ cannot log in can still update.
 
 ## Security
 
-- Only a phone's own installer can install, and only an APK signed with the
-  release key. A changed file fails the SHA-256 check first.
+- Android installs only an APK signed with the release key, whether it
+  asks the user or not. A changed file fails the SHA-256 check first. The
+  app installs only files in its own private `updates` folder.
 - Releases are copied to the server by the developer. The API has no upload
   endpoint, so a stolen password cannot replace the app.
 - The app asks Android for `REQUEST_INSTALL_PACKAGES`. Google Play restricts
@@ -120,8 +139,11 @@ cannot log in can still update.
 
 Before sharing a release, on one phone with the previous version:
 
-1. Open the app and wait for the green bar (or More → App version → Check).
+1. On mobile data, open the app and wait for the green bar (or More →
+   App version → Check).
 2. Tap Update and watch the progress. Turn mobile data off and on midway;
-   tapping Update again should continue from where it stopped.
+   tapping Try again should continue from where it stopped.
 3. Allow installs when asked, press Back, and confirm the Android update.
-4. The app restarts on the new version; More shows it.
+4. The app opens again on the new version (or tap its icon); More shows it.
+5. Publish another build and open the app on Wi-Fi: after a moment the bar
+   offers **Restart**. On Android 12+ tapping it updates with no question.

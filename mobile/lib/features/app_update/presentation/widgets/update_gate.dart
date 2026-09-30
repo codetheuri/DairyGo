@@ -18,6 +18,9 @@ class UpdateStatus {
   final bool downloading;
   final bool isError;
 
+  /// The strip offers "Later" (only for an offer, not work under way).
+  final bool canPutOff;
+
   const UpdateStatus({
     required this.icon,
     required this.title,
@@ -27,6 +30,7 @@ class UpdateStatus {
     this.progress,
     this.downloading = false,
     this.isError = false,
+    this.canPutOff = false,
   });
 
   static String _mb(int bytes) => (bytes / (1 << 20)).toStringAsFixed(0);
@@ -43,6 +47,7 @@ class UpdateStatus {
         subtitle: '${_mb(size)} MB · Wi-Fi is best on a slow connection',
         actionLabel: 'Update',
         onAction: c.update,
+        canPutOff: true,
       ),
       UpdateStep.downloading => UpdateStatus(
         icon: Icons.downloading_rounded,
@@ -65,10 +70,20 @@ class UpdateStatus {
         onAction: c.allowInstalls,
       ),
       UpdateStep.readyToInstall => UpdateStatus(
+        icon: Icons.restart_alt_rounded,
+        title: 'Version ${latest.version} is ready to install',
+        subtitle: 'Tap Restart: DairyGo closes and opens again, updated.',
+        actionLabel: 'Restart',
+        onAction: c.install,
+        canPutOff: true,
+      ),
+      UpdateStep.installing => UpdateStatus(
         icon: Icons.install_mobile_rounded,
-        title: 'Update downloaded',
-        subtitle: 'Tap Install, then Update on the next screen.',
-        actionLabel: 'Install',
+        title: 'Updating DairyGo…',
+        subtitle:
+            'The app closes and opens again. If Android asks, tap Update. '
+            'If it stays closed, open DairyGo from its icon.',
+        actionLabel: 'Restart',
         onAction: c.install,
       ),
       UpdateStep.failed => UpdateStatus(
@@ -97,9 +112,12 @@ class UpdateGate extends ConsumerWidget {
     if (state.required) return const UpdateRequiredScreen();
 
     final status = UpdateStatus.of(state, ref.read(appUpdateProvider.notifier));
-    // Once started, the download stays visible even after "Later".
+    // A download on Wi-Fi shows only once it is ready; "Later" hides an
+    // offer, never work under way.
     final show =
-        status != null && (!state.dismissed || state.step != UpdateStep.idle);
+        status != null &&
+        !(state.quiet && state.step == UpdateStep.downloading) &&
+        !(state.dismissed && status.canPutOff);
     return ColoredBox(
       color: AppColors.background,
       child: Column(
@@ -134,7 +152,6 @@ class _UpdateStrip extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final color = status.isError ? AppColors.error : AppColors.primary;
-    final canPutOff = !status.downloading && !status.isError;
     return Material(
       color: color,
       child: SafeArea(
@@ -180,7 +197,7 @@ class _UpdateStrip extends ConsumerWidget {
                 child: Wrap(
                   spacing: 4,
                   children: [
-                    if (canPutOff && status.actionLabel == 'Update')
+                    if (status.canPutOff)
                       TextButton(
                         onPressed: ref.read(appUpdateProvider.notifier).later,
                         style: TextButton.styleFrom(
@@ -317,9 +334,11 @@ class UpdateRequiredScreen extends ConsumerWidget {
                               onPressed: status.onAction,
                               icon: Icon(status.icon),
                               label: Text(
-                                status.actionLabel == 'Update'
-                                    ? 'Update now'
-                                    : status.actionLabel!,
+                                switch (status.actionLabel!) {
+                                  'Update' => 'Update now',
+                                  'Restart' => 'Restart to update',
+                                  final label => label,
+                                },
                               ),
                             ),
                     ),

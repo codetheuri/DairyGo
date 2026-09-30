@@ -163,6 +163,15 @@ void main() {
       expect(server.ranges.length, requests);
     });
 
+    test('knows a finished download, and only a sound one', () async {
+      final release = _releaseOf(apk);
+      expect(await service.downloaded(release, 'arm64'), isNull);
+      final path = await service.download(release, 'arm64');
+      expect(await service.downloaded(release, 'arm64'), path);
+      File(path).writeAsBytesSync(apk.sublist(1));
+      expect(await service.downloaded(release, 'arm64'), isNull);
+    });
+
     test('removes downloads of other versions', () async {
       final path = await service.download(_releaseOf(apk), 'arm64');
       File('${dir.path}/DairyGo-9-arm64.apk').writeAsStringSync('old');
@@ -237,7 +246,7 @@ void main() {
       expect(service.fakeInstaller.settingsOpened, 1);
       service.fakeInstaller.allowed = true;
       await controller().onResume();
-      expect(state().step, UpdateStep.readyToInstall);
+      expect(state().step, UpdateStep.installing);
       expect(service.fakeInstaller.installed, [
         '/updates/DairyGo-11-arm64.apk',
       ]);
@@ -253,7 +262,107 @@ void main() {
 
       service.downloadError = null;
       await controller().update();
+      expect(state().step, UpdateStep.installing);
+    });
+
+    Future<void> settle() async {
+      for (var i = 0; i < 5; i++) {
+        await Future<void>.delayed(Duration.zero);
+      }
+    }
+
+    test('on Wi-Fi it downloads by itself and waits for Restart', () async {
+      service
+        ..latest = releaseForTests()
+        ..wifi = true;
+      await controller().check();
+      await settle();
+      expect(service.downloads, 1);
       expect(state().step, UpdateStep.readyToInstall);
+      expect(service.fakeInstaller.installed, isEmpty, reason: 'not asked');
+
+      await controller().install();
+      expect(state().step, UpdateStep.installing);
+      expect(service.fakeInstaller.installed, [
+        '/updates/DairyGo-11-arm64.apk',
+      ]);
+    });
+
+    test('on mobile data nothing downloads until asked', () async {
+      service.latest = releaseForTests();
+      await controller().check();
+      await settle();
+      expect(service.downloads, 0);
+      expect(state().step, UpdateStep.idle);
+      expect(state().available, isTrue);
+    });
+
+    test('a download from before is ready at once, with no data', () async {
+      service
+        ..latest = releaseForTests()
+        ..alreadyDownloaded = true;
+      await controller().check();
+      expect(service.downloads, 0);
+      expect(state().step, UpdateStep.readyToInstall);
+      await controller().install();
+      expect(service.fakeInstaller.installed, hasLength(1));
+    });
+
+    test('a download on Wi-Fi that fails leaves the usual offer', () async {
+      service
+        ..latest = releaseForTests()
+        ..wifi = true
+        ..downloadError = UpdateException.stopped;
+      await controller().check();
+      await settle();
+      expect(state().step, UpdateStep.idle);
+      expect(state().error, isNull);
+      expect(state().available, isTrue);
+    });
+
+    test('follows what Android says about the install', () async {
+      service
+        ..latest = releaseForTests()
+        ..alreadyDownloaded = true;
+      await controller().check();
+      final installer = service.fakeInstaller;
+
+      await controller().install();
+      installer.answer(const InstallResult(InstallOutcome.confirming));
+      await settle();
+      expect(state().step, UpdateStep.installing);
+
+      // The user closed Android's confirm screen: offer Restart again.
+      installer.answer(const InstallResult(InstallOutcome.cancelled));
+      await settle();
+      expect(state().step, UpdateStep.readyToInstall);
+
+      await controller().install();
+      installer.answer(
+        const InstallResult(InstallOutcome.failed, 'INSTALL_FAILED_NO_SPACE'),
+      );
+      await settle();
+      expect(state().step, UpdateStep.failed);
+      expect(state().error, contains('INSTALL_FAILED_NO_SPACE'));
+
+      // Try again reuses the file and installs.
+      await controller().update();
+      expect(state().step, UpdateStep.installing);
+      expect(installer.installed, hasLength(3));
+    });
+
+    test('Android could not start the install', () async {
+      final installer = _RefusingInstaller();
+      service = FakeAppUpdateService(
+        latest: releaseForTests(),
+        installer: installer,
+      )..alreadyDownloaded = true;
+      container.dispose();
+      container = ProviderContainer(overrides: fakeUpdateOverrides(service));
+      await controller().check();
+      await controller().install();
+      expect(state().step, UpdateStep.failed);
+      expect(state().error, contains('DairyGo page'));
     });
 
     test('a phone type without an APK is not offered the update', () async {
@@ -276,9 +385,10 @@ void main() {
 
     Future<FakeAppUpdateService> pumpGate(
       WidgetTester tester,
-      AppRelease? latest,
-    ) async {
-      final service = FakeAppUpdateService(latest: latest);
+      AppRelease? latest, {
+      bool wifi = false,
+    }) async {
+      final service = FakeAppUpdateService(latest: latest)..wifi = wifi;
       await tester.pumpWidget(
         ProviderScope(
           overrides: fakeUpdateOverrides(service),
@@ -314,7 +424,28 @@ void main() {
 
       await tester.tap(find.text('Update now'));
       await tester.pumpAndSettle();
-      expect(find.text('Install'), findsOneWidget);
+      expect(find.text('Restart to update'), findsOneWidget);
+    });
+
+    testWidgets('downloaded on Wi-Fi, one tap on Restart installs it', (
+      tester,
+    ) async {
+      final service = await pumpGate(tester, releaseForTests(), wifi: true);
+      expect(find.text('Version 1.4.11 is ready to install'), findsOneWidget);
+      expect(find.text('Later'), findsOneWidget);
+
+      await tester.tap(find.text('Restart'));
+      await tester.pumpAndSettle();
+      expect(find.text('Updating DairyGo…'), findsOneWidget);
+      expect(find.text('Later'), findsNothing);
+      expect(service.fakeInstaller.installed, hasLength(1));
+    });
+
+    testWidgets('Later hides the Restart offer', (tester) async {
+      await pumpGate(tester, releaseForTests(), wifi: true);
+      await tester.tap(find.text('Later'));
+      await tester.pumpAndSettle();
+      expect(find.text('Version 1.4.11 is ready to install'), findsNothing);
     });
 
     testWidgets('More shows the version and checks when asked', (tester) async {
@@ -340,9 +471,11 @@ void main() {
     });
 
     // The smallest phone with the largest text, in the real app.
-    for (final (name, release) in [
-      ('update strip', releaseForTests()),
-      ('update screen', releaseForTests(build: 12, minBuild: 11)),
+    for (final (name, release, wifi) in [
+      ('update strip', releaseForTests(), false),
+      ('restart strip', releaseForTests(), true),
+      ('update screen', releaseForTests(build: 12, minBuild: 11), false),
+      ('restart screen', releaseForTests(build: 12, minBuild: 11), true),
     ]) {
       testWidgets('the $name fits a 320 dp phone with large text', (
         tester,
@@ -358,7 +491,7 @@ void main() {
           tester,
           'collector',
           '/dashboard',
-          updates: FakeAppUpdateService(latest: release),
+          updates: FakeAppUpdateService(latest: release)..wifi = wifi,
         );
         final container = app.container;
         await container.read(appUpdateProvider.notifier).check(manual: true);
@@ -371,11 +504,24 @@ void main() {
             )
             .evaluate()
             .length;
+        final button = find
+            .textContaining(wifi ? 'Restart' : 'Update')
+            .evaluate()
+            .length;
         final errors = [...app.errors];
         await app.close();
         expect(shown, 1);
+        expect(button, greaterThan(0));
         expect(errors, isEmpty);
       });
     }
   });
+}
+
+class _RefusingInstaller extends FakeInstaller {
+  @override
+  Future<bool> install(String path) async {
+    installed.add(path);
+    return false;
+  }
 }

@@ -66,11 +66,6 @@ flutter {
     source = "../.."
 }
 
-dependencies {
-    // FileProvider, to hand a downloaded update to the installer.
-    implementation("androidx.core:core:1.13.1")
-}
-
 // Fail early with instructions instead of producing an unsigned release.
 gradle.taskGraph.whenReady {
     val buildsRelease = allTasks.any {

@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:ffi' show Abi;
 import 'dart:io';
 
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/services.dart';
@@ -29,9 +31,30 @@ String? currentAbi() => switch (Abi.current()) {
   _ => null,
 };
 
+/// How an install ended, as Android reported it.
+enum InstallOutcome {
+  /// Android is showing its confirm screen.
+  confirming,
+
+  /// The user closed the confirm screen without updating.
+  cancelled,
+  failed,
+}
+
+class InstallResult {
+  final InstallOutcome outcome;
+
+  /// Android's reason, when it failed.
+  final String? message;
+
+  const InstallResult(this.outcome, [this.message]);
+}
+
 /// Android's installer, reached through MainActivity.kt.
 class UpdateInstaller {
   static const _channel = MethodChannel('dairygo/app_update');
+  static final _results = StreamController<InstallResult>.broadcast();
+  static var _listening = false;
 
   /// The app's private folder for downloaded updates.
   Future<String> updatesDir() async =>
@@ -45,9 +68,32 @@ class UpdateInstaller {
   Future<bool> openSettings() async =>
       await _channel.invokeMethod<bool>('openInstallSettings') ?? false;
 
-  /// Opens Android's installer for [path]; the user confirms there.
+  /// Starts installing [path] over this app. When it succeeds Android closes
+  /// the app (and usually opens the new version); otherwise [results] says
+  /// what happened. Returns false when the install could not start.
   Future<bool> install(String path) async =>
       await _channel.invokeMethod<bool>('install', {'path': path}) ?? false;
+
+  /// What Android said about installs started with [install].
+  Stream<InstallResult> get results {
+    if (!_listening) {
+      _listening = true;
+      _channel.setMethodCallHandler((call) async {
+        if (call.method != 'installStatus') return;
+        final args = Map<String, Object?>.from(call.arguments as Map);
+        final outcome = switch (args['status']) {
+          'confirming' => InstallOutcome.confirming,
+          'cancelled' => InstallOutcome.cancelled,
+          'failed' => InstallOutcome.failed,
+          _ => null, // installed: this is already the new version
+        };
+        if (outcome != null) {
+          _results.add(InstallResult(outcome, args['message'] as String?));
+        }
+      });
+    }
+    return _results.stream;
+  }
 }
 
 /// Finds and downloads new versions of the app.
@@ -92,8 +138,30 @@ class AppUpdateService {
     }
   }
 
+  /// Whether the phone is on Wi-Fi (or a cable), where an update can be
+  /// downloaded without being asked: mobile data costs the user money.
+  Future<bool> onWifi() async {
+    try {
+      final links = await Connectivity().checkConnectivity();
+      return links.contains(ConnectivityResult.wifi) ||
+          links.contains(ConnectivityResult.ethernet);
+    } catch (_) {
+      return false;
+    }
+  }
+
   static String _fileName(AppRelease r, String abi) =>
       'DairyGo-${r.build}-$abi.apk';
+
+  /// The already downloaded and checked APK of [release] for [abi], if any.
+  Future<String?> downloaded(AppRelease release, String abi) async {
+    final file = release.files[abi];
+    if (file == null) return null;
+    final done = File(
+      '${await installer.updatesDir()}/${_fileName(release, abi)}',
+    );
+    return await done.exists() && await _matches(done, file) ? done.path : null;
+  }
 
   /// Downloads [release]'s APK for [abi] and returns its path, reporting
   /// bytes received so far out of the total.

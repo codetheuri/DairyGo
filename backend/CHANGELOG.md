@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 
 ### Added
+- **App updates with one tap** (mobile): on Wi-Fi a new version downloads by itself and the app offers **Restart**; the install uses Android's `PackageInstaller`, so on Android 12+ updates after the first install without Android's "Update?" question, and the app asks to reopen after updating. On mobile data the user still starts the download. See `mobile/docs/releases.md`.
 - **Edit a farmer's details and see who changed them**: `PUT /sacco/members/{id}` validates names, phone and M-Pesa number, clears an optional field sent empty, and records every change (old and new values) in the audit trail; `GET /sacco/members/{id}/history` lists them. Payout details decide where money goes, so their changes are always traceable.
 - `TestAllRoutesRegister` registers every module's routes in a test, so a start-up panic (e.g. two response types with the same schema name) is caught before deploy.
 

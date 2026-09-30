@@ -32,8 +32,11 @@ enum UpdateStep {
   idle,
   downloading,
 
-  /// Downloaded; Android's installer was opened, or can be opened again.
+  /// Downloaded; the user taps Restart to install it.
   readyToInstall,
+
+  /// Handed to Android, which closes the app when the update is in place.
+  installing,
 
   /// The user must first allow DairyGo to install updates.
   needsPermission,
@@ -48,6 +51,9 @@ class AppUpdateState {
   final String? abi;
   final bool checking;
   final UpdateStep step;
+
+  /// Downloading by itself on Wi-Fi: nothing is shown until it is ready.
+  final bool quiet;
   final int received;
   final int total;
 
@@ -66,6 +72,7 @@ class AppUpdateState {
     this.abi,
     this.checking = false,
     this.step = UpdateStep.idle,
+    this.quiet = false,
     this.received = 0,
     this.total = 0,
     this.error,
@@ -97,6 +104,7 @@ class AppUpdateState {
     String? abi,
     bool? checking,
     UpdateStep? step,
+    bool? quiet,
     int? received,
     int? total,
     String? error,
@@ -109,6 +117,7 @@ class AppUpdateState {
     abi: abi ?? this.abi,
     checking: checking ?? this.checking,
     step: step ?? this.step,
+    quiet: quiet ?? this.quiet,
     received: received ?? this.received,
     total: total ?? this.total,
     error: clearError ? null : error ?? this.error,
@@ -117,8 +126,12 @@ class AppUpdateState {
   );
 }
 
-/// Checks for new versions (at start, on return to the app, and when asked),
-/// downloads them and hands them to Android's installer.
+/// Checks for new versions (at start, on return to the app, and when asked)
+/// and installs them.
+///
+/// On Wi-Fi a new version downloads by itself; once it is ready the user
+/// taps Restart and Android swaps the app for the new version. On mobile
+/// data the user starts the download (Update), and it installs when done.
 class AppUpdateController extends Notifier<AppUpdateState> {
   /// Automatic checks are this far apart; the user can check any time.
   static const checkEvery = Duration(hours: 6);
@@ -130,12 +143,18 @@ class AppUpdateController extends Notifier<AppUpdateState> {
   AppUpdateService get _service => ref.read(appUpdateServiceProvider);
 
   @override
-  AppUpdateState build() => AppUpdateState(abi: ref.read(deviceAbiProvider));
+  AppUpdateState build() {
+    final results = _service.installer.results.listen(_onInstallResult);
+    ref.onDispose(results.cancel);
+    return AppUpdateState(abi: ref.read(deviceAbiProvider));
+  }
 
   /// Looks for a newer version. Automatic checks fail silently (the phone
   /// may be offline); a check the user asked for says what happened.
   Future<void> check({bool manual = false}) async {
-    if (state.checking || state.step == UpdateStep.downloading) return;
+    // Not while an update is under way (a failed one can be checked again).
+    final busy = state.step != UpdateStep.idle && state.step != UpdateStep.failed;
+    if (state.checking || busy) return;
     final last = _lastCheck;
     if (!manual &&
         last != null &&
@@ -152,16 +171,30 @@ class AppUpdateController extends Notifier<AppUpdateState> {
           state.installed ?? await ref.read(installedAppProvider.future);
       final latest = await _service.fetchLatest();
       _lastCheck = DateTime.now();
-      state = state.copyWith(
+      final found = state.copyWith(
         installed: installed,
         latest: latest,
         clearLatest: latest == null,
         checking: false,
       );
-      if (manual && !state.available) {
-        state = state.copyWith(confirmedUpToDate: true);
-      }
       unawaited(_service.removeOldDownloads(keepBuild: latest?.build));
+
+      // Decide how to offer it before showing anything, so the offer does
+      // not flash up and change a moment later.
+      final abi = found.abi;
+      if (found.available && latest != null && abi != null) {
+        _apkPath = await _service.downloaded(latest, abi);
+        if (_apkPath != null) {
+          state = found.copyWith(step: UpdateStep.readyToInstall);
+          return;
+        }
+        if (await _service.onWifi()) {
+          state = found;
+          unawaited(_download(quiet: true));
+          return;
+        }
+      }
+      state = found.copyWith(confirmedUpToDate: manual && !found.available);
     } catch (_) {
       state = state.copyWith(
         checking: false,
@@ -172,26 +205,36 @@ class AppUpdateController extends Notifier<AppUpdateState> {
     }
   }
 
-  /// Downloads the new version, then opens the installer.
+  /// The user asked for the new version: downloads it, then installs it.
   Future<void> update() async {
+    if (await _download(quiet: false) != null) await install();
+  }
+
+  /// Downloads the new version and returns its file, or null when it did
+  /// not finish. A [quiet] download shows nothing until it is ready, and
+  /// failing only leaves the usual "new version" offer.
+  Future<String?> _download({required bool quiet}) async {
     final release = state.latest;
     final abi = state.abi;
     if (!state.available ||
         release == null ||
         abi == null ||
         state.step == UpdateStep.downloading) {
-      return;
+      return null;
     }
     _cancel = CancelToken();
     state = state.copyWith(
       step: UpdateStep.downloading,
+      quiet: quiet,
+      dismissed: quiet ? null : false,
       received: 0,
       total: release.files[abi]!.size,
       clearError: true,
     );
     var shownPercent = -1;
+    String error;
     try {
-      _apkPath = await _service.download(
+      final path = await _service.download(
         release,
         abi,
         cancel: _cancel,
@@ -203,29 +246,37 @@ class AppUpdateController extends Notifier<AppUpdateState> {
           state = state.copyWith(received: received, total: total);
         },
       );
-      await install();
-    } on DioException catch (e) {
-      state = CancelToken.isCancel(e)
-          ? state.copyWith(step: UpdateStep.idle)
-          : state.copyWith(
-              step: UpdateStep.failed,
-              error: UpdateException.stopped.message,
-            );
-    } on UpdateException catch (e) {
-      state = state.copyWith(step: UpdateStep.failed, error: e.message);
-    } catch (_) {
+      _apkPath = path;
       state = state.copyWith(
-        step: UpdateStep.failed,
-        error: UpdateException.stopped.message,
+        step: UpdateStep.readyToInstall,
+        quiet: false,
+        // Ready to use: offered again even if the user put the offer off.
+        dismissed: false,
       );
+      return path;
+    } on DioException catch (e) {
+      if (CancelToken.isCancel(e)) {
+        state = state.copyWith(step: UpdateStep.idle, quiet: false);
+        return null;
+      }
+      error = UpdateException.stopped.message;
+    } on UpdateException catch (e) {
+      error = e.message;
+    } catch (_) {
+      error = UpdateException.stopped.message;
     }
+    state = quiet
+        ? state.copyWith(step: UpdateStep.idle, quiet: false)
+        : state.copyWith(step: UpdateStep.failed, error: error);
+    return null;
   }
 
   /// Stops a download; what arrived is kept for next time.
   void cancel() => _cancel?.cancel();
 
-  /// Opens Android's installer for the downloaded version, first asking for
-  /// permission to install updates when needed.
+  /// Installs the downloaded version ("Restart"), first asking for
+  /// permission to install updates when needed. Android closes the app once
+  /// the new version is in place, and usually opens it again.
   Future<void> install() async {
     final path = _apkPath;
     if (path == null) return;
@@ -234,21 +285,39 @@ class AppUpdateController extends Notifier<AppUpdateState> {
       state = state.copyWith(step: UpdateStep.needsPermission);
       return;
     }
-    final opened = await installer.install(path);
-    state = opened
-        ? state.copyWith(step: UpdateStep.readyToInstall)
-        : state.copyWith(
-            step: UpdateStep.failed,
-            error:
-                'Could not open the installer. Download the app from '
-                'the DairyGo page instead.',
-          );
+    state = state.copyWith(step: UpdateStep.installing, clearError: true);
+    if (!await installer.install(path)) {
+      state = state.copyWith(
+        step: UpdateStep.failed,
+        error:
+            'Could not start the update. Download the app from the '
+            'DairyGo page instead.',
+      );
+    }
+  }
+
+  void _onInstallResult(InstallResult result) {
+    if (state.step != UpdateStep.installing) return;
+    switch (result.outcome) {
+      case InstallOutcome.confirming:
+        break;
+      case InstallOutcome.cancelled:
+        state = state.copyWith(step: UpdateStep.readyToInstall);
+      case InstallOutcome.failed:
+        final why = result.message;
+        state = state.copyWith(
+          step: UpdateStep.failed,
+          error:
+              'Android did not install the update'
+              '${why == null || why.isEmpty ? '' : ' ($why)'}. Tap Try again.',
+        );
+    }
   }
 
   /// Opens the switch that lets DairyGo install updates.
   Future<void> allowInstalls() => _service.installer.openSettings();
 
-  /// Hides the "new version" strip until the app restarts. A required update
+  /// Hides the update strip until the app restarts. A required update
   /// cannot be put off.
   void later() => state = state.copyWith(dismissed: true);
 

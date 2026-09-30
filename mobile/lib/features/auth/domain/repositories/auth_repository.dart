@@ -14,6 +14,13 @@ abstract class AuthRepository {
   Future<bool> sessionIdleExpired();
   Future<UserEntity> register(RegisterRequest request);
   Future<List<UserEntity>> listUsers();
+
+  /// Gives a staff member of the Sacco another role (1 admin, 2 collector,
+  /// 3 board member).
+  Future<UserEntity> changeStaffRole(int userId, int roleId, {String? reason});
+
+  /// Removes a staff member's account; what they recorded is kept.
+  Future<void> removeStaff(int userId, {String? reason});
   Future<void> changePassword(
     String currentPassword,
     String newPassword,

@@ -90,6 +90,17 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<UserEntity> changeStaffRole(
+    int userId,
+    int roleId, {
+    String? reason,
+  }) => _remoteDataSource.changeStaffRole(userId, roleId, reason: reason);
+
+  @override
+  Future<void> removeStaff(int userId, {String? reason}) =>
+      _remoteDataSource.removeStaff(userId, reason: reason);
+
+  @override
   Future<void> changePassword(
     String currentPassword,
     String newPassword,

@@ -131,6 +131,32 @@ func (s *Service) ResetPassword(ctx context.Context, userID uint, newPassword st
 	return s.changeUser(ctx, userID, updates, true, "password reset", nil)
 }
 
+// ChangeRole gives a Sacco user another Sacco role, with the same rules as a
+// Sacco administrator doing it.
+func (s *Service) ChangeRole(ctx context.Context, userID, roleID uint, reason *string) (*auth.User, error) {
+	if err := requirePlatform(ctx); err != nil {
+		return nil, err
+	}
+	_, saccoID, err := s.repo.FindStaffUser(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	return s.users.ChangeStaffRole(inSacco(ctx, saccoID), userID, roleID, reason)
+}
+
+// RemoveUser removes a Sacco user's account, with the same rules as a Sacco
+// administrator doing it.
+func (s *Service) RemoveUser(ctx context.Context, userID uint, reason *string) error {
+	if err := requirePlatform(ctx); err != nil {
+		return err
+	}
+	_, saccoID, err := s.repo.FindStaffUser(ctx, userID)
+	if err != nil {
+		return err
+	}
+	return s.users.RemoveStaff(inSacco(ctx, saccoID), userID, reason)
+}
+
 // changeUser applies an account change to a Sacco user and records it in the
 // Sacco's audit trail. Platform accounts cannot be changed from the console.
 func (s *Service) changeUser(ctx context.Context, userID uint, updates map[string]any, revokeSessions bool, what string, reason *string) error {

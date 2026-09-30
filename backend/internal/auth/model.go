@@ -2,6 +2,8 @@ package auth
 
 import (
 	"time"
+
+	"gorm.io/gorm"
 )
 
 // Seeded Sacco role IDs (see migration 00007). They are fixed so that
@@ -11,6 +13,20 @@ const (
 	RoleCollector  uint = 2
 	RoleExecutive  uint = 3
 )
+
+// SaccoRoleName returns the display name of a seeded Sacco role.
+func SaccoRoleName(roleID uint) string {
+	switch roleID {
+	case RoleSaccoAdmin:
+		return "Sacco Administrator"
+	case RoleCollector:
+		return "Milk Collector"
+	case RoleExecutive:
+		return "Board Member / Executive"
+	default:
+		return ""
+	}
+}
 
 // IsSaccoRole reports whether roleID is one of the roles a Sacco may assign to its own staff.
 func IsSaccoRole(roleID uint) bool {
@@ -36,6 +52,12 @@ type User struct {
 	LastLoginAt         *time.Time `json:"last_login_at,omitempty"`
 	CreatedAt           time.Time  `json:"created_at"`
 	UpdatedAt           time.Time  `json:"updated_at"`
+
+	// DeletedAt marks a removed account (see Service.RemoveStaff). GORM leaves
+	// removed accounts out of every query on User; the row stays so records
+	// they made keep their name.
+	DeletedAt   gorm.DeletedAt `json:"-" gorm:"index"`
+	DeletedByID *uint          `json:"-"`
 
 	RoleName            string     `json:"role_name,omitempty" gorm:"-"`
 

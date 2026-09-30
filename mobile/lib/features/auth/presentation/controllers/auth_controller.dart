@@ -25,6 +25,43 @@ final saccoStaffListProvider = FutureProvider.autoDispose<List<UserEntity>>((
   return repo.listUsers();
 });
 
+/// Changes to the Sacco's staff. Each method returns null on success or the
+/// message to show.
+class StaffActions {
+  final Ref _ref;
+
+  StaffActions(this._ref);
+
+  static String _message(Object e) =>
+      e.toString().replaceAll('Exception: ', '');
+
+  Future<String?> changeRole(int userId, int roleId, {String? reason}) async {
+    try {
+      await _ref
+          .read(authRepositoryProvider)
+          .changeStaffRole(userId, roleId, reason: reason);
+      _ref.invalidate(saccoStaffListProvider);
+      return null;
+    } catch (e) {
+      return _message(e);
+    }
+  }
+
+  Future<String?> remove(int userId, {String? reason}) async {
+    try {
+      await _ref
+          .read(authRepositoryProvider)
+          .removeStaff(userId, reason: reason);
+      _ref.invalidate(saccoStaffListProvider);
+      return null;
+    } catch (e) {
+      return _message(e);
+    }
+  }
+}
+
+final staffActionsProvider = Provider<StaffActions>(StaffActions.new);
+
 final authControllerProvider = AsyncNotifierProvider<AuthController, AuthState>(
   AuthController.new,
 );
@@ -89,14 +126,18 @@ class AuthController extends AsyncNotifier<AuthState> {
   }
 
   /// Signs out if the app was left unused past the idle limit, e.g. when it
-  /// comes back to the foreground after weeks in the background.
+  /// comes back to the foreground after weeks in the background. Otherwise
+  /// asks the server for the profile again, so a role an administrator
+  /// changed meanwhile shows without signing in again.
   Future<void> checkIdleSession() async {
     if (state.valueOrNull?.isAuthenticated != true) return;
     if (await ref.read(authRepositoryProvider).sessionIdleExpired()) {
       await ref.read(authRepositoryProvider).logout(notifyServer: false);
       await ResponseCache.clearAll();
       state = AsyncValue.data(AuthState.unauthenticated(_idleMessage));
+      return;
     }
+    await _confirmSession();
   }
 
   Future<void> login(String identity, String password) async {

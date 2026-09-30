@@ -6,6 +6,7 @@ import (
 
 	"github.com/danielgtaylor/huma/v2"
 
+	"github.com/codetheuri/tusk/internal/auth"
 	"github.com/codetheuri/tusk/internal/member"
 	"github.com/codetheuri/tusk/pkg/query"
 )
@@ -55,6 +56,23 @@ func (h *Handler) SetUserStatus(ctx context.Context, in *UserStatusInput) (*Mess
 		return nil, toHTTPError(err)
 	}
 	return message("User status updated", map[string]any{"is_active": in.Body.IsActive}), nil
+}
+
+func (h *Handler) ChangeRole(ctx context.Context, in *UserRoleInput) (*UserOutput, error) {
+	user, err := h.service.ChangeRole(ctx, in.ID, in.Body.RoleID, in.Body.Reason)
+	if err != nil {
+		return nil, toHTTPError(err)
+	}
+	resp := &UserOutput{}
+	resp.Body.Success, resp.Body.Message, resp.Body.Data.User = true, "Role changed to "+user.RoleName, user
+	return resp, nil
+}
+
+func (h *Handler) RemoveUser(ctx context.Context, in *RemoveUserInput) (*MessageOutput, error) {
+	if err := h.service.RemoveUser(ctx, in.ID, &in.Reason); err != nil {
+		return nil, toHTTPError(err)
+	}
+	return message("Staff account removed", nil), nil
 }
 
 func (h *Handler) UnlockUser(ctx context.Context, in *UserIDInput) (*MessageOutput, error) {
@@ -140,9 +158,9 @@ func message(msg string, data map[string]any) *MessageOutput {
 // validation problem with the request.
 func toHTTPError(err error) error {
 	switch {
-	case errors.Is(err, ErrForbidden):
+	case errors.Is(err, ErrForbidden), errors.Is(err, auth.ErrStaffForbidden):
 		return huma.Error403Forbidden(err.Error())
-	case errors.Is(err, ErrNotFound):
+	case errors.Is(err, ErrNotFound), errors.Is(err, auth.ErrStaffNotFound):
 		return huma.Error404NotFound(err.Error())
 	default:
 		return huma.Error400BadRequest(err.Error(), err)

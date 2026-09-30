@@ -513,6 +513,35 @@ async function staffTab(sacco) {
     },
   });
 
+  const changeRole = (u) => openForm({
+    title: `Change role of ${u.username}`,
+    intro: 'The new role replaces the current one and applies immediately. Their app shows the new menus the next time it is opened.',
+    submitLabel: 'Change role',
+    fields: [
+      { name: 'role_id', label: 'Role', type: 'select', options: ROLE_OPTIONS, required: true,
+        value: (ROLE_OPTIONS.find(([, label]) => label === u.role_name) || ROLE_OPTIONS[1])[0] },
+      { name: 'reason', label: 'Reason', type: 'textarea', full: true },
+    ],
+    onSubmit: async (v) => {
+      await api('PUT', `/admin/users/${u.id}/role`, compact({ role_id: Number(v.role_id), reason: v.reason }));
+      toast('Role changed');
+      reload();
+    },
+  });
+
+  const remove = (u) => openForm({
+    title: `Remove ${u.username} from ${sacco.name}?`,
+    intro: 'They are signed out immediately and cannot sign in again. Everything they recorded is kept under their name. This cannot be undone; to let them back in, add a new account.',
+    submitLabel: 'Remove account', danger: true,
+    fields: [{ name: 'reason', label: 'Reason', type: 'textarea', full: true }],
+    onSubmit: async (v) => {
+      const reason = (v.reason || '').trim();
+      await api('DELETE', `/admin/users/${u.id}${reason ? `?reason=${encodeURIComponent(reason)}` : ''}`);
+      toast('Staff account removed');
+      reload();
+    },
+  });
+
   const unlock = async (u) => {
     try {
       await api('POST', `/admin/users/${u.id}/unlock`);
@@ -536,7 +565,9 @@ async function staffTab(sacco) {
           ? h('button', { class: 'small danger', text: 'Deactivate', onclick: () => setActive(u, false) })
           : h('button', { class: 'small', text: 'Reactivate', onclick: () => setActive(u, true) }),
         isLocked(u) ? h('button', { class: 'small', text: 'Unlock', onclick: () => unlock(u) }) : null,
-        h('button', { class: 'small', text: 'Reset password', onclick: () => resetPassword(u) })) },
+        h('button', { class: 'small', text: 'Change role', onclick: () => changeRole(u) }),
+        h('button', { class: 'small', text: 'Reset password', onclick: () => resetPassword(u) }),
+        h('button', { class: 'small danger', text: 'Remove', onclick: () => remove(u) })) },
     ], users, { empty: 'No staff accounts.' }));
 }
 
@@ -681,9 +712,9 @@ function auditView(fixed = {}, withSacco = true) {
   const holder = h('div');
   const build = (options) => {
     if (withSacco) controls.sacco_id = select(options);
-    controls.entity_type = select([['', 'All records'], ['milk_collection', 'Collections'], ['milk_sale', 'Sales'],
+    controls.entity_type = select([['', 'All records'], ['milk_collection', 'Collections'], ['milk_sale', 'Sales'], ['milk_transfer', 'Transfers'],
       ['customer', 'Customers'], ['customer_payment', 'Customer payments'], ['user', 'Users'], ['sacco', 'Saccos']]);
-    controls.action = select([['', 'All actions'], ['CREATE', 'Created'], ['UPDATE', 'Edited'], ['STATUS', 'Status change'], ['VOID', 'Voided']]);
+    controls.action = select([['', 'All actions'], ['CREATE', 'Created'], ['UPDATE', 'Edited'], ['STATUS', 'Status change'], ['VOID', 'Voided'], ['DELETE', 'Removed']]);
     controls.from_date = dateInput('From date');
     controls.to_date = dateInput('To date');
     holder.replaceChildren(logList({

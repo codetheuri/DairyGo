@@ -64,8 +64,15 @@ class FixtureAdapter implements HttpClientAdapter {
   /// 'sacco_milk-sales'), to play data changed on the server.
   final Map<String, Object> replaced = {};
 
+  /// Answers to saves, by method and fixture name (for example
+  /// 'PUT auth_users_29_role'). Any other save gets a 404.
+  final Map<String, Object> writes = {};
+
   /// Names of the fixtures asked for, in order.
   final List<String> requests = [];
+
+  /// Saves sent, in order, as 'METHOD name'.
+  final List<String> sent = [];
 
   @override
   Future<ResponseBody> fetch(
@@ -84,7 +91,11 @@ class FixtureAdapter implements HttpClientAdapter {
     final file = File('test/layout/fixtures/$role/$name.json');
     var status = 404;
     Object body = {'success': false, 'message': 'not found'};
-    if (options.method == 'GET' && replaced.containsKey(name)) {
+    if (options.method != 'GET') sent.add('${options.method} $name');
+    if (writes.containsKey('${options.method} $name')) {
+      status = 200;
+      body = writes['${options.method} $name']!;
+    } else if (options.method == 'GET' && replaced.containsKey(name)) {
       status = 200;
       body = replaced[name]!;
     } else if (options.method == 'GET' && file.existsSync()) {

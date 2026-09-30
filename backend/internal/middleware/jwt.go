@@ -181,15 +181,18 @@ func HumaAuthenticate(api huma.API, jwtSecret string, db *gorm.DB) func(huma.Con
 					SaccoID     *string
 					IsActive    bool
 					SaccoStatus *string
+					RoleName    *string
 				}
 				if db != nil {
 					err := db.WithContext(reqCtx).Table("users").
-						Select("users.is_super_user, users.sacco_id, users.is_active, saccos.status AS sacco_status").
+						Select(`users.is_super_user, users.sacco_id, users.is_active, saccos.status AS sacco_status,
+							(SELECT MIN(roles.name) FROM user_roles JOIN roles ON roles.id = user_roles.role_id
+								WHERE user_roles.user_id = users.id) AS role_name`).
 						Joins("LEFT JOIN saccos ON saccos.id = users.sacco_id").
-						Where("users.id = ?", claims.UserID).
+						Where("users.id = ? AND users.deleted_at IS NULL", claims.UserID).
 						Take(&account).Error
 					if err != nil || !account.IsActive {
-						next(ctx) // unknown or deactivated account: treat as unauthenticated
+						next(ctx) // unknown, removed or deactivated account: treat as unauthenticated
 						return
 					}
 				} else {
@@ -204,8 +207,14 @@ func HumaAuthenticate(api huma.API, jwtSecret string, db *gorm.DB) func(huma.Con
 
 				reqCtx = context.WithValue(reqCtx, ContextKeyUserID, claims.UserID)
 				reqCtx = context.WithValue(reqCtx, "user_id", claims.UserID)
-				reqCtx = context.WithValue(reqCtx, ContextKeyRole, claims.Role)
-				reqCtx = context.WithValue(reqCtx, "role", claims.Role)
+				// The role comes from the database, not the token, so a role change
+				// applies to the user's next request.
+				role := claims.Role
+				if boundToSacco && account.RoleName != nil && *account.RoleName != "" {
+					role = *account.RoleName
+				}
+				reqCtx = context.WithValue(reqCtx, ContextKeyRole, role)
+				reqCtx = context.WithValue(reqCtx, "role", role)
 				// A platform super user is never bound to a Sacco. Ignoring the flag on
 				// Sacco-bound accounts keeps a tenant admin inside its own tenant.
 				reqCtx = context.WithValue(reqCtx, "is_super_user", account.IsSuperUser && !boundToSacco)

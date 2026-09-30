@@ -10,6 +10,8 @@ abstract class AuthRemoteDataSource {
   Future<void> logout(String refreshToken);
   Future<UserEntity> register(RegisterRequest request);
   Future<List<UserEntity>> listUsers();
+  Future<UserEntity> changeStaffRole(int userId, int roleId, {String? reason});
+  Future<void> removeStaff(int userId, {String? reason});
   Future<void> changePassword(
     String currentPassword,
     String newPassword,
@@ -142,6 +144,43 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       throw Exception(data['message'] ?? 'Failed to load staff users');
     } on DioException catch (e) {
       throw Exception(_extractErrorMessage(e, 'Failed to load staff users'));
+    }
+  }
+
+  @override
+  Future<UserEntity> changeStaffRole(
+    int userId,
+    int roleId, {
+    String? reason,
+  }) async {
+    try {
+      final response = await _dio.put(
+        '/api/v1/auth/users/$userId/role',
+        data: {'role_id': roleId, if (reason != null) 'reason': reason},
+      );
+      final data = response.data as Map<String, dynamic>;
+      if (data['success'] == true && data['data']?['user'] != null) {
+        return UserEntity.fromJson(
+          data['data']['user'] as Map<String, dynamic>,
+        );
+      }
+      throw Exception(data['message'] ?? 'Could not change the role');
+    } on DioException catch (e) {
+      throw Exception(_extractErrorMessage(e, 'Could not change the role'));
+    }
+  }
+
+  @override
+  Future<void> removeStaff(int userId, {String? reason}) async {
+    try {
+      await _dio.delete(
+        '/api/v1/auth/users/$userId',
+        queryParameters: {if (reason != null) 'reason': reason},
+      );
+    } on DioException catch (e) {
+      throw Exception(
+        _extractErrorMessage(e, 'Could not remove the staff member'),
+      );
     }
   }
 

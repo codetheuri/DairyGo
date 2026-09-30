@@ -99,6 +99,27 @@ func RegisterRoutes(api huma.API, db *gorm.DB, cfg *config.Config, log logger.Lo
 		Tags:        []string{"Authentication"},
 	}, PermUsersRead), handler.ListUsers)
 
+	// Staff of the caller's own Sacco. These are safe for Sacco administrators:
+	// the service only reaches accounts in the caller's Sacco and only assigns
+	// the three Sacco roles (unlike the role endpoints below).
+	huma.Register(api, guard.Protected(huma.Operation{
+		OperationID: "change-staff-role",
+		Method:      http.MethodPut,
+		Path:        "/api/v1/auth/users/{user_id}/role",
+		Summary:     "Change a staff member's role",
+		Description: "Makes a staff account in the caller's Sacco an administrator, collector or board member. It applies to their next request. You cannot change your own role, and the Sacco's only administrator cannot be demoted. Requires users.update.",
+		Tags:        []string{"Authentication"},
+	}, PermUsersUpdate), handler.ChangeStaffRole)
+
+	huma.Register(api, guard.Protected(huma.Operation{
+		OperationID: "remove-staff",
+		Method:      http.MethodDelete,
+		Path:        "/api/v1/auth/users/{user_id}",
+		Summary:     "Remove a staff member",
+		Description: "Removes a staff account from the caller's Sacco: they are signed out at once and cannot sign in. Records they made keep their name. You cannot remove yourself or the Sacco's only administrator. Requires users.delete.",
+		Tags:        []string{"Authentication"},
+	}, PermUsersDelete), handler.RemoveStaff)
+
 	huma.Register(api, guard.Protected(huma.Operation{
 		OperationID: "list-permissions",
 		Method:      http.MethodGet,

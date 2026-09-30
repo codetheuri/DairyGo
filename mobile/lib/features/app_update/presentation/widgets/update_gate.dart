@@ -333,13 +333,11 @@ class UpdateRequiredScreen extends ConsumerWidget {
                           : FilledButton.icon(
                               onPressed: status.onAction,
                               icon: Icon(status.icon),
-                              label: Text(
-                                switch (status.actionLabel!) {
-                                  'Update' => 'Update now',
-                                  'Restart' => 'Restart to update',
-                                  final label => label,
-                                },
-                              ),
+                              label: Text(switch (status.actionLabel!) {
+                                'Update' => 'Update now',
+                                'Restart' => 'Restart to update',
+                                final label => label,
+                              }),
                             ),
                     ),
                   ],

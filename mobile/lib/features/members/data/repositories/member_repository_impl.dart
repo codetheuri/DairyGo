@@ -15,12 +15,14 @@ class MemberRepositoryImpl implements MemberRepository {
     int page = 1,
     int perPage = 50,
     String? status,
+    bool canSupply = false,
   }) {
     return _remoteDataSource.listMembers(
       search: search,
       page: page,
       perPage: perPage,
       status: status,
+      canSupply: canSupply,
     );
   }
 
@@ -41,4 +43,8 @@ class MemberRepositoryImpl implements MemberRepository {
   @override
   Future<List<AuditLogModel>> history(String id) =>
       _remoteDataSource.history(id);
+
+  @override
+  Future<MemberModel> setStatus(String id, String status, {String? reason}) =>
+      _remoteDataSource.setStatus(id, status, reason: reason);
 }

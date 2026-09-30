@@ -29,4 +29,8 @@ class SettingsRepositoryImpl implements SettingsRepository {
   @override
   Future<SaccoSettingsModel> updateTolerance(double litres) =>
       _remoteDataSource.updateTolerance(litres);
+
+  @override
+  Future<SaccoSettingsModel> updateInactiveAfterDays(int days) =>
+      _remoteDataSource.updateInactiveAfterDays(days);
 }

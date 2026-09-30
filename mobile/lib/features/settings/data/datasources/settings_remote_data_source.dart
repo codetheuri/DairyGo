@@ -9,6 +9,7 @@ abstract class SettingsRemoteDataSource {
   Future<MilkPriceModel> setMilkPrice(SetPriceRequestModel request);
   Future<SaccoSettingsModel> getSettings();
   Future<SaccoSettingsModel> updateTolerance(double litres);
+  Future<SaccoSettingsModel> updateInactiveAfterDays(int days);
 }
 
 class SettingsRemoteDataSourceImpl implements SettingsRemoteDataSource {
@@ -104,11 +105,21 @@ class SettingsRemoteDataSourceImpl implements SettingsRemoteDataSource {
   }
 
   @override
-  Future<SaccoSettingsModel> updateTolerance(double litres) async {
+  Future<SaccoSettingsModel> updateTolerance(double litres) =>
+      _updateSettings({'reconciliation_tolerance_litres': litres});
+
+  @override
+  Future<SaccoSettingsModel> updateInactiveAfterDays(int days) =>
+      _updateSettings({'inactive_after_days': days});
+
+  /// Changes the settings in [changes]; the others stay as they are.
+  Future<SaccoSettingsModel> _updateSettings(
+    Map<String, dynamic> changes,
+  ) async {
     try {
       final response = await _dio.put(
         ApiConstants.saccoSettings,
-        data: {'reconciliation_tolerance_litres': litres},
+        data: changes,
       );
       final data = response.data as Map<String, dynamic>;
       if (data['success'] == true && data['data'] != null) {
@@ -116,12 +127,17 @@ class SettingsRemoteDataSourceImpl implements SettingsRemoteDataSource {
           data['data']['settings'] as Map<String, dynamic>,
         );
       }
-      throw Exception(data['message'] ?? 'Failed to update tolerance');
+      throw Exception(data['message'] ?? 'Could not save the setting');
     } on DioException catch (e) {
-      final serverMsg = e.response?.data is Map
-          ? e.response?.data['message']
-          : null;
-      throw Exception(serverMsg ?? e.message ?? 'Error updating tolerance');
+      final body = e.response?.data;
+      String? serverMsg;
+      if (body is Map) {
+        final errors = body['errors'];
+        serverMsg = errors is Map && errors.isNotEmpty
+            ? errors.values.first?.toString()
+            : body['message']?.toString();
+      }
+      throw Exception(serverMsg ?? e.message ?? 'Could not save the setting');
     }
   }
 }

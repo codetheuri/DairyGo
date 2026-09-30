@@ -32,6 +32,8 @@ class SaccoSettingsModel with _$SaccoSettingsModel {
     @JsonKey(name: 'reconciliation_tolerance_litres')
     @Default(0.0)
     double reconciliationToleranceLitres,
+    // Days without milk after which an active farmer becomes inactive; 0 = never.
+    @JsonKey(name: 'inactive_after_days') @Default(60) int inactiveAfterDays,
   }) = _SaccoSettingsModel;
 
   factory SaccoSettingsModel.fromJson(Map<String, dynamic> json) =>

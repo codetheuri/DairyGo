@@ -7,4 +7,7 @@ abstract class SettingsRepository {
   Future<MilkPriceModel> setMilkPrice(SetPriceRequestModel request);
   Future<SaccoSettingsModel> getSettings();
   Future<SaccoSettingsModel> updateTolerance(double litres);
+
+  /// Days without milk after which active farmers become inactive; 0 = never.
+  Future<SaccoSettingsModel> updateInactiveAfterDays(int days);
 }

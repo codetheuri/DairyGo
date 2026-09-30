@@ -105,6 +105,7 @@ class SettingsScreen extends ConsumerWidget {
 
     final canSetPrice = user?.canSetPrice ?? false;
     final canManageStaff = user?.canManageStaff ?? false;
+    final canManageSettings = user?.canManageSettings ?? false;
 
     return Scaffold(
       appBar: AppBar(
@@ -517,9 +518,12 @@ class SettingsScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 24),
 
-                // Milk balance tolerance (admins): allowed measuring difference per collector per day.
-                if (canSetPrice) ...[
+                // Sacco rules (admins): milk balance tolerance and when
+                // farmers become inactive.
+                if (canManageSettings) ...[
                   const _ToleranceCard(),
+                  const SizedBox(height: 12),
+                  const _InactivityCard(),
                   const SizedBox(height: 24),
                 ],
 
@@ -860,6 +864,113 @@ class _ToleranceCard extends ConsumerWidget {
         ),
         trailing: const Icon(Icons.edit_outlined, size: 18),
         onTap: settings.hasValue ? () => _edit(context, ref, tolerance) : null,
+      ),
+    );
+  }
+}
+
+/// Shows and edits after how many days without milk an active farmer becomes
+/// inactive (0 = never). The server checks every farmer daily.
+class _InactivityCard extends ConsumerWidget {
+  const _InactivityCard();
+
+  static String describe(int days) => days == 0
+      ? 'Never: farmers stay active until changed by hand'
+      : 'After $days days without milk';
+
+  Future<void> _edit(BuildContext context, WidgetRef ref, int current) async {
+    final controller = TextEditingController(text: '$current');
+    String? error;
+    final value = await showDialog<int>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setState) => AlertDialog(
+          title: const Text('Mark farmers inactive'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'An active farmer who brings no milk for this many days '
+                  'becomes inactive. Their milk is still taken, and taking '
+                  'it makes them active again. Enter 0 to never do this.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: controller,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    labelText: 'Days without milk',
+                    suffixText: 'days',
+                    errorText: error,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                final v = int.tryParse(controller.text.trim());
+                if (v == null || v < 0 || v > 365) {
+                  setState(() => error = 'Enter 0 to 365 days');
+                  return;
+                }
+                Navigator.of(ctx).pop(v);
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (value == null || value == current) return;
+    try {
+      await ref.read(settingsRepositoryProvider).updateInactiveAfterDays(value);
+      ref.invalidate(saccoSettingsProvider);
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(saccoSettingsProvider);
+    final days = settings.valueOrNull?.inactiveAfterDays ?? 60;
+    return Material(
+      color: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: const BorderSide(color: AppColors.cardBorder),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: ListTile(
+        leading: const Icon(
+          Icons.pause_circle_outline_rounded,
+          color: AppColors.primary,
+        ),
+        title: const Text(
+          'Mark farmers inactive',
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
+        subtitle: Text(
+          settings.isLoading ? 'Loading…' : describe(days),
+          style: const TextStyle(fontSize: 12),
+        ),
+        trailing: const Icon(Icons.edit_outlined, size: 18),
+        onTap: settings.hasValue ? () => _edit(context, ref, days) : null,
       ),
     );
   }

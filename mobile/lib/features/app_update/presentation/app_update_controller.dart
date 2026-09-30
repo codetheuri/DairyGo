@@ -153,7 +153,8 @@ class AppUpdateController extends Notifier<AppUpdateState> {
   /// may be offline); a check the user asked for says what happened.
   Future<void> check({bool manual = false}) async {
     // Not while an update is under way (a failed one can be checked again).
-    final busy = state.step != UpdateStep.idle && state.step != UpdateStep.failed;
+    final busy =
+        state.step != UpdateStep.idle && state.step != UpdateStep.failed;
     if (state.checking || busy) return;
     final last = _lastCheck;
     if (!manual &&

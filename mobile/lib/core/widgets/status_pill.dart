@@ -15,15 +15,19 @@ class StatusPill extends StatelessWidget {
 
   factory StatusPill.fromStatusString(String status) {
     final s = status.toUpperCase();
-    if (s == 'VERIFIED' || s == 'PAID' || s == 'SUCCESS') {
+    if (s == 'VERIFIED' || s == 'PAID' || s == 'SUCCESS' || s == 'ACTIVE') {
       return StatusPill(status: status, type: StatusType.success);
     } else if (s == 'SUBMITTED' ||
         s == 'PENDING' ||
         s == 'PARTIAL' ||
         s == 'CREDIT' ||
-        s == 'ADJUSTED') {
+        s == 'ADJUSTED' ||
+        s == 'INACTIVE') {
       return StatusPill(status: status, type: StatusType.warning);
-    } else if (s == 'REJECTED' || s == 'CANCELLED' || s == 'FAILED') {
+    } else if (s == 'REJECTED' ||
+        s == 'CANCELLED' ||
+        s == 'FAILED' ||
+        s == 'SUSPENDED') {
       return StatusPill(status: status, type: StatusType.error);
     }
     return StatusPill(status: status, type: StatusType.info);

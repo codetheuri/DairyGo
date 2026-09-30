@@ -10,11 +10,13 @@ abstract class MemberRemoteDataSource {
     int page = 1,
     int perPage = 50,
     String? status,
+    bool canSupply = false,
   });
   Future<MemberModel> getMemberById(String id);
   Future<MemberModel> createMember(CreateMemberRequestModel request);
   Future<MemberModel> updateMember(String id, Map<String, dynamic> changes);
   Future<List<AuditLogModel>> history(String id);
+  Future<MemberModel> setStatus(String id, String status, {String? reason});
 }
 
 class MemberRemoteDataSourceImpl implements MemberRemoteDataSource {
@@ -28,6 +30,7 @@ class MemberRemoteDataSourceImpl implements MemberRemoteDataSource {
     int page = 1,
     int perPage = 50,
     String? status,
+    bool canSupply = false,
   }) async {
     try {
       final queryParams = <String, dynamic>{'page': page, 'per_page': perPage};
@@ -37,6 +40,7 @@ class MemberRemoteDataSourceImpl implements MemberRemoteDataSource {
       if (status != null && status.trim().isNotEmpty) {
         queryParams['status'] = status.trim();
       }
+      if (canSupply) queryParams['can_supply'] = true;
 
       final response = await _dio.get(
         ApiConstants.members,
@@ -138,6 +142,35 @@ class MemberRemoteDataSourceImpl implements MemberRemoteDataSource {
     } on DioException catch (e) {
       throw Exception(
         _serverMessage(e) ?? e.message ?? 'Could not load the history',
+      );
+    }
+  }
+
+  @override
+  Future<MemberModel> setStatus(
+    String id,
+    String status, {
+    String? reason,
+  }) async {
+    try {
+      final response = await _dio.patch(
+        '${ApiConstants.members}/$id/status',
+        data: {
+          'status': status,
+          if (reason != null && reason.trim().isNotEmpty)
+            'reason': reason.trim(),
+        },
+      );
+      final data = response.data as Map<String, dynamic>;
+      if (data['success'] == true && data['data'] != null) {
+        return MemberModel.fromJson(
+          data['data']['member'] as Map<String, dynamic>,
+        );
+      }
+      throw Exception(data['message'] ?? 'Could not change the status');
+    } on DioException catch (e) {
+      throw Exception(
+        _serverMessage(e) ?? e.message ?? 'Could not change the status',
       );
     }
   }

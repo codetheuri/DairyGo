@@ -132,7 +132,9 @@ class _AuditTile extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '$_title by ${entry.actorName ?? 'unknown'}',
+                // No person: DairyGo did it (for example marking a farmer
+                // inactive after a period without milk).
+                '$_title by ${entry.actorName ?? 'DairyGo (automatic)'}',
                 style: const TextStyle(
                   fontWeight: FontWeight.w600,
                   fontSize: 13,

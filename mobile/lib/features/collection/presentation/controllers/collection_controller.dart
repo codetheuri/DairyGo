@@ -5,6 +5,7 @@ import '../../../../core/pagination/paged_list_notifier.dart';
 import '../../../../core/models/audit_log_model.dart';
 
 import '../../../../core/network/dio_client.dart';
+import '../../../members/presentation/controllers/member_controller.dart';
 import '../../../reports/presentation/controllers/report_controller.dart';
 import '../../data/datasources/milk_collection_remote_data_source.dart';
 import '../../data/models/milk_collection_model.dart';
@@ -105,6 +106,11 @@ class RecordMilkCollectionController
       final collection = await _repository.recordCollection(request);
       state = AsyncValue.data(collection);
       invalidateAllAppMetrics(_ref);
+      // An inactive farmer who brings milk is active again: show that.
+      _ref.invalidate(memberDetailsProvider(request.memberId));
+      _ref.invalidate(memberHistoryProvider(request.memberId));
+      _ref.invalidate(membersListProvider);
+      _ref.invalidate(farmerPickerResultsProvider);
       return true;
     } catch (e, st) {
       state = AsyncValue.error(e, st);

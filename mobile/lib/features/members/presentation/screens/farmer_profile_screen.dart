@@ -10,6 +10,7 @@ import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/status_pill.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../controllers/member_controller.dart';
+import '../widgets/farmer_status_sheet.dart';
 import '../widgets/next_of_kin_dialog.dart';
 import '../../../../core/layout/breakpoints.dart';
 import '../../../../core/widgets/skeleton.dart';
@@ -22,9 +23,9 @@ class FarmerProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final memberAsync = ref.watch(memberDetailsProvider(memberId));
-    final canEdit =
-        ref.watch(authControllerProvider).valueOrNull?.user?.canEditFarmers ??
-        false;
+    final user = ref.watch(authControllerProvider).valueOrNull?.user;
+    final canEdit = user?.canEditFarmers ?? false;
+    final canChangeStatus = user?.canChangeFarmerStatus ?? false;
 
     return Scaffold(
       appBar: AppBar(
@@ -121,6 +122,7 @@ class FarmerProfileScreen extends ConsumerWidget {
                             StatusPill.fromStatusString(member.status),
                           ],
                         ),
+                        FarmerStatusNote(status: member.status),
                       ],
                     ),
                   ),
@@ -350,6 +352,28 @@ class FarmerProfileScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 24),
 
+                  if (canChangeStatus) ...[
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                        icon: const Icon(Icons.toggle_on_outlined),
+                        label: const Text(
+                          'Change Status',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        onPressed: () =>
+                            FarmerStatusSheet.show(context, member),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+
                   if (canEdit) ...[
                     SizedBox(
                       width: double.infinity,
@@ -386,17 +410,21 @@ class FarmerProfileScreen extends ConsumerWidget {
                       ),
                       icon: const Icon(Icons.add_circle_outline_rounded),
                       label: Text(
-                        'Record Milk Intake for ${member.firstName}',
+                        member.status.toUpperCase() == 'SUSPENDED'
+                            ? 'Suspended: no milk intake'
+                            : 'Record Milk Intake for ${member.firstName}',
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
                         ),
                       ),
-                      onPressed: () {
-                        context.push(
-                          '${AppRoutes.recordCollection}?memberId=${member.id}',
-                        );
-                      },
+                      onPressed: member.status.toUpperCase() == 'SUSPENDED'
+                          ? null
+                          : () {
+                              context.push(
+                                '${AppRoutes.recordCollection}?memberId=${member.id}',
+                              );
+                            },
                     ),
                   ),
                 ],
@@ -467,6 +495,7 @@ class _FarmerHistory extends ConsumerWidget {
     'next_of_kin_name': 'Next of kin',
     'next_of_kin_relationship': 'Relationship',
     'next_of_kin_phone': 'Next of kin phone',
+    'status': 'Status',
   };
 
   @override

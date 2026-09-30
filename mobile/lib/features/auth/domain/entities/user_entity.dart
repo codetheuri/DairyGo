@@ -103,6 +103,14 @@ class UserEntity with _$UserEntity {
   bool get canRegisterFarmers => can('members.create', whenUnknown: _records);
   bool get canEditFarmers => can('members.update', whenUnknown: isSaccoAdmin);
 
+  /// Change the Sacco's settings (milk balance tolerance, farmer inactivity).
+  bool get canManageSettings =>
+      can('sacco.settings.manage', whenUnknown: isSaccoAdmin);
+
+  /// Make farmers active, inactive or suspended.
+  bool get canChangeFarmerStatus =>
+      can('members.update_status', whenUnknown: isSaccoAdmin);
+
   bool get canAddCustomers => can('customers.create', whenUnknown: _records);
   bool get canEditCustomers =>
       can('customers.update', whenUnknown: isSaccoAdmin);

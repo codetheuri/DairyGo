@@ -220,8 +220,21 @@ class _FarmerTile extends StatelessWidget {
         member.fullName,
         style: const TextStyle(fontWeight: FontWeight.w600),
       ),
-      subtitle: Text(
-        details,
+      subtitle: Text.rich(
+        TextSpan(
+          children: [
+            // Taking their milk makes them active again.
+            if (member.status.toUpperCase() == 'INACTIVE')
+              const TextSpan(
+                text: 'Inactive • ',
+                style: TextStyle(
+                  color: AppColors.warning,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            TextSpan(text: details),
+          ],
+        ),
         style: const TextStyle(fontSize: 12),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,

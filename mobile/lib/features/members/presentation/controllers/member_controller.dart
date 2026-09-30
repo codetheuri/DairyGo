@@ -50,14 +50,15 @@ class MembersListNotifier extends PagedListNotifier<MemberModel> {
   }
 }
 
-/// Active farmers matching [search] (name, phone, membership or national ID),
-/// searched on the server so every farmer can be found, not just a first page.
-/// Separate from [membersListProvider], whose filters belong to the directory.
+/// Farmers whose milk may be recorded (active and inactive, not suspended)
+/// matching [search] (name, phone, membership or national ID), searched on
+/// the server so every farmer can be found, not just a first page. Separate
+/// from [membersListProvider], whose filters belong to the directory.
 final farmerPickerResultsProvider = FutureProvider.autoDispose
     .family<List<MemberModel>, String>((ref, search) async {
       final result = await ref
           .watch(memberRepositoryProvider)
-          .listMembers(search: search, status: 'ACTIVE', perPage: 30);
+          .listMembers(search: search, canSupply: true, perPage: 30);
       return result.items;
     });
 
@@ -87,14 +88,36 @@ class MemberActions {
   Future<String?> update(String memberId, Map<String, dynamic> changes) async {
     try {
       await _ref.read(memberRepositoryProvider).updateMember(memberId, changes);
-      _ref.invalidate(memberDetailsProvider(memberId));
-      _ref.invalidate(memberHistoryProvider(memberId));
-      _ref.invalidate(membersListProvider);
-      _ref.invalidate(farmerPickerResultsProvider);
+      _refreshFarmer(memberId);
       return null;
     } catch (e) {
       return e.toString().replaceAll('Exception: ', '');
     }
+  }
+
+  /// Changes a farmer's status (see [MemberRepository.setStatus]).
+  Future<String?> setStatus(
+    String memberId,
+    String status, {
+    String? reason,
+  }) async {
+    try {
+      await _ref
+          .read(memberRepositoryProvider)
+          .setStatus(memberId, status, reason: reason);
+      _refreshFarmer(memberId);
+      return null;
+    } catch (e) {
+      return e.toString().replaceAll('Exception: ', '');
+    }
+  }
+
+  /// Everything that shows [memberId] is loaded again.
+  void _refreshFarmer(String memberId) {
+    _ref.invalidate(memberDetailsProvider(memberId));
+    _ref.invalidate(memberHistoryProvider(memberId));
+    _ref.invalidate(membersListProvider);
+    _ref.invalidate(farmerPickerResultsProvider);
   }
 
   Future<String?> saveNextOfKin(

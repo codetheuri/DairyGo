@@ -27,6 +27,9 @@ services:
       - ACCESS_TOKEN_TTL=${ACCESS_TOKEN_TTL:-1h}
       - SESSION_IDLE_TIMEOUT=${SESSION_IDLE_TIMEOUT:-720h}
 
+      # Apply pending database migrations when the container starts.
+      - AUTO_MIGRATE=true
+
       - MAIL_HOST=smtp.gmail.com
       - MAIL_PORT=587
       - MAIL_USERNAME=${MAIL_USERNAME}

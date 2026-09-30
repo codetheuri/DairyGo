@@ -36,6 +36,9 @@ type Config struct {
 	DBMaxOpenConns     int
 	DBConnMaxLifetime  int
 	CORSOrigins        []string
+	// AutoMigrate applies pending database migrations before the API starts
+	// serving (AUTO_MIGRATE=true), so a deploy needs no separate step.
+	AutoMigrate bool
 	// AppReleasesDir holds the published Android app (APKs and
 	// latest.json), served for download and the in-app updater.
 	AppReleasesDir string
@@ -107,6 +110,7 @@ func LoadConfig() (*Config, error) {
 		AppMode:           os.Getenv("APP_MODE"),
 		AppTimezone:       os.Getenv("APP_TIMEZONE"),
 		AppReleasesDir:    os.Getenv("APP_RELEASES_DIR"),
+		AutoMigrate:       os.Getenv("AUTO_MIGRATE") == "true",
 		DBMaxIdleConns:    10,
 		DBMaxOpenConns:    100,
 		DBConnMaxLifetime: 60, // default value in seconds

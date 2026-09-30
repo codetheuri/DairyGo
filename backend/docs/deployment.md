@@ -53,7 +53,7 @@ machine (see [mobile/docs/releases.md](../../mobile/docs/releases.md)):
 ```bash
 cd mobile
 scripts/create-release-key.sh      # once only; back up the key and its passwords
-scripts/release.sh "What changed"  # builds, signs and writes backend/releases/
+scripts/release.sh --notes "What changed"  # builds, signs and writes backend/releases/
 ```
 
 Copy `backend/releases/` to the server's `backend/releases/`, the APKs first

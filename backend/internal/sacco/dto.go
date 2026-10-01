@@ -83,6 +83,7 @@ type UpdateSettingsRequest struct {
 	// Allowed difference between collected and sold+spoiled milk, per collector per day.
 	ReconciliationToleranceLitres *float64 `json:"reconciliation_tolerance_litres,omitempty" minimum:"0" doc:"Litres of measuring difference tolerated per collector per day (default 0)"`
 	InactiveAfterDays             *int     `json:"inactive_after_days,omitempty" minimum:"0" maximum:"365" doc:"Days without milk after which an active farmer becomes inactive automatically (default 60; 0 = never)"`
+	AdvanceMaxPerPeriod           *float64 `json:"advance_max_per_period,omitempty" minimum:"0" doc:"Most a farmer may take in advances between pay runs, in KES (0 = no limit)"`
 }
 
 // UpdateSaccoSettingsInput is a platform operator changing a Sacco's settings.

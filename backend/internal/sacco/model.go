@@ -47,9 +47,16 @@ type SaccoSettings struct {
 	ReconciliationToleranceLitres float64 `json:"reconciliation_tolerance_litres" gorm:"default:0"`
 	// InactiveAfterDays is how many days without milk make an active farmer
 	// inactive automatically; 0 turns this off (see member.MarkIdleInactive).
-	InactiveAfterDays int       `json:"inactive_after_days" gorm:"default:60"`
-	CreatedAt         time.Time `json:"created_at"`
-	UpdatedAt         time.Time `json:"updated_at"`
+	InactiveAfterDays int `json:"inactive_after_days" gorm:"default:60"`
+	// AdvanceMaxPerPeriod is the most a farmer may take in advances between
+	// pay runs; nil means no limit (see payout.Service.RecordEntry).
+	AdvanceMaxPerPeriod *float64 `json:"advance_max_per_period"`
+	// PayrollClosedThrough is the last day farmers have been paid for: milk
+	// records up to it are locked. Only approving or cancelling a pay run
+	// changes it, so settings saves never write it ("->" is read-only).
+	PayrollClosedThrough *time.Time `json:"payroll_closed_through,omitempty" gorm:"->;type:date"`
+	CreatedAt            time.Time  `json:"created_at"`
+	UpdatedAt            time.Time  `json:"updated_at"`
 }
 
 // TableName explicitly overrides table name.

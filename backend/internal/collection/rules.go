@@ -55,6 +55,20 @@ func canEditCollection(a actor, c *MilkCollection, today string) error {
 	return nil
 }
 
+// checkPeriodOpen refuses recording or changing milk dated on or before the
+// last day farmers were paid for (sacco_settings.payroll_closed_through, set
+// by approving a pay run): the money for it has been worked out and paid.
+func checkPeriodOpen(day time.Time, closedThrough *time.Time) error {
+	if closedThrough == nil {
+		return nil
+	}
+	if day.Format(dateLayout) <= closedThrough.Format(dateLayout) {
+		return fmt.Errorf("%w: farmers have been paid for milk up to %s, so milk on %s can no longer be recorded or changed; correct it with an adjustment on the farmer's account",
+			ErrLocked, closedThrough.Format("2 Jan 2006"), day.Format("2 Jan 2006"))
+	}
+	return nil
+}
+
 // allowedTransitions lists the status changes an admin may make.
 // VERIFIED and REJECTED can only be reopened as ADJUSTED.
 var allowedTransitions = map[CollectionStatus][]CollectionStatus{

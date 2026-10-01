@@ -4,10 +4,10 @@ import "github.com/codetheuri/tusk/pkg/authz"
 
 // Sacco module permission constants to prevent raw string typos across handlers.
 const (
-	PermSaccosCreate       = "saccos.create"
-	PermSaccosRead         = "saccos.read"
-	PermSaccosUpdate       = "saccos.update"
-	PermSaccosUpdateStatus = "saccos.update_status"
+	PermSaccosCreate        = "saccos.create"
+	PermSaccosRead          = "saccos.read"
+	PermSaccosUpdate        = "saccos.update"
+	PermSaccosUpdateStatus  = "saccos.update_status"
 	PermSaccoSettingsRead   = "sacco.settings.read"
 	PermSaccoSettingsManage = "sacco.settings.manage"
 )

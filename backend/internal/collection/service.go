@@ -126,6 +126,15 @@ func snapshotOf(c *MilkCollection) collectionSnapshot {
 	}
 }
 
+// periodOpen refuses milk dated in a period farmers were already paid for.
+func (s *Service) periodOpen(ctx context.Context, saccoID string, day time.Time) error {
+	closed, err := s.repo.PayrollClosedThrough(ctx, saccoID)
+	if err != nil {
+		return err
+	}
+	return checkPeriodOpen(day, closed)
+}
+
 // RecordCollection records milk received from an ACTIVE farmer of the caller's
 // Sacco, priced at the rate in force on the collection date.
 func (s *Service) RecordCollection(ctx context.Context, req *RecordCollectionRequest) (*MilkCollection, error) {
@@ -161,6 +170,9 @@ func (s *Service) RecordCollection(ctx context.Context, req *RecordCollectionReq
 	collectionDate, err := time.ParseInLocation(dateLayout, dateStr, time.Local)
 	if err != nil {
 		return nil, fmt.Errorf("invalid collection_date format, expected YYYY-MM-DD")
+	}
+	if err := s.periodOpen(ctx, saccoID, collectionDate); err != nil {
+		return nil, err
 	}
 
 	shift := ShiftMorning
@@ -256,6 +268,9 @@ func (s *Service) UpdateCollection(ctx context.Context, id string, req *UpdateCo
 	if err := canEditCollection(a, collection, time.Now().Format(dateLayout)); err != nil {
 		return nil, err
 	}
+	if err := s.periodOpen(ctx, collection.SaccoID, collection.CollectionDate); err != nil {
+		return nil, err
+	}
 
 	reason := trimmedOrNil(req.Reason)
 	if a.canManage && reason == nil {
@@ -332,6 +347,9 @@ func (s *Service) UpdateCollectionStatus(ctx context.Context, id string, req *Up
 	}
 
 	if err := validateStatusTransition(collection.Status, req.Status); err != nil {
+		return nil, err
+	}
+	if err := s.periodOpen(ctx, collection.SaccoID, collection.CollectionDate); err != nil {
 		return nil, err
 	}
 

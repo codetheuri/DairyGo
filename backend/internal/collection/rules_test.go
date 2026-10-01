@@ -199,3 +199,17 @@ func TestUserMessage(t *testing.T) {
 		t.Errorf("bare sentinel = %q", got)
 	}
 }
+
+func TestCheckPeriodOpen(t *testing.T) {
+	closed := time.Date(2026, 9, 30, 0, 0, 0, 0, time.UTC)
+	for day, locked := range map[string]bool{"2026-09-29": true, "2026-09-30": true, "2026-10-01": false} {
+		d, _ := time.ParseInLocation(dateLayout, day, time.Local)
+		err := checkPeriodOpen(d, &closed)
+		if got := errors.Is(err, ErrLocked); got != locked {
+			t.Errorf("%s: locked = %v, want %v (%v)", day, got, locked, err)
+		}
+	}
+	if err := checkPeriodOpen(time.Now(), nil); err != nil {
+		t.Errorf("before any pay run: %v", err)
+	}
+}

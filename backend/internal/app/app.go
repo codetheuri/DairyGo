@@ -29,6 +29,7 @@ import (
 	"github.com/codetheuri/tusk/internal/member"
 	"github.com/codetheuri/tusk/internal/middleware"
 	"github.com/codetheuri/tusk/internal/notification"
+	"github.com/codetheuri/tusk/internal/payout"
 	"github.com/codetheuri/tusk/internal/report"
 	"github.com/codetheuri/tusk/internal/sacco"
 	"github.com/codetheuri/tusk/internal/superadmin"
@@ -144,6 +145,7 @@ func New(cfg *config.Config, log logger.Logger) (*App, error) {
 		{Name: "Milk Spoilage", Description: "Milk loss, acidity testing failure, and transport damage logging"},
 		{Name: "Milk Transfers", Description: "Milk handed from one collector to another; counts for both at once"},
 		{Name: "Customers & Ledger", Description: "Milk buyers (coolers, processors, hotels, shops, individuals), customer payments, statements and outstanding balances"},
+		{Name: "Farmer Payouts", Description: "Deductions, advances, charges, farmer accounts and monthly pay runs"},
 		{Name: "Collector Reconciliation", Description: "Collector daily intake, sales, spoilage, and net delivery overview"},
 		{Name: "Reports & Reconciliation", Description: "Farmer payroll statements, Sacco balancing ledgers, and collector audit reports"},
 		{Name: "Executive & Mobile Dashboards", Description: "Sacco summary cards, trend time series charts, and collector field shift metrics"},
@@ -213,6 +215,7 @@ func New(cfg *config.Config, log logger.Logger) (*App, error) {
 				"Milk Spoilage",
 				"Milk Transfers",
 				"Customers & Ledger",
+				"Farmer Payouts",
 				"Collector Reconciliation",
 				"Reports & Reconciliation",
 			},
@@ -313,6 +316,7 @@ func registerModules(api huma.API, r chi.Router, db *gorm.DB, cfg *config.Config
 	member.RegisterRoutes(api, db, cfg, log)
 	collection.RegisterRoutes(api, db, cfg, log)
 	customer.RegisterRoutes(api, db, cfg, log)
+	payout.RegisterRoutes(api, db, cfg, log)
 	report.RegisterRoutes(api, db, cfg, log)
 	export.RegisterRoutes(api, db, cfg, log)
 	dashboard.RegisterRoutes(api, db, cfg, log)

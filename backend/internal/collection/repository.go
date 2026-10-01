@@ -554,3 +554,12 @@ func (r *Repository) GetCollectorReconciliation(ctx context.Context, collectorID
 func round2(v float64) float64 {
 	return math.Round(v*100) / 100
 }
+
+// PayrollClosedThrough is the last day the Sacco's farmers have been paid
+// for, or nil before the first approved pay run.
+func (r *Repository) PayrollClosedThrough(ctx context.Context, saccoID string) (*time.Time, error) {
+	var row struct{ PayrollClosedThrough *time.Time }
+	err := r.db.WithContext(ctx).Table("sacco_settings").Select("payroll_closed_through").
+		Where("sacco_id = ?", saccoID).Limit(1).Scan(&row).Error
+	return row.PayrollClosedThrough, err
+}

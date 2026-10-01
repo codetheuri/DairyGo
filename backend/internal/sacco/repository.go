@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/codetheuri/tusk/internal/auth"
+	"github.com/codetheuri/tusk/internal/payout"
 	"github.com/codetheuri/tusk/pkg/audit"
 	"github.com/codetheuri/tusk/pkg/query"
 	"gorm.io/gorm"
@@ -30,6 +31,11 @@ func (r *Repository) Create(ctx context.Context, s *Sacco, adminUser *auth.User,
 		settings.SaccoID = s.ID
 		if err := tx.Create(settings).Error; err != nil {
 			return fmt.Errorf("failed to create sacco settings: %w", err)
+		}
+
+		// Example deductions (switched off) for the admin to complete.
+		if err := tx.Create(payout.Examples(s.ID)).Error; err != nil {
+			return fmt.Errorf("failed to add example deductions: %w", err)
 		}
 
 		adminUser.SaccoID = &s.ID

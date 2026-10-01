@@ -3,6 +3,7 @@ package sacco
 import (
 	"context"
 	"fmt"
+	"math"
 	"strings"
 
 	"github.com/google/uuid"
@@ -58,13 +59,13 @@ func (s *Service) CreateSacco(ctx context.Context, req *CreateSaccoRequest) (*Sa
 	}
 
 	adminUser := &auth.User{
-		SaccoID:     &saccoID,
-		Username:    strings.TrimSpace(req.AdminUser.Username),
-		Email:       strings.TrimSpace(req.AdminUser.Email),
-		Phone:       req.AdminUser.Phone,
-		Password:    string(hash),
-		IsActive:    true,
-		IsVerified:  true,
+		SaccoID:    &saccoID,
+		Username:   strings.TrimSpace(req.AdminUser.Username),
+		Email:      strings.TrimSpace(req.AdminUser.Email),
+		Phone:      req.AdminUser.Phone,
+		Password:   string(hash),
+		IsActive:   true,
+		IsVerified: true,
 	}
 
 	adminProfile := &auth.UserProfile{
@@ -166,6 +167,17 @@ func (s *Service) UpdateSettings(ctx context.Context, saccoID string, req *Updat
 			return nil, fmt.Errorf("inactive_after_days must be between 0 (never) and 365")
 		}
 		settings.InactiveAfterDays = *req.InactiveAfterDays
+	}
+	if req.AdvanceMaxPerPeriod != nil {
+		if *req.AdvanceMaxPerPeriod < 0 {
+			return nil, fmt.Errorf("advance_max_per_period cannot be negative")
+		}
+		if *req.AdvanceMaxPerPeriod == 0 {
+			settings.AdvanceMaxPerPeriod = nil
+		} else {
+			limit := math.Round(*req.AdvanceMaxPerPeriod*100) / 100
+			settings.AdvanceMaxPerPeriod = &limit
+		}
 	}
 
 	if err := s.repo.UpdateSettings(ctx, settings); err != nil {

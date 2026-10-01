@@ -32,13 +32,16 @@ const (
 
 // Service holds the payout rules.
 type Service struct {
-	repo *Repository
-	now  func() time.Time
+	repo        *Repository
+	letterheads Letterheads
+	messenger   Messenger
+	now         func() time.Time
 }
 
-// NewService creates a payout service.
-func NewService(repo *Repository) *Service {
-	return &Service{repo: repo, now: time.Now}
+// NewService creates a payout service. letterheads (for payslips and
+// registers) and messenger (payslip SMS) may be nil.
+func NewService(repo *Repository, letterheads Letterheads, messenger Messenger) *Service {
+	return &Service{repo: repo, letterheads: letterheads, messenger: messenger, now: time.Now}
 }
 
 func (s *Service) saccoID(ctx context.Context) (string, error) {

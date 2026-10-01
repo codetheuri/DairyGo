@@ -421,6 +421,14 @@ func (r *Repository) LineForMember(ctx context.Context, runID, memberID string) 
 	return &l, nil
 }
 
+// RunEntries is a farmer's advances, charges and adjustments a run settled.
+func (r *Repository) RunEntries(ctx context.Context, runID, memberID string) ([]Transaction, error) {
+	var out []Transaction
+	err := r.db.WithContext(ctx).Where("pay_run_id = ? AND member_id = ? AND kind IN ? AND voided_at IS NULL", runID, memberID,
+		[]Kind{KindAdvance, KindCharge, KindAdjustment}).Order("entry_date, created_at").Find(&out).Error
+	return out, err
+}
+
 // Transaction runs fn with a repository bound to one database transaction,
 // for the steps of working out, approving, paying and cancelling a run.
 func (r *Repository) Transaction(ctx context.Context, fn func(tx *Repository) error) error {

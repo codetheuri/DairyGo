@@ -3,6 +3,7 @@ package payout
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/danielgtaylor/huma/v2"
@@ -242,6 +243,51 @@ func (h *Handler) Pay(ctx context.Context, in *PayInput) (*RunOutput, error) {
 		return nil, h.toHTTPError(err)
 	}
 	return runOutput(d, "Marked paid"), nil
+}
+
+func fileOutput(f *File) *FileOutput {
+	return &FileOutput{
+		ContentType:        f.ContentType,
+		ContentDisposition: fmt.Sprintf(`attachment; filename="%s"`, f.Name),
+		// Pay details are personal: never kept by caches.
+		CacheControl: "no-store",
+		Body:         f.Data,
+	}
+}
+
+func (h *Handler) PaymentFile(ctx context.Context, in *PaymentFileInput) (*FileOutput, error) {
+	f, err := h.service.PaymentFile(ctx, in.ID, strings.ToLower(in.Kind))
+	if err != nil {
+		return nil, h.toHTTPError(err)
+	}
+	return fileOutput(f), nil
+}
+
+func (h *Handler) Register(ctx context.Context, in *RegisterInput) (*FileOutput, error) {
+	f, err := h.service.Register(ctx, in.ID, strings.ToLower(in.Format))
+	if err != nil {
+		return nil, h.toHTTPError(err)
+	}
+	return fileOutput(f), nil
+}
+
+func (h *Handler) Payslip(ctx context.Context, in *PayslipInput) (*FileOutput, error) {
+	f, err := h.service.Payslip(ctx, in.ID, in.MemberID)
+	if err != nil {
+		return nil, h.toHTTPError(err)
+	}
+	return fileOutput(f), nil
+}
+
+func (h *Handler) SendSMS(ctx context.Context, in *RunIDInput) (*SMSOutput, error) {
+	n, err := h.service.SendPayslipSMS(ctx, in.ID)
+	if err != nil {
+		return nil, h.toHTTPError(err)
+	}
+	out := &SMSOutput{}
+	out.Body.Success, out.Body.Message = true, fmt.Sprintf("Sending %d messages", n)
+	out.Body.Data.Queued = n
+	return out, nil
 }
 
 func done(msg string) *MessageOutput {

@@ -8,13 +8,14 @@ import (
 
 	"gorm.io/gorm"
 
+	"github.com/codetheuri/tusk/internal/letterhead"
 	"github.com/codetheuri/tusk/pkg/document"
 )
 
 const dateLayout = "2006-01-02"
 
 // staffName is a user's full name, or the username without one.
-const staffName = "COALESCE(NULLIF(TRIM(COALESCE(p.first_name, '') || ' ' || COALESCE(p.last_name, '')), ''), u.username)"
+const staffName = letterhead.StaffNameSQL
 
 // Repository reads report data. Every query is limited to one Sacco and
 // does the adding up in the database, so a month of records is a handful of
@@ -28,27 +29,12 @@ func NewRepository(db *gorm.DB) *Repository { return &Repository{db: db} }
 
 // Letterhead is the Sacco's name, contacts and logo.
 func (r *Repository) Letterhead(ctx context.Context, saccoID string) (document.Letterhead, error) {
-	var row struct {
-		Name    string
-		Phone   *string
-		Email   *string
-		Address *string
-		Logo    []byte
-	}
-	err := r.db.WithContext(ctx).Table("saccos").Select("name, phone, email, address, logo").
-		Where("id = ?", saccoID).Take(&row).Error
-	if err != nil {
-		return document.Letterhead{}, fmt.Errorf("sacco: %w", err)
-	}
-	return document.Letterhead{Name: row.Name, Phone: deref(row.Phone), Email: deref(row.Email), Address: deref(row.Address), Logo: row.Logo}, nil
+	return letterhead.New(r.db).Letterhead(ctx, saccoID)
 }
 
 // StaffName is a user's name as shown on reports.
 func (r *Repository) StaffName(ctx context.Context, userID uint) string {
-	var name string
-	r.db.WithContext(ctx).Table("users u").Select(staffName).
-		Joins("LEFT JOIN user_profiles p ON p.user_id = u.id").Where("u.id = ?", userID).Scan(&name)
-	return name
+	return letterhead.New(r.db).StaffName(ctx, userID)
 }
 
 // Farmer is a farmer's details for statements and the register.

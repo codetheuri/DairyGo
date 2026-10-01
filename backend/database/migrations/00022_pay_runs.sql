@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS pay_runs (
     cancelled_at TIMESTAMP NULL,
     cancel_reason TEXT NULL,
     previous_closed_to DATE NULL, -- the closed-through date before approval, restored on cancel
+    sms_sent_at TIMESTAMP NULL,   -- when payslip SMS were last sent
     created_at TIMESTAMP NULL,
     updated_at TIMESTAMP NULL,
     CONSTRAINT fk_pay_runs_sacco FOREIGN KEY (sacco_id) REFERENCES saccos(id) ON DELETE CASCADE,

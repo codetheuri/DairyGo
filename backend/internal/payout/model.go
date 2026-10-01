@@ -209,6 +209,7 @@ type PayRun struct {
 	CancelledAt      *time.Time `json:"cancelled_at,omitempty"`
 	CancelReason     *string    `json:"cancel_reason,omitempty"`
 	PreviousClosedTo *time.Time `json:"-" gorm:"type:date"`
+	SMSSentAt        *time.Time `json:"sms_sent_at,omitempty" gorm:"column:sms_sent_at"`
 	CreatedAt        time.Time  `json:"created_at"`
 	UpdatedAt        time.Time  `json:"updated_at"`
 }

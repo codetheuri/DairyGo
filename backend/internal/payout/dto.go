@@ -272,3 +272,36 @@ type Done struct{}
 type MessageOutput struct {
 	Body response.Data[Done]
 }
+
+// --- files ---
+
+type PaymentFileInput struct {
+	ID   string `path:"id" doc:"Pay run UUID"`
+	Kind string `query:"kind" enum:"mpesa,bank" default:"mpesa" doc:"mpesa or bank"`
+}
+
+type RegisterInput struct {
+	ID     string `path:"id" doc:"Pay run UUID"`
+	Format string `query:"format" enum:"pdf,xlsx" default:"pdf" doc:"pdf or xlsx (Excel)"`
+}
+
+type PayslipInput struct {
+	ID       string `path:"id" doc:"Pay run UUID"`
+	MemberID string `path:"member_id" doc:"Farmer UUID"`
+}
+
+// FileOutput is a generated file.
+type FileOutput struct {
+	ContentType        string `header:"Content-Type"`
+	ContentDisposition string `header:"Content-Disposition"`
+	CacheControl       string `header:"Cache-Control"`
+	Body               []byte
+}
+
+type SMSData struct {
+	Queued int `json:"queued" doc:"Messages being sent"`
+}
+
+type SMSOutput struct {
+	Body response.Data[SMSData]
+}

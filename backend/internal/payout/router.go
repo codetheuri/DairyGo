@@ -7,15 +7,17 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/codetheuri/tusk/config"
+	"github.com/codetheuri/tusk/internal/letterhead"
 	"github.com/codetheuri/tusk/pkg/authz"
 	"github.com/codetheuri/tusk/pkg/logger"
+	"github.com/codetheuri/tusk/pkg/sms"
 )
 
 const tag = "Farmer Payouts"
 
 // RegisterRoutes wires the payout module's endpoints.
 func RegisterRoutes(api huma.API, db *gorm.DB, cfg *config.Config, log logger.Logger) {
-	handler := NewHandler(NewService(NewRepository(db)), log)
+	handler := NewHandler(NewService(NewRepository(db), letterhead.New(db), sms.NewService(cfg, db, log)), log)
 	guard := authz.NewGuard(api, db)
 
 	// Deductions
@@ -124,4 +126,25 @@ func RegisterRoutes(api huma.API, db *gorm.DB, cfg *config.Config, log logger.Lo
 		Summary: "Mark farmers paid", Tags: []string{tag},
 		Description: "The listed farmers, or everyone not yet paid, with how and the reference. The run is PAID once everyone is.",
 	}, PermRunsPay), handler.Pay)
+
+	// Files and payslips
+	huma.Register(api, guard.Protected(huma.Operation{
+		OperationID: "pay-run-payment-file", Method: http.MethodGet, Path: "/api/v1/sacco/pay-runs/{id}/payment-file",
+		Summary: "Payment list (Excel)", Tags: []string{tag},
+		Description: "Farmers still to be paid in an approved run: kind=mpesa (phone 2547…, amount, name) for an M-Pesa bulk payment, or kind=bank (bank, account, name, amount). Farmers without the details are listed separately.",
+	}, PermRunsPay), handler.PaymentFile)
+	huma.Register(api, guard.Protected(huma.Operation{
+		OperationID: "pay-run-register", Method: http.MethodGet, Path: "/api/v1/sacco/pay-runs/{id}/register",
+		Summary: "Pay run register (PDF or Excel)", Tags: []string{tag},
+		Description: "Every farmer's milk, each deduction as a column, advances and charges, net pay, balances and how they were paid.",
+	}, PermRead), handler.Register)
+	huma.Register(api, guard.Protected(huma.Operation{
+		OperationID: "pay-run-payslip", Method: http.MethodGet, Path: "/api/v1/sacco/pay-runs/{id}/payslips/{member_id}",
+		Summary: "A farmer's payslip (PDF)", Tags: []string{tag},
+	}, PermRead), handler.Payslip)
+	huma.Register(api, guard.Protected(huma.Operation{
+		OperationID: "pay-run-sms", Method: http.MethodPost, Path: "/api/v1/sacco/pay-runs/{id}/sms",
+		Summary: "Text farmers their pay", Tags: []string{tag},
+		Description: "One SMS per farmer with milk, what was taken off and net pay; sent in the background. sms_sent_at on the run records when.",
+	}, PermRunsPay), handler.SendSMS)
 }

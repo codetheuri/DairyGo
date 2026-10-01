@@ -1,6 +1,8 @@
 package superadmin
 
 import (
+	"github.com/codetheuri/tusk/internal/finance"
+	"github.com/codetheuri/tusk/internal/payout"
 	"net/http"
 
 	"github.com/danielgtaylor/huma/v2"
@@ -26,6 +28,10 @@ func RegisterRoutes(api huma.API, db *gorm.DB, cfg *config.Config, log logger.Lo
 	)
 	h := NewHandler(service)
 	jh := &JobsHandler{runner: runner}
+	mh := &MoneyHandler{
+		payouts: payout.NewService(payout.NewRepository(db), nil, nil),
+		finance: finance.NewService(finance.NewRepository(db)),
+	}
 	guard := authz.NewGuard(api, db)
 
 	op := func(id, method, path, summary, description string) huma.Operation {
@@ -59,6 +65,9 @@ func RegisterRoutes(api huma.API, db *gorm.DB, cfg *config.Config, log logger.Lo
 		"Register a farmer for a Sacco", "Registers a farmer on the Sacco's behalf, with the same rules as a Sacco admin."), h.AddMember)
 	huma.Register(api, op("platform-member-status", http.MethodPatch, "/api/v1/admin/saccos/{id}/members/{member_id}/status",
 		"Change a farmer's status", "Makes a farmer active, inactive or suspended, with the same rules as a Sacco admin (a suspension needs a reason)."), h.SetMemberStatus)
+
+	huma.Register(api, op("platform-sacco-money", http.MethodGet, "/api/v1/admin/saccos/{id}/money",
+		"Sacco pay runs and money", "Read-only, for support: the Sacco's pay runs, accounts with balances, and income and expenditure for a period (default this month)."), mh.Money)
 
 	huma.Register(api, op("platform-audit-logs", http.MethodGet, "/api/v1/admin/audit-logs",
 		"Audit trail", "Who changed what across all Saccos, newest first."), h.AuditLogs)

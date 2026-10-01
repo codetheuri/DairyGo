@@ -232,7 +232,7 @@ function compact(values) {
 const routes = [
   { pattern: /^$/, page: overviewPage, nav: 'overview' },
   { pattern: /^saccos$/, page: saccosPage, nav: 'saccos' },
-  { pattern: /^saccos\/([^/]+)(?:\/(staff|farmers|activity|errors))?$/, page: saccoPage, nav: 'saccos' },
+  { pattern: /^saccos\/([^/]+)(?:\/(staff|farmers|money|activity|errors))?$/, page: saccoPage, nav: 'saccos' },
   { pattern: /^roles$/, page: rolesPage, nav: 'roles' },
   { pattern: /^audit$/, page: auditPage, nav: 'audit' },
   { pattern: /^errors$/, page: errorsPage, nav: 'errors' },
@@ -512,9 +512,9 @@ async function saccoPage(id, tab = 'staff') {
       h('button', { text: 'Deactivate', onclick: () => setStatus('INACTIVE', 'Deactivate') })]
     : [h('button', { class: 'primary', text: 'Reactivate', onclick: () => setStatus('ACTIVE', 'Reactivate') })];
 
-  const tabs = [['staff', 'Staff'], ['farmers', 'Farmers'], ['activity', 'Activity'], ['errors', 'Errors']];
+  const tabs = [['staff', 'Staff'], ['farmers', 'Farmers'], ['money', 'Pay & money'], ['activity', 'Activity'], ['errors', 'Errors']];
 
-  const pages = { staff: staffTab, farmers: farmersTab, activity: activityTab, errors: saccoErrorsTab };
+  const pages = { staff: staffTab, farmers: farmersTab, money: moneyTab, activity: activityTab, errors: saccoErrorsTab };
   pages[tab](sacco).then((node) => content.replaceChildren(node))
     .catch((err) => content.replaceChildren(h('p', { class: 'form-error', text: err.message })));
 
@@ -542,6 +542,7 @@ const PERMISSION_AREAS = [
   ['milk.collections', 'Milk intake'], ['milk.sales', 'Sales'], ['milk.transfers', 'Transfers'],
   ['milk.spoilage', 'Spoilage'], ['milk.reconciliation', 'Daily balance'], ['milk.prices', 'Milk price'],
   ['members', 'Farmers'], ['customers', 'Customers'], ['dashboard', 'Dashboards'], ['reports', 'Reports'],
+  ['payouts', 'Farmer pay'], ['finance', 'Expenses and money'],
   ['users', 'Staff'], ['sacco', 'Sacco settings'], ['notifications', 'SMS'],
 ];
 // Never given to Sacco roles: they reach across Saccos (the API refuses too).
@@ -799,6 +800,39 @@ async function farmersTab(sacco) {
     h('div', { class: 'page-head' }, h('div', { class: 'filters' }, search, status),
       h('button', { class: 'primary', text: 'Register farmer', onclick: addFarmer })),
     holder);
+}
+
+// A Sacco's pay runs, accounts and this month's income and expenditure,
+// read-only: the Sacco's own admins work these in the app.
+async function moneyTab(sacco) {
+  const m = await api('GET', `/admin/saccos/${sacco.id}/money`);
+  const s = m.summary;
+  const runs = table([
+    { label: 'Period', render: (r) => `${fmt.date(r.from_date)} – ${fmt.date(r.to_date)}` },
+    { label: 'Status', render: (r) => pill(r.status) },
+    { label: 'Farmers', num: true, render: (r) => fmt.num(r.farmers) },
+    { label: 'Gross', num: true, render: (r) => fmt.kes(r.total_gross) },
+    { label: 'Deductions', num: true, render: (r) => fmt.kes(r.total_deductions) },
+    { label: 'Net pay', num: true, render: (r) => fmt.kes(r.total_net) },
+    { label: 'Paid', num: true, render: (r) => `${fmt.num(r.paid_count)} · ${fmt.kes(r.total_paid)}` },
+  ], m.pay_runs, { empty: 'No pay runs yet.' });
+  const accounts = table([
+    { label: 'Account', render: (a) => a.name },
+    { label: 'Kind', render: (a) => a.kind },
+    { label: 'Balance', num: true, render: (a) => fmt.kes(a.balance) },
+  ], m.accounts, { empty: 'No accounts set up yet.' });
+  const lines = [
+    ['Milk sales', s.milk_sales], ['Fees kept', s.fees_total], ['Charges to farmers', s.farmer_charges],
+    ['Milk bought', -s.milk_purchases], ['Expenses', -s.expenses_total], [s.surplus < 0 ? 'Deficit' : 'Surplus', s.surplus],
+  ];
+  return h('div', {},
+    h('div', { class: 'stats' },
+      stat('Cash in accounts', fmt.kes(s.cash)), stat('Customers owe', fmt.kes(s.receivables)),
+      stat('Farmers owe', fmt.kes(s.farmers_owe)), stat('Pay still to send', fmt.kes(s.farmer_pay_due), '', s.farmer_pay_due > 0)),
+    h('h3', { text: 'Pay runs' }), runs,
+    h('h3', { text: 'Accounts' }), accounts,
+    h('h3', { text: `Income and expenditure, ${fmt.date(s.from_date)} – ${fmt.date(s.to_date)}` }),
+    table([{ label: '', render: (r) => r[0] }, { label: 'KES', num: true, render: (r) => fmt.kes(r[1]) }], lines));
 }
 
 function activityTab(sacco) {

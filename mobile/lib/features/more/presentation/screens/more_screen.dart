@@ -9,6 +9,7 @@ import '../../../../core/layout/breakpoints.dart';
 import '../../../app_update/presentation/widgets/app_update_tile.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../../settings/presentation/widgets/change_password_dialog.dart';
+import '../widgets/about_tile.dart';
 
 /// Everything that does not fit in the bottom bar: the role's other sections,
 /// settings, staff, the user's account and signing out.
@@ -144,6 +145,7 @@ class MoreScreen extends ConsumerWidget {
                   ),
                 ),
                 const AppUpdateTile(),
+                const AboutTile(),
                 const Divider(),
                 ListTile(
                   leading: const Icon(

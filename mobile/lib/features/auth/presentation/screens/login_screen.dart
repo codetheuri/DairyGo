@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/widgets/app_text_field.dart';
+import '../../../../core/widgets/developer_credit.dart';
 import '../../../../core/widgets/primary_button.dart';
 import '../controllers/auth_controller.dart';
 
@@ -180,6 +181,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                   ),
                 ),
+                const SizedBox(height: 16),
+                const DeveloperCredit(),
               ],
             ),
           ),

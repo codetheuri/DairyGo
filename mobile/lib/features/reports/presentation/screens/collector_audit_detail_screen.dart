@@ -143,7 +143,7 @@ class CollectorAuditDetailScreen extends ConsumerWidget {
                         AppColors.warning,
                       ),
                       _buildMetric(
-                        'Unaccounted',
+                        'Not sold yet',
                         '${summary.unaccountedLitres.toStringAsFixed(1)}L',
                         BalanceBadge.colorFor(summary.balanceStatus),
                         isBold: true,

@@ -485,7 +485,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
                                       'Collected ${ledger.totalFarmerIntakeLitres.toStringAsFixed(1)} L − '
                                       'sold ${ledger.totalSoldLitres.toStringAsFixed(1)} L − '
                                       'spoiled ${ledger.totalSpoilageLitres.toStringAsFixed(1)} L = '
-                                      '${ledger.unaccountedLitres.toStringAsFixed(1)} L unaccounted '
+                                      '${ledger.unaccountedLitres.toStringAsFixed(1)} L not sold yet '
                                       '(tolerance ${ledger.allowanceLitres.toStringAsFixed(1)} L).'
                                       '${ledger.totalTransferredLitres > 0 ? ' Transfers between collectors cancel out here; each collector below includes them.' : ''}',
                                       style: const TextStyle(
@@ -609,7 +609,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
                                       color: AppColors.cardBorder,
                                     ),
                                     _buildLedgerRow(
-                                      'Unaccounted',
+                                      'Not sold yet',
                                       '${ledger.unaccountedLitres.toStringAsFixed(1)} L',
                                       BalanceBadge.colorFor(
                                         ledger.balanceStatus,
@@ -865,7 +865,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
                                             AppColors.warning,
                                           ),
                                           _buildAuditItem(
-                                            'Unaccounted',
+                                            'Not sold yet',
                                             '${item.unaccountedLitres.toStringAsFixed(1)}L',
                                             BalanceBadge.colorFor(
                                               item.balanceStatus,

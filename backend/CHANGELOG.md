@@ -28,6 +28,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - Developer details on the splash and sign-in screens and in More → About DairyGo.
 
 ### Changed
+- **Milk balance wording:** milk collected but not yet sold, moved or recorded as spoiled shows as **"150 L not sold yet"** instead of "missing" (it is usually still in the can or cooler); more sold than collected shows as **"sold over collected"**. App, report downloads. API status codes (`MISSING`, `OVERSOLD`) are unchanged.
 - **Next of kin is optional** when registering or editing a farmer. If any detail is given, the name is needed and a phone must have at least 10 digits.
 - **Payslip SMS removed** (the endpoint, the app button and `pay_runs.sms_sent_at`) until the Sacco has SMS for it.
 

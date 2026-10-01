@@ -1,4 +1,5 @@
 import 'package:dairy_sacco_mobile/core/utils/milk_balance.dart';
+import 'package:dairy_sacco_mobile/core/widgets/balance_badge.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -25,5 +26,15 @@ void main() {
       'OVERSOLD',
       reason: 'negative allowance is 0',
     );
+  });
+
+  // Milk not yet sold is usually still in the can, so it is never "missing".
+  test('balance labels are plain words', () {
+    expect(BalanceBadge.labelFor(150, 'MISSING'), '150.0 L not sold yet');
+    expect(
+      BalanceBadge.labelFor(-20, 'OVERSOLD'),
+      '20.0 L sold over collected',
+    );
+    expect(BalanceBadge.labelFor(0, 'BALANCED'), 'Balanced');
   });
 }

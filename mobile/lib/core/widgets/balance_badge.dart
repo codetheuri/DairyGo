@@ -5,6 +5,8 @@ import '../../app/theme/app_colors.dart';
 /// Shows the result of balancing milk: every litre collected must be sold
 /// (coolers included) or logged as spoilage.
 /// [status] is BALANCED, MISSING (unaccounted > 0) or OVERSOLD (unaccounted < 0).
+/// On screen these read "not sold yet" and "sold over collected": milk not
+/// yet sold is usually still in the can or cooler, not lost.
 class BalanceBadge extends StatelessWidget {
   final double unaccountedLitres;
   final String status;
@@ -31,9 +33,9 @@ class BalanceBadge extends StatelessWidget {
   static String labelFor(double unaccountedLitres, String status) {
     switch (status) {
       case 'MISSING':
-        return '${unaccountedLitres.toStringAsFixed(1)} L missing';
+        return '${unaccountedLitres.toStringAsFixed(1)} L not sold yet';
       case 'OVERSOLD':
-        return '${(-unaccountedLitres).toStringAsFixed(1)} L oversold';
+        return '${(-unaccountedLitres).toStringAsFixed(1)} L sold over collected';
       default:
         return unaccountedLitres == 0
             ? 'Balanced'

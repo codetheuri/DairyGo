@@ -8,6 +8,7 @@ import (
 
 	"github.com/codetheuri/tusk/internal/customer"
 	"github.com/codetheuri/tusk/pkg/document"
+	"github.com/codetheuri/tusk/pkg/reconcile"
 )
 
 // Short names for the column kinds.
@@ -267,14 +268,14 @@ func milkBalance(ctx context.Context, s *Service, in *input) error {
 		Columns: []document.Column{
 			col("Collector", txt, 1.8), col("Days", cnt, 0.6), col("Farmers", cnt, 0.8), col("Collected L", ltr, 1),
 			col("Received L", ltr, 1), col("Sold L", ltr, 1), col("Transferred L", ltr, 1.1), col("Spoiled L", ltr, 0.9),
-			col("Unaccounted L", ltr, 1.1), col("Result", txt, 1),
+			col("Not sold yet L", ltr, 1.1), col("Result", txt, 1.2),
 		},
 		Empty: "No milk was handled in this period.",
 	}
 	var c, rcv, sold, out, sp, un float64
 	for _, x := range rows {
 		t.Rows = append(t.Rows, []any{x.CollectorName, x.ActiveDays, x.FarmersServicedCount, x.TotalCollectedLitres,
-			x.TotalReceivedLitres, x.TotalSoldLitres, x.TotalTransferredOutLitres, x.TotalSpoiledLitres, x.UnaccountedLitres, title(string(x.Status))})
+			x.TotalReceivedLitres, x.TotalSoldLitres, x.TotalTransferredOutLitres, x.TotalSpoiledLitres, x.UnaccountedLitres, balanceLabel(x.Status)})
 		c, rcv, sold, out, sp, un = c+x.TotalCollectedLitres, rcv+x.TotalReceivedLitres, sold+x.TotalSoldLitres,
 			out+x.TotalTransferredOutLitres, sp+x.TotalSpoiledLitres, un+x.UnaccountedLitres
 	}
@@ -283,11 +284,11 @@ func milkBalance(ctx context.Context, s *Service, in *input) error {
 	}
 	in.doc.Figures = []document.Figure{
 		{Label: "Collected", Value: litres(c)}, {Label: "Sold", Value: litres(sold)},
-		{Label: "Spoiled", Value: litres(sp)}, {Label: "Unaccounted", Value: litres(un)},
+		{Label: "Spoiled", Value: litres(sp)}, {Label: "Not sold yet", Value: litres(un)},
 	}
 	in.doc.Tables = []document.Table{t}
 	in.doc.Notes = []string{
-		"Unaccounted = collected + received - sold - transferred - spoiled. Above zero: milk missing; below zero: more sold than collected.",
+		"Not sold yet = collected + received - sold - transferred - spoiled. Above zero: milk not yet sold, moved or recorded as spoiled; below zero: more sold than collected.",
 		"Balanced means within the Sacco's measuring allowance for each day worked.",
 	}
 	return nil
@@ -306,7 +307,7 @@ func saccoSummary(ctx context.Context, s *Service, in *input) error {
 		Title: "Day by day",
 		Columns: []document.Column{
 			col("Date", day, 1.1), col("Farmers", cnt, 0.7), col("Collected L", ltr, 1), col("Cost of milk", money, 1.3),
-			col("Sold L", ltr, 1), col("Sales", money, 1.3), col("Spoiled L", ltr, 0.9), col("Unaccounted L", ltr, 1.1), col("Margin", money, 1.3),
+			col("Sold L", ltr, 1), col("Sales", money, 1.3), col("Spoiled L", ltr, 0.9), col("Not sold yet L", ltr, 1.1), col("Margin", money, 1.3),
 		},
 	}
 	var tc, tcost, ts, trev, tsp float64
@@ -337,11 +338,11 @@ func saccoSummary(ctx context.Context, s *Service, in *input) error {
 		{Label: "Gross margin", Value: kes(ledger.GrossMarginKES)},
 		{Label: "Milk sold", Value: litres(ledger.TotalSoldLitres)},
 		{Label: "Spoiled", Value: litres(ledger.TotalSpoilageLitres)},
-		{Label: "Unaccounted", Value: litres(ledger.UnaccountedLitres)},
+		{Label: "Not sold yet", Value: litres(ledger.UnaccountedLitres)},
 		{Label: "Customers owe (today)", Value: kes(ledger.ReceivablesKES)},
 	}
 	in.doc.Tables = []document.Table{t, byType}
-	in.doc.Notes = []string{"Margin = sales minus the cost of milk bought from farmers. Unaccounted = collected - sold - spoiled (transfers between collectors cancel out)."}
+	in.doc.Notes = []string{"Margin = sales minus the cost of milk bought from farmers. Not sold yet = collected - sold - spoiled (transfers between collectors cancel out)."}
 	return nil
 }
 
@@ -395,6 +396,18 @@ func statementDetails(kind customer.EntryKind, description string, debit, credit
 }
 
 // title writes an UPPER_CASE value as a word: "MORNING" -> "Morning".
+// balanceLabel names a milk balance result in plain words: milk not yet
+// sold is usually still in the can or cooler, not lost.
+func balanceLabel(s reconcile.Status) string {
+	switch s {
+	case reconcile.StatusMissing:
+		return "Not sold yet"
+	case reconcile.StatusOversold:
+		return "Sold over collected"
+	}
+	return "Balanced"
+}
+
 func title(s string) string {
 	s = strings.ReplaceAll(strings.ToLower(s), "_", " ")
 	if s == "" {

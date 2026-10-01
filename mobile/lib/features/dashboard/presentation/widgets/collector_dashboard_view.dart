@@ -90,7 +90,7 @@ class CollectorDashboardView extends StatelessWidget {
                             ),
                       ),
                       Text(
-                        'Litres unaccounted',
+                        'Litres not sold yet',
                         style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(
                               color: Colors.white.withValues(alpha: 0.9),

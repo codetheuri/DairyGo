@@ -8,7 +8,7 @@ type ExecutiveSummaryCards struct {
 	TodaySalesLitres        float64          `json:"today_sales_litres"`
 	TodaySpoilageLitres     float64          `json:"today_spoilage_litres"`
 	TodayTransferredLitres  float64          `json:"today_transferred_litres" doc:"Moved between collectors today; does not change the Sacco's balance"`
-	TodayUnaccountedLitres  float64          `json:"today_unaccounted_litres" doc:"Collected minus sold minus spoiled today; positive is missing, negative is oversold"`
+	TodayUnaccountedLitres  float64          `json:"today_unaccounted_litres" doc:"Collected minus sold minus spoiled today; positive is not sold yet, negative is sold over collected"`
 	TodayBalanceStatus      reconcile.Status `json:"today_balance_status"`
 	MonthCollectedLitres    float64          `json:"month_collected_litres"`
 	MonthPayoutLiabilityKES float64          `json:"month_payout_liability_kes"`

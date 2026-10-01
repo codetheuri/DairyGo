@@ -798,7 +798,7 @@ class _ToleranceCard extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             const Text(
-              'Litres of measuring difference allowed per collector per day before milk is flagged as missing or oversold.',
+              'Litres of measuring difference allowed per collector per day before milk is flagged as not sold yet or sold over collected.',
               style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
             ),
             const SizedBox(height: 12),

@@ -76,7 +76,7 @@ var catalog = []Report{
 	},
 	{
 		Key: "milk-balance", Title: "Milk Balance by Collector",
-		Description:     "For each collector: collected, received, sold, transferred, spoiled and unaccounted litres.",
+		Description:     "For each collector: collected, received, sold, transferred, spoiled and not-yet-sold litres.",
 		CollectorFilter: true, permission: report.PermReportsCollectorRead, landscape: true, build: milkBalance,
 	},
 	{

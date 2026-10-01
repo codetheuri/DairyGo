@@ -5,8 +5,9 @@
 ///
 /// "Received" and "transferred out" are milk from and to other collectors.
 ///
-/// Unaccounted above zero is milk MISSING; below zero, more was sold than
-/// collected (OVERSOLD). Within the allowance it is BALANCED.
+/// Unaccounted above zero is MISSING (shown as "not sold yet"); below zero,
+/// more was sold than collected (OVERSOLD, "sold over collected"). Within
+/// the allowance it is BALANCED.
 class MilkBalance {
   final double unaccountedLitres;
   final String status;

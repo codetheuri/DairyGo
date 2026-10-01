@@ -43,7 +43,7 @@ type SaccoSettings struct {
 	MorningCutoffTime *string `json:"morning_cutoff_time,omitempty"`
 	EveningCutoffTime *string `json:"evening_cutoff_time,omitempty"`
 	// ReconciliationToleranceLitres is the measuring difference allowed per
-	// collector per day before milk counts as missing or oversold.
+	// collector per day before milk counts as not sold yet or sold over collected.
 	ReconciliationToleranceLitres float64 `json:"reconciliation_tolerance_litres" gorm:"default:0"`
 	// InactiveAfterDays is how many days without milk make an active farmer
 	// inactive automatically; 0 turns this off (see member.MarkIdleInactive).

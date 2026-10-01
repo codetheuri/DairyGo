@@ -31,7 +31,7 @@ type AddStaffRequest struct {
 	Phone     *string `json:"phone,omitempty" doc:"Phone number"`
 	FirstName string  `json:"first_name" doc:"First name"`
 	LastName  string  `json:"last_name" doc:"Last name"`
-	Password  string  `json:"password" minLength:"8" doc:"Initial password"`
+	Password  string  `json:"password" minLength:"4" doc:"Initial password (at least 4 characters, as everywhere)"`
 	RoleID    uint    `json:"role_id" doc:"1 = Sacco Administrator, 2 = Milk Collector, 3 = Board Member / Executive"`
 }
 
@@ -76,7 +76,7 @@ type RemoveUserInput struct {
 type ResetPasswordInput struct {
 	ID   uint `path:"id" doc:"User ID"`
 	Body struct {
-		NewPassword string `json:"new_password" minLength:"8" doc:"New password to give the user"`
+		NewPassword string `json:"new_password" minLength:"4" doc:"New password to give the user (at least 4 characters)"`
 	}
 }
 

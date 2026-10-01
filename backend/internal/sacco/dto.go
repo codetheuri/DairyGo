@@ -16,7 +16,7 @@ type CreateSaccoRequest struct {
 		Username string  `json:"username" minLength:"3" doc:"Administrator username"`
 		Email    string  `json:"email" format:"email" doc:"Administrator email address"`
 		Phone    *string `json:"phone,omitempty" doc:"Administrator phone number"`
-		Password string  `json:"password" minLength:"8" doc:"Administrator password"`
+		Password string  `json:"password" minLength:"4" doc:"Administrator password (at least 4 characters)"`
 	} `json:"admin_user" doc:"Initial Sacco Administrator user details"`
 }
 

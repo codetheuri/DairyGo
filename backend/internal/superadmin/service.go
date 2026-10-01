@@ -119,8 +119,8 @@ func (s *Service) UnlockUser(ctx context.Context, userID uint) error {
 // ResetPassword sets a new password for a Sacco user, clears any lockout and
 // ends their existing sessions.
 func (s *Service) ResetPassword(ctx context.Context, userID uint, newPassword string) error {
-	if len(newPassword) < 8 {
-		return fmt.Errorf("new password must be at least 8 characters")
+	if err := auth.CheckPasswordLength(newPassword); err != nil {
+		return err
 	}
 	hash, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
 	if err != nil {

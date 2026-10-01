@@ -4,6 +4,10 @@
 // when the tab closes.
 
 const API = '/api/v1';
+
+// Shortest password accepted anywhere: the same as the app and the API
+// (auth.MinPasswordLength; web_test.go keeps them equal).
+const PASSWORD_MIN = 4;
 const TOKEN_KEY = 'dairygo.console.token';
 const USER_KEY = 'dairygo.console.user';
 const app = document.getElementById('app');
@@ -400,7 +404,7 @@ function onboardSacco() {
       { name: 'admin_username', label: 'Username', required: true },
       { name: 'admin_email', label: 'Email', type: 'email', required: true },
       { name: 'admin_phone', label: 'Phone' },
-      { name: 'admin_password', label: 'Initial password', type: 'password', required: true, minlength: 8 },
+      { name: 'admin_password', label: 'Initial password', type: 'password', required: true, minlength: PASSWORD_MIN },
     ],
     onSubmit: async (v) => {
       const data = await api('POST', '/admin/saccos', compact({
@@ -614,7 +618,7 @@ async function staffTab(sacco) {
       { name: 'email', label: 'Email', type: 'email', required: true },
       { name: 'phone', label: 'Phone' },
       { name: 'role_id', label: 'Role', type: 'select', options: ROLE_OPTIONS, value: '2', required: true },
-      { name: 'password', label: 'Initial password', type: 'password', required: true, minlength: 8, full: true },
+      { name: 'password', label: 'Initial password', type: 'password', required: true, minlength: PASSWORD_MIN, full: true },
     ],
     onSubmit: async (v) => {
       await api('POST', `/admin/saccos/${sacco.id}/users`, compact({ ...v, role_id: Number(v.role_id) }));
@@ -639,7 +643,7 @@ async function staffTab(sacco) {
     title: `Reset password for ${u.username}`,
     intro: 'Give the new password to the user securely. Their current sessions end.',
     submitLabel: 'Reset password',
-    fields: [{ name: 'new_password', label: 'New password', type: 'password', required: true, minlength: 8, full: true }],
+    fields: [{ name: 'new_password', label: 'New password', type: 'password', required: true, minlength: PASSWORD_MIN, full: true }],
     onSubmit: async (v) => {
       await api('POST', `/admin/users/${u.id}/reset-password`, v);
       toast('Password reset');

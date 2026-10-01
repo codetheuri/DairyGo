@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/constants/password_rules.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/theme/app_colors.dart';
@@ -262,12 +263,7 @@ class _RegisterStaffDialogState extends ConsumerState<RegisterStaffDialog> {
                 controller: _passwordController,
                 isPassword: true,
                 prefixIcon: Icons.lock_outline_rounded,
-                validator: (val) {
-                  if (val == null || val.length < 4) {
-                    return 'Password must be at least 4 characters';
-                  }
-                  return null;
-                },
+                validator: checkNewPassword,
               ),
               const SizedBox(height: 14),
 

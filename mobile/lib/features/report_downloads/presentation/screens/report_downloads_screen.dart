@@ -27,6 +27,23 @@ class ReportDownloadsScreen extends ConsumerWidget {
     'farmer-register': Icons.groups_outlined,
   };
 
+  Future<void> _deleteAll(
+    BuildContext context,
+    WidgetRef ref,
+    int count,
+  ) async {
+    final ok = await _confirm(
+      context,
+      'Delete all downloaded reports?',
+      'This removes $count ${count == 1 ? 'report' : 'reports'} from the app. '
+          'Copies you saved to the phone or shared are kept. '
+          'You can download any report again.',
+    );
+    if (!ok) return;
+    await ref.read(reportDownloadServiceProvider).deleteAll();
+    ref.invalidate(savedReportsProvider);
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final catalog = ref.watch(reportCatalogProvider);
@@ -66,12 +83,29 @@ class ReportDownloadsScreen extends ConsumerWidget {
               ],
               if (saved.isNotEmpty) ...[
                 const SizedBox(height: 14),
-                const Text(
-                  'Downloaded',
-                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+                Row(
+                  children: [
+                    const Expanded(
+                      child: Text(
+                        'Downloaded',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ),
+                    TextButton.icon(
+                      onPressed: () => _deleteAll(context, ref, saved.length),
+                      icon: const Icon(Icons.delete_sweep_outlined, size: 20),
+                      label: const Text('Delete all'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppColors.error,
+                      ),
+                    ),
+                  ],
                 ),
                 const Text(
-                  'Kept on this phone for 30 days.',
+                  'Kept in the app for 30 days. Use Save to phone to keep a copy in Downloads.',
                   style: TextStyle(
                     color: AppColors.textSecondary,
                     fontSize: 12,
@@ -145,13 +179,42 @@ class _ReportCard extends StatelessWidget {
   );
 }
 
-class _SavedTile extends StatelessWidget {
+enum _SavedAction { share, save, delete }
+
+class _SavedTile extends ConsumerWidget {
   final SavedReport saved;
 
   const _SavedTile({required this.saved});
 
+  void _tell(BuildContext context, String message) => ScaffoldMessenger.of(
+    context,
+  ).showSnackBar(SnackBar(content: Text(message)));
+
+  Future<void> _act(
+    BuildContext context,
+    WidgetRef ref,
+    _SavedAction action,
+  ) async {
+    switch (action) {
+      case _SavedAction.share:
+        await ReportFiles.share(saved.file, saved.name);
+      case _SavedAction.save:
+        final message = await ReportFiles.saveToPhone(saved.file);
+        if (message != null && context.mounted) _tell(context, message);
+      case _SavedAction.delete:
+        final ok = await _confirm(
+          context,
+          'Delete this report?',
+          '${saved.name} is removed from the app. You can download it again.',
+        );
+        if (!ok) return;
+        await ref.read(reportDownloadServiceProvider).delete(saved.file);
+        ref.invalidate(savedReportsProvider);
+    }
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final kb = (saved.size / 1024).ceil();
     return ListTile(
       contentPadding: EdgeInsets.zero,
@@ -170,17 +233,59 @@ class _SavedTile extends StatelessWidget {
       subtitle: Text('$kb KB', style: const TextStyle(fontSize: 12)),
       onTap: () async {
         final problem = await ReportFiles.open(saved.file);
-        if (problem != null && context.mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(problem)));
-        }
+        if (problem != null && context.mounted) _tell(context, problem);
       },
-      trailing: IconButton(
-        tooltip: 'Share',
-        icon: const Icon(Icons.share_rounded),
-        onPressed: () => ReportFiles.share(saved.file, saved.name),
+      trailing: PopupMenuButton<_SavedAction>(
+        tooltip: 'More',
+        onSelected: (a) => _act(context, ref, a),
+        itemBuilder: (_) => const [
+          PopupMenuItem(
+            value: _SavedAction.share,
+            child: ListTile(
+              leading: Icon(Icons.share_rounded),
+              title: Text('Share'),
+            ),
+          ),
+          PopupMenuItem(
+            value: _SavedAction.save,
+            child: ListTile(
+              leading: Icon(Icons.save_alt_rounded),
+              title: Text('Save to phone'),
+            ),
+          ),
+          PopupMenuItem(
+            value: _SavedAction.delete,
+            child: ListTile(
+              leading: Icon(
+                Icons.delete_outline_rounded,
+                color: AppColors.error,
+              ),
+              title: Text('Delete', style: TextStyle(color: AppColors.error)),
+            ),
+          ),
+        ],
       ),
     );
   }
 }
+
+Future<bool> _confirm(BuildContext context, String title, String body) async =>
+    await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(title),
+        content: Text(body),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: AppColors.error),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    ) ??
+    false;

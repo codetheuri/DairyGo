@@ -2,6 +2,8 @@ package com.tusk.dairy.dairy_sacco_mobile
 
 import android.app.PendingIntent
 import android.content.ActivityNotFoundException
+import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageInstaller
 import android.content.pm.PackageManager
@@ -18,9 +20,14 @@ class MainActivity : FlutterActivity() {
     companion object {
         /** Android's answer about an install we started (see [install]). */
         const val ACTION_INSTALL_STATUS = "com.tusk.dairy.INSTALL_STATUS"
+
+        private const val SAVE_AS_REQUEST = 4101
     }
 
     private var channel: MethodChannel? = null
+
+    /** A report waiting for the user to pick where to save it ([saveAs]). */
+    private var pendingSave: Pair<File, MethodChannel.Result>? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -43,6 +50,75 @@ class MainActivity : FlutterActivity() {
                     }
                 }
             }
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "dairygo/files")
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "saveAs" -> saveAs(
+                        call.argument<String>("path"),
+                        call.argument<String>("mime") ?: "application/octet-stream",
+                        result,
+                    )
+                    else -> result.notImplemented()
+                }
+            }
+    }
+
+    /** Where the app keeps downloaded reports (Flutter's documents folder). */
+    private fun reportsDir(): File =
+        File(getDir("flutter", Context.MODE_PRIVATE), "reports")
+
+    /**
+     * Saves a copy of a downloaded report where the user chooses (Downloads,
+     * Documents, a memory card, Drive), using Android's own "Save as" screen.
+     * Android gives the app access to that one file only, so no storage
+     * permission is needed. Answers "saved", "cancelled" or "failed".
+     */
+    private fun saveAs(path: String?, mime: String, result: MethodChannel.Result) {
+        val file = path?.let { File(it).canonicalFile }
+        // Only the app's own reports, never a path from elsewhere.
+        if (file == null || file.parentFile != reportsDir().canonicalFile || !file.isFile) {
+            result.success("failed")
+            return
+        }
+        pendingSave?.second?.success("cancelled")
+        val pick = Intent(Intent.ACTION_CREATE_DOCUMENT)
+            .addCategory(Intent.CATEGORY_OPENABLE)
+            .setType(mime)
+            .putExtra(Intent.EXTRA_TITLE, file.name)
+        try {
+            pendingSave = file to result
+            @Suppress("DEPRECATION")
+            startActivityForResult(pick, SAVE_AS_REQUEST)
+        } catch (e: ActivityNotFoundException) {
+            pendingSave = null
+            result.success("failed")
+        }
+    }
+
+    @Deprecated("Deprecated in Java")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        @Suppress("DEPRECATION")
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode != SAVE_AS_REQUEST) return
+        val (file, result) = pendingSave ?: return
+        pendingSave = null
+        val target = data?.data
+        if (resultCode != Activity.RESULT_OK || target == null) {
+            result.success("cancelled")
+            return
+        }
+        // Copying can take a moment on a memory card: off the UI thread.
+        Thread {
+            val outcome = try {
+                contentResolver.openOutputStream(target, "wt")?.use { output ->
+                    file.inputStream().use { it.copyTo(output) }
+                    "saved"
+                } ?: "failed"
+            } catch (e: Exception) {
+                "failed"
+            }
+            runOnUiThread { result.success(outcome) }
+        }.start()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

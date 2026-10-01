@@ -62,6 +62,21 @@ GET /api/v1/sacco/exports/{key}?format=pdf|xlsx&from=YYYY-MM-DD&to=YYYY-MM-DD[&m
 The look is defined once in `pkg/document` (`pdf.go`, `xlsx.go`). Reports
 only fill in a `document.Document` (`internal/export/builders.go`).
 
+## On the phone
+
+The app keeps each download in its own private folder (`app_flutter/reports`).
+It is not in Downloads or the Files app, and other apps can't read it. No
+storage permission is needed. Reports are listed under **Download reports →
+Downloaded**, and are deleted after 30 days or when the app is uninstalled.
+
+- **Open** or **Share** (WhatsApp, email, Drive).
+- **Save to phone** opens Android's own "Save as" screen (`ACTION_CREATE_DOCUMENT`,
+  channel `dairygo/files` in `MainActivity.kt`). The user picks a place, such as
+  Downloads, and the copy stays there. Android grants access to that one file
+  only, so no permission is needed. Only files in the reports folder can be saved.
+- **Delete** one report from its menu, or **Delete all**. Copies saved to the
+  phone or shared are kept.
+
 ## The logo
 
 Each Sacco's logo is stored in `saccos.logo` (migration `00020`): PNG or

@@ -222,5 +222,22 @@ void main() {
       expect(saved.first.isPdf, isTrue);
       expect(old.existsSync(), isFalse);
     });
+
+    test('deletes one saved report, or all of them', () async {
+      final folder = Directory('${dir.path}/reports')..createSync();
+      final a = File('${folder.path}/a.pdf')..writeAsStringSync('x');
+      File('${folder.path}/b.xlsx').writeAsStringSync('x');
+      File('${folder.path}/c.pdf').writeAsStringSync('x');
+
+      await service.delete(a);
+      await service.delete(a); // already gone: no error
+      expect(
+        (await service.saved()).map((s) => s.name),
+        unorderedEquals(['b.xlsx', 'c.pdf']),
+      );
+
+      await service.deleteAll();
+      expect(await service.saved(), isEmpty);
+    });
   });
 }

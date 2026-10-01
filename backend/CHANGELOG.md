@@ -10,6 +10,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Added
 - **Downloadable reports, PDF and Excel** (`internal/export`, `pkg/document`, migration `00020`): nine reports (farmer payouts, farmer statement, collections, sales, customer statement, customers owing, milk balance by collector, Sacco summary, farmer register) made on the server with the Sacco's letterhead and logo. `GET /api/v1/sacco/exports` lists the ones the caller may download; `GET /api/v1/sacco/exports/{key}` returns the file. Collectors get only their own rows. Sacco logos: `PUT/GET/DELETE /api/v1/admin/saccos/{id}/logo`, `PUT/GET /api/v1/sacco/logo`. See [docs/report-downloads.md](docs/report-downloads.md).
+- **App: save, delete and developer details.**
+  - Save a downloaded report to the phone (Android's "Save as", no storage permission).
+  - Delete one downloaded report, or all of them.
+  - Developer details on the splash and sign-in screens and in More → About DairyGo.
 
 ### Fixed
 - **One password rule everywhere: at least 4 characters** (`auth.MinPasswordLength`). The platform console (add staff, reset a password, a new Sacco's administrator) asked for 8 while the app and the API asked for 4. Tests keep the API's password fields and the console's `PASSWORD_MIN` equal to it; the app uses `lib/core/constants/password_rules.dart`.

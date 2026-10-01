@@ -57,6 +57,7 @@ class _ReportDownloadSheetState extends ConsumerState<ReportDownloadSheet> {
   bool _downloading = false;
   double? _progress;
   String? _error;
+  String? _notice;
   File? _file;
   CancelToken? _cancel;
 
@@ -101,6 +102,7 @@ class _ReportDownloadSheetState extends ConsumerState<ReportDownloadSheet> {
       _downloading = true;
       _progress = null;
       _error = null;
+      _notice = null;
       _file = null;
     });
     _cancel = CancelToken();
@@ -141,6 +143,16 @@ class _ReportDownloadSheetState extends ConsumerState<ReportDownloadSheet> {
   Future<void> _open() async {
     final problem = await ReportFiles.open(_file!);
     if (problem != null && mounted) setState(() => _error = problem);
+  }
+
+  Future<void> _save() async {
+    final message = await ReportFiles.saveToPhone(_file!);
+    if (message == null || !mounted) return;
+    setState(() {
+      final ok = message.startsWith('Saved');
+      _notice = ok ? message : null;
+      _error = ok ? null : message;
+    });
   }
 
   Widget _label(String text) => Padding(
@@ -395,6 +407,20 @@ class _ReportDownloadSheetState extends ConsumerState<ReportDownloadSheet> {
                   ),
                 ],
               ),
+              const SizedBox(height: 10),
+              OutlinedButton.icon(
+                onPressed: _save,
+                icon: const Icon(Icons.save_alt_rounded),
+                label: const Text('Save to phone'),
+              ),
+              if (_notice != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  _notice!,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: AppColors.success),
+                ),
+              ],
               TextButton(
                 onPressed: _download,
                 child: const Text('Download again'),

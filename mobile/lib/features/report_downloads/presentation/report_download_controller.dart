@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:share_plus/share_plus.dart';
@@ -45,6 +46,33 @@ class ReportFiles {
             ? 'No app on this phone opens Excel files. Share it instead, or install Google Sheets or Excel.'
             : 'No app on this phone opens PDF files. Share it instead.',
       _ => 'The report could not be opened: ${result.message}',
+    };
+  }
+
+  static const _files = MethodChannel('dairygo/files');
+
+  /// Saves a copy of [file] where the user picks on Android's "Save as"
+  /// screen (Downloads, Documents, a memory card). The copy stays after the
+  /// app deletes its own after 30 days. Returns a message to show, or null
+  /// when the user backed out.
+  static Future<String?> saveToPhone(File file) async {
+    String? outcome;
+    try {
+      outcome = await _files.invokeMethod<String>('saveAs', {
+        'path': file.path,
+        'mime': file.path.endsWith('.xlsx')
+            ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            : 'application/pdf',
+      });
+    } on MissingPluginException {
+      outcome = 'failed'; // not on Android
+    } on PlatformException {
+      outcome = 'failed';
+    }
+    return switch (outcome) {
+      'saved' => 'Saved to your phone',
+      'cancelled' => null,
+      _ => 'The report could not be saved. Share it instead.',
     };
   }
 

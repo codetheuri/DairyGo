@@ -127,6 +127,19 @@ class ReportDownloadService {
     return out;
   }
 
+  /// Deletes one saved report from the phone.
+  Future<void> delete(File file) async {
+    if (await file.exists()) await file.delete();
+  }
+
+  /// Deletes every saved report from the phone.
+  Future<void> deleteAll() async {
+    final dir = await _folder();
+    await for (final f in dir.list()) {
+      if (f is File) await f.delete().catchError((_) => f);
+    }
+  }
+
   /// The server's reason for refusing, from a JSON body sent as bytes.
   static String? _message(DioException e) {
     var data = e.response?.data;

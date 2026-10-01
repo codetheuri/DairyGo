@@ -12,6 +12,7 @@ import 'package:dairy_sacco_mobile/features/report_downloads/presentation/report
 import 'package:dairy_sacco_mobile/features/report_downloads/presentation/widgets/report_download_sheet.dart';
 import 'package:dairy_sacco_mobile/core/network/dio_client.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'harness.dart';
@@ -66,8 +67,23 @@ const _farmer = {
 void main() {
   setUpAll(loadFonts);
   late Directory dir;
-  setUp(() => dir = Directory.systemTemp.createTempSync('reports'));
-  tearDown(() => dir.deleteSync(recursive: true));
+  // Android's "Save as" screen: the user picks a place and it is saved.
+  late List<Map<Object?, Object?>> saveCalls;
+  const files = MethodChannel('dairygo/files');
+  setUp(() {
+    dir = Directory.systemTemp.createTempSync('reports');
+    saveCalls = [];
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(files, (call) async {
+          saveCalls.add(call.arguments as Map<Object?, Object?>);
+          return 'saved';
+        });
+  });
+  tearDown(() {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(files, null);
+    dir.deleteSync(recursive: true);
+  });
 
   // Downloads go to a temporary folder instead of the phone's documents.
   List<dynamic> savedHere() => [
@@ -123,6 +139,11 @@ void main() {
           seen['done'] = find.textContaining('Downloaded:').evaluate().length;
           seen['open'] = find.text('Open').evaluate().length;
           seen['share'] = find.text('Share').evaluate().length;
+          await _tap(tester, find.text('Save to phone'));
+          seen['saved note'] = find
+              .text('Saved to your phone')
+              .evaluate()
+              .length;
           seen['saved'] = await tester.runAsync(
             () async => dir.listSync(recursive: true).whereType<File>().length,
           );
@@ -144,6 +165,9 @@ void main() {
         expect(seen['done'], 1);
         expect(seen['open'], 1);
         expect(seen['share'], 1);
+        expect(seen['saved note'], 1);
+        expect(saveCalls.single['mime'], contains('spreadsheetml'));
+        expect(saveCalls.single['path'], endsWith('.xlsx'));
         expect(seen['saved'], 1);
         expect(app.server.requests, contains('sacco_exports_farmer-payouts'));
       });
@@ -239,5 +263,65 @@ void main() {
     }
     expect(app.errors, isEmpty, reason: app.errors.join('\n'));
     expect(found, 1);
+  });
+
+  testWidgets('Downloaded reports can be deleted, one or all', (tester) async {
+    _setScreen(tester, const Size(320, 640), 2);
+    final folder = Directory('${dir.path}/reports')..createSync();
+    for (final n in ['a.pdf', 'b.xlsx', 'c.pdf']) {
+      File('${folder.path}/$n').writeAsStringSync('x');
+    }
+    Future<List<String>> left() async => (await tester.runAsync(
+      () async =>
+          folder.listSync().map((f) => f.uri.pathSegments.last).toList(),
+    ))!;
+
+    final app = await AppUnderTest.open(
+      tester,
+      'admin',
+      '/report-downloads',
+      extra: savedHere().cast(),
+    );
+    final seen = <String, Object?>{};
+    try {
+      await _finishFiles(tester);
+      final first = find.text('a.pdf');
+      await tester.scrollUntilVisible(
+        first,
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await _tap(
+        tester,
+        find.descendant(
+          of: find.ancestor(of: first, matching: find.byType(ListTile)),
+          matching: find.byIcon(Icons.adaptive.more),
+        ),
+      );
+      await _tap(tester, find.text('Delete').last);
+      seen['ask one'] = find.text('Delete this report?').evaluate().length;
+      await _tap(tester, find.widgetWithText(FilledButton, 'Delete'));
+      await _finishFiles(tester);
+      seen['after one'] = await left();
+
+      await _tap(tester, find.text('Delete all'));
+      seen['ask all'] = find
+          .text('Delete all downloaded reports?')
+          .evaluate()
+          .length;
+      await _tap(tester, find.widgetWithText(FilledButton, 'Delete'));
+      await _finishFiles(tester);
+      seen['after all'] = await left();
+      await _finishFiles(tester);
+      seen['list gone'] = find.text('Delete all').evaluate().length;
+    } finally {
+      await app.close();
+    }
+    expect(app.errors, isEmpty, reason: app.errors.join('\n'));
+    expect(seen['ask one'], 1);
+    expect(seen['after one'], unorderedEquals(['b.xlsx', 'c.pdf']));
+    expect(seen['ask all'], 1);
+    expect(seen['after all'], isEmpty);
+    expect(seen['list gone'], 0);
   });
 }

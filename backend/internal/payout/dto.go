@@ -133,11 +133,12 @@ type FarmerDeductionOutput struct {
 
 // EntryRequest records an advance, a charge or an adjustment.
 type EntryRequest struct {
-	Amount      float64 `json:"amount" doc:"KES; for an adjustment, negative takes money off the farmer's account"`
-	Date        string  `json:"date,omitempty" doc:"YYYY-MM-DD (default today)"`
-	Description string  `json:"description,omitempty" maxLength:"255" doc:"What it is for; required for charges and adjustments"`
-	Method      string  `json:"method,omitempty" enum:"CASH,MPESA,BANK_TRANSFER,CHEQUE," doc:"How an advance was paid out"`
-	Reference   string  `json:"reference,omitempty" maxLength:"100" doc:"M-Pesa or bank reference"`
+	Amount        float64 `json:"amount" doc:"KES; for an adjustment, negative takes money off the farmer's account"`
+	Date          string  `json:"date,omitempty" doc:"YYYY-MM-DD (default today)"`
+	Description   string  `json:"description,omitempty" maxLength:"255" doc:"What it is for; required for charges and adjustments"`
+	Method        string  `json:"method,omitempty" enum:"CASH,MPESA,BANK_TRANSFER,CHEQUE," doc:"How an advance was paid out"`
+	Reference     string  `json:"reference,omitempty" maxLength:"100" doc:"M-Pesa or bank reference"`
+	CashAccountID string  `json:"cash_account_id,omitempty" doc:"The Sacco account an advance was paid from (optional)"`
 }
 
 type RecordEntryInput struct {
@@ -236,10 +237,11 @@ type CancelRunInput struct {
 
 // PayRequest marks farmers as paid.
 type PayRequest struct {
-	LineIDs   []string `json:"line_ids,omitempty" doc:"The farmers' lines; empty marks everyone not yet paid"`
-	Method    string   `json:"method" enum:"CASH,MPESA,BANK_TRANSFER,CHEQUE" doc:"How they were paid"`
-	Reference string   `json:"reference,omitempty" maxLength:"100" doc:"M-Pesa, bank or cheque reference (required unless cash)"`
-	Date      string   `json:"date,omitempty" doc:"YYYY-MM-DD the money was sent (default now)"`
+	LineIDs       []string `json:"line_ids,omitempty" doc:"The farmers' lines; empty marks everyone not yet paid"`
+	Method        string   `json:"method" enum:"CASH,MPESA,BANK_TRANSFER,CHEQUE" doc:"How they were paid"`
+	Reference     string   `json:"reference,omitempty" maxLength:"100" doc:"M-Pesa, bank or cheque reference (required unless cash)"`
+	Date          string   `json:"date,omitempty" doc:"YYYY-MM-DD the money was sent (default now)"`
+	CashAccountID string   `json:"cash_account_id,omitempty" doc:"The Sacco account the pay was sent from (optional)"`
 }
 
 type PayInput struct {

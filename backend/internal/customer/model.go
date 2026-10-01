@@ -77,8 +77,10 @@ type Payment struct {
 	RecordedByID *uint         `json:"recorded_by_id,omitempty"`
 	VoidedAt     *time.Time    `json:"voided_at,omitempty"`
 	VoidReason   *string       `json:"void_reason,omitempty"`
-	CreatedAt    time.Time     `json:"created_at"`
-	UpdatedAt    time.Time     `json:"updated_at"`
+	// CashAccountID is the Sacco account the money went into.
+	CashAccountID *string   `json:"cash_account_id,omitempty" gorm:"type:varchar(36)"`
+	CreatedAt     time.Time `json:"created_at"`
+	UpdatedAt     time.Time `json:"updated_at"`
 }
 
 // TableName sets the database table name.

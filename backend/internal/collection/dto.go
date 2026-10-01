@@ -130,6 +130,7 @@ type RecordSaleRequest struct {
 	UnitPrice      *float64 `json:"unit_price,omitempty" doc:"Selling price per litre; defaults to the customer's agreed price"`
 	AmountPaid     *float64 `json:"amount_paid,omitempty" doc:"Amount paid at the time of sale; defaults to the full total, or 0 when payment_method is CREDIT"`
 	PaymentMethod  *string  `json:"payment_method,omitempty" enum:"CASH,MPESA,BANK_TRANSFER,CREDIT" doc:"How the amount paid was received; CREDIT when nothing was paid"`
+	CashAccountID  *string  `json:"cash_account_id,omitempty" doc:"The Sacco account the money went into or came from (optional)"`
 	Notes          *string  `json:"notes,omitempty" doc:"Optional notes"`
 }
 

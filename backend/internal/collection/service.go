@@ -498,6 +498,12 @@ func (s *Service) RecordSale(ctx context.Context, req *RecordSaleRequest) (*Milk
 		PaymentMethod:  method,
 		Notes:          req.Notes,
 	}
+	if req.CashAccountID != nil && *req.CashAccountID != "" && paid > 0 {
+		if err := s.repo.CheckCashAccount(ctx, saccoID, *req.CashAccountID); err != nil {
+			return nil, err
+		}
+		sale.CashAccountID = req.CashAccountID
+	}
 
 	entry := audit.Entry{
 		SaccoID: saccoID, EntityType: auditEntitySale, EntityID: sale.ID,

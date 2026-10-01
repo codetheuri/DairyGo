@@ -165,14 +165,16 @@ type Transaction struct {
 	IsSavings       bool      `json:"is_savings"`
 	// PayRunID is the run that settled this entry; nil while an advance,
 	// charge or adjustment waits for the next run.
-	PayRunID     *string    `json:"pay_run_id,omitempty" gorm:"type:varchar(36)"`
-	Method       *PayMethod `json:"method,omitempty"`
-	Reference    *string    `json:"reference,omitempty"`
-	RecordedByID *uint      `json:"recorded_by_id,omitempty"`
-	VoidedAt     *time.Time `json:"voided_at,omitempty"`
-	VoidReason   *string    `json:"void_reason,omitempty"`
-	CreatedAt    time.Time  `json:"created_at"`
-	UpdatedAt    time.Time  `json:"updated_at"`
+	PayRunID  *string    `json:"pay_run_id,omitempty" gorm:"type:varchar(36)"`
+	Method    *PayMethod `json:"method,omitempty"`
+	Reference *string    `json:"reference,omitempty"`
+	// CashAccountID is the Sacco account an advance was paid from.
+	CashAccountID *string    `json:"cash_account_id,omitempty" gorm:"type:varchar(36)"`
+	RecordedByID  *uint      `json:"recorded_by_id,omitempty"`
+	VoidedAt      *time.Time `json:"voided_at,omitempty"`
+	VoidReason    *string    `json:"void_reason,omitempty"`
+	CreatedAt     time.Time  `json:"created_at"`
+	UpdatedAt     time.Time  `json:"updated_at"`
 }
 
 // TableName sets the database table name.
@@ -242,8 +244,10 @@ type PayRunLine struct {
 	PaidMethod        *PayMethod `json:"paid_method,omitempty"`
 	PaidReference     *string    `json:"paid_reference,omitempty"`
 	PaidByID          *uint      `json:"paid_by_id,omitempty"`
-	CreatedAt         time.Time  `json:"created_at"`
-	UpdatedAt         time.Time  `json:"updated_at"`
+	// CashAccountID is the Sacco account the pay was sent from.
+	CashAccountID *string   `json:"cash_account_id,omitempty" gorm:"type:varchar(36)"`
+	CreatedAt     time.Time `json:"created_at"`
+	UpdatedAt     time.Time `json:"updated_at"`
 }
 
 // TableName sets the database table name.

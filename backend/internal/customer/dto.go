@@ -81,11 +81,12 @@ type HistoryOutput struct {
 // --- LEDGER DTOs ---
 
 type RecordPaymentRequest struct {
-	Amount      float64 `json:"amount" minimum:"0.01" doc:"Amount received"`
-	PaymentDate *string `json:"payment_date,omitempty" doc:"Date received (YYYY-MM-DD), defaults to today"`
-	Method      *string `json:"method,omitempty" enum:"CASH,MPESA,BANK_TRANSFER,CHEQUE" doc:"Payment method (default CASH)"`
-	Reference   *string `json:"reference,omitempty" doc:"Transaction reference, e.g. M-Pesa code"`
-	Notes       *string `json:"notes,omitempty" doc:"Optional notes"`
+	Amount        float64 `json:"amount" minimum:"0.01" doc:"Amount received"`
+	PaymentDate   *string `json:"payment_date,omitempty" doc:"Date received (YYYY-MM-DD), defaults to today"`
+	Method        *string `json:"method,omitempty" enum:"CASH,MPESA,BANK_TRANSFER,CHEQUE" doc:"Payment method (default CASH)"`
+	Reference     *string `json:"reference,omitempty" doc:"Transaction reference, e.g. M-Pesa code"`
+	CashAccountID *string `json:"cash_account_id,omitempty" doc:"The Sacco account the money went into or came from (optional)"`
+	Notes         *string `json:"notes,omitempty" doc:"Optional notes"`
 }
 
 type RecordPaymentInput struct {

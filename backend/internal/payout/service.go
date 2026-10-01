@@ -452,6 +452,12 @@ func (s *Service) RecordEntry(ctx context.Context, memberID string, kind Kind, r
 		m := PayMethod(strings.ToUpper(req.Method))
 		t.Method = &m
 	}
+	if req.CashAccountID != "" && kind == KindAdvance {
+		if err := s.repo.CheckCashAccount(ctx, saccoID, req.CashAccountID); err != nil {
+			return nil, fmt.Errorf("%w: %v", ErrInvalid, err)
+		}
+		t.CashAccountID = &req.CashAccountID
+	}
 	entry := audit.Entry{SaccoID: saccoID, EntityType: auditEntry, EntityID: t.ID, Action: audit.ActionCreate,
 		ActorID: middleware.GetUserID(ctx), NewValues: t}
 	if err := s.repo.AddTransaction(ctx, t, entry); err != nil {

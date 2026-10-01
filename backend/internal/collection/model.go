@@ -74,27 +74,29 @@ func (MilkCollection) TableName() string {
 // sale, including deliveries to coolers. BuyerName and BuyerPhone snapshot
 // the customer's details at the time of sale.
 type MilkSale struct {
-	ID             string         `json:"id" gorm:"primaryKey;type:varchar(36)"`
-	SaccoID        string         `json:"sacco_id" gorm:"index;type:varchar(36);not null"`
-	CollectorID    uint           `json:"collector_id" gorm:"index;not null"`
-	CollectorName  string         `json:"collector_name,omitempty" gorm:"-"`
-	CustomerID     string         `json:"customer_id" gorm:"type:varchar(36);not null"`
-	CustomerType   string         `json:"customer_type,omitempty" gorm:"-"`
-	SaleDate       time.Time      `json:"sale_date" gorm:"type:date;not null;index"`
-	BuyerName      string         `json:"buyer_name" gorm:"not null"`
-	BuyerPhone     *string        `json:"buyer_phone,omitempty"`
-	QuantityLitres float64        `json:"quantity_litres" gorm:"type:decimal(10,2);not null"`
-	UnitPrice      float64        `json:"unit_price" gorm:"type:decimal(10,2);not null"`
-	TotalAmount    float64        `json:"total_amount" gorm:"type:decimal(12,2);not null"`
-	AmountPaid     float64        `json:"amount_paid" gorm:"type:decimal(12,2);not null;default:0"`
-	PaymentStatus  string         `json:"payment_status" gorm:"default:'PAID'"` // PAID, PARTIAL, CREDIT (legacy: PENDING)
-	PaymentMethod  string         `json:"payment_method" gorm:"default:'CASH'"` // CASH, MPESA, BANK_TRANSFER, CREDIT
-	VoidedAt       *time.Time     `json:"voided_at,omitempty"`
-	VoidReason     *string        `json:"void_reason,omitempty"`
-	Notes          *string        `json:"notes,omitempty"`
-	CreatedAt      time.Time      `json:"created_at"`
-	UpdatedAt      time.Time      `json:"updated_at"`
-	DeletedAt      gorm.DeletedAt `json:"deleted_at,omitempty" gorm:"index"`
+	ID             string     `json:"id" gorm:"primaryKey;type:varchar(36)"`
+	SaccoID        string     `json:"sacco_id" gorm:"index;type:varchar(36);not null"`
+	CollectorID    uint       `json:"collector_id" gorm:"index;not null"`
+	CollectorName  string     `json:"collector_name,omitempty" gorm:"-"`
+	CustomerID     string     `json:"customer_id" gorm:"type:varchar(36);not null"`
+	CustomerType   string     `json:"customer_type,omitempty" gorm:"-"`
+	SaleDate       time.Time  `json:"sale_date" gorm:"type:date;not null;index"`
+	BuyerName      string     `json:"buyer_name" gorm:"not null"`
+	BuyerPhone     *string    `json:"buyer_phone,omitempty"`
+	QuantityLitres float64    `json:"quantity_litres" gorm:"type:decimal(10,2);not null"`
+	UnitPrice      float64    `json:"unit_price" gorm:"type:decimal(10,2);not null"`
+	TotalAmount    float64    `json:"total_amount" gorm:"type:decimal(12,2);not null"`
+	AmountPaid     float64    `json:"amount_paid" gorm:"type:decimal(12,2);not null;default:0"`
+	PaymentStatus  string     `json:"payment_status" gorm:"default:'PAID'"` // PAID, PARTIAL, CREDIT (legacy: PENDING)
+	PaymentMethod  string     `json:"payment_method" gorm:"default:'CASH'"` // CASH, MPESA, BANK_TRANSFER, CREDIT
+	VoidedAt       *time.Time `json:"voided_at,omitempty"`
+	// CashAccountID is the Sacco account the amount paid at the sale went into.
+	CashAccountID *string        `json:"cash_account_id,omitempty" gorm:"type:varchar(36)"`
+	VoidReason    *string        `json:"void_reason,omitempty"`
+	Notes         *string        `json:"notes,omitempty"`
+	CreatedAt     time.Time      `json:"created_at"`
+	UpdatedAt     time.Time      `json:"updated_at"`
+	DeletedAt     gorm.DeletedAt `json:"deleted_at,omitempty" gorm:"index"`
 }
 
 func (MilkSale) TableName() string {

@@ -8,6 +8,7 @@ import (
 
 	"gorm.io/gorm"
 
+	"github.com/codetheuri/tusk/internal/finance"
 	"github.com/codetheuri/tusk/pkg/audit"
 	"github.com/codetheuri/tusk/pkg/query"
 )
@@ -240,4 +241,9 @@ func (r *Repository) LedgerEvents(ctx context.Context, saccoID, customerID strin
 		})
 	}
 	return events, nil
+}
+
+// CheckCashAccount checks an account belongs to the Sacco and is in use.
+func (r *Repository) CheckCashAccount(ctx context.Context, saccoID, id string) error {
+	return finance.ActiveAccount(ctx, r.db, saccoID, id)
 }

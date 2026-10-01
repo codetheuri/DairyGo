@@ -8,6 +8,7 @@ import (
 
 	"gorm.io/gorm"
 
+	"github.com/codetheuri/tusk/internal/finance"
 	"github.com/codetheuri/tusk/pkg/audit"
 	"github.com/codetheuri/tusk/pkg/query"
 )
@@ -547,7 +548,7 @@ func (r *Repository) MarkLinePaid(ctx context.Context, l *PayRunLine) error {
 	db := r.db.WithContext(ctx)
 	res := db.Model(&PayRunLine{}).Where("id = ? AND paid_at IS NULL", l.ID).Updates(map[string]any{
 		"paid_at": l.PaidAt, "paid_method": l.PaidMethod, "paid_reference": l.PaidReference,
-		"paid_by_id": l.PaidByID, "updated_at": time.Now(),
+		"paid_by_id": l.PaidByID, "cash_account_id": l.CashAccountID, "updated_at": time.Now(),
 	})
 	if res.Error != nil {
 		return res.Error
@@ -556,7 +557,12 @@ func (r *Repository) MarkLinePaid(ctx context.Context, l *PayRunLine) error {
 		return fmt.Errorf("%w: %s is already marked paid", ErrConflict, l.FarmerName)
 	}
 	return db.Model(&Transaction{}).Where("pay_run_id = ? AND member_id = ? AND kind = ?", l.PayRunID, l.MemberID, KindPayout).
-		Updates(map[string]any{"method": l.PaidMethod, "reference": l.PaidReference, "updated_at": time.Now()}).Error
+		Updates(map[string]any{"method": l.PaidMethod, "reference": l.PaidReference, "cash_account_id": l.CashAccountID, "updated_at": time.Now()}).Error
+}
+
+// CheckCashAccount checks an account belongs to the Sacco and is in use.
+func (r *Repository) CheckCashAccount(ctx context.Context, saccoID, id string) error {
+	return finance.ActiveAccount(ctx, r.db, saccoID, id)
 }
 
 // PaidTotals counts a run's paid lines.

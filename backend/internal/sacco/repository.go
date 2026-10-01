@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/codetheuri/tusk/internal/auth"
+	"github.com/codetheuri/tusk/internal/finance"
 	"github.com/codetheuri/tusk/internal/payout"
 	"github.com/codetheuri/tusk/pkg/audit"
 	"github.com/codetheuri/tusk/pkg/query"
@@ -33,9 +34,13 @@ func (r *Repository) Create(ctx context.Context, s *Sacco, adminUser *auth.User,
 			return fmt.Errorf("failed to create sacco settings: %w", err)
 		}
 
-		// Example deductions (switched off) for the admin to complete.
+		// Example deductions (switched off) for the admin to complete, and
+		// the usual expense categories.
 		if err := tx.Create(payout.Examples(s.ID)).Error; err != nil {
 			return fmt.Errorf("failed to add example deductions: %w", err)
+		}
+		if err := tx.Create(finance.Categories(s.ID)).Error; err != nil {
+			return fmt.Errorf("failed to add expense categories: %w", err)
 		}
 
 		adminUser.SaccoID = &s.ID

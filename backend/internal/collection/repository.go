@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/codetheuri/tusk/internal/finance"
 	"github.com/codetheuri/tusk/internal/middleware"
 	"github.com/codetheuri/tusk/pkg/audit"
 	"github.com/codetheuri/tusk/pkg/query"
@@ -562,4 +563,9 @@ func (r *Repository) PayrollClosedThrough(ctx context.Context, saccoID string) (
 	err := r.db.WithContext(ctx).Table("sacco_settings").Select("payroll_closed_through").
 		Where("sacco_id = ?", saccoID).Limit(1).Scan(&row).Error
 	return row.PayrollClosedThrough, err
+}
+
+// CheckCashAccount checks an account belongs to the Sacco and is in use.
+func (r *Repository) CheckCashAccount(ctx context.Context, saccoID, id string) error {
+	return finance.ActiveAccount(ctx, r.db, saccoID, id)
 }

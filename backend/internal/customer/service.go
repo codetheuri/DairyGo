@@ -279,6 +279,12 @@ func (s *Service) RecordPayment(ctx context.Context, customerID string, req *Rec
 	if userID > 0 {
 		p.RecordedByID = &userID
 	}
+	if req.CashAccountID != nil && *req.CashAccountID != "" {
+		if err := s.repo.CheckCashAccount(ctx, c.SaccoID, *req.CashAccountID); err != nil {
+			return nil, err
+		}
+		p.CashAccountID = req.CashAccountID
+	}
 
 	entry := audit.Entry{
 		SaccoID: c.SaccoID, EntityType: auditEntityPayment, EntityID: p.ID,

@@ -37,3 +37,30 @@ class MilkBalance {
     return MilkBalance._(unaccounted, status);
   }
 }
+
+/// The milk difference as people read it: never a negative "not sold yet".
+/// Above zero it is milk not sold yet; below zero, more was sold than
+/// collected, shown as a positive number.
+class BalanceFigure {
+  /// Full wording, where there is room.
+  final String label;
+
+  /// One or two words, for narrow figure cells.
+  final String short;
+
+  /// Always zero or more.
+  final double litres;
+
+  const BalanceFigure._(this.label, this.short, this.litres);
+
+  factory BalanceFigure.of(double unaccountedLitres) => unaccountedLitres < 0
+      ? BalanceFigure._('Sold over collected', 'Oversold', -unaccountedLitres)
+      : BalanceFigure._('Not sold yet', 'Not sold yet', unaccountedLitres);
+
+  bool get oversold => short == 'Oversold';
+
+  /// "196.5 L more sold than collected" or "12.0 L not sold yet".
+  String get sentence => oversold
+      ? '${litres.toStringAsFixed(1)} L more sold than collected'
+      : '${litres.toStringAsFixed(1)} L not sold yet';
+}

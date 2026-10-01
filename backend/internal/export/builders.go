@@ -268,27 +268,29 @@ func milkBalance(ctx context.Context, s *Service, in *input) error {
 		Columns: []document.Column{
 			col("Collector", txt, 1.8), col("Days", cnt, 0.6), col("Farmers", cnt, 0.8), col("Collected L", ltr, 1),
 			col("Received L", ltr, 1), col("Sold L", ltr, 1), col("Transferred L", ltr, 1.1), col("Spoiled L", ltr, 0.9),
-			col("Not sold yet L", ltr, 1.1), col("Result", txt, 1.2),
+			col("Not sold yet L", ltr, 1.1), col("Oversold L", ltr, 1), col("Result", txt, 1.2),
 		},
 		Empty: "No milk was handled in this period.",
 	}
-	var c, rcv, sold, out, sp, un float64
+	var c, rcv, sold, out, sp, un, notSold, over float64
 	for _, x := range rows {
+		ns, ov := splitBalance(x.UnaccountedLitres)
 		t.Rows = append(t.Rows, []any{x.CollectorName, x.ActiveDays, x.FarmersServicedCount, x.TotalCollectedLitres,
-			x.TotalReceivedLitres, x.TotalSoldLitres, x.TotalTransferredOutLitres, x.TotalSpoiledLitres, x.UnaccountedLitres, balanceLabel(x.Status)})
+			x.TotalReceivedLitres, x.TotalSoldLitres, x.TotalTransferredOutLitres, x.TotalSpoiledLitres, orNil(ns), orNil(ov), balanceLabel(x.Status)})
 		c, rcv, sold, out, sp, un = c+x.TotalCollectedLitres, rcv+x.TotalReceivedLitres, sold+x.TotalSoldLitres,
 			out+x.TotalTransferredOutLitres, sp+x.TotalSpoiledLitres, un+x.UnaccountedLitres
+		notSold, over = notSold+ns, over+ov
 	}
 	if len(rows) > 0 {
-		t.Totals = []any{"Total", nil, nil, c, rcv, sold, out, sp, un, nil}
+		t.Totals = []any{"Total", nil, nil, c, rcv, sold, out, sp, notSold, over, nil}
 	}
 	in.doc.Figures = []document.Figure{
 		{Label: "Collected", Value: litres(c)}, {Label: "Sold", Value: litres(sold)},
-		{Label: "Spoiled", Value: litres(sp)}, {Label: "Not sold yet", Value: litres(un)},
+		{Label: "Spoiled", Value: litres(sp)}, balanceFigure(un),
 	}
 	in.doc.Tables = []document.Table{t}
 	in.doc.Notes = []string{
-		"Not sold yet = collected + received - sold - transferred - spoiled. Above zero: milk not yet sold, moved or recorded as spoiled; below zero: more sold than collected.",
+		"Not sold yet: collected + received - sold - transferred - spoiled, when above zero (milk not yet sold, moved or recorded as spoiled). Oversold: when below zero, how much more was sold than collected.",
 		"Balanced means within the Sacco's measuring allowance for each day worked.",
 	}
 	return nil
@@ -307,20 +309,21 @@ func saccoSummary(ctx context.Context, s *Service, in *input) error {
 		Title: "Day by day",
 		Columns: []document.Column{
 			col("Date", day, 1.1), col("Farmers", cnt, 0.7), col("Collected L", ltr, 1), col("Cost of milk", money, 1.3),
-			col("Sold L", ltr, 1), col("Sales", money, 1.3), col("Spoiled L", ltr, 0.9), col("Not sold yet L", ltr, 1.1), col("Margin", money, 1.3),
+			col("Sold L", ltr, 1), col("Sales", money, 1.3), col("Spoiled L", ltr, 0.9), col("Not sold yet L", ltr, 1.1), col("Oversold L", ltr, 1), col("Margin", money, 1.3),
 		},
 	}
-	var tc, tcost, ts, trev, tsp float64
+	var tc, tcost, ts, trev, tsp, tns, tov float64
 	for _, d := range days {
-		un := d.CollectedL - d.SoldL - d.SpoiledL
 		if !d.HasActivities {
-			t.Rows = append(t.Rows, []any{d.Date, nil, nil, nil, nil, nil, nil, nil, nil})
+			t.Rows = append(t.Rows, []any{d.Date, nil, nil, nil, nil, nil, nil, nil, nil, nil})
 			continue
 		}
-		t.Rows = append(t.Rows, []any{d.Date, d.Farmers, d.CollectedL, d.PurchaseCost, d.SoldL, d.Revenue, d.SpoiledL, un, d.Revenue - d.PurchaseCost})
+		ns, ov := splitBalance(d.CollectedL - d.SoldL - d.SpoiledL)
+		t.Rows = append(t.Rows, []any{d.Date, d.Farmers, d.CollectedL, d.PurchaseCost, d.SoldL, d.Revenue, d.SpoiledL, orNil(ns), orNil(ov), d.Revenue - d.PurchaseCost})
 		tc, tcost, ts, trev, tsp = tc+d.CollectedL, tcost+d.PurchaseCost, ts+d.SoldL, trev+d.Revenue, tsp+d.SpoiledL
+		tns, tov = tns+ns, tov+ov
 	}
-	t.Totals = []any{"Total", nil, tc, tcost, ts, trev, tsp, tc - ts - tsp, trev - tcost}
+	t.Totals = []any{"Total", nil, tc, tcost, ts, trev, tsp, tns, tov, trev - tcost}
 
 	byType := document.Table{
 		Title:   "Sales by customer type",
@@ -338,11 +341,11 @@ func saccoSummary(ctx context.Context, s *Service, in *input) error {
 		{Label: "Gross margin", Value: kes(ledger.GrossMarginKES)},
 		{Label: "Milk sold", Value: litres(ledger.TotalSoldLitres)},
 		{Label: "Spoiled", Value: litres(ledger.TotalSpoilageLitres)},
-		{Label: "Not sold yet", Value: litres(ledger.UnaccountedLitres)},
+		balanceFigure(ledger.UnaccountedLitres),
 		{Label: "Customers owe (today)", Value: kes(ledger.ReceivablesKES)},
 	}
 	in.doc.Tables = []document.Table{t, byType}
-	in.doc.Notes = []string{"Margin = sales minus the cost of milk bought from farmers. Not sold yet = collected - sold - spoiled (transfers between collectors cancel out)."}
+	in.doc.Notes = []string{"Margin = sales minus the cost of milk bought from farmers. Not sold yet = collected - sold - spoiled when above zero; Oversold = how much more was sold than collected (transfers between collectors cancel out)."}
 	return nil
 }
 
@@ -396,6 +399,34 @@ func statementDetails(kind customer.EntryKind, description string, debit, credit
 }
 
 // title writes an UPPER_CASE value as a word: "MORNING" -> "Morning".
+// splitBalance turns collected-minus-sold into two amounts that are never
+// negative: milk not sold yet, and milk sold over what was collected.
+func splitBalance(unaccounted float64) (notSold, oversold float64) {
+	if unaccounted < 0 {
+		return 0, -unaccounted
+	}
+	return unaccounted, 0
+}
+
+// balanceFigure is the milk difference as a headline figure, named by its
+// sign so it never reads "Not sold yet: -196.5 L".
+func balanceFigure(unaccounted float64) document.Figure {
+	notSold, over := splitBalance(unaccounted)
+	if over > 0 {
+		return document.Figure{Label: "Sold over collected", Value: litres(over)}
+	}
+	return document.Figure{Label: "Not sold yet", Value: litres(notSold)}
+}
+
+// orNil leaves a cell empty instead of showing 0, so only the side that
+// applies has a number.
+func orNil(v float64) any {
+	if v == 0 {
+		return nil
+	}
+	return v
+}
+
 // balanceLabel names a milk balance result in plain words: milk not yet
 // sold is usually still in the can or cooler, not lost.
 func balanceLabel(s reconcile.Status) string {

@@ -6,6 +6,7 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../../core/layout/breakpoints.dart';
 import '../../../../core/widgets/stat_card.dart';
 import '../../data/models/collector_dashboard_model.dart';
+import '../../../../core/utils/milk_balance.dart';
 import '../../../../core/widgets/balance_badge.dart';
 
 class CollectorDashboardView extends StatelessWidget {
@@ -82,7 +83,9 @@ class CollectorDashboardView extends StatelessWidget {
                     spacing: 8,
                     children: [
                       Text(
-                        data.todayUnaccountedLitres.toStringAsFixed(1),
+                        BalanceFigure.of(
+                          data.todayUnaccountedLitres,
+                        ).litres.toStringAsFixed(1),
                         style: Theme.of(context).textTheme.displayMedium
                             ?.copyWith(
                               color: Colors.white,
@@ -90,7 +93,9 @@ class CollectorDashboardView extends StatelessWidget {
                             ),
                       ),
                       Text(
-                        'Litres not sold yet',
+                        BalanceFigure.of(data.todayUnaccountedLitres).oversold
+                            ? 'Litres sold over collected'
+                            : 'Litres not sold yet',
                         style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(
                               color: Colors.white.withValues(alpha: 0.9),

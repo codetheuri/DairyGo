@@ -14,6 +14,7 @@ import '../../../transfers/presentation/widgets/transfer_tile.dart';
 import '../controllers/report_controller.dart';
 import 'collector_audit_detail_screen.dart';
 import 'farmer_payout_detail_screen.dart';
+import '../../../../core/utils/milk_balance.dart';
 import '../../../../core/widgets/balance_badge.dart';
 import '../../../customers/data/models/customer_models.dart';
 import '../../../customers/presentation/widgets/customers_owing_sheet.dart';
@@ -482,10 +483,10 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
                                     ),
                                     const SizedBox(height: 10),
                                     Text(
-                                      'Collected ${ledger.totalFarmerIntakeLitres.toStringAsFixed(1)} L − '
-                                      'sold ${ledger.totalSoldLitres.toStringAsFixed(1)} L − '
-                                      'spoiled ${ledger.totalSpoilageLitres.toStringAsFixed(1)} L = '
-                                      '${ledger.unaccountedLitres.toStringAsFixed(1)} L not sold yet '
+                                      'Collected ${ledger.totalFarmerIntakeLitres.toStringAsFixed(1)} L, '
+                                      'sold ${ledger.totalSoldLitres.toStringAsFixed(1)} L, '
+                                      'spoiled ${ledger.totalSpoilageLitres.toStringAsFixed(1)} L: '
+                                      '${BalanceFigure.of(ledger.unaccountedLitres).sentence} '
                                       '(tolerance ${ledger.allowanceLitres.toStringAsFixed(1)} L).'
                                       '${ledger.totalTransferredLitres > 0 ? ' Transfers between collectors cancel out here; each collector below includes them.' : ''}',
                                       style: const TextStyle(
@@ -609,8 +610,10 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
                                       color: AppColors.cardBorder,
                                     ),
                                     _buildLedgerRow(
-                                      'Not sold yet',
-                                      '${ledger.unaccountedLitres.toStringAsFixed(1)} L',
+                                      BalanceFigure.of(
+                                        ledger.unaccountedLitres,
+                                      ).label,
+                                      '${BalanceFigure.of(ledger.unaccountedLitres).litres.toStringAsFixed(1)} L',
                                       BalanceBadge.colorFor(
                                         ledger.balanceStatus,
                                       ),
@@ -865,8 +868,10 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
                                             AppColors.warning,
                                           ),
                                           _buildAuditItem(
-                                            'Not sold yet',
-                                            '${item.unaccountedLitres.toStringAsFixed(1)}L',
+                                            BalanceFigure.of(
+                                              item.unaccountedLitres,
+                                            ).short,
+                                            '${BalanceFigure.of(item.unaccountedLitres).litres.toStringAsFixed(1)}L',
                                             BalanceBadge.colorFor(
                                               item.balanceStatus,
                                             ),

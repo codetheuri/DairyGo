@@ -37,4 +37,17 @@ void main() {
     );
     expect(BalanceBadge.labelFor(0, 'BALANCED'), 'Balanced');
   });
+
+  // Collected 142.5 L, sold 312 L: never "-169.5 L not sold yet".
+  test('the difference is named by its sign and never negative', () {
+    final over = BalanceFigure.of(-169.5);
+    expect(over.label, 'Sold over collected');
+    expect(over.short, 'Oversold');
+    expect(over.litres, 169.5);
+    expect(over.sentence, '169.5 L more sold than collected');
+    final left = BalanceFigure.of(12);
+    expect(left.label, 'Not sold yet');
+    expect(left.litres, 12);
+    expect(left.sentence, '12.0 L not sold yet');
+  });
 }

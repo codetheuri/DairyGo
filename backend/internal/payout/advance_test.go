@@ -22,8 +22,10 @@ func TestRoomFor(t *testing.T) {
 		{name: "arrears bigger than milk", rules: AdvanceRules{MilkPercent: i(100)}, day: 5, milk: 1000, balance: -1300, want: f(0)},
 		{name: "smaller of limit and milk", rules: AdvanceRules{Max: f(5000), MilkPercent: i(100)}, day: 5, milk: 3000, want: f(3000)},
 		{name: "limit smaller than milk", rules: AdvanceRules{Max: f(2000), MilkPercent: i(100)}, day: 5, milk: 9000, want: f(2000)},
-		{name: "on the last day", rules: AdvanceRules{LastDay: i(15)}, day: 15, want: nil},
-		{name: "after the last day", rules: AdvanceRules{LastDay: i(15), Max: f(5000)}, day: 16, want: f(0), closed: true},
+		{name: "before the day", rules: AdvanceRules{FromDay: i(15), Max: f(5000)}, day: 14, want: f(0), closed: true},
+		{name: "on the 1st, before the day", rules: AdvanceRules{FromDay: i(15)}, day: 1, want: f(0), closed: true},
+		{name: "on the day", rules: AdvanceRules{FromDay: i(15)}, day: 15, want: nil},
+		{name: "after the day", rules: AdvanceRules{FromDay: i(15), Max: f(5000)}, day: 31, want: f(5000)},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -60,8 +62,8 @@ func TestAdvanceRefusal(t *testing.T) {
 	}{
 		{name: "no rules", amount: 9000, info: AdvanceInfo{}, want: ""},
 		{name: "within", amount: 2000, info: AdvanceInfo{Limit: f(5000), Available: f(2000)}, want: ""},
-		{name: "closed", amount: 100, info: AdvanceInfo{Closed: "advances are given only up to the 15th of the month", Available: f(0)},
-			want: "no advance on this date: advances are given only up to the 15th of the month"},
+		{name: "closed", amount: 100, info: AdvanceInfo{Closed: "advances are given from the 15th of the month", Available: f(0)},
+			want: "no advance on this date: advances are given from the 15th of the month"},
 		{name: "over the limit", amount: 3000, info: AdvanceInfo{Limit: f(5000), OpenAdvance: 3000, Available: f(2000)},
 			want: "Jane Muthoni can take at most KES 2,000 more this period (limit KES 5,000, already taken KES 3,000)"},
 		{name: "no milk", amount: 5000, info: AdvanceInfo{MilkPercent: &pct, MilkAllows: f(0), Available: f(0)},

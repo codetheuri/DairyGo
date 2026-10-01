@@ -357,9 +357,9 @@ mixin _$SaccoSettingsModel {
   @JsonKey(name: 'inactive_after_days')
   int get inactiveAfterDays => throw _privateConstructorUsedError; // Most a farmer may take in advances between pay runs; null = no limit.
   @JsonKey(name: 'advance_max_per_period')
-  double? get advanceMaxPerPeriod => throw _privateConstructorUsedError; // Advances only from the 1st up to this day of the month; null = any day.
-  @JsonKey(name: 'advance_last_day')
-  int? get advanceLastDay => throw _privateConstructorUsedError; // Advances may not pass this % of milk delivered, less what is owed; null = no check.
+  double? get advanceMaxPerPeriod => throw _privateConstructorUsedError; // Advances only from this day of the month to its end; null = any day.
+  @JsonKey(name: 'advance_from_day')
+  int? get advanceFromDay => throw _privateConstructorUsedError; // Advances may not pass this % of milk delivered, less what is owed; null = no check.
   @JsonKey(name: 'advance_milk_percent')
   int? get advanceMilkPercent => throw _privateConstructorUsedError;
 
@@ -390,7 +390,7 @@ abstract class $SaccoSettingsModelCopyWith<$Res> {
     double reconciliationToleranceLitres,
     @JsonKey(name: 'inactive_after_days') int inactiveAfterDays,
     @JsonKey(name: 'advance_max_per_period') double? advanceMaxPerPeriod,
-    @JsonKey(name: 'advance_last_day') int? advanceLastDay,
+    @JsonKey(name: 'advance_from_day') int? advanceFromDay,
     @JsonKey(name: 'advance_milk_percent') int? advanceMilkPercent,
   });
 }
@@ -418,7 +418,7 @@ class _$SaccoSettingsModelCopyWithImpl<$Res, $Val extends SaccoSettingsModel>
     Object? reconciliationToleranceLitres = null,
     Object? inactiveAfterDays = null,
     Object? advanceMaxPerPeriod = freezed,
-    Object? advanceLastDay = freezed,
+    Object? advanceFromDay = freezed,
     Object? advanceMilkPercent = freezed,
   }) {
     return _then(
@@ -455,9 +455,9 @@ class _$SaccoSettingsModelCopyWithImpl<$Res, $Val extends SaccoSettingsModel>
                 ? _value.advanceMaxPerPeriod
                 : advanceMaxPerPeriod // ignore: cast_nullable_to_non_nullable
                       as double?,
-            advanceLastDay: freezed == advanceLastDay
-                ? _value.advanceLastDay
-                : advanceLastDay // ignore: cast_nullable_to_non_nullable
+            advanceFromDay: freezed == advanceFromDay
+                ? _value.advanceFromDay
+                : advanceFromDay // ignore: cast_nullable_to_non_nullable
                       as int?,
             advanceMilkPercent: freezed == advanceMilkPercent
                 ? _value.advanceMilkPercent
@@ -488,7 +488,7 @@ abstract class _$$SaccoSettingsModelImplCopyWith<$Res>
     double reconciliationToleranceLitres,
     @JsonKey(name: 'inactive_after_days') int inactiveAfterDays,
     @JsonKey(name: 'advance_max_per_period') double? advanceMaxPerPeriod,
-    @JsonKey(name: 'advance_last_day') int? advanceLastDay,
+    @JsonKey(name: 'advance_from_day') int? advanceFromDay,
     @JsonKey(name: 'advance_milk_percent') int? advanceMilkPercent,
   });
 }
@@ -515,7 +515,7 @@ class __$$SaccoSettingsModelImplCopyWithImpl<$Res>
     Object? reconciliationToleranceLitres = null,
     Object? inactiveAfterDays = null,
     Object? advanceMaxPerPeriod = freezed,
-    Object? advanceLastDay = freezed,
+    Object? advanceFromDay = freezed,
     Object? advanceMilkPercent = freezed,
   }) {
     return _then(
@@ -552,9 +552,9 @@ class __$$SaccoSettingsModelImplCopyWithImpl<$Res>
             ? _value.advanceMaxPerPeriod
             : advanceMaxPerPeriod // ignore: cast_nullable_to_non_nullable
                   as double?,
-        advanceLastDay: freezed == advanceLastDay
-            ? _value.advanceLastDay
-            : advanceLastDay // ignore: cast_nullable_to_non_nullable
+        advanceFromDay: freezed == advanceFromDay
+            ? _value.advanceFromDay
+            : advanceFromDay // ignore: cast_nullable_to_non_nullable
                   as int?,
         advanceMilkPercent: freezed == advanceMilkPercent
             ? _value.advanceMilkPercent
@@ -578,7 +578,7 @@ class _$SaccoSettingsModelImpl implements _SaccoSettingsModel {
     this.reconciliationToleranceLitres = 0.0,
     @JsonKey(name: 'inactive_after_days') this.inactiveAfterDays = 60,
     @JsonKey(name: 'advance_max_per_period') this.advanceMaxPerPeriod,
-    @JsonKey(name: 'advance_last_day') this.advanceLastDay,
+    @JsonKey(name: 'advance_from_day') this.advanceFromDay,
     @JsonKey(name: 'advance_milk_percent') this.advanceMilkPercent,
   });
 
@@ -612,10 +612,10 @@ class _$SaccoSettingsModelImpl implements _SaccoSettingsModel {
   @override
   @JsonKey(name: 'advance_max_per_period')
   final double? advanceMaxPerPeriod;
-  // Advances only from the 1st up to this day of the month; null = any day.
+  // Advances only from this day of the month to its end; null = any day.
   @override
-  @JsonKey(name: 'advance_last_day')
-  final int? advanceLastDay;
+  @JsonKey(name: 'advance_from_day')
+  final int? advanceFromDay;
   // Advances may not pass this % of milk delivered, less what is owed; null = no check.
   @override
   @JsonKey(name: 'advance_milk_percent')
@@ -623,7 +623,7 @@ class _$SaccoSettingsModelImpl implements _SaccoSettingsModel {
 
   @override
   String toString() {
-    return 'SaccoSettingsModel(saccoId: $saccoId, currency: $currency, milkUnit: $milkUnit, morningCutoffTime: $morningCutoffTime, eveningCutoffTime: $eveningCutoffTime, reconciliationToleranceLitres: $reconciliationToleranceLitres, inactiveAfterDays: $inactiveAfterDays, advanceMaxPerPeriod: $advanceMaxPerPeriod, advanceLastDay: $advanceLastDay, advanceMilkPercent: $advanceMilkPercent)';
+    return 'SaccoSettingsModel(saccoId: $saccoId, currency: $currency, milkUnit: $milkUnit, morningCutoffTime: $morningCutoffTime, eveningCutoffTime: $eveningCutoffTime, reconciliationToleranceLitres: $reconciliationToleranceLitres, inactiveAfterDays: $inactiveAfterDays, advanceMaxPerPeriod: $advanceMaxPerPeriod, advanceFromDay: $advanceFromDay, advanceMilkPercent: $advanceMilkPercent)';
   }
 
   @override
@@ -650,8 +650,8 @@ class _$SaccoSettingsModelImpl implements _SaccoSettingsModel {
                 other.inactiveAfterDays == inactiveAfterDays) &&
             (identical(other.advanceMaxPerPeriod, advanceMaxPerPeriod) ||
                 other.advanceMaxPerPeriod == advanceMaxPerPeriod) &&
-            (identical(other.advanceLastDay, advanceLastDay) ||
-                other.advanceLastDay == advanceLastDay) &&
+            (identical(other.advanceFromDay, advanceFromDay) ||
+                other.advanceFromDay == advanceFromDay) &&
             (identical(other.advanceMilkPercent, advanceMilkPercent) ||
                 other.advanceMilkPercent == advanceMilkPercent));
   }
@@ -668,7 +668,7 @@ class _$SaccoSettingsModelImpl implements _SaccoSettingsModel {
     reconciliationToleranceLitres,
     inactiveAfterDays,
     advanceMaxPerPeriod,
-    advanceLastDay,
+    advanceFromDay,
     advanceMilkPercent,
   );
 
@@ -700,7 +700,7 @@ abstract class _SaccoSettingsModel implements SaccoSettingsModel {
     final double reconciliationToleranceLitres,
     @JsonKey(name: 'inactive_after_days') final int inactiveAfterDays,
     @JsonKey(name: 'advance_max_per_period') final double? advanceMaxPerPeriod,
-    @JsonKey(name: 'advance_last_day') final int? advanceLastDay,
+    @JsonKey(name: 'advance_from_day') final int? advanceFromDay,
     @JsonKey(name: 'advance_milk_percent') final int? advanceMilkPercent,
   }) = _$SaccoSettingsModelImpl;
 
@@ -729,10 +729,10 @@ abstract class _SaccoSettingsModel implements SaccoSettingsModel {
   int get inactiveAfterDays; // Most a farmer may take in advances between pay runs; null = no limit.
   @override
   @JsonKey(name: 'advance_max_per_period')
-  double? get advanceMaxPerPeriod; // Advances only from the 1st up to this day of the month; null = any day.
+  double? get advanceMaxPerPeriod; // Advances only from this day of the month to its end; null = any day.
   @override
-  @JsonKey(name: 'advance_last_day')
-  int? get advanceLastDay; // Advances may not pass this % of milk delivered, less what is owed; null = no check.
+  @JsonKey(name: 'advance_from_day')
+  int? get advanceFromDay; // Advances may not pass this % of milk delivered, less what is owed; null = no check.
   @override
   @JsonKey(name: 'advance_milk_percent')
   int? get advanceMilkPercent;

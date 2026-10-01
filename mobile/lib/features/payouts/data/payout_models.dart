@@ -217,7 +217,7 @@ class AdvanceInfo {
   final double? limit;
   final int? milkPercent;
   final double? milkAllows;
-  final int? lastDay;
+  final int? fromDay;
 
   /// Why no advance can be given today; null when advances are open.
   final String? closed;
@@ -231,7 +231,7 @@ class AdvanceInfo {
     this.limit,
     this.milkPercent,
     this.milkAllows,
-    this.lastDay,
+    this.fromDay,
     this.closed,
     this.available,
     required this.balance,
@@ -244,7 +244,7 @@ class AdvanceInfo {
     limit: j['limit'] == null ? null : toDouble(j['limit']),
     milkPercent: (j['milk_percent'] as num?)?.toInt(),
     milkAllows: j['milk_allows'] == null ? null : toDouble(j['milk_allows']),
-    lastDay: (j['last_day'] as num?)?.toInt(),
+    fromDay: (j['from_day'] as num?)?.toInt(),
     closed: j['closed'] as String?,
     available: j['available'] == null ? null : toDouble(j['available']),
     balance: toDouble(j['balance']),

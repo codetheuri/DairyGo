@@ -12,7 +12,7 @@ abstract class SettingsRemoteDataSource {
   Future<SaccoSettingsModel> updateInactiveAfterDays(int days);
   Future<SaccoSettingsModel> updateAdvanceRules({
     required double limit,
-    required int lastDay,
+    required int fromDay,
     required int milkPercent,
   });
 }
@@ -120,11 +120,11 @@ class SettingsRemoteDataSourceImpl implements SettingsRemoteDataSource {
   @override
   Future<SaccoSettingsModel> updateAdvanceRules({
     required double limit,
-    required int lastDay,
+    required int fromDay,
     required int milkPercent,
   }) => _updateSettings({
     'advance_max_per_period': limit,
-    'advance_last_day': lastDay,
+    'advance_from_day': fromDay,
     'advance_milk_percent': milkPercent,
   });
 

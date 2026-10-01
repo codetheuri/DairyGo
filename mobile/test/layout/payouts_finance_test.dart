@@ -203,15 +203,12 @@ void main() {
       );
       await tester.tap(card);
       await _settle(tester);
-      seen['last day'] = find
-          .text('Last day of the month for advances')
-          .evaluate()
-          .length;
+      seen['from day'] = find.text('Advances open on day').evaluate().length;
       seen['milk'] = find.text('Share of milk delivered').evaluate().length;
     } finally {
       await app.close();
     }
     expect(app.errors, isEmpty, reason: app.errors.join('\n'));
-    expect(seen, {'last day': 1, 'milk': 1});
+    expect(seen, {'from day': 1, 'milk': 1});
   });
 }

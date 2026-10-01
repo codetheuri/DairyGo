@@ -994,8 +994,8 @@ class _AdvanceRulesCard extends ConsumerWidget {
     final limit = TextEditingController(
       text: current.advanceMaxPerPeriod?.toStringAsFixed(0) ?? '',
     );
-    final lastDay = TextEditingController(
-      text: current.advanceLastDay?.toString() ?? '',
+    final fromDay = TextEditingController(
+      text: current.advanceFromDay?.toString() ?? '',
     );
     final percent = TextEditingController(
       text: current.advanceMilkPercent?.toString() ?? '',
@@ -1030,12 +1030,14 @@ class _AdvanceRulesCard extends ConsumerWidget {
                 ),
                 const SizedBox(height: 12),
                 TextField(
-                  controller: lastDay,
+                  controller: fromDay,
                   keyboardType: TextInputType.number,
                   decoration: const InputDecoration(
-                    labelText: 'Last day of the month for advances',
+                    labelText: 'Advances open on day',
                     hintText: 'e.g. 15',
-                    helperText: 'From the 1st up to this day.',
+                    helperText:
+                        'From this day to the month\'s end. None before it.',
+                    helperMaxLines: 2,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -1065,7 +1067,7 @@ class _AdvanceRulesCard extends ConsumerWidget {
             ),
             TextButton(
               onPressed: () {
-                final day = int.tryParse(lastDay.text.trim()) ?? 0;
+                final day = int.tryParse(fromDay.text.trim()) ?? 0;
                 final pct = int.tryParse(percent.text.trim()) ?? 0;
                 if (day < 0 || day > 31) {
                   setState(() => error = 'The day must be from 1 to 31.');
@@ -1083,11 +1085,11 @@ class _AdvanceRulesCard extends ConsumerWidget {
     );
     final values = (
       limit: double.tryParse(limit.text.trim().replaceAll(',', '')) ?? 0,
-      lastDay: int.tryParse(lastDay.text.trim()) ?? 0,
+      fromDay: int.tryParse(fromDay.text.trim()) ?? 0,
       milkPercent: int.tryParse(percent.text.trim()) ?? 0,
     );
     limit.dispose();
-    lastDay.dispose();
+    fromDay.dispose();
     percent.dispose();
     if (saved != true) return;
     try {
@@ -1095,7 +1097,7 @@ class _AdvanceRulesCard extends ConsumerWidget {
           .read(settingsRepositoryProvider)
           .updateAdvanceRules(
             limit: values.limit < 0 ? 0 : values.limit,
-            lastDay: values.lastDay,
+            fromDay: values.fromDay,
             milkPercent: values.milkPercent,
           );
       ref.invalidate(saccoSettingsProvider);
@@ -1113,8 +1115,8 @@ class _AdvanceRulesCard extends ConsumerWidget {
     final rules = [
       if (s.advanceMaxPerPeriod != null)
         'Up to ${kes(s.advanceMaxPerPeriod!, cents: false)} per farmer between pay runs',
-      if (s.advanceLastDay != null)
-        'Only from the 1st to the ${_ordinal(s.advanceLastDay!)}',
+      if (s.advanceFromDay != null)
+        'Only from the ${_ordinal(s.advanceFromDay!)} to the month\'s end',
       if (s.advanceMilkPercent != null)
         'Up to ${s.advanceMilkPercent}% of milk delivered, less what is owed',
     ];

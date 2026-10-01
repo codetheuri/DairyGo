@@ -37,11 +37,11 @@ class SettingsRepositoryImpl implements SettingsRepository {
   @override
   Future<SaccoSettingsModel> updateAdvanceRules({
     required double limit,
-    required int lastDay,
+    required int fromDay,
     required int milkPercent,
   }) => _remoteDataSource.updateAdvanceRules(
     limit: limit,
-    lastDay: lastDay,
+    fromDay: fromDay,
     milkPercent: milkPercent,
   );
 }

@@ -44,7 +44,7 @@ _$SaccoSettingsModelImpl _$$SaccoSettingsModelImplFromJson(
       (json['reconciliation_tolerance_litres'] as num?)?.toDouble() ?? 0.0,
   inactiveAfterDays: (json['inactive_after_days'] as num?)?.toInt() ?? 60,
   advanceMaxPerPeriod: (json['advance_max_per_period'] as num?)?.toDouble(),
-  advanceLastDay: (json['advance_last_day'] as num?)?.toInt(),
+  advanceFromDay: (json['advance_from_day'] as num?)?.toInt(),
   advanceMilkPercent: (json['advance_milk_percent'] as num?)?.toInt(),
 );
 
@@ -59,7 +59,7 @@ Map<String, dynamic> _$$SaccoSettingsModelImplToJson(
   'reconciliation_tolerance_litres': instance.reconciliationToleranceLitres,
   'inactive_after_days': instance.inactiveAfterDays,
   'advance_max_per_period': instance.advanceMaxPerPeriod,
-  'advance_last_day': instance.advanceLastDay,
+  'advance_from_day': instance.advanceFromDay,
   'advance_milk_percent': instance.advanceMilkPercent,
 };
 

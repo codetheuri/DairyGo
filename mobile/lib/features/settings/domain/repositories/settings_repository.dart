@@ -14,7 +14,7 @@ abstract class SettingsRepository {
   /// 0 removes the limit.
   Future<SaccoSettingsModel> updateAdvanceRules({
     required double limit,
-    required int lastDay,
+    required int fromDay,
     required int milkPercent,
   });
 }

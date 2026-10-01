@@ -179,14 +179,14 @@ func (s *Service) UpdateSettings(ctx context.Context, saccoID string, req *Updat
 			settings.AdvanceMaxPerPeriod = &limit
 		}
 	}
-	if req.AdvanceLastDay != nil {
-		day := *req.AdvanceLastDay
+	if req.AdvanceFromDay != nil {
+		day := *req.AdvanceFromDay
 		if day < 0 || day > 31 {
-			return nil, fmt.Errorf("advance_last_day must be between 1 and 31 (0 = any day)")
+			return nil, fmt.Errorf("advance_from_day must be between 1 and 31 (0 = any day)")
 		}
-		settings.AdvanceLastDay = nil
+		settings.AdvanceFromDay = nil
 		if day > 0 {
-			settings.AdvanceLastDay = &day
+			settings.AdvanceFromDay = &day
 		}
 	}
 	if req.AdvanceMilkPercent != nil {

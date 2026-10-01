@@ -14,7 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - deductions are rules each Sacco sets (fixed, percent, per litre or fee bands; every run, once, yearly or until a target), with per-farmer amounts, targets and exemptions;
   - monthly pay runs: draft, approve (which closes the period and locks its milk records), mark paid one by one or in bulk;
   - M-Pesa and bank payment lists, register and payslip PDFs.
-- **Advance rules** (migration `00024`): besides the KES limit per period, a Sacco can give advances only up to a day of the month (e.g. the 15th), and cap them at a share of the milk a farmer has delivered since the last pay run, less what they owe (no milk, no advance). App: Settings → Advance rules.
+- **Advance rules** (migration `00024`): besides the KES limit per period, a Sacco can give advances only from a day of the month (e.g. from the 15th), and cap them at a share of the milk a farmer has delivered since the last pay run, less what they owe (no milk, no advance). App: Settings → Advance rules.
 - **The Sacco's money** (`internal/finance`, migration `00023`, [docs/finance.md](docs/finance.md)):
   - cash accounts with cashbooks fed by customer payments, cash sales, advances, farmers' pay, expenses and transfers;
   - expenses by category;

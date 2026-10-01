@@ -44,18 +44,18 @@ type Settings struct {
 func (r *Repository) Settings(ctx context.Context, saccoID string) (Settings, error) {
 	var row struct {
 		AdvanceMaxPerPeriod  *float64
-		AdvanceLastDay       *int
+		AdvanceFromDay       *int
 		AdvanceMilkPercent   *int
 		PayrollClosedThrough *time.Time
 	}
 	err := r.db.WithContext(ctx).Table("sacco_settings").
-		Select("advance_max_per_period, advance_last_day, advance_milk_percent, payroll_closed_through").
+		Select("advance_max_per_period, advance_from_day, advance_milk_percent, payroll_closed_through").
 		Where("sacco_id = ?", saccoID).Take(&row).Error
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return Settings{}, err
 	}
 	return Settings{
-		Advance:       AdvanceRules{Max: row.AdvanceMaxPerPeriod, LastDay: row.AdvanceLastDay, MilkPercent: row.AdvanceMilkPercent},
+		Advance:       AdvanceRules{Max: row.AdvanceMaxPerPeriod, FromDay: row.AdvanceFromDay, MilkPercent: row.AdvanceMilkPercent},
 		ClosedThrough: row.PayrollClosedThrough,
 	}, nil
 }

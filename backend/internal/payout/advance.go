@@ -8,7 +8,7 @@ import (
 // AdvanceRules are a Sacco's rules for advances; each is optional.
 type AdvanceRules struct {
 	Max         *float64 // most a farmer may take between pay runs, KES
-	LastDay     *int     // advances only from the 1st up to this day of the month
+	FromDay     *int     // advances only from this day of the month to its end
 	MilkPercent *int     // advance + what is owed ≤ this % of milk delivered since the last pay run
 }
 
@@ -43,8 +43,8 @@ func roomFor(r AdvanceRules, day int, milk, taken, balance float64) advanceRoom 
 	case room.ByMilk != nil:
 		room.Available = room.ByMilk
 	}
-	if r.LastDay != nil && day > *r.LastDay {
-		room.Closed = fmt.Sprintf("advances are given only up to the %s of the month", ordinal(*r.LastDay))
+	if r.FromDay != nil && day < *r.FromDay {
+		room.Closed = fmt.Sprintf("advances are given from the %s of the month", ordinal(*r.FromDay))
 		zero := 0.0
 		room.Available = &zero
 	}

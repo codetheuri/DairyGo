@@ -349,7 +349,7 @@ type AdvanceInfo struct {
 	Limit       *float64 `json:"limit,omitempty" doc:"Most a farmer may take per pay period; empty = no limit"`
 	MilkPercent *int     `json:"milk_percent,omitempty" doc:"Advances may not go past this percent of the milk delivered, less what is owed; empty = no milk check"`
 	MilkAllows  *float64 `json:"milk_allows,omitempty" doc:"What the milk delivered still allows"`
-	LastDay     *int     `json:"last_day,omitempty" doc:"Advances are given only up to this day of the month; empty = any day"`
+	FromDay     *int     `json:"from_day,omitempty" doc:"Advances are given only from this day of the month; empty = any day"`
 	Closed      string   `json:"closed,omitempty" doc:"Why no advance can be given today; empty when advances are open"`
 	Available   *float64 `json:"available,omitempty" doc:"What this farmer may still take; empty = no limit"`
 	Balance     float64  `json:"balance" doc:"The farmer's account balance now (negative = owes the Sacco)"`
@@ -393,7 +393,7 @@ func (s *Service) advanceInfo(ctx context.Context, memberID string, day time.Tim
 	rules := settings.Advance
 	room := roomFor(rules, day.Day(), gross, open, balance)
 	info := &AdvanceInfo{MilkSoFar: round2(gross), LitresSoFar: round2(litres), OpenAdvance: round2(open),
-		Limit: rules.Max, MilkPercent: rules.MilkPercent, MilkAllows: room.ByMilk, LastDay: rules.LastDay,
+		Limit: rules.Max, MilkPercent: rules.MilkPercent, MilkAllows: room.ByMilk, FromDay: rules.FromDay,
 		Closed: room.Closed, Available: room.Available, Balance: round2(balance)}
 	if settings.ClosedThrough != nil {
 		info.SinceDate = since.Format(dateLayout)

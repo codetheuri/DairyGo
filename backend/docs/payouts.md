@@ -106,7 +106,7 @@ applied when an advance is recorded (`roomFor`, table-tested in
 | Setting | Rule |
 | :--- | :--- |
 | `advance_max_per_period` | at most this many KES in advances between pay runs |
-| `advance_last_day` | advances dated from the 1st up to this day of the month only (e.g. 15) |
+| `advance_from_day` | advances dated from this day of the month to its end only (e.g. 15: none from the 1st to the 14th) |
 | `advance_milk_percent` | the advance may not go past this % of the milk delivered since the last pay run, plus the account balance (open advances, charges and arrears are negative). 100 = no milk, no advance |
 
 When more than one is set, the smallest room wins. The refusal says which

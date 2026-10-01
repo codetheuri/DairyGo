@@ -8,6 +8,7 @@ import (
 
 	"github.com/codetheuri/tusk/config"
 	"github.com/codetheuri/tusk/internal/customer"
+	"github.com/codetheuri/tusk/internal/finance"
 	"github.com/codetheuri/tusk/internal/report"
 	"github.com/codetheuri/tusk/pkg/authz"
 	"github.com/codetheuri/tusk/pkg/logger"
@@ -21,6 +22,7 @@ func RegisterRoutes(api huma.API, db *gorm.DB, cfg *config.Config, log logger.Lo
 		NewRepository(db),
 		report.NewService(report.NewRepository(db)),
 		customer.NewService(customer.NewRepository(db), evaluator),
+		finance.NewService(finance.NewRepository(db)),
 		evaluator,
 	)
 	h := NewHandler(service, log)

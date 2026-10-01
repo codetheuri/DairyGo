@@ -41,7 +41,7 @@ type CashbookLine struct {
 
 // Cashbook is an account's money over a period.
 type Cashbook struct {
-	CashAccount        *CashAccount       `json:"account"`
+	CashAccount    *CashAccount   `json:"account"`
 	FromDate       string         `json:"from_date"`
 	ToDate         string         `json:"to_date"`
 	OpeningBalance float64        `json:"opening_balance"`

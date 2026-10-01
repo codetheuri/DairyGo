@@ -9,6 +9,8 @@ package export
 import (
 	"github.com/codetheuri/tusk/internal/collection"
 	"github.com/codetheuri/tusk/internal/customer"
+	"github.com/codetheuri/tusk/internal/finance"
+	"github.com/codetheuri/tusk/internal/payout"
 	"github.com/codetheuri/tusk/internal/report"
 )
 
@@ -81,6 +83,31 @@ var catalog = []Report{
 		Key: "sacco-summary", Title: "Sacco Summary",
 		Description: "Day by day: milk in and out, cost of milk, sales revenue and margin, with totals.",
 		permission:  report.PermReportsReconciliationRead, landscape: true, build: saccoSummary,
+	},
+	{
+		Key: "deductions", Title: "Deductions",
+		Description: "What pay runs took from farmers in the period: totals for each deduction (shares, fees, transaction cost…) and each farmer's.",
+		permission:  payout.PermRead, landscape: true, build: deductions,
+	},
+	{
+		Key: "farmer-balances", Title: "Farmer Balances",
+		Description: "Farmers who owe the Sacco (advances, charges, arrears) or are owed, with their shares.",
+		AsAt:        true, permission: payout.PermRead, build: farmerBalances,
+	},
+	{
+		Key: "income-expenditure", Title: "Income and Expenditure",
+		Description: "Milk sales and purchases, fees and charges, expenses by category and the surplus; with cash, debts and shares now.",
+		permission:  finance.PermRead, build: incomeExpenditure,
+	},
+	{
+		Key: "expenses", Title: "Expenses",
+		Description: "Every expense in the period with category, payee, account and reference, and totals by category.",
+		permission:  finance.PermRead, landscape: true, build: expenses,
+	},
+	{
+		Key: "cashbooks", Title: "Cashbooks",
+		Description: "Money in and out of each account (petty cash, bank, M-Pesa) with running balances.",
+		permission:  finance.PermRead, landscape: true, build: cashbooks,
 	},
 	{
 		Key: "farmer-register", Title: "Farmer Register",

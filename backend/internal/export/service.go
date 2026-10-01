@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/codetheuri/tusk/internal/customer"
+	"github.com/codetheuri/tusk/internal/finance"
 	"github.com/codetheuri/tusk/internal/middleware"
 	"github.com/codetheuri/tusk/internal/report"
 	"github.com/codetheuri/tusk/pkg/authz"
@@ -65,13 +66,14 @@ type Service struct {
 	repo      *Repository
 	reports   *report.Service
 	customers *customer.Service
+	finance   *finance.Service
 	authz     *authz.Evaluator
 	now       func() time.Time
 }
 
 // NewService creates the export service.
-func NewService(repo *Repository, reports *report.Service, customers *customer.Service, evaluator *authz.Evaluator) *Service {
-	return &Service{repo: repo, reports: reports, customers: customers, authz: evaluator, now: time.Now}
+func NewService(repo *Repository, reports *report.Service, customers *customer.Service, fin *finance.Service, evaluator *authz.Evaluator) *Service {
+	return &Service{repo: repo, reports: reports, customers: customers, finance: fin, authz: evaluator, now: time.Now}
 }
 
 // Catalog lists the reports the caller may download.

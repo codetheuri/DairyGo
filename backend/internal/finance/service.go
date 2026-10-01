@@ -262,11 +262,11 @@ func (s *Service) SaveCategory(ctx context.Context, id string, req *FinCategoryR
 
 // ExpenseList is expenses over a period with totals.
 type ExpenseList struct {
-	Expenses   []Expense `json:"expenses"`
-	Total      float64   `json:"total"`
-	ByCategory []NamedAmount   `json:"by_category"`
-	FromDate   string    `json:"from_date"`
-	ToDate     string    `json:"to_date"`
+	Expenses   []Expense     `json:"expenses"`
+	Total      float64       `json:"total"`
+	ByCategory []NamedAmount `json:"by_category"`
+	FromDate   string        `json:"from_date"`
+	ToDate     string        `json:"to_date"`
 }
 
 // Expenses lists expenses over a period (default this month).
@@ -306,6 +306,11 @@ func (s *Service) Expenses(ctx context.Context, in *FinListExpensesInput) (*Expe
 		out.ByCategory[i].Amount = round2(out.ByCategory[i].Amount)
 	}
 	return out, nil
+}
+
+// ExpensesFor lists the expenses of a period (not voided), for reports.
+func (s *Service) ExpensesFor(ctx context.Context, from, to time.Time) (*ExpenseList, error) {
+	return s.Expenses(ctx, &FinListExpensesInput{From: from.Format(dateLayout), To: to.Format(dateLayout)})
 }
 
 // RecordExpense records money the Sacco spent from one of its accounts.
@@ -457,15 +462,15 @@ type FinanceSummary struct {
 	FromDate string `json:"from_date"`
 	ToDate   string `json:"to_date"`
 
-	MilkSales     float64 `json:"milk_sales" doc:"Milk sold to customers"`
-	MilkPurchases float64 `json:"milk_purchases" doc:"Milk bought from farmers"`
-	GrossMargin   float64 `json:"gross_margin" doc:"Milk sales minus milk bought"`
+	MilkSales     float64       `json:"milk_sales" doc:"Milk sold to customers"`
+	MilkPurchases float64       `json:"milk_purchases" doc:"Milk bought from farmers"`
+	GrossMargin   float64       `json:"gross_margin" doc:"Milk sales minus milk bought"`
 	Fees          []NamedAmount `json:"fees" doc:"Deductions kept as income (registration, subscriptions, transaction costs…)"`
-	FeesTotal     float64 `json:"fees_total"`
-	FarmerCharges float64 `json:"farmer_charges" doc:"Charged to farmers (feeds, services)"`
+	FeesTotal     float64       `json:"fees_total"`
+	FarmerCharges float64       `json:"farmer_charges" doc:"Charged to farmers (feeds, services)"`
 	Expenses      []NamedAmount `json:"expenses" doc:"By category"`
-	ExpensesTotal float64 `json:"expenses_total"`
-	Surplus       float64 `json:"surplus" doc:"Gross margin + fees + charges − expenses; negative is a deficit"`
+	ExpensesTotal float64       `json:"expenses_total"`
+	Surplus       float64       `json:"surplus" doc:"Gross margin + fees + charges − expenses; negative is a deficit"`
 	SharesRaised  []NamedAmount `json:"shares_raised" doc:"Savings taken from farmers in the period (not income)"`
 
 	Cash         float64 `json:"cash" doc:"Money in all accounts now"`

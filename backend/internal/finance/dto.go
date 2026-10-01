@@ -32,7 +32,7 @@ type CashAccountOutput struct {
 
 type CashAccountsData struct {
 	Accounts []CashAccount `json:"accounts"`
-	Total    float64   `json:"total" doc:"Money in all accounts"`
+	Total    float64       `json:"total" doc:"Money in all accounts"`
 }
 
 type CashAccountsOutput struct {

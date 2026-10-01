@@ -209,7 +209,7 @@ SELECT m.cash_account_id, 'ADVANCE', m.entry_date, m.created_at,
  WHERE m.sacco_id = @sacco AND m.cash_account_id IS NOT NULL AND m.kind = 'ADVANCE' AND m.voided_at IS NULL
 UNION ALL
 SELECT l.cash_account_id, 'FARMER_PAY', CAST(l.paid_at AS DATE), MIN(l.paid_at),
-       'Farmers'' pay (' || COUNT(*) || ' farmers)', MIN(l.paid_reference), l.pay_run_id, 0, SUM(l.net)
+       'Farmers'' pay (' || COUNT(*) || CASE WHEN COUNT(*) = 1 THEN ' farmer)' ELSE ' farmers)' END, MIN(l.paid_reference), l.pay_run_id, 0, SUM(l.net)
   FROM pay_run_lines l
  WHERE l.sacco_id = @sacco AND l.cash_account_id IS NOT NULL AND l.paid_at IS NOT NULL
  GROUP BY l.cash_account_id, l.pay_run_id, CAST(l.paid_at AS DATE)`
@@ -344,14 +344,18 @@ func (r *Repository) ExpensesByCategory(ctx context.Context, saccoID string, fro
 	return out, err
 }
 
-// Receivables is what customers owe now.
+// Receivables is what customers owe now: the sum of each customer's balance
+// where it is owed. A customer in credit (paid ahead) does not reduce what
+// others owe.
 func (r *Repository) Receivables(ctx context.Context, saccoID string) (float64, error) {
-	sales, err := r.sum(ctx, `SELECT SUM(total_amount - amount_paid) FROM milk_sales WHERE sacco_id = ? AND voided_at IS NULL AND deleted_at IS NULL`, saccoID)
-	if err != nil {
-		return 0, err
-	}
-	paid, err := r.sum(ctx, `SELECT SUM(amount) FROM customer_payments WHERE sacco_id = ? AND voided_at IS NULL`, saccoID)
-	return sales - paid, err
+	return r.sum(ctx, `SELECT SUM(b) FROM (
+		SELECT COALESCE(s.owed, 0) - COALESCE(p.paid, 0) AS b
+		  FROM customers c
+		  LEFT JOIN (SELECT customer_id, SUM(total_amount - amount_paid) AS owed FROM milk_sales
+		              WHERE sacco_id = @sacco AND voided_at IS NULL AND deleted_at IS NULL GROUP BY customer_id) s ON s.customer_id = c.id
+		  LEFT JOIN (SELECT customer_id, SUM(amount) AS paid FROM customer_payments
+		              WHERE sacco_id = @sacco AND voided_at IS NULL GROUP BY customer_id) p ON p.customer_id = c.id
+		 WHERE c.sacco_id = @sacco) x WHERE b > 0`, sql.Named("sacco", saccoID))
 }
 
 // FarmerPayDue is net pay approved but not yet paid.

@@ -463,6 +463,46 @@ async function saccoPage(id, tab = 'staff') {
     },
   });
 
+  // The logo printed on the Sacco's reports. An <img> cannot send the
+  // session's token, so the logo is fetched and shown as a data: URL (which
+  // the console's Content-Security-Policy allows; blob: URLs it does not).
+  const logoBox = h('div', { class: 'logo-box', title: 'Logo on reports' }, h('span', { class: 'muted small', text: 'No logo' }));
+  const showLogo = async () => {
+    const res = await fetch(`${API}/admin/saccos/${id}/logo`, { headers: { Authorization: `Bearer ${session.token}` } });
+    if (!res.ok) { logoBox.replaceChildren(h('span', { class: 'muted small', text: 'No logo' })); return; }
+    const blob = await res.blob();
+    const reader = new FileReader();
+    reader.onload = () => logoBox.replaceChildren(h('img', { src: reader.result, alt: `${sacco.name} logo` }));
+    reader.readAsDataURL(blob);
+  };
+  showLogo();
+  const uploadLogo = () => {
+    const input = h('input', { type: 'file', accept: 'image/png,image/jpeg' });
+    input.addEventListener('change', () => {
+      const file = input.files[0];
+      if (!file) return;
+      if (file.size > 512 * 1024) { toast('The logo must be under 512 KB', true); return; }
+      const reader = new FileReader();
+      reader.onload = async () => {
+        try {
+          await api('PUT', `/admin/saccos/${id}/logo`, { image: reader.result });
+          toast('Logo saved: it now appears on this Sacco\'s reports');
+          showLogo();
+        } catch (err) { toast(err.message, true); }
+      };
+      reader.readAsDataURL(file);
+    });
+    input.click();
+  };
+  const removeLogo = async () => {
+    if (!confirm(`Remove ${sacco.name}'s logo from its reports?`)) return;
+    try {
+      await api('DELETE', `/admin/saccos/${id}/logo`);
+      toast('Logo removed');
+      showLogo();
+    } catch (err) { toast(err.message, true); }
+  };
+
   const statusActions = sacco.status === 'ACTIVE'
     ? [h('button', { class: 'danger', text: 'Suspend', onclick: () => setStatus('SUSPENDED', 'Suspend') }),
       h('button', { text: 'Deactivate', onclick: () => setStatus('INACTIVE', 'Deactivate') })]
@@ -476,12 +516,15 @@ async function saccoPage(id, tab = 'staff') {
 
   return h('div', {},
     h('div', { class: 'page-head' },
-      h('div', {}, h('a', { href: '#/saccos', class: 'small', text: '← All Saccos' }),
+      h('div', { class: 'with-logo' }, logoBox, h('div', {}, h('a', { href: '#/saccos', class: 'small', text: '← All Saccos' }),
         h('h1', {}, sacco.name, ' ', pill(sacco.status)),
         h('div', { class: 'muted small', text: [sacco.code, sacco.phone, sacco.email, sacco.address].filter(Boolean).join(' · ') }),
         h('div', { class: 'muted small' },
           inactiveAfter > 0 ? `Farmers become inactive after ${inactiveAfter} days without milk ` : 'Farmers never become inactive automatically ',
-          h('button', { class: 'small', text: 'Change', onclick: editInactivity }))),
+          h('button', { class: 'small', text: 'Change', onclick: editInactivity })),
+        h('div', { class: 'muted small' }, 'Logo on reports ',
+          h('button', { class: 'small', text: 'Upload', onclick: uploadLogo }), ' ',
+          h('button', { class: 'small', text: 'Remove', onclick: removeLogo })))),
       h('div', { class: 'actions' }, h('button', { text: 'Edit details', onclick: edit }), statusActions)),
     h('nav', { class: 'tabs' }, tabs.map(([key, label]) =>
       h('a', { href: `#/saccos/${id}/${key}`, text: label, class: key === tab ? 'active' : '' }))),

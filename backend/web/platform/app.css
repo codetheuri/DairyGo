@@ -183,3 +183,9 @@ dialog .dialog-actions { display: flex; justify-content: flex-end; gap: 8px; mar
 .matrix th.check, .matrix td.check { text-align: center; width: 150px; }
 .matrix td.check input { width: 18px; height: 18px; cursor: pointer; }
 .matrix tr.group td { background: var(--surface-2); font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--text-2); }
+
+/* A Sacco's logo beside its name (the logo printed on its reports). */
+.with-logo { display: flex; align-items: center; gap: 14px; }
+.logo-box { width: 64px; height: 64px; flex: none; display: grid; place-items: center; border-radius: 12px; border: 1px dashed var(--border, #334155); overflow: hidden; background: #fff; }
+.logo-box img { width: 100%; height: 100%; object-fit: contain; }
+.logo-box span { font-size: 10px; text-align: center; color: #64748b; }

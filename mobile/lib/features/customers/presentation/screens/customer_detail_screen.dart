@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../report_downloads/presentation/widgets/download_statement_button.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/cache/keep_fresh.dart';
@@ -113,6 +114,10 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
             'Customer',
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
+          actions: [
+            if (customerAsync.valueOrNull case final c?)
+              DownloadStatementButton.customer(c, icon: true),
+          ],
         ),
         body: ReadableWidth(
           child: customerAsync.when(

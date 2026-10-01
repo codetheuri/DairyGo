@@ -1,0 +1,65 @@
+{
+  "status": 200,
+  "body": {
+    "success": true,
+    "message": "Reports you can download",
+    "data": {
+      "reports": [
+        {
+          "key": "farmer-payouts",
+          "title": "Farmer Payouts",
+          "description": "What each farmer is owed for the period, with M-Pesa or bank details, for paying farmers."
+        },
+        {
+          "key": "farmer-statement",
+          "title": "Farmer Statement",
+          "description": "Every delivery by one farmer, with price and amount. To give to the farmer.",
+          "needs": "farmer"
+        },
+        {
+          "key": "collections",
+          "title": "Milk Collections",
+          "description": "Every intake in the period: farmer, litres, price, amount and collector.",
+          "collector_filter": true
+        },
+        {
+          "key": "sales",
+          "title": "Milk Sales",
+          "description": "Every sale in the period: customer, litres, price, amount paid and owed.",
+          "collector_filter": true
+        },
+        {
+          "key": "customer-statement",
+          "title": "Customer Statement",
+          "description": "One customer's sales and payments with the running balance. To send to the customer.",
+          "needs": "customer"
+        },
+        {
+          "key": "customers-owing",
+          "title": "Customers Owing",
+          "description": "Every customer who owes the Sacco money, largest first.",
+          "as_at": true
+        },
+        {
+          "key": "milk-balance",
+          "title": "Milk Balance by Collector",
+          "description": "For each collector: collected, received, sold, transferred, spoiled and unaccounted litres.",
+          "collector_filter": true
+        },
+        {
+          "key": "sacco-summary",
+          "title": "Sacco Summary",
+          "description": "Day by day: milk in and out, cost of milk, sales revenue and margin, with totals."
+        },
+        {
+          "key": "farmer-register",
+          "title": "Farmer Register",
+          "description": "All farmers with contacts, payout details, next of kin and status.",
+          "as_at": true,
+          "status_filter": true
+        }
+      ],
+      "max_days": 366
+    }
+  }
+}

@@ -205,7 +205,8 @@ class AppUnderTest {
   /// [settle] waits for the screen to finish loading; with [cache], reads go
   /// through the saved-copy interceptors as in the app; [updates] plays the
   /// update server (nothing published by default); [permissions] replaces
-  /// what the role may do, as an operator would in the console.
+  /// what the role may do, as an operator would in the console; [extra]
+  /// overrides any other provider.
   static Future<AppUnderTest> open(
     WidgetTester tester,
     String role,
@@ -215,6 +216,7 @@ class AppUnderTest {
     ResponseCache? cache,
     FakeAppUpdateService? updates,
     List<String>? permissions,
+    List<Override> extra = const [],
   }) async {
     final server = FixtureAdapter(role, delay: responseDelay);
     final dio = Dio(BaseOptions(baseUrl: 'http://fixtures'))
@@ -239,6 +241,7 @@ class AppUnderTest {
         if (cache != null) responseCacheProvider.overrideWithValue(cache),
         // Never the real update server or installer.
         ...fakeUpdateOverrides(updates),
+        ...extra,
       ],
     );
     final app = AppUnderTest._(tester, container, server, FlutterError.onError);

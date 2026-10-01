@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../report_downloads/presentation/widgets/download_statement_button.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_router.dart';
@@ -351,6 +352,9 @@ class FarmerProfileScreen extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: 24),
+
+                  DownloadStatementButton.farmer(member),
+                  const SizedBox(height: 12),
 
                   if (canChangeStatus) ...[
                     SizedBox(

@@ -95,6 +95,18 @@ class MoreScreen extends ConsumerWidget {
                 if (nav.overflow.isNotEmpty) const Divider(),
                 ListTile(
                   leading: const Icon(
+                    Icons.download_rounded,
+                    color: AppColors.primary,
+                  ),
+                  title: const Text('Download reports'),
+                  subtitle: const Text(
+                    'PDF or Excel, with your Sacco letterhead',
+                  ),
+                  trailing: const Icon(Icons.chevron_right_rounded),
+                  onTap: () => context.push(AppRoutes.reportDownloads),
+                ),
+                ListTile(
+                  leading: const Icon(
                     Icons.settings_outlined,
                     color: AppColors.primary,
                   ),

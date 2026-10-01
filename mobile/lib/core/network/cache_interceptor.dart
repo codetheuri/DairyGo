@@ -11,7 +11,13 @@ abstract class CacheExtra {
 
   /// Set on the silent request that checks a shown copy is still current.
   static const background = 'cache_background';
+
+  /// Set on a request that must always reach the server and never be saved
+  /// on the phone (report files: large, binary, and must be current).
+  static const skip = 'cache_skip';
 }
+
+bool _skips(RequestOptions o) => o.extra[CacheExtra.skip] == true;
 
 String _cacheKey(RequestOptions o) {
   final params =
@@ -45,7 +51,8 @@ class CacheFirstInterceptor extends Interceptor {
     RequestInterceptorHandler handler,
   ) async {
     if (options.method != 'GET' ||
-        options.extra[CacheExtra.background] == true) {
+        options.extra[CacheExtra.background] == true ||
+        _skips(options)) {
       return handler.next(options);
     }
     final key = _cacheKey(options);
@@ -88,7 +95,7 @@ class CacheStoreInterceptor extends Interceptor {
   ) async {
     final o = response.requestOptions;
     final status = response.statusCode ?? 0;
-    if (status >= 200 && status < 300) {
+    if (status >= 200 && status < 300 && !_skips(o)) {
       if (o.method == 'GET') {
         final changed = await _cache.write(_cacheKey(o), response.data);
         if (changed && o.extra[CacheExtra.background] == true) {
@@ -111,7 +118,8 @@ class CacheStoreInterceptor extends Interceptor {
     // (403, 404, 422...) must reach the screen.
     if (o.method == 'GET' &&
         err.response == null &&
-        o.extra[CacheExtra.background] != true) {
+        o.extra[CacheExtra.background] != true &&
+        !_skips(o)) {
       final entry = await _cache.read(_cacheKey(o));
       if (entry != null) return handler.resolve(_cachedResponse(o, entry));
     }

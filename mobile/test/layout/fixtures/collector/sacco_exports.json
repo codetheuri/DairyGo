@@ -1,0 +1,24 @@
+{
+  "status": 200,
+  "body": {
+    "success": true,
+    "message": "Reports you can download",
+    "data": {
+      "reports": [
+        {
+          "key": "collections",
+          "title": "Milk Collections",
+          "description": "Every intake in the period: farmer, litres, price, amount and collector.",
+          "collector_filter": true
+        },
+        {
+          "key": "sales",
+          "title": "Milk Sales",
+          "description": "Every sale in the period: customer, litres, price, amount paid and owed.",
+          "collector_filter": true
+        }
+      ],
+      "max_days": 366
+    }
+  }
+}

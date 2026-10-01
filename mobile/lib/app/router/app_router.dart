@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../features/report_downloads/presentation/screens/report_downloads_screen.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/auth/presentation/controllers/auth_controller.dart';
@@ -44,6 +45,7 @@ abstract class AppRoutes {
   static const String staff = '/settings/staff';
   static const String customers = '/customers';
   static const String more = '/more';
+  static const String reportDownloads = '/report-downloads';
 }
 
 /// The router is created once. Sign-in changes reach it through
@@ -168,6 +170,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.settings,
         builder: (context, state) => const SettingsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.reportDownloads,
+        builder: (context, state) => const ReportDownloadsScreen(),
       ),
       GoRoute(
         path: AppRoutes.staff,

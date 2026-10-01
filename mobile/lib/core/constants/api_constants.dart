@@ -41,6 +41,9 @@ abstract class ApiConstants {
   static const String customerBalances = '/api/v1/sacco/customers/balances';
   static const String customerPayments = '/api/v1/sacco/customer-payments';
 
+  // Report downloads (PDF and Excel), made on the server.
+  static const String exports = '/api/v1/sacco/exports';
+
   // Report Routes
   static const String farmerPayoutReport =
       '/api/v1/sacco/reports/farmer-payout';

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../../core/widgets/fitted_tab.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../app/router/app_router.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/cache/keep_fresh.dart';
 import '../../../../app/theme/app_colors.dart';
@@ -165,6 +167,14 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
           actions: [
+            IconButton(
+              icon: const Icon(
+                Icons.download_rounded,
+                color: AppColors.primary,
+              ),
+              tooltip: 'Download reports (PDF or Excel)',
+              onPressed: () => context.push(AppRoutes.reportDownloads),
+            ),
             IconButton(
               icon: const Icon(Icons.refresh_rounded, color: AppColors.primary),
               tooltip: 'Refresh Reports Data',

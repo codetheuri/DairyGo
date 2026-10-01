@@ -91,6 +91,7 @@ server in `test/layout/fixtures`.
 - Staff roles and removal: `../backend/docs/staff-management.md`
 - Deploying the backend: `../backend/docs/deployment.md`
   (the Transfers tab, the Transfer milk form, and where they show).
+- Report downloads: More → Download reports (also the download button on Reports, and "Download Statement" on a farmer or customer). The server makes the PDF or Excel file (`backend/docs/report-downloads.md`); the app saves it in its own folder for 30 days and opens or shares it.
 - [Releasing the app](docs/releases.md): release key, download page,
   in-app updates, forcing an update.
 - Backend and business rules: `../backend/docs/`.

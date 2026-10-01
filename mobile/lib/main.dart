@@ -62,9 +62,22 @@ class _DairySaccoAppState extends ConsumerState<DairySaccoApp> {
       // the dense field screens stop fitting on a phone. The connection banner
       // and the update strip cover every screen, forms and login included;
       // an app too old to use shows only the update screen.
-      builder: (context, child) => MediaQuery.withClampedTextScaling(
-        maxScaleFactor: 1.3,
-        child: UpdateGate(child: ConnectionBanner(child: child!)),
+      //
+      // Android draws apps behind its navigation bar (the back, home and
+      // recent buttons). Keeping everything above it here, once, means no
+      // screen, sheet or dialog can put a button under those keys; the strip
+      // behind the bar is white, like the bottom menu and the sheets.
+      builder: (context, child) => ColoredBox(
+        color: Colors.white,
+        child: SafeArea(
+          top: false,
+          left: false,
+          right: false,
+          child: MediaQuery.withClampedTextScaling(
+            maxScaleFactor: 1.3,
+            child: UpdateGate(child: ConnectionBanner(child: child!)),
+          ),
+        ),
       ),
     );
   }

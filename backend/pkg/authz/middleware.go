@@ -105,13 +105,28 @@ func NewGuard(api huma.API, db *gorm.DB) *Guard {
 // Protected decorates a Huma operation with BearerSecurity and a required permission.
 func (g *Guard) Protected(op huma.Operation, permission string) huma.Operation {
 	op.Security = BearerSecurity
+	if op.Middlewares == nil {
+		op.Middlewares = huma.Middlewares{}
+	}
 	if permission != "" {
-		if op.Middlewares == nil {
-			op.Middlewares = huma.Middlewares{}
-		}
 		op.Middlewares = append(op.Middlewares, g.Require(permission))
+	} else {
+		// No permission needed, but still a signed-in user: answer 401 (which
+		// makes the app renew an expired session) before the handler runs.
+		op.Middlewares = append(op.Middlewares, g.RequireSignedIn())
 	}
 	return op
+}
+
+// RequireSignedIn refuses requests without a valid signed-in user (401).
+func (g *Guard) RequireSignedIn() func(huma.Context, func(huma.Context)) {
+	return func(ctx huma.Context, next func(huma.Context)) {
+		if _, ok := DefaultSubjectExtractor(ctx.Context()); !ok {
+			huma.WriteErr(g.api, ctx, http.StatusUnauthorized, "Unauthorized: authentication required")
+			return
+		}
+		next(ctx)
+	}
 }
 
 // Require returns a clean Huma middleware hook demanding a specific permission.

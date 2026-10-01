@@ -23,6 +23,7 @@ import (
 	"github.com/codetheuri/tusk/internal/collection"
 	"github.com/codetheuri/tusk/internal/customer"
 	"github.com/codetheuri/tusk/internal/dashboard"
+	"github.com/codetheuri/tusk/internal/export"
 	"github.com/codetheuri/tusk/internal/idempotency"
 	"github.com/codetheuri/tusk/internal/jobs"
 	"github.com/codetheuri/tusk/internal/member"
@@ -313,6 +314,7 @@ func registerModules(api huma.API, r chi.Router, db *gorm.DB, cfg *config.Config
 	collection.RegisterRoutes(api, db, cfg, log)
 	customer.RegisterRoutes(api, db, cfg, log)
 	report.RegisterRoutes(api, db, cfg, log)
+	export.RegisterRoutes(api, db, cfg, log)
 	dashboard.RegisterRoutes(api, db, cfg, log)
 	notification.RegisterRoutes(api, db, cfg, log)
 	superadmin.RegisterRoutes(api, db, cfg, log, runner)

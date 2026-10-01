@@ -76,6 +76,34 @@ func RegisterRoutes(api huma.API, db *gorm.DB, cfg *config.Config, log logger.Lo
 		Tags:        []string{"Sacco Management (Admin)"},
 	}, PermSaccosUpdate), handler.AdminUpdateSettings)
 
+	// The logo printed on the Sacco's reports.
+	logoImage := map[string]*huma.Response{"200": {
+		Description: "The logo image",
+		Content:     map[string]*huma.MediaType{"image/png": {}, "image/jpeg": {}},
+	}}
+	huma.Register(api, guard.Protected(huma.Operation{
+		OperationID: "admin-set-sacco-logo", Method: http.MethodPut, Path: "/api/v1/admin/saccos/{id}/logo",
+		Summary: "Set a Sacco's logo", Description: "The logo printed on the Sacco's reports: PNG or JPEG, at most 512 KB, sent as base64.",
+		Tags: []string{"Sacco Management (Admin)"},
+	}, PermSaccosUpdate), handler.AdminSetLogo)
+	huma.Register(api, guard.Protected(huma.Operation{
+		OperationID: "admin-remove-sacco-logo", Method: http.MethodDelete, Path: "/api/v1/admin/saccos/{id}/logo",
+		Summary: "Remove a Sacco's logo", Tags: []string{"Sacco Management (Admin)"},
+	}, PermSaccosUpdate), handler.AdminRemoveLogo)
+	huma.Register(api, guard.Protected(huma.Operation{
+		OperationID: "admin-get-sacco-logo", Method: http.MethodGet, Path: "/api/v1/admin/saccos/{id}/logo",
+		Summary: "A Sacco's logo", Tags: []string{"Sacco Management (Admin)"}, Responses: logoImage,
+	}, PermSaccosRead), handler.AdminLogo)
+	huma.Register(api, guard.Protected(huma.Operation{
+		OperationID: "set-own-sacco-logo", Method: http.MethodPut, Path: "/api/v1/sacco/logo",
+		Summary: "Set your Sacco's logo", Description: "The logo printed on your Sacco's reports: PNG or JPEG, at most 512 KB, sent as base64.",
+		Tags: []string{"Sacco Tenant Profile"},
+	}, PermSaccoSettingsManage), handler.SetOwnLogo)
+	huma.Register(api, guard.Protected(huma.Operation{
+		OperationID: "get-own-sacco-logo", Method: http.MethodGet, Path: "/api/v1/sacco/logo",
+		Summary: "Your Sacco's logo", Tags: []string{"Sacco Tenant Profile"}, Responses: logoImage,
+	}, ""), handler.OwnLogo)
+
 	// -------------------------------------------------------------
 	// TENANT SACCO PROFILE & SETTINGS ENDPOINTS
 	// -------------------------------------------------------------

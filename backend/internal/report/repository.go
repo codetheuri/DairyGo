@@ -288,12 +288,16 @@ func (r *Repository) collectorTotals(ctx context.Context, saccoID, fromDateStr, 
 	names := map[uint]string{}
 	if len(ids) > 0 {
 		var users []struct {
-			ID       uint
-			Username string
+			ID   uint
+			Name string
 		}
-		r.db.WithContext(ctx).Table("users").Select("id, username").Where("id IN ?", ids).Scan(&users)
+		// Full name from the profile; the username when there is none.
+		r.db.WithContext(ctx).Table("users u").
+			Select("u.id, COALESCE(NULLIF(TRIM(COALESCE(p.first_name, '') || ' ' || COALESCE(p.last_name, '')), ''), u.username) AS name").
+			Joins("LEFT JOIN user_profiles p ON p.user_id = u.id").
+			Where("u.id IN ?", ids).Scan(&users)
 		for _, u := range users {
-			names[u.ID] = u.Username
+			names[u.ID] = u.Name
 		}
 	}
 

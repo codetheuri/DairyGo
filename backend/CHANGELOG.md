@@ -9,6 +9,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 
 ### Added
+- **Downloadable reports, PDF and Excel** (`internal/export`, `pkg/document`, migration `00020`): nine reports (farmer payouts, farmer statement, collections, sales, customer statement, customers owing, milk balance by collector, Sacco summary, farmer register) made on the server with the Sacco's letterhead and logo. `GET /api/v1/sacco/exports` lists the ones the caller may download; `GET /api/v1/sacco/exports/{key}` returns the file. Collectors get only their own rows. Sacco logos: `PUT/GET/DELETE /api/v1/admin/saccos/{id}/logo`, `PUT/GET /api/v1/sacco/logo`. See [docs/report-downloads.md](docs/report-downloads.md).
+
+### Fixed
+- **Routes needing no particular permission now require a signed-in user** (`guard.Protected(op, "")`): without a token they answer 401 (so the app renews an expired session) instead of reaching the handler, which answered 400 or 403.
+- The collector audit report shows collectors' names instead of their usernames.
 - **Background jobs are visible in the console** (migration `00019`, `internal/jobs`): **Background jobs** lists each job (mark idle farmers inactive, clear old logs, clear saved retries and ended sessions) with its schedule, last run and result, next run and history, and can **Run now**. Every run is recorded in `job_runs` (kept 90 days); a panicking job is recorded as failed instead of crashing the API, and runs cut off by a restart are marked interrupted. See [docs/background-jobs.md](docs/background-jobs.md).
 - **Farmer status rules** (migration `00018`):
   - suspended farmers cannot supply milk (`409`);

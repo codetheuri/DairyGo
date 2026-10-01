@@ -1,0 +1,42 @@
+{
+  "status": 200,
+  "body": {
+    "success": true,
+    "message": "Income and expenditure",
+    "data": {
+      "summary": {
+        "from_date": "2026-09-01",
+        "to_date": "2026-09-30",
+        "milk_sales": 600,
+        "milk_purchases": 5000,
+        "gross_margin": -4400,
+        "fees": [
+          {
+            "name": "Registration fee",
+            "amount": 300
+          }
+        ],
+        "fees_total": 300,
+        "farmer_charges": 0,
+        "expenses": [
+          {
+            "name": "Salaries and wages",
+            "amount": 25000
+          },
+          {
+            "name": "Petty cash spending",
+            "amount": 450
+          }
+        ],
+        "expenses_total": 25450,
+        "surplus": -29550,
+        "shares_raised": [],
+        "cash": 132450,
+        "receivables": 0,
+        "farmer_pay_due": 0,
+        "farmers_owe": 2500,
+        "share_capital": 0
+      }
+    }
+  }
+}

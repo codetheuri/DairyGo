@@ -1,0 +1,61 @@
+{
+  "status": 200,
+  "body": {
+    "success": true,
+    "message": "Pay run",
+    "data": {
+      "pay_run": {
+        "id": "4d999699-d674-4b4b-ba4c-541cc1fd8ba4",
+        "sacco_id": "d9ee219f-f75a-45da-8a61-9c5767557ab7",
+        "from_date": "2026-09-01T00:00:00Z",
+        "to_date": "2026-09-30T00:00:00Z",
+        "status": "PAID",
+        "farmers": 1,
+        "total_litres": 100,
+        "total_gross": 5000,
+        "total_deductions": 300,
+        "total_net": 3700,
+        "total_paid": 3700,
+        "paid_count": 1,
+        "created_by_id": 2,
+        "approved_by_id": 2,
+        "approved_at": "2026-10-01T18:52:17.784392+03:00",
+        "created_at": "2026-10-01T18:52:17.740817+03:00",
+        "updated_at": "2026-10-01T18:52:17.843371+03:00"
+      },
+      "lines": [
+        {
+          "id": "b7cb24a9-0c35-404f-863f-085657b22ee6",
+          "pay_run_id": "4d999699-d674-4b4b-ba4c-541cc1fd8ba4",
+          "sacco_id": "d9ee219f-f75a-45da-8a61-9c5767557ab7",
+          "member_id": "5464a4f0-f0c3-403a-aa75-63035e289335",
+          "membership_number": "201",
+          "farmer_name": "Jane Muthoni",
+          "phone": "0711000001",
+          "litres": 100,
+          "gross": 5000,
+          "opening_balance": 0,
+          "advances_and_charges": -1000,
+          "total_deductions": 300,
+          "net": 3700,
+          "closing_balance": 0,
+          "deductions": [
+            {
+              "deduction_type_id": "34e61ea0-20f4-4884-9e0e-e5d025fbdbc9",
+              "name": "Registration fee",
+              "amount": 300,
+              "savings": false
+            }
+          ],
+          "paid_at": "2026-10-01T00:00:00+03:00",
+          "paid_method": "MPESA",
+          "paid_reference": "B2C-SEP",
+          "paid_by_id": 2,
+          "cash_account_id": "a4db56ec-66c0-4020-b8ac-970d45747d50",
+          "created_at": "2026-10-01T18:52:17.78028+03:00",
+          "updated_at": "2026-10-01T18:52:17.835991+03:00"
+        }
+      ]
+    }
+  }
+}

@@ -43,6 +43,7 @@ _$SaccoSettingsModelImpl _$$SaccoSettingsModelImplFromJson(
   reconciliationToleranceLitres:
       (json['reconciliation_tolerance_litres'] as num?)?.toDouble() ?? 0.0,
   inactiveAfterDays: (json['inactive_after_days'] as num?)?.toInt() ?? 60,
+  advanceMaxPerPeriod: (json['advance_max_per_period'] as num?)?.toDouble(),
 );
 
 Map<String, dynamic> _$$SaccoSettingsModelImplToJson(
@@ -55,6 +56,7 @@ Map<String, dynamic> _$$SaccoSettingsModelImplToJson(
   'evening_cutoff_time': instance.eveningCutoffTime,
   'reconciliation_tolerance_litres': instance.reconciliationToleranceLitres,
   'inactive_after_days': instance.inactiveAfterDays,
+  'advance_max_per_period': instance.advanceMaxPerPeriod,
 };
 
 _$SetPriceRequestModelImpl _$$SetPriceRequestModelImplFromJson(

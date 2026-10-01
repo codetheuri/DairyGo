@@ -1,0 +1,35 @@
+{
+  "status": 200,
+  "body": {
+    "success": true,
+    "message": "Farmer's account",
+    "data": {
+      "account": {
+        "member_id": "d7646d16-7be9-4fdc-bea9-70b030bef818",
+        "from_date": "2026-01-01",
+        "to_date": "2026-10-01",
+        "opening_balance": 0,
+        "closing_balance": -2500,
+        "lines": [
+          {
+            "id": "1b9e5440-8401-40b4-84ac-e0b696f6c005",
+            "sacco_id": "d9ee219f-f75a-45da-8a61-9c5767557ab7",
+            "member_id": "d7646d16-7be9-4fdc-bea9-70b030bef818",
+            "kind": "CHARGE",
+            "entry_date": "2026-10-01T00:00:00Z",
+            "amount": -2500,
+            "description": "Dairy meal 2 bags",
+            "is_savings": false,
+            "recorded_by_id": 2,
+            "created_at": "2026-10-01T18:52:18.727446+03:00",
+            "updated_at": "2026-10-01T18:52:18.727446+03:00",
+            "balance": -2500
+          }
+        ],
+        "balance": -2500,
+        "share_balance": 0,
+        "open_advances": 0
+      }
+    }
+  }
+}

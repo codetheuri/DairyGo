@@ -94,6 +94,32 @@ class MoreScreen extends ConsumerWidget {
                     onTap: () => shell?.goBranch(section.branch),
                   ),
                 if (nav.overflow.isNotEmpty) const Divider(),
+                if (user?.seesPayRuns ?? false)
+                  ListTile(
+                    leading: const Icon(
+                      Icons.payments_outlined,
+                      color: AppColors.primary,
+                    ),
+                    title: const Text('Farmer pay'),
+                    subtitle: const Text(
+                      'Monthly pay runs, advances, deductions and payslips',
+                    ),
+                    trailing: const Icon(Icons.chevron_right_rounded),
+                    onTap: () => context.push(AppRoutes.payouts),
+                  ),
+                if (user?.seesFinance ?? false)
+                  ListTile(
+                    leading: const Icon(
+                      Icons.account_balance_wallet_outlined,
+                      color: AppColors.primary,
+                    ),
+                    title: const Text('Expenses & money'),
+                    subtitle: const Text(
+                      'Expenses, petty cash, bank and M-Pesa, income and spending',
+                    ),
+                    trailing: const Icon(Icons.chevron_right_rounded),
+                    onTap: () => context.push(AppRoutes.finance),
+                  ),
                 ListTile(
                   leading: const Icon(
                     Icons.download_rounded,

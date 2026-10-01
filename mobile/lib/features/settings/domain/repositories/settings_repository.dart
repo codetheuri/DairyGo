@@ -10,4 +10,7 @@ abstract class SettingsRepository {
 
   /// Days without milk after which active farmers become inactive; 0 = never.
   Future<SaccoSettingsModel> updateInactiveAfterDays(int days);
+
+  /// 0 removes the limit.
+  Future<SaccoSettingsModel> updateAdvanceLimit(double limit);
 }

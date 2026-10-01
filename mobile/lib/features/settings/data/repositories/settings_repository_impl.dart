@@ -33,4 +33,8 @@ class SettingsRepositoryImpl implements SettingsRepository {
   @override
   Future<SaccoSettingsModel> updateInactiveAfterDays(int days) =>
       _remoteDataSource.updateInactiveAfterDays(days);
+
+  @override
+  Future<SaccoSettingsModel> updateAdvanceLimit(double limit) =>
+      _remoteDataSource.updateAdvanceLimit(limit);
 }

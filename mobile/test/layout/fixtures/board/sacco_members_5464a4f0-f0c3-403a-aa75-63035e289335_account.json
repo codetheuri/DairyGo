@@ -1,0 +1,87 @@
+{
+  "status": 200,
+  "body": {
+    "success": true,
+    "message": "Farmer's account",
+    "data": {
+      "account": {
+        "member_id": "5464a4f0-f0c3-403a-aa75-63035e289335",
+        "from_date": "2026-01-01",
+        "to_date": "2026-10-01",
+        "opening_balance": 0,
+        "closing_balance": 0,
+        "lines": [
+          {
+            "id": "5a1b35fd-044d-413c-86d7-43ae5890e5bd",
+            "sacco_id": "d9ee219f-f75a-45da-8a61-9c5767557ab7",
+            "member_id": "5464a4f0-f0c3-403a-aa75-63035e289335",
+            "kind": "ADVANCE",
+            "entry_date": "2026-09-20T00:00:00Z",
+            "amount": -1000,
+            "description": "Advance",
+            "is_savings": false,
+            "pay_run_id": "4d999699-d674-4b4b-ba4c-541cc1fd8ba4",
+            "method": "CASH",
+            "cash_account_id": "c493a85e-1786-4f56-9f1b-ea9910f864f1",
+            "recorded_by_id": 2,
+            "created_at": "2026-10-01T18:52:17.693197+03:00",
+            "updated_at": "2026-10-01T18:52:17.781749+03:00",
+            "balance": -1000
+          },
+          {
+            "id": "8c66b754-90ce-4d5e-bbc3-388549f0716a",
+            "sacco_id": "d9ee219f-f75a-45da-8a61-9c5767557ab7",
+            "member_id": "5464a4f0-f0c3-403a-aa75-63035e289335",
+            "kind": "MILK",
+            "entry_date": "2026-09-30T00:00:00Z",
+            "amount": 5000,
+            "description": "Milk Sep 2026: 100 L",
+            "is_savings": false,
+            "pay_run_id": "4d999699-d674-4b4b-ba4c-541cc1fd8ba4",
+            "recorded_by_id": 2,
+            "created_at": "2026-10-01T18:52:17.782733+03:00",
+            "updated_at": "2026-10-01T18:52:17.782733+03:00",
+            "balance": 4000
+          },
+          {
+            "id": "b3e29f1b-29d0-4c61-bc4a-2b0760f82310",
+            "sacco_id": "d9ee219f-f75a-45da-8a61-9c5767557ab7",
+            "member_id": "5464a4f0-f0c3-403a-aa75-63035e289335",
+            "kind": "DEDUCTION",
+            "entry_date": "2026-09-30T00:00:00Z",
+            "amount": -300,
+            "description": "Registration fee",
+            "deduction_type_id": "34e61ea0-20f4-4884-9e0e-e5d025fbdbc9",
+            "is_savings": false,
+            "pay_run_id": "4d999699-d674-4b4b-ba4c-541cc1fd8ba4",
+            "recorded_by_id": 2,
+            "created_at": "2026-10-01T18:52:17.782733+03:00",
+            "updated_at": "2026-10-01T18:52:17.782733+03:00",
+            "balance": 3700
+          },
+          {
+            "id": "83d96d03-a7b8-4813-88d4-b33d8a027603",
+            "sacco_id": "d9ee219f-f75a-45da-8a61-9c5767557ab7",
+            "member_id": "5464a4f0-f0c3-403a-aa75-63035e289335",
+            "kind": "PAYOUT",
+            "entry_date": "2026-09-30T00:00:00Z",
+            "amount": -3700,
+            "description": "Net pay Sep 2026",
+            "is_savings": false,
+            "pay_run_id": "4d999699-d674-4b4b-ba4c-541cc1fd8ba4",
+            "method": "MPESA",
+            "reference": "B2C-SEP",
+            "cash_account_id": "a4db56ec-66c0-4020-b8ac-970d45747d50",
+            "recorded_by_id": 2,
+            "created_at": "2026-10-01T18:52:17.782733+03:00",
+            "updated_at": "2026-10-01T18:52:17.838906+03:00",
+            "balance": 0
+          }
+        ],
+        "balance": 0,
+        "share_balance": 0,
+        "open_advances": 0
+      }
+    }
+  }
+}

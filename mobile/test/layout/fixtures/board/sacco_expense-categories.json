@@ -1,0 +1,91 @@
+{
+  "status": 200,
+  "body": {
+    "success": true,
+    "message": "Expense categories",
+    "data": {
+      "categories": [
+        {
+          "id": "49178a4b-2aae-4980-b395-763c471f7b7e",
+          "sacco_id": "d9ee219f-f75a-45da-8a61-9c5767557ab7",
+          "name": "Bank and M-Pesa charges",
+          "is_active": true,
+          "created_at": "2026-10-01T18:52:16.337754+03:00",
+          "updated_at": "2026-10-01T18:52:16.337754+03:00"
+        },
+        {
+          "id": "7b590c3a-168e-4189-86c4-19cbf435bce1",
+          "sacco_id": "d9ee219f-f75a-45da-8a61-9c5767557ab7",
+          "name": "Electricity and water",
+          "is_active": true,
+          "created_at": "2026-10-01T18:52:16.337754+03:00",
+          "updated_at": "2026-10-01T18:52:16.337754+03:00"
+        },
+        {
+          "id": "6e8813a8-813b-4528-8bab-e18397a046f2",
+          "sacco_id": "d9ee219f-f75a-45da-8a61-9c5767557ab7",
+          "name": "Meetings and AGM",
+          "is_active": true,
+          "created_at": "2026-10-01T18:52:16.337754+03:00",
+          "updated_at": "2026-10-01T18:52:16.337754+03:00"
+        },
+        {
+          "id": "6e5245f8-82c3-4c62-a795-99a48d5f866c",
+          "sacco_id": "d9ee219f-f75a-45da-8a61-9c5767557ab7",
+          "name": "Other",
+          "is_active": true,
+          "created_at": "2026-10-01T18:52:16.337754+03:00",
+          "updated_at": "2026-10-01T18:52:16.337754+03:00"
+        },
+        {
+          "id": "735190ba-b0ee-40e1-b3c1-2f770a4c08d2",
+          "sacco_id": "d9ee219f-f75a-45da-8a61-9c5767557ab7",
+          "name": "Petty cash spending",
+          "is_active": true,
+          "created_at": "2026-10-01T18:52:16.337754+03:00",
+          "updated_at": "2026-10-01T18:52:16.337754+03:00"
+        },
+        {
+          "id": "3c4bd364-415c-435d-8cb9-07ea4deb54cb",
+          "sacco_id": "d9ee219f-f75a-45da-8a61-9c5767557ab7",
+          "name": "Rent",
+          "is_active": true,
+          "created_at": "2026-10-01T18:52:16.337754+03:00",
+          "updated_at": "2026-10-01T18:52:16.337754+03:00"
+        },
+        {
+          "id": "e26199b9-b1fb-4c0d-b7a9-995af0ac8271",
+          "sacco_id": "d9ee219f-f75a-45da-8a61-9c5767557ab7",
+          "name": "Repairs and maintenance",
+          "is_active": true,
+          "created_at": "2026-10-01T18:52:16.337754+03:00",
+          "updated_at": "2026-10-01T18:52:16.337754+03:00"
+        },
+        {
+          "id": "f64cfa54-9ca9-4a6a-8158-1e792b4c843d",
+          "sacco_id": "d9ee219f-f75a-45da-8a61-9c5767557ab7",
+          "name": "Salaries and wages",
+          "is_active": true,
+          "created_at": "2026-10-01T18:52:16.337754+03:00",
+          "updated_at": "2026-10-01T18:52:16.337754+03:00"
+        },
+        {
+          "id": "4c596fea-9a54-41d4-aa8d-106225154fd4",
+          "sacco_id": "d9ee219f-f75a-45da-8a61-9c5767557ab7",
+          "name": "Stationery and printing",
+          "is_active": true,
+          "created_at": "2026-10-01T18:52:16.337754+03:00",
+          "updated_at": "2026-10-01T18:52:16.337754+03:00"
+        },
+        {
+          "id": "5404ee5b-b618-4351-bfe9-ff1559f93f01",
+          "sacco_id": "d9ee219f-f75a-45da-8a61-9c5767557ab7",
+          "name": "Transport and fuel",
+          "is_active": true,
+          "created_at": "2026-10-01T18:52:16.337754+03:00",
+          "updated_at": "2026-10-01T18:52:16.337754+03:00"
+        }
+      ]
+    }
+  }
+}

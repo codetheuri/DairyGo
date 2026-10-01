@@ -1,0 +1,54 @@
+{
+  "status": 200,
+  "body": {
+    "success": true,
+    "message": "Pay run",
+    "data": {
+      "pay_run": {
+        "id": "93bf76b2-2118-41b8-9eef-5e46d7b6175a",
+        "sacco_id": "d9ee219f-f75a-45da-8a61-9c5767557ab7",
+        "from_date": "2026-10-01T00:00:00Z",
+        "to_date": "2026-10-01T00:00:00Z",
+        "status": "DRAFT",
+        "farmers": 1,
+        "total_litres": 30,
+        "total_gross": 1500,
+        "total_deductions": 300,
+        "total_net": 0,
+        "total_paid": 0,
+        "paid_count": 0,
+        "created_by_id": 2,
+        "created_at": "2026-10-01T18:52:18.74303+03:00",
+        "updated_at": "2026-10-01T18:52:18.747468+03:00"
+      },
+      "lines": [
+        {
+          "id": "a5a0d105-3852-4142-9812-3ffec2c28c8a",
+          "pay_run_id": "93bf76b2-2118-41b8-9eef-5e46d7b6175a",
+          "sacco_id": "d9ee219f-f75a-45da-8a61-9c5767557ab7",
+          "member_id": "d7646d16-7be9-4fdc-bea9-70b030bef818",
+          "membership_number": "202",
+          "farmer_name": "Peter Kariuki",
+          "phone": "0711000002",
+          "litres": 30,
+          "gross": 1500,
+          "opening_balance": 0,
+          "advances_and_charges": -2500,
+          "total_deductions": 300,
+          "net": 0,
+          "closing_balance": -1300,
+          "deductions": [
+            {
+              "deduction_type_id": "34e61ea0-20f4-4884-9e0e-e5d025fbdbc9",
+              "name": "Registration fee",
+              "amount": 300,
+              "savings": false
+            }
+          ],
+          "created_at": "2026-10-01T18:52:18.746624+03:00",
+          "updated_at": "2026-10-01T18:52:18.746624+03:00"
+        }
+      ]
+    }
+  }
+}

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../payouts/presentation/widgets/farmer_account_card.dart';
 import '../../../report_downloads/presentation/widgets/download_statement_button.dart';
 import 'package:go_router/go_router.dart';
 
@@ -329,6 +330,11 @@ class FarmerProfileScreen extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: 20),
+
+                  if (user?.seesPayRuns ?? false) ...[
+                    FarmerAccountCard(memberId: member.id),
+                    const SizedBox(height: 20),
+                  ],
 
                   // Who changed this farmer's details (loaded when opened).
                   Container(

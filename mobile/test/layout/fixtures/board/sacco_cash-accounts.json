@@ -1,0 +1,52 @@
+{
+  "status": 200,
+  "body": {
+    "success": true,
+    "message": "Accounts",
+    "data": {
+      "accounts": [
+        {
+          "id": "7bdaaad1-05d0-40a2-8597-5b00f3576012",
+          "sacco_id": "d9ee219f-f75a-45da-8a61-9c5767557ab7",
+          "name": "Equity Bank",
+          "kind": "BANK",
+          "account_number": "0123",
+          "opening_balance": 100000,
+          "opening_date": "2026-09-01T00:00:00Z",
+          "is_active": true,
+          "created_by_id": 2,
+          "created_at": "2026-10-01T18:52:17.341682+03:00",
+          "updated_at": "2026-10-01T18:52:17.341315+03:00",
+          "balance": 80000
+        },
+        {
+          "id": "a4db56ec-66c0-4020-b8ac-970d45747d50",
+          "sacco_id": "d9ee219f-f75a-45da-8a61-9c5767557ab7",
+          "name": "M-Pesa paybill",
+          "kind": "MPESA",
+          "opening_balance": 50000,
+          "opening_date": "2026-09-01T00:00:00Z",
+          "is_active": true,
+          "created_by_id": 2,
+          "created_at": "2026-10-01T18:52:17.361145+03:00",
+          "updated_at": "2026-10-01T18:52:17.360752+03:00",
+          "balance": 46300
+        },
+        {
+          "id": "c493a85e-1786-4f56-9f1b-ea9910f864f1",
+          "sacco_id": "d9ee219f-f75a-45da-8a61-9c5767557ab7",
+          "name": "Petty cash",
+          "kind": "CASH",
+          "opening_balance": 2000,
+          "opening_date": "2026-09-01T00:00:00Z",
+          "is_active": true,
+          "created_by_id": 2,
+          "created_at": "2026-10-01T18:52:17.320714+03:00",
+          "updated_at": "2026-10-01T18:52:17.320048+03:00",
+          "balance": 6150
+        }
+      ],
+      "total": 132450
+    }
+  }
+}

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/utils/money.dart';
 import '../../../../core/cache/keep_fresh.dart';
 import '../../../../app/router/app_router.dart';
 import '../../../../app/theme/app_colors.dart';
@@ -524,6 +525,8 @@ class SettingsScreen extends ConsumerWidget {
                   const _ToleranceCard(),
                   const SizedBox(height: 12),
                   const _InactivityCard(),
+                  const SizedBox(height: 12),
+                  const _AdvanceLimitCard(),
                   const SizedBox(height: 24),
                 ],
 
@@ -971,6 +974,101 @@ class _InactivityCard extends ConsumerWidget {
         ),
         trailing: const Icon(Icons.edit_outlined, size: 18),
         onTap: settings.hasValue ? () => _edit(context, ref, days) : null,
+      ),
+    );
+  }
+}
+
+/// The most a farmer may take in advances between pay runs.
+class _AdvanceLimitCard extends ConsumerWidget {
+  const _AdvanceLimitCard();
+
+  Future<void> _edit(
+    BuildContext context,
+    WidgetRef ref,
+    double? current,
+  ) async {
+    final controller = TextEditingController(
+      text: current == null ? '' : current.toStringAsFixed(0),
+    );
+    final value = await showDialog<double>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Advance limit'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'The most one farmer may take in advances between pay runs. '
+              'Advances are taken from their next pay. Leave empty for no limit.',
+              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: controller,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'Limit',
+                prefixText: 'KES ',
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(
+              double.tryParse(controller.text.trim().replaceAll(',', '')) ?? 0,
+            ),
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    if (value == null || value < 0) return;
+    try {
+      await ref.read(settingsRepositoryProvider).updateAdvanceLimit(value);
+      ref.invalidate(saccoSettingsProvider);
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(saccoSettingsProvider);
+    final limit = settings.valueOrNull?.advanceMaxPerPeriod;
+    return Material(
+      color: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: const BorderSide(color: AppColors.cardBorder),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: ListTile(
+        leading: const Icon(Icons.payments_outlined, color: AppColors.primary),
+        title: const Text(
+          'Advance limit',
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
+        subtitle: Text(
+          settings.isLoading
+              ? 'Loading…'
+              : limit == null
+              ? 'No limit'
+              : 'Up to ${kes(limit, cents: false)} per farmer between pay runs',
+          style: const TextStyle(fontSize: 12),
+        ),
+        trailing: const Icon(Icons.edit_outlined, size: 18),
+        onTap: settings.hasValue ? () => _edit(context, ref, limit) : null,
       ),
     );
   }

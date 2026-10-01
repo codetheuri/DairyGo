@@ -355,7 +355,9 @@ mixin _$SaccoSettingsModel {
   double get reconciliationToleranceLitres =>
       throw _privateConstructorUsedError; // Days without milk after which an active farmer becomes inactive; 0 = never.
   @JsonKey(name: 'inactive_after_days')
-  int get inactiveAfterDays => throw _privateConstructorUsedError;
+  int get inactiveAfterDays => throw _privateConstructorUsedError; // Most a farmer may take in advances between pay runs; null = no limit.
+  @JsonKey(name: 'advance_max_per_period')
+  double? get advanceMaxPerPeriod => throw _privateConstructorUsedError;
 
   /// Serializes this SaccoSettingsModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -383,6 +385,7 @@ abstract class $SaccoSettingsModelCopyWith<$Res> {
     @JsonKey(name: 'reconciliation_tolerance_litres')
     double reconciliationToleranceLitres,
     @JsonKey(name: 'inactive_after_days') int inactiveAfterDays,
+    @JsonKey(name: 'advance_max_per_period') double? advanceMaxPerPeriod,
   });
 }
 
@@ -408,6 +411,7 @@ class _$SaccoSettingsModelCopyWithImpl<$Res, $Val extends SaccoSettingsModel>
     Object? eveningCutoffTime = freezed,
     Object? reconciliationToleranceLitres = null,
     Object? inactiveAfterDays = null,
+    Object? advanceMaxPerPeriod = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -439,6 +443,10 @@ class _$SaccoSettingsModelCopyWithImpl<$Res, $Val extends SaccoSettingsModel>
                 ? _value.inactiveAfterDays
                 : inactiveAfterDays // ignore: cast_nullable_to_non_nullable
                       as int,
+            advanceMaxPerPeriod: freezed == advanceMaxPerPeriod
+                ? _value.advanceMaxPerPeriod
+                : advanceMaxPerPeriod // ignore: cast_nullable_to_non_nullable
+                      as double?,
           )
           as $Val,
     );
@@ -463,6 +471,7 @@ abstract class _$$SaccoSettingsModelImplCopyWith<$Res>
     @JsonKey(name: 'reconciliation_tolerance_litres')
     double reconciliationToleranceLitres,
     @JsonKey(name: 'inactive_after_days') int inactiveAfterDays,
+    @JsonKey(name: 'advance_max_per_period') double? advanceMaxPerPeriod,
   });
 }
 
@@ -487,6 +496,7 @@ class __$$SaccoSettingsModelImplCopyWithImpl<$Res>
     Object? eveningCutoffTime = freezed,
     Object? reconciliationToleranceLitres = null,
     Object? inactiveAfterDays = null,
+    Object? advanceMaxPerPeriod = freezed,
   }) {
     return _then(
       _$SaccoSettingsModelImpl(
@@ -518,6 +528,10 @@ class __$$SaccoSettingsModelImplCopyWithImpl<$Res>
             ? _value.inactiveAfterDays
             : inactiveAfterDays // ignore: cast_nullable_to_non_nullable
                   as int,
+        advanceMaxPerPeriod: freezed == advanceMaxPerPeriod
+            ? _value.advanceMaxPerPeriod
+            : advanceMaxPerPeriod // ignore: cast_nullable_to_non_nullable
+                  as double?,
       ),
     );
   }
@@ -535,6 +549,7 @@ class _$SaccoSettingsModelImpl implements _SaccoSettingsModel {
     @JsonKey(name: 'reconciliation_tolerance_litres')
     this.reconciliationToleranceLitres = 0.0,
     @JsonKey(name: 'inactive_after_days') this.inactiveAfterDays = 60,
+    @JsonKey(name: 'advance_max_per_period') this.advanceMaxPerPeriod,
   });
 
   factory _$SaccoSettingsModelImpl.fromJson(Map<String, dynamic> json) =>
@@ -563,10 +578,14 @@ class _$SaccoSettingsModelImpl implements _SaccoSettingsModel {
   @override
   @JsonKey(name: 'inactive_after_days')
   final int inactiveAfterDays;
+  // Most a farmer may take in advances between pay runs; null = no limit.
+  @override
+  @JsonKey(name: 'advance_max_per_period')
+  final double? advanceMaxPerPeriod;
 
   @override
   String toString() {
-    return 'SaccoSettingsModel(saccoId: $saccoId, currency: $currency, milkUnit: $milkUnit, morningCutoffTime: $morningCutoffTime, eveningCutoffTime: $eveningCutoffTime, reconciliationToleranceLitres: $reconciliationToleranceLitres, inactiveAfterDays: $inactiveAfterDays)';
+    return 'SaccoSettingsModel(saccoId: $saccoId, currency: $currency, milkUnit: $milkUnit, morningCutoffTime: $morningCutoffTime, eveningCutoffTime: $eveningCutoffTime, reconciliationToleranceLitres: $reconciliationToleranceLitres, inactiveAfterDays: $inactiveAfterDays, advanceMaxPerPeriod: $advanceMaxPerPeriod)';
   }
 
   @override
@@ -590,7 +609,9 @@ class _$SaccoSettingsModelImpl implements _SaccoSettingsModel {
                 other.reconciliationToleranceLitres ==
                     reconciliationToleranceLitres) &&
             (identical(other.inactiveAfterDays, inactiveAfterDays) ||
-                other.inactiveAfterDays == inactiveAfterDays));
+                other.inactiveAfterDays == inactiveAfterDays) &&
+            (identical(other.advanceMaxPerPeriod, advanceMaxPerPeriod) ||
+                other.advanceMaxPerPeriod == advanceMaxPerPeriod));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -604,6 +625,7 @@ class _$SaccoSettingsModelImpl implements _SaccoSettingsModel {
     eveningCutoffTime,
     reconciliationToleranceLitres,
     inactiveAfterDays,
+    advanceMaxPerPeriod,
   );
 
   /// Create a copy of SaccoSettingsModel
@@ -633,6 +655,7 @@ abstract class _SaccoSettingsModel implements SaccoSettingsModel {
     @JsonKey(name: 'reconciliation_tolerance_litres')
     final double reconciliationToleranceLitres,
     @JsonKey(name: 'inactive_after_days') final int inactiveAfterDays,
+    @JsonKey(name: 'advance_max_per_period') final double? advanceMaxPerPeriod,
   }) = _$SaccoSettingsModelImpl;
 
   factory _SaccoSettingsModel.fromJson(Map<String, dynamic> json) =
@@ -657,7 +680,10 @@ abstract class _SaccoSettingsModel implements SaccoSettingsModel {
   double get reconciliationToleranceLitres; // Days without milk after which an active farmer becomes inactive; 0 = never.
   @override
   @JsonKey(name: 'inactive_after_days')
-  int get inactiveAfterDays;
+  int get inactiveAfterDays; // Most a farmer may take in advances between pay runs; null = no limit.
+  @override
+  @JsonKey(name: 'advance_max_per_period')
+  double? get advanceMaxPerPeriod;
 
   /// Create a copy of SaccoSettingsModel
   /// with the given fields replaced by the non-null parameter values.

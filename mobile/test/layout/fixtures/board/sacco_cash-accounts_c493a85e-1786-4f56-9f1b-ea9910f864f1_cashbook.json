@@ -1,0 +1,69 @@
+{
+  "status": 200,
+  "body": {
+    "success": true,
+    "message": "Cashbook",
+    "data": {
+      "cashbook": {
+        "account": {
+          "id": "c493a85e-1786-4f56-9f1b-ea9910f864f1",
+          "sacco_id": "d9ee219f-f75a-45da-8a61-9c5767557ab7",
+          "name": "Petty cash",
+          "kind": "CASH",
+          "opening_balance": 2000,
+          "opening_date": "2026-09-01T00:00:00Z",
+          "is_active": true,
+          "created_by_id": 2,
+          "created_at": "2026-10-01T18:52:17.320714+03:00",
+          "updated_at": "2026-10-01T18:52:17.320048+03:00",
+          "balance": 6150
+        },
+        "from_date": "2026-09-01",
+        "to_date": "2026-09-30",
+        "opening_balance": 2000,
+        "total_in": 5600,
+        "total_out": 1450,
+        "closing_balance": 6150,
+        "lines": [
+          {
+            "source": "CASH_SALE",
+            "date": "2026-09-11T00:00:00Z",
+            "description": "Paid at sale: Kiambu Cooler",
+            "ref_id": "ee95f2d1-bb81-4ab2-a43b-184d275290aa",
+            "in": 600,
+            "out": 0,
+            "balance": 2600
+          },
+          {
+            "source": "EXPENSE",
+            "date": "2026-09-12T00:00:00Z",
+            "description": "Petty cash spending: Kamau shop",
+            "ref_id": "e43af9e5-021f-4911-b236-c8d035e3f661",
+            "in": 0,
+            "out": 450,
+            "balance": 2150
+          },
+          {
+            "source": "TRANSFER_IN",
+            "date": "2026-09-15T00:00:00Z",
+            "description": "From Equity Bank",
+            "reference": "CHQ 101",
+            "ref_id": "4745c61e-f912-459d-9f85-817881d48e89",
+            "in": 5000,
+            "out": 0,
+            "balance": 7150
+          },
+          {
+            "source": "ADVANCE",
+            "date": "2026-09-20T00:00:00Z",
+            "description": "Advance to Jane Muthoni",
+            "ref_id": "5a1b35fd-044d-413c-86d7-43ae5890e5bd",
+            "in": 0,
+            "out": 1000,
+            "balance": 6150
+          }
+        ]
+      }
+    }
+  }
+}

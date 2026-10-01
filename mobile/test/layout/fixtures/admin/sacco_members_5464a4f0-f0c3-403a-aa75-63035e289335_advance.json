@@ -1,0 +1,16 @@
+{
+  "status": 200,
+  "body": {
+    "success": true,
+    "message": "Advance",
+    "data": {
+      "advance": {
+        "milk_value_so_far": 0,
+        "litres_so_far": 0,
+        "since_date": "2026-10-01",
+        "advances_taken": 0,
+        "balance": 0
+      }
+    }
+  }
+}

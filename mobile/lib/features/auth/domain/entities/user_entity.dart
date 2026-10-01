@@ -120,6 +120,25 @@ class UserEntity with _$UserEntity {
       can('customers.payments.manage', whenUnknown: isSaccoAdmin);
 
   bool get canManageStaff => can('users.read', whenUnknown: isSaccoAdmin);
+
+  // Farmer pay: pay runs, accounts, advances, deductions.
+  bool get seesPayRuns => can('payouts.read', whenUnknown: false);
+  bool get canManageDeductions =>
+      can('payouts.deductions.manage', whenUnknown: false);
+  bool get canGiveAdvances =>
+      can('payouts.advances.manage', whenUnknown: false);
+  bool get canRecordCharges =>
+      can('payouts.charges.manage', whenUnknown: false);
+  bool get canPreparePayRuns => can('payouts.runs.manage', whenUnknown: false);
+  bool get canApprovePayRuns => can('payouts.runs.approve', whenUnknown: false);
+  bool get canPayFarmers => can('payouts.runs.pay', whenUnknown: false);
+
+  // The Sacco's own money: accounts, expenses, income and expenditure.
+  bool get seesFinance => can('finance.read', whenUnknown: false);
+  bool get canRecordExpenses =>
+      can('finance.expenses.manage', whenUnknown: false);
+  bool get canManageAccounts =>
+      can('finance.accounts.manage', whenUnknown: false);
   bool get canSetPrice => can('milk.prices.manage', whenUnknown: isSaccoAdmin);
 
   String get displayRole {

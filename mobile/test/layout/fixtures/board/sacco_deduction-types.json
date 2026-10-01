@@ -1,0 +1,75 @@
+{
+  "status": 200,
+  "body": {
+    "success": true,
+    "message": "Deductions",
+    "data": {
+      "deductions": [
+        {
+          "id": "34e61ea0-20f4-4884-9e0e-e5d025fbdbc9",
+          "sacco_id": "d9ee219f-f75a-45da-8a61-9c5767557ab7",
+          "name": "Registration fee",
+          "description": "Paid once when a farmer joins",
+          "method": "FIXED",
+          "base": "GROSS",
+          "amount": 300,
+          "frequency": "ONCE_PER_MEMBER",
+          "applies_to": "ALL",
+          "priority": 10,
+          "is_savings": false,
+          "is_active": true,
+          "created_at": "2026-10-01T18:52:16.33626+03:00",
+          "updated_at": "2026-10-01T18:52:17.722961+03:00"
+        },
+        {
+          "id": "78737c82-4693-483b-8bdf-44974a053530",
+          "sacco_id": "d9ee219f-f75a-45da-8a61-9c5767557ab7",
+          "name": "Annual subscription",
+          "description": "Paid once a year",
+          "method": "FIXED",
+          "base": "GROSS",
+          "amount": 0,
+          "frequency": "ONCE_PER_YEAR",
+          "applies_to": "ALL",
+          "priority": 20,
+          "is_savings": false,
+          "is_active": false,
+          "created_at": "2026-10-01T18:52:16.33626+03:00",
+          "updated_at": "2026-10-01T18:52:16.33626+03:00"
+        },
+        {
+          "id": "824114e8-2133-4dfc-ad7d-d38006306bf1",
+          "sacco_id": "d9ee219f-f75a-45da-8a61-9c5767557ab7",
+          "name": "Shares",
+          "description": "Share capital, taken each pay run until the target is reached",
+          "method": "FIXED",
+          "base": "GROSS",
+          "amount": 0,
+          "frequency": "UNTIL_TARGET",
+          "applies_to": "ALL",
+          "priority": 30,
+          "is_savings": true,
+          "is_active": false,
+          "created_at": "2026-10-01T18:52:16.33626+03:00",
+          "updated_at": "2026-10-01T18:52:16.33626+03:00"
+        },
+        {
+          "id": "d8ae4c4f-b096-4b32-80eb-46862bff5f57",
+          "sacco_id": "d9ee219f-f75a-45da-8a61-9c5767557ab7",
+          "name": "Transaction cost",
+          "description": "M-Pesa or bank charge for sending the pay",
+          "method": "TIERED",
+          "base": "NET",
+          "amount": 0,
+          "frequency": "EVERY_RUN",
+          "applies_to": "ALL",
+          "priority": 100,
+          "is_savings": false,
+          "is_active": false,
+          "created_at": "2026-10-01T18:52:16.33626+03:00",
+          "updated_at": "2026-10-01T18:52:16.33626+03:00"
+        }
+      ]
+    }
+  }
+}

@@ -68,34 +68,50 @@ class ReportDownloadService {
     ReportFilters filters = const ReportFilters(),
     CancelToken? cancel,
     void Function(double? progress)? onProgress,
+  }) => downloadPath(
+    '${ApiConstants.exports}/${report.key}',
+    query: {
+      'format': format.query,
+      if (period != null && !report.asAt) ...{
+        'from': ReportPeriod.iso(period.from),
+        'to': ReportPeriod.iso(period.to),
+      },
+      if (filters.memberId != null) 'member_id': filters.memberId,
+      if (filters.customerId != null) 'customer_id': filters.customerId,
+      if (filters.status != null) 'status': filters.status,
+    },
+    fallbackName: '${report.key}.${format.query}',
+    cancel: cancel,
+    onProgress: onProgress,
+  );
+
+  /// Downloads any file the API makes (a pay run register, a payslip, a
+  /// payment list) into the reports folder, under the server's file name.
+  Future<File> downloadPath(
+    String path, {
+    Map<String, dynamic> query = const {},
+    required String fallbackName,
+    CancelToken? cancel,
+    void Function(double? progress)? onProgress,
   }) async {
     try {
       final res = await _dio.get<List<int>>(
-        '${ApiConstants.exports}/${report.key}',
-        queryParameters: {
-          'format': format.query,
-          if (period != null && !report.asAt) ...{
-            'from': ReportPeriod.iso(period.from),
-            'to': ReportPeriod.iso(period.to),
-          },
-          if (filters.memberId != null) 'member_id': filters.memberId,
-          if (filters.customerId != null) 'customer_id': filters.customerId,
-          if (filters.status != null) 'status': filters.status,
-        },
+        path,
+        queryParameters: query,
         cancelToken: cancel,
         onReceiveProgress: (received, total) =>
             onProgress?.call(total > 0 ? received / total : null),
         options: Options(
           responseType: ResponseType.bytes,
-          // Reports are made fresh and never kept in the offline cache.
+          // Files are made fresh and never kept in the offline cache.
           extra: {CacheExtra.skip: true},
-          // A big report can take a while on a slow link.
+          // A big file can take a while on a slow link.
           receiveTimeout: const Duration(minutes: 3),
         ),
       );
       final name = fileNameFrom(
         res.headers.value('content-disposition'),
-        fallback: '${report.key}.${format.query}',
+        fallback: fallbackName,
       );
       final file = File('${(await _folder()).path}/$name');
       await file.writeAsBytes(res.data ?? const [], flush: true);
@@ -104,7 +120,7 @@ class ReportDownloadService {
       if (CancelToken.isCancel(e)) rethrow;
       throw Exception(
         _message(e) ??
-            'The report could not be downloaded. Check your connection and try again.',
+            'The file could not be downloaded. Check your connection and try again.',
       );
     }
   }

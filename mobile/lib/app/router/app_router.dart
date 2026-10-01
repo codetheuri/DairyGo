@@ -1,6 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../features/finance/presentation/screens/cashbook_screen.dart';
+import '../../features/finance/presentation/screens/finance_screen.dart';
+import '../../features/payouts/presentation/screens/deductions_screen.dart';
+import '../../features/payouts/presentation/screens/farmer_account_screen.dart';
+import '../../features/payouts/presentation/screens/pay_run_detail_screen.dart';
+import '../../features/payouts/presentation/screens/pay_runs_screen.dart';
 import '../../features/report_downloads/presentation/screens/report_downloads_screen.dart';
 import 'package:go_router/go_router.dart';
 
@@ -46,6 +52,9 @@ abstract class AppRoutes {
   static const String customers = '/customers';
   static const String more = '/more';
   static const String reportDownloads = '/report-downloads';
+  static const String payouts = '/payouts';
+  static const String deductions = '/payouts/deductions';
+  static const String finance = '/finance';
 }
 
 /// The router is created once. Sign-in changes reach it through
@@ -174,6 +183,33 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.reportDownloads,
         builder: (context, state) => const ReportDownloadsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.payouts,
+        builder: (context, state) => const PayRunsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.deductions,
+        builder: (context, state) => const DeductionsScreen(),
+      ),
+      GoRoute(
+        path: '/payouts/runs/:id',
+        builder: (context, state) =>
+            PayRunDetailScreen(runId: state.pathParameters['id'] ?? ''),
+      ),
+      GoRoute(
+        path: AppRoutes.finance,
+        builder: (context, state) => const FinanceScreen(),
+      ),
+      GoRoute(
+        path: '/finance/accounts/:id',
+        builder: (context, state) =>
+            CashbookScreen(accountId: state.pathParameters['id'] ?? ''),
+      ),
+      GoRoute(
+        path: '/members/:id/account',
+        builder: (context, state) =>
+            FarmerAccountScreen(memberId: state.pathParameters['id'] ?? ''),
       ),
       GoRoute(
         path: AppRoutes.staff,

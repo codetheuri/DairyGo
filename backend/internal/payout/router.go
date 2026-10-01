@@ -10,14 +10,13 @@ import (
 	"github.com/codetheuri/tusk/internal/letterhead"
 	"github.com/codetheuri/tusk/pkg/authz"
 	"github.com/codetheuri/tusk/pkg/logger"
-	"github.com/codetheuri/tusk/pkg/sms"
 )
 
 const tag = "Farmer Payouts"
 
 // RegisterRoutes wires the payout module's endpoints.
 func RegisterRoutes(api huma.API, db *gorm.DB, cfg *config.Config, log logger.Logger) {
-	handler := NewHandler(NewService(NewRepository(db), letterhead.New(db), sms.NewService(cfg, db, log)), log)
+	handler := NewHandler(NewService(NewRepository(db), letterhead.New(db)), log)
 	guard := authz.NewGuard(api, db)
 
 	// Deductions
@@ -142,9 +141,4 @@ func RegisterRoutes(api huma.API, db *gorm.DB, cfg *config.Config, log logger.Lo
 		OperationID: "pay-run-payslip", Method: http.MethodGet, Path: "/api/v1/sacco/pay-runs/{id}/payslips/{member_id}",
 		Summary: "A farmer's payslip (PDF)", Tags: []string{tag},
 	}, PermRead), handler.Payslip)
-	huma.Register(api, guard.Protected(huma.Operation{
-		OperationID: "pay-run-sms", Method: http.MethodPost, Path: "/api/v1/sacco/pay-runs/{id}/sms",
-		Summary: "Text farmers their pay", Tags: []string{tag},
-		Description: "One SMS per farmer with milk, what was taken off and net pay; sent in the background. sms_sent_at on the run records when.",
-	}, PermRunsPay), handler.SendSMS)
 }

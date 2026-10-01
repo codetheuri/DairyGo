@@ -83,7 +83,7 @@ DRAFT ──approve──► APPROVED ──(everyone paid)──► PAID
   entries are removed, open items wait for the next run, the period
   reopens.
 
-## Files and SMS
+## Files
 
 - `GET /pay-runs/{id}/payment-file?kind=mpesa|bank`: Excel list of farmers
   still to pay (M-Pesa: phone as 2547…, amount, name). Farmers without the
@@ -91,16 +91,28 @@ DRAFT ──approve──► APPROVED ──(everyone paid)──► PAID
 - `GET /pay-runs/{id}/register?format=pdf|xlsx`: every farmer, a column per
   deduction.
 - `GET /pay-runs/{id}/payslips/{member_id}`: a farmer's payslip PDF.
-- `POST /pay-runs/{id}/sms`: one SMS per farmer ("Maru Dairy: Sep 2026 pay.
-  Milk 400L KES 20,000. Less KES 6,513. Net KES 13,487."), sent one after
-  another in the background; `sms_sent_at` records when.
+
+Payslip SMS were taken out (migration `00024`) until the Sacco has SMS for
+them; the payslip PDF can be shared instead.
 
 Reports in the download catalog: **Deductions** and **Farmer Balances**.
 
-## Settings
+## Advance rules
 
-`sacco_settings.advance_max_per_period`: the most a farmer may take in
-advances between pay runs (empty = no limit; app: Settings → Advance limit).
+Three optional settings in `sacco_settings` (app: Settings → Advance rules),
+applied when an advance is recorded (`roomFor`, table-tested in
+`advance_test.go`):
+
+| Setting | Rule |
+| :--- | :--- |
+| `advance_max_per_period` | at most this many KES in advances between pay runs |
+| `advance_last_day` | advances dated from the 1st up to this day of the month only (e.g. 15) |
+| `advance_milk_percent` | the advance may not go past this % of the milk delivered since the last pay run, plus the account balance (open advances, charges and arrears are negative). 100 = no milk, no advance |
+
+When more than one is set, the smallest room wins. The refusal says which
+rule stopped it, e.g. "Jane Muthoni can take at most KES 2,000 now: 100% of
+the milk delivered (KES 3,000) less what they owe (KES 1,000)".
+`GET /members/{id}/advance` shows the same figures before an advance is given.
 
 ## Permissions
 

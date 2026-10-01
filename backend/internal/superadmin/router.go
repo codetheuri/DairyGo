@@ -29,7 +29,7 @@ func RegisterRoutes(api huma.API, db *gorm.DB, cfg *config.Config, log logger.Lo
 	h := NewHandler(service)
 	jh := &JobsHandler{runner: runner}
 	mh := &MoneyHandler{
-		payouts: payout.NewService(payout.NewRepository(db), nil, nil),
+		payouts: payout.NewService(payout.NewRepository(db), nil),
 		finance: finance.NewService(finance.NewRepository(db)),
 	}
 	guard := authz.NewGuard(api, db)

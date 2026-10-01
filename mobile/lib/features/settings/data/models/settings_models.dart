@@ -36,6 +36,10 @@ class SaccoSettingsModel with _$SaccoSettingsModel {
     @JsonKey(name: 'inactive_after_days') @Default(60) int inactiveAfterDays,
     // Most a farmer may take in advances between pay runs; null = no limit.
     @JsonKey(name: 'advance_max_per_period') double? advanceMaxPerPeriod,
+    // Advances only from the 1st up to this day of the month; null = any day.
+    @JsonKey(name: 'advance_last_day') int? advanceLastDay,
+    // Advances may not pass this % of milk delivered, less what is owed; null = no check.
+    @JsonKey(name: 'advance_milk_percent') int? advanceMilkPercent,
   }) = _SaccoSettingsModel;
 
   factory SaccoSettingsModel.fromJson(Map<String, dynamic> json) =>

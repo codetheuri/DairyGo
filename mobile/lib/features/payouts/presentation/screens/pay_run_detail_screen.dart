@@ -267,26 +267,6 @@ class _PayRunDetailScreenState extends ConsumerState<PayRunDetailScreen> {
             }
           }, primary: true),
       ],
-      if ((run.isApproved || run.isPaid) && (user?.canPayFarmers ?? false))
-        button(
-          Icons.sms_outlined,
-          run.smsSentAt == null ? 'Text farmers' : 'Text again',
-          () async {
-            final ok = await _confirm(
-              'Text ${run.farmers} farmers their pay?',
-              run.smsSentAt == null
-                  ? 'Each farmer gets one SMS with their milk, what was taken off and their net pay.'
-                  : 'They were already texted on ${shortDate(run.smsSentAt!)}. Send again?',
-              'Send',
-            );
-            if (ok) {
-              await _run(() async {
-                final n = await service.sendSms(run.id);
-                if (mounted) _say('Sending $n messages');
-              }, '');
-            }
-          },
-        ),
       button(Icons.description_outlined, 'Register', () => _register(run)),
       if (run.isDraft && (user?.canPreparePayRuns ?? false))
         button(Icons.delete_outline_rounded, 'Discard', () async {

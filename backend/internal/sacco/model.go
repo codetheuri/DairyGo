@@ -51,6 +51,12 @@ type SaccoSettings struct {
 	// AdvanceMaxPerPeriod is the most a farmer may take in advances between
 	// pay runs; nil means no limit (see payout.Service.RecordEntry).
 	AdvanceMaxPerPeriod *float64 `json:"advance_max_per_period"`
+	// AdvanceLastDay is the last day of the month advances are given (1st
+	// up to it); nil means any day.
+	AdvanceLastDay *int `json:"advance_last_day"`
+	// AdvanceMilkPercent caps an advance at this share of the milk delivered
+	// since the last pay run, less what the farmer owes; nil means no cap.
+	AdvanceMilkPercent *int `json:"advance_milk_percent"`
 	// PayrollClosedThrough is the last day farmers have been paid for: milk
 	// records up to it are locked. Only approving or cancelling a pay run
 	// changes it, so settings saves never write it ("->" is read-only).

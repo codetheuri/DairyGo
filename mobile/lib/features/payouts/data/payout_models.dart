@@ -215,6 +215,12 @@ class AdvanceInfo {
   final double litresSoFar;
   final double taken;
   final double? limit;
+  final int? milkPercent;
+  final double? milkAllows;
+  final int? lastDay;
+
+  /// Why no advance can be given today; null when advances are open.
+  final String? closed;
   final double? available;
   final double balance;
 
@@ -223,6 +229,10 @@ class AdvanceInfo {
     required this.litresSoFar,
     required this.taken,
     this.limit,
+    this.milkPercent,
+    this.milkAllows,
+    this.lastDay,
+    this.closed,
     this.available,
     required this.balance,
   });
@@ -232,6 +242,10 @@ class AdvanceInfo {
     litresSoFar: toDouble(j['litres_so_far']),
     taken: toDouble(j['advances_taken']),
     limit: j['limit'] == null ? null : toDouble(j['limit']),
+    milkPercent: (j['milk_percent'] as num?)?.toInt(),
+    milkAllows: j['milk_allows'] == null ? null : toDouble(j['milk_allows']),
+    lastDay: (j['last_day'] as num?)?.toInt(),
+    closed: j['closed'] as String?,
     available: j['available'] == null ? null : toDouble(j['available']),
     balance: toDouble(j['balance']),
   );
@@ -250,7 +264,6 @@ class PayRun {
   final double net;
   final double paid;
   final int paidCount;
-  final DateTime? smsSentAt;
 
   const PayRun({
     required this.id,
@@ -264,7 +277,6 @@ class PayRun {
     required this.net,
     required this.paid,
     required this.paidCount,
-    this.smsSentAt,
   });
 
   factory PayRun.fromJson(Map<String, dynamic> j) => PayRun(
@@ -279,7 +291,6 @@ class PayRun {
     net: toDouble(j['total_net']),
     paid: toDouble(j['total_paid']),
     paidCount: (j['paid_count'] as num?)?.toInt() ?? 0,
-    smsSentAt: _date(j['sms_sent_at']),
   );
 
   bool get isDraft => status == 'DRAFT';

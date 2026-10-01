@@ -13,7 +13,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - every farmer has an account; advances (with a per-period limit), charges and adjustments;
   - deductions are rules each Sacco sets (fixed, percent, per litre or fee bands; every run, once, yearly or until a target), with per-farmer amounts, targets and exemptions;
   - monthly pay runs: draft, approve (which closes the period and locks its milk records), mark paid one by one or in bulk;
-  - M-Pesa and bank payment lists, register, payslip PDFs and payslip SMS.
+  - M-Pesa and bank payment lists, register and payslip PDFs.
+- **Advance rules** (migration `00024`): besides the KES limit per period, a Sacco can give advances only up to a day of the month (e.g. the 15th), and cap them at a share of the milk a farmer has delivered since the last pay run, less what they owe (no milk, no advance). App: Settings → Advance rules.
 - **The Sacco's money** (`internal/finance`, migration `00023`, [docs/finance.md](docs/finance.md)):
   - cash accounts with cashbooks fed by customer payments, cash sales, advances, farmers' pay, expenses and transfers;
   - expenses by category;
@@ -25,6 +26,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - Save a downloaded report to the phone (Android's "Save as", no storage permission).
   - Delete one downloaded report, or all of them.
   - Developer details on the splash and sign-in screens and in More → About DairyGo.
+
+### Changed
+- **Next of kin is optional** when registering or editing a farmer. If any detail is given, the name is needed and a phone must have at least 10 digits.
+- **Payslip SMS removed** (the endpoint, the app button and `pay_runs.sms_sent_at`) until the Sacco has SMS for it.
 
 ### Fixed
 - **One password rule everywhere: at least 4 characters** (`auth.MinPasswordLength`). The platform console (add staff, reset a password, a new Sacco's administrator) asked for 8 while the app and the API asked for 4. Tests keep the API's password fields and the console's `PASSWORD_MIN` equal to it; the app uses `lib/core/constants/password_rules.dart`.
@@ -53,6 +58,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **App updates with one tap** (mobile): on Wi-Fi a new version downloads by itself and the app offers **Restart**; the install uses Android's `PackageInstaller`, so on Android 12+ updates after the first install without Android's "Update?" question, and the app asks to reopen after updating. On mobile data the user still starts the download. See `mobile/docs/releases.md`.
 - **Edit a farmer's details and see who changed them**: `PUT /sacco/members/{id}` validates names, phone and M-Pesa number, clears an optional field sent empty, and records every change (old and new values) in the audit trail; `GET /sacco/members/{id}/history` lists them. Payout details decide where money goes, so their changes are always traceable.
 - `TestAllRoutesRegister` registers every module's routes in a test, so a start-up panic (e.g. two response types with the same schema name) is caught before deploy.
+
+### Changed
+- **Next of kin is optional** when registering or editing a farmer. If any detail is given, the name is needed and a phone must have at least 10 digits.
+- **Payslip SMS removed** (the endpoint, the app button and `pay_runs.sms_sent_at`) until the Sacco has SMS for it.
 
 ### Fixed
 - **The Docker image built each command from its `main.go` only**, so a command split over several files (the CLI's `members import`) failed to build. It now builds each command's package.

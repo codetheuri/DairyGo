@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 	"sort"
 	"strings"
 	"time"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/codetheuri/tusk/internal/middleware"
 	"github.com/codetheuri/tusk/pkg/audit"
+	"github.com/codetheuri/tusk/pkg/document"
 )
 
 // Domain errors, mapped to HTTP status codes by the handler.
@@ -34,14 +36,13 @@ const (
 type Service struct {
 	repo        *Repository
 	letterheads Letterheads
-	messenger   Messenger
 	now         func() time.Time
 }
 
 // NewService creates a payout service. letterheads (for payslips and
-// registers) and messenger (payslip SMS) may be nil.
-func NewService(repo *Repository, letterheads Letterheads, messenger Messenger) *Service {
-	return &Service{repo: repo, letterheads: letterheads, messenger: messenger, now: time.Now}
+// registers) may be nil.
+func NewService(repo *Repository, letterheads Letterheads) *Service {
+	return &Service{repo: repo, letterheads: letterheads, now: time.Now}
 }
 
 func (s *Service) saccoID(ctx context.Context) (string, error) {
@@ -346,12 +347,22 @@ type AdvanceInfo struct {
 	SinceDate   string   `json:"since_date" doc:"First day not yet paid for"`
 	OpenAdvance float64  `json:"advances_taken" doc:"Advances taken since the last pay run"`
 	Limit       *float64 `json:"limit,omitempty" doc:"Most a farmer may take per pay period; empty = no limit"`
+	MilkPercent *int     `json:"milk_percent,omitempty" doc:"Advances may not go past this percent of the milk delivered, less what is owed; empty = no milk check"`
+	MilkAllows  *float64 `json:"milk_allows,omitempty" doc:"What the milk delivered still allows"`
+	LastDay     *int     `json:"last_day,omitempty" doc:"Advances are given only up to this day of the month; empty = any day"`
+	Closed      string   `json:"closed,omitempty" doc:"Why no advance can be given today; empty when advances are open"`
 	Available   *float64 `json:"available,omitempty" doc:"What this farmer may still take; empty = no limit"`
 	Balance     float64  `json:"balance" doc:"The farmer's account balance now (negative = owes the Sacco)"`
 }
 
-// AdvanceInfo shows a farmer's milk so far and how much they may still take.
+// AdvanceInfo shows a farmer's milk so far and how much they may take today.
 func (s *Service) AdvanceInfo(ctx context.Context, memberID string) (*AdvanceInfo, error) {
+	return s.advanceInfo(ctx, memberID, s.today())
+}
+
+// advanceInfo applies the Sacco's advance rules (roomFor) for an advance
+// dated day.
+func (s *Service) advanceInfo(ctx context.Context, memberID string, day time.Time) (*AdvanceInfo, error) {
 	saccoID, err := s.saccoID(ctx)
 	if err != nil {
 		return nil, err
@@ -379,16 +390,33 @@ func (s *Service) AdvanceInfo(ctx context.Context, memberID string) (*AdvanceInf
 	if err != nil {
 		return nil, err
 	}
+	rules := settings.Advance
+	room := roomFor(rules, day.Day(), gross, open, balance)
 	info := &AdvanceInfo{MilkSoFar: round2(gross), LitresSoFar: round2(litres), OpenAdvance: round2(open),
-		Limit: settings.AdvanceMax, Balance: round2(balance)}
+		Limit: rules.Max, MilkPercent: rules.MilkPercent, MilkAllows: room.ByMilk, LastDay: rules.LastDay,
+		Closed: room.Closed, Available: room.Available, Balance: round2(balance)}
 	if settings.ClosedThrough != nil {
 		info.SinceDate = since.Format(dateLayout)
 	}
-	if settings.AdvanceMax != nil {
-		left := round2(max(*settings.AdvanceMax-open, 0))
-		info.Available = &left
-	}
 	return info, nil
+}
+
+// advanceRefusal says why an advance of amount is refused, or "" when it
+// may be given.
+func advanceRefusal(name string, amount float64, info *AdvanceInfo) string {
+	money := func(v float64) string { return "KES " + document.Thousands(v, 0) }
+	switch {
+	case info.Closed != "":
+		return "no advance on this date: " + info.Closed
+	case info.Available == nil || amount <= *info.Available:
+		return ""
+	case info.Limit != nil && (info.MilkAllows == nil || *info.Limit-info.OpenAdvance <= *info.MilkAllows):
+		return fmt.Sprintf("%s can take at most %s more this period (limit %s, already taken %s)",
+			name, money(*info.Available), money(*info.Limit), money(info.OpenAdvance))
+	default:
+		return fmt.Sprintf("%s can take at most %s now: %d%% of the milk delivered (%s) less what they owe (%s)",
+			name, money(*info.Available), *info.MilkPercent, money(info.MilkSoFar), money(math.Max(-info.Balance, 0)))
+	}
 }
 
 // RecordEntry records an advance, a charge or an adjustment on a farmer's
@@ -432,13 +460,12 @@ func (s *Service) RecordEntry(ctx context.Context, memberID string, kind Kind, r
 		return nil, fmt.Errorf("%w: say what the charge is for (e.g. Dairy meal 2 bags)", ErrInvalid)
 	}
 	if kind == KindAdvance {
-		info, err := s.AdvanceInfo(ctx, memberID)
+		info, err := s.advanceInfo(ctx, memberID, day)
 		if err != nil {
 			return nil, err
 		}
-		if info.Available != nil && -amount > *info.Available {
-			return nil, fmt.Errorf("%w: %s can take at most KES %.2f more this period (limit KES %.2f, already taken KES %.2f)",
-				ErrInvalid, farmer.Name(), *info.Available, *info.Limit, info.OpenAdvance)
+		if why := advanceRefusal(farmer.Name(), -amount, info); why != "" {
+			return nil, fmt.Errorf("%w: %s", ErrInvalid, why)
 		}
 		if desc == "" {
 			desc = "Advance"

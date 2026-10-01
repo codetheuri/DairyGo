@@ -11,6 +11,7 @@ import '../../../../core/widgets/status_pill.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../../collection/data/models/milk_collection_model.dart';
 import '../../../collection/presentation/controllers/collection_controller.dart';
+import '../../data/models/settings_models.dart';
 import '../controllers/settings_controller.dart';
 import '../widgets/change_password_dialog.dart';
 import '../widgets/register_staff_dialog.dart';
@@ -526,7 +527,7 @@ class SettingsScreen extends ConsumerWidget {
                   const SizedBox(height: 12),
                   const _InactivityCard(),
                   const SizedBox(height: 12),
-                  const _AdvanceLimitCard(),
+                  const _AdvanceRulesCard(),
                   const SizedBox(height: 24),
                 ],
 
@@ -979,59 +980,124 @@ class _InactivityCard extends ConsumerWidget {
   }
 }
 
-/// The most a farmer may take in advances between pay runs.
-class _AdvanceLimitCard extends ConsumerWidget {
-  const _AdvanceLimitCard();
+/// The Sacco's rules for advances: a KES limit per pay period, the last
+/// day of the month they are given, and a share of the milk delivered. Each
+/// is optional; the server applies them when an advance is recorded.
+class _AdvanceRulesCard extends ConsumerWidget {
+  const _AdvanceRulesCard();
 
   Future<void> _edit(
     BuildContext context,
     WidgetRef ref,
-    double? current,
+    SaccoSettingsModel current,
   ) async {
-    final controller = TextEditingController(
-      text: current == null ? '' : current.toStringAsFixed(0),
+    final limit = TextEditingController(
+      text: current.advanceMaxPerPeriod?.toStringAsFixed(0) ?? '',
     );
-    final value = await showDialog<double>(
+    final lastDay = TextEditingController(
+      text: current.advanceLastDay?.toString() ?? '',
+    );
+    final percent = TextEditingController(
+      text: current.advanceMilkPercent?.toString() ?? '',
+    );
+    String? error;
+    final saved = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Advance limit'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'The most one farmer may take in advances between pay runs. '
-              'Advances are taken from their next pay. Leave empty for no limit.',
-              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setState) => AlertDialog(
+          title: const Text('Advance rules'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Text(
+                  'Advances are taken from the farmer\'s next pay. '
+                  'Leave a rule empty to switch it off.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: limit,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: 'Most per farmer between pay runs',
+                    prefixText: 'KES ',
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: lastDay,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: 'Last day of the month for advances',
+                    hintText: 'e.g. 15',
+                    helperText: 'From the 1st up to this day.',
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: percent,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: 'Share of milk delivered',
+                    suffixText: '%',
+                    hintText: 'e.g. 50',
+                    helperText:
+                        'Less what the farmer owes. No milk, no advance.',
+                    helperMaxLines: 2,
+                  ),
+                ),
+                if (error != null) ...[
+                  const SizedBox(height: 12),
+                  Text(error!, style: const TextStyle(color: AppColors.error)),
+                ],
+              ],
             ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: controller,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Limit',
-                prefixText: 'KES ',
-              ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                final day = int.tryParse(lastDay.text.trim()) ?? 0;
+                final pct = int.tryParse(percent.text.trim()) ?? 0;
+                if (day < 0 || day > 31) {
+                  setState(() => error = 'The day must be from 1 to 31.');
+                } else if (pct < 0 || pct > 100) {
+                  setState(() => error = 'The share must be from 1 to 100%.');
+                } else {
+                  Navigator.of(ctx).pop(true);
+                }
+              },
+              child: const Text('Save'),
             ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(
-              double.tryParse(controller.text.trim().replaceAll(',', '')) ?? 0,
-            ),
-            child: const Text('Save'),
-          ),
-        ],
       ),
     );
-    controller.dispose();
-    if (value == null || value < 0) return;
+    final values = (
+      limit: double.tryParse(limit.text.trim().replaceAll(',', '')) ?? 0,
+      lastDay: int.tryParse(lastDay.text.trim()) ?? 0,
+      milkPercent: int.tryParse(percent.text.trim()) ?? 0,
+    );
+    limit.dispose();
+    lastDay.dispose();
+    percent.dispose();
+    if (saved != true) return;
     try {
-      await ref.read(settingsRepositoryProvider).updateAdvanceLimit(value);
+      await ref
+          .read(settingsRepositoryProvider)
+          .updateAdvanceRules(
+            limit: values.limit < 0 ? 0 : values.limit,
+            lastDay: values.lastDay,
+            milkPercent: values.milkPercent,
+          );
       ref.invalidate(saccoSettingsProvider);
     } catch (e) {
       if (context.mounted) {
@@ -1042,10 +1108,23 @@ class _AdvanceLimitCard extends ConsumerWidget {
     }
   }
 
+  /// One line per rule that is switched on.
+  static String describe(SaccoSettingsModel s) {
+    final rules = [
+      if (s.advanceMaxPerPeriod != null)
+        'Up to ${kes(s.advanceMaxPerPeriod!, cents: false)} per farmer between pay runs',
+      if (s.advanceLastDay != null)
+        'Only from the 1st to the ${_ordinal(s.advanceLastDay!)}',
+      if (s.advanceMilkPercent != null)
+        'Up to ${s.advanceMilkPercent}% of milk delivered, less what is owed',
+    ];
+    return rules.isEmpty ? 'No limits' : rules.join('\n');
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(saccoSettingsProvider);
-    final limit = settings.valueOrNull?.advanceMaxPerPeriod;
+    final current = settings.valueOrNull;
     return Material(
       color: Colors.white,
       shape: RoundedRectangleBorder(
@@ -1056,20 +1135,32 @@ class _AdvanceLimitCard extends ConsumerWidget {
       child: ListTile(
         leading: const Icon(Icons.payments_outlined, color: AppColors.primary),
         title: const Text(
-          'Advance limit',
+          'Advance rules',
           style: TextStyle(fontWeight: FontWeight.w600),
         ),
         subtitle: Text(
-          settings.isLoading
+          settings.isLoading || current == null
               ? 'Loading…'
-              : limit == null
-              ? 'No limit'
-              : 'Up to ${kes(limit, cents: false)} per farmer between pay runs',
+              : describe(current),
           style: const TextStyle(fontSize: 12),
         ),
         trailing: const Icon(Icons.edit_outlined, size: 18),
-        onTap: settings.hasValue ? () => _edit(context, ref, limit) : null,
+        onTap: current == null ? null : () => _edit(context, ref, current),
       ),
     );
   }
+}
+
+/// 1 → 1st, 2 → 2nd, 15 → 15th, 22 → 22nd.
+String _ordinal(int n) {
+  final teen = n % 100 >= 11 && n % 100 <= 13;
+  final suffix = teen
+      ? 'th'
+      : switch (n % 10) {
+          1 => 'st',
+          2 => 'nd',
+          3 => 'rd',
+          _ => 'th',
+        };
+  return '$n$suffix';
 }

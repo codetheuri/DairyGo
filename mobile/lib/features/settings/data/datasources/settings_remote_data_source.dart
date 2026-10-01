@@ -10,7 +10,11 @@ abstract class SettingsRemoteDataSource {
   Future<SaccoSettingsModel> getSettings();
   Future<SaccoSettingsModel> updateTolerance(double litres);
   Future<SaccoSettingsModel> updateInactiveAfterDays(int days);
-  Future<SaccoSettingsModel> updateAdvanceLimit(double limit);
+  Future<SaccoSettingsModel> updateAdvanceRules({
+    required double limit,
+    required int lastDay,
+    required int milkPercent,
+  });
 }
 
 class SettingsRemoteDataSourceImpl implements SettingsRemoteDataSource {
@@ -114,8 +118,15 @@ class SettingsRemoteDataSourceImpl implements SettingsRemoteDataSource {
       _updateSettings({'inactive_after_days': days});
 
   @override
-  Future<SaccoSettingsModel> updateAdvanceLimit(double limit) =>
-      _updateSettings({'advance_max_per_period': limit});
+  Future<SaccoSettingsModel> updateAdvanceRules({
+    required double limit,
+    required int lastDay,
+    required int milkPercent,
+  }) => _updateSettings({
+    'advance_max_per_period': limit,
+    'advance_last_day': lastDay,
+    'advance_milk_percent': milkPercent,
+  });
 
   /// Changes the settings in [changes]; the others stay as they are.
   Future<SaccoSettingsModel> _updateSettings(

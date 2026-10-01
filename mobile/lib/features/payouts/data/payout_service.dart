@@ -194,14 +194,6 @@ class PayoutService {
     ),
   );
 
-  Future<int> sendSms(String id) async {
-    final data = await apiData(
-      () => _dio.post('$_base/pay-runs/$id/sms'),
-      'The messages could not be sent',
-    );
-    return (data['queued'] as num?)?.toInt() ?? 0;
-  }
-
   /// Paths of the pay run's files, for [ReportDownloadService.downloadPath].
   static String registerPath(String id) => '$_base/pay-runs/$id/register';
   static String paymentFilePath(String id) =>

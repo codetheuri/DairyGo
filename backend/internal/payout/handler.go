@@ -279,17 +279,6 @@ func (h *Handler) Payslip(ctx context.Context, in *PayslipInput) (*FileOutput, e
 	return fileOutput(f), nil
 }
 
-func (h *Handler) SendSMS(ctx context.Context, in *RunIDInput) (*SMSOutput, error) {
-	n, err := h.service.SendPayslipSMS(ctx, in.ID)
-	if err != nil {
-		return nil, h.toHTTPError(err)
-	}
-	out := &SMSOutput{}
-	out.Body.Success, out.Body.Message = true, fmt.Sprintf("Sending %d messages", n)
-	out.Body.Data.Queued = n
-	return out, nil
-}
-
 func done(msg string) *MessageOutput {
 	out := &MessageOutput{}
 	out.Body.Success, out.Body.Message = true, msg

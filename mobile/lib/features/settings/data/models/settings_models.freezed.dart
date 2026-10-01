@@ -357,7 +357,11 @@ mixin _$SaccoSettingsModel {
   @JsonKey(name: 'inactive_after_days')
   int get inactiveAfterDays => throw _privateConstructorUsedError; // Most a farmer may take in advances between pay runs; null = no limit.
   @JsonKey(name: 'advance_max_per_period')
-  double? get advanceMaxPerPeriod => throw _privateConstructorUsedError;
+  double? get advanceMaxPerPeriod => throw _privateConstructorUsedError; // Advances only from the 1st up to this day of the month; null = any day.
+  @JsonKey(name: 'advance_last_day')
+  int? get advanceLastDay => throw _privateConstructorUsedError; // Advances may not pass this % of milk delivered, less what is owed; null = no check.
+  @JsonKey(name: 'advance_milk_percent')
+  int? get advanceMilkPercent => throw _privateConstructorUsedError;
 
   /// Serializes this SaccoSettingsModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -386,6 +390,8 @@ abstract class $SaccoSettingsModelCopyWith<$Res> {
     double reconciliationToleranceLitres,
     @JsonKey(name: 'inactive_after_days') int inactiveAfterDays,
     @JsonKey(name: 'advance_max_per_period') double? advanceMaxPerPeriod,
+    @JsonKey(name: 'advance_last_day') int? advanceLastDay,
+    @JsonKey(name: 'advance_milk_percent') int? advanceMilkPercent,
   });
 }
 
@@ -412,6 +418,8 @@ class _$SaccoSettingsModelCopyWithImpl<$Res, $Val extends SaccoSettingsModel>
     Object? reconciliationToleranceLitres = null,
     Object? inactiveAfterDays = null,
     Object? advanceMaxPerPeriod = freezed,
+    Object? advanceLastDay = freezed,
+    Object? advanceMilkPercent = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -447,6 +455,14 @@ class _$SaccoSettingsModelCopyWithImpl<$Res, $Val extends SaccoSettingsModel>
                 ? _value.advanceMaxPerPeriod
                 : advanceMaxPerPeriod // ignore: cast_nullable_to_non_nullable
                       as double?,
+            advanceLastDay: freezed == advanceLastDay
+                ? _value.advanceLastDay
+                : advanceLastDay // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            advanceMilkPercent: freezed == advanceMilkPercent
+                ? _value.advanceMilkPercent
+                : advanceMilkPercent // ignore: cast_nullable_to_non_nullable
+                      as int?,
           )
           as $Val,
     );
@@ -472,6 +488,8 @@ abstract class _$$SaccoSettingsModelImplCopyWith<$Res>
     double reconciliationToleranceLitres,
     @JsonKey(name: 'inactive_after_days') int inactiveAfterDays,
     @JsonKey(name: 'advance_max_per_period') double? advanceMaxPerPeriod,
+    @JsonKey(name: 'advance_last_day') int? advanceLastDay,
+    @JsonKey(name: 'advance_milk_percent') int? advanceMilkPercent,
   });
 }
 
@@ -497,6 +515,8 @@ class __$$SaccoSettingsModelImplCopyWithImpl<$Res>
     Object? reconciliationToleranceLitres = null,
     Object? inactiveAfterDays = null,
     Object? advanceMaxPerPeriod = freezed,
+    Object? advanceLastDay = freezed,
+    Object? advanceMilkPercent = freezed,
   }) {
     return _then(
       _$SaccoSettingsModelImpl(
@@ -532,6 +552,14 @@ class __$$SaccoSettingsModelImplCopyWithImpl<$Res>
             ? _value.advanceMaxPerPeriod
             : advanceMaxPerPeriod // ignore: cast_nullable_to_non_nullable
                   as double?,
+        advanceLastDay: freezed == advanceLastDay
+            ? _value.advanceLastDay
+            : advanceLastDay // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        advanceMilkPercent: freezed == advanceMilkPercent
+            ? _value.advanceMilkPercent
+            : advanceMilkPercent // ignore: cast_nullable_to_non_nullable
+                  as int?,
       ),
     );
   }
@@ -550,6 +578,8 @@ class _$SaccoSettingsModelImpl implements _SaccoSettingsModel {
     this.reconciliationToleranceLitres = 0.0,
     @JsonKey(name: 'inactive_after_days') this.inactiveAfterDays = 60,
     @JsonKey(name: 'advance_max_per_period') this.advanceMaxPerPeriod,
+    @JsonKey(name: 'advance_last_day') this.advanceLastDay,
+    @JsonKey(name: 'advance_milk_percent') this.advanceMilkPercent,
   });
 
   factory _$SaccoSettingsModelImpl.fromJson(Map<String, dynamic> json) =>
@@ -582,10 +612,18 @@ class _$SaccoSettingsModelImpl implements _SaccoSettingsModel {
   @override
   @JsonKey(name: 'advance_max_per_period')
   final double? advanceMaxPerPeriod;
+  // Advances only from the 1st up to this day of the month; null = any day.
+  @override
+  @JsonKey(name: 'advance_last_day')
+  final int? advanceLastDay;
+  // Advances may not pass this % of milk delivered, less what is owed; null = no check.
+  @override
+  @JsonKey(name: 'advance_milk_percent')
+  final int? advanceMilkPercent;
 
   @override
   String toString() {
-    return 'SaccoSettingsModel(saccoId: $saccoId, currency: $currency, milkUnit: $milkUnit, morningCutoffTime: $morningCutoffTime, eveningCutoffTime: $eveningCutoffTime, reconciliationToleranceLitres: $reconciliationToleranceLitres, inactiveAfterDays: $inactiveAfterDays, advanceMaxPerPeriod: $advanceMaxPerPeriod)';
+    return 'SaccoSettingsModel(saccoId: $saccoId, currency: $currency, milkUnit: $milkUnit, morningCutoffTime: $morningCutoffTime, eveningCutoffTime: $eveningCutoffTime, reconciliationToleranceLitres: $reconciliationToleranceLitres, inactiveAfterDays: $inactiveAfterDays, advanceMaxPerPeriod: $advanceMaxPerPeriod, advanceLastDay: $advanceLastDay, advanceMilkPercent: $advanceMilkPercent)';
   }
 
   @override
@@ -611,7 +649,11 @@ class _$SaccoSettingsModelImpl implements _SaccoSettingsModel {
             (identical(other.inactiveAfterDays, inactiveAfterDays) ||
                 other.inactiveAfterDays == inactiveAfterDays) &&
             (identical(other.advanceMaxPerPeriod, advanceMaxPerPeriod) ||
-                other.advanceMaxPerPeriod == advanceMaxPerPeriod));
+                other.advanceMaxPerPeriod == advanceMaxPerPeriod) &&
+            (identical(other.advanceLastDay, advanceLastDay) ||
+                other.advanceLastDay == advanceLastDay) &&
+            (identical(other.advanceMilkPercent, advanceMilkPercent) ||
+                other.advanceMilkPercent == advanceMilkPercent));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -626,6 +668,8 @@ class _$SaccoSettingsModelImpl implements _SaccoSettingsModel {
     reconciliationToleranceLitres,
     inactiveAfterDays,
     advanceMaxPerPeriod,
+    advanceLastDay,
+    advanceMilkPercent,
   );
 
   /// Create a copy of SaccoSettingsModel
@@ -656,6 +700,8 @@ abstract class _SaccoSettingsModel implements SaccoSettingsModel {
     final double reconciliationToleranceLitres,
     @JsonKey(name: 'inactive_after_days') final int inactiveAfterDays,
     @JsonKey(name: 'advance_max_per_period') final double? advanceMaxPerPeriod,
+    @JsonKey(name: 'advance_last_day') final int? advanceLastDay,
+    @JsonKey(name: 'advance_milk_percent') final int? advanceMilkPercent,
   }) = _$SaccoSettingsModelImpl;
 
   factory _SaccoSettingsModel.fromJson(Map<String, dynamic> json) =
@@ -683,7 +729,13 @@ abstract class _SaccoSettingsModel implements SaccoSettingsModel {
   int get inactiveAfterDays; // Most a farmer may take in advances between pay runs; null = no limit.
   @override
   @JsonKey(name: 'advance_max_per_period')
-  double? get advanceMaxPerPeriod;
+  double? get advanceMaxPerPeriod; // Advances only from the 1st up to this day of the month; null = any day.
+  @override
+  @JsonKey(name: 'advance_last_day')
+  int? get advanceLastDay; // Advances may not pass this % of milk delivered, less what is owed; null = no check.
+  @override
+  @JsonKey(name: 'advance_milk_percent')
+  int? get advanceMilkPercent;
 
   /// Create a copy of SaccoSettingsModel
   /// with the given fields replaced by the non-null parameter values.

@@ -186,4 +186,32 @@ void main() {
     }
     expect(app.errors, isEmpty, reason: app.errors.join('\n'));
   });
+
+  testWidgets('advance rules fit the smallest phone at the largest text', (
+    tester,
+  ) async {
+    _screen(tester, const Size(320, 640), 2);
+    final app = await AppUnderTest.open(tester, 'admin', '/settings');
+    final seen = <String, int>{};
+    try {
+      await _settle(tester);
+      final card = find.text('Advance rules');
+      await tester.scrollUntilVisible(
+        card,
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.tap(card);
+      await _settle(tester);
+      seen['last day'] = find
+          .text('Last day of the month for advances')
+          .evaluate()
+          .length;
+      seen['milk'] = find.text('Share of milk delivered').evaluate().length;
+    } finally {
+      await app.close();
+    }
+    expect(app.errors, isEmpty, reason: app.errors.join('\n'));
+    expect(seen, {'last day': 1, 'milk': 1});
+  });
 }

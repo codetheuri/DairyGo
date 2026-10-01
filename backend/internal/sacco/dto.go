@@ -84,6 +84,8 @@ type UpdateSettingsRequest struct {
 	ReconciliationToleranceLitres *float64 `json:"reconciliation_tolerance_litres,omitempty" minimum:"0" doc:"Litres of measuring difference tolerated per collector per day (default 0)"`
 	InactiveAfterDays             *int     `json:"inactive_after_days,omitempty" minimum:"0" maximum:"365" doc:"Days without milk after which an active farmer becomes inactive automatically (default 60; 0 = never)"`
 	AdvanceMaxPerPeriod           *float64 `json:"advance_max_per_period,omitempty" minimum:"0" doc:"Most a farmer may take in advances between pay runs, in KES (0 = no limit)"`
+	AdvanceLastDay                *int     `json:"advance_last_day,omitempty" minimum:"0" maximum:"31" doc:"Advances are given only from the 1st up to this day of the month, e.g. 15 (0 = any day)"`
+	AdvanceMilkPercent            *int     `json:"advance_milk_percent,omitempty" minimum:"0" maximum:"100" doc:"An advance may not go past this percent of the milk delivered since the last pay run, less what the farmer owes (0 = no milk check)"`
 }
 
 // UpdateSaccoSettingsInput is a platform operator changing a Sacco's settings.

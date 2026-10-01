@@ -36,23 +36,28 @@ func notFound(err error, what string) error {
 
 // Settings is what the payout module reads from sacco_settings.
 type Settings struct {
-	AdvanceMax    *float64
+	Advance       AdvanceRules
 	ClosedThrough *time.Time
 }
 
-// Settings reads a Sacco's advance limit and closed-through date.
+// Settings reads a Sacco's advance rules and closed-through date.
 func (r *Repository) Settings(ctx context.Context, saccoID string) (Settings, error) {
 	var row struct {
 		AdvanceMaxPerPeriod  *float64
+		AdvanceLastDay       *int
+		AdvanceMilkPercent   *int
 		PayrollClosedThrough *time.Time
 	}
 	err := r.db.WithContext(ctx).Table("sacco_settings").
-		Select("advance_max_per_period, payroll_closed_through").
+		Select("advance_max_per_period, advance_last_day, advance_milk_percent, payroll_closed_through").
 		Where("sacco_id = ?", saccoID).Take(&row).Error
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return Settings{}, err
 	}
-	return Settings{AdvanceMax: row.AdvanceMaxPerPeriod, ClosedThrough: row.PayrollClosedThrough}, nil
+	return Settings{
+		Advance:       AdvanceRules{Max: row.AdvanceMaxPerPeriod, LastDay: row.AdvanceLastDay, MilkPercent: row.AdvanceMilkPercent},
+		ClosedThrough: row.PayrollClosedThrough,
+	}, nil
 }
 
 // --- deduction types ---

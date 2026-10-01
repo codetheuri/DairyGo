@@ -166,11 +166,30 @@ class _AccountEntrySheetState extends ConsumerState<AccountEntrySheet> {
                             'Milk since last pay: ${kes(info.milkSoFar)} (${litres(info.litresSoFar)})',
                           ),
                           Text('Advances taken: ${kes(info.taken)}'),
+                          if (info.balance < 0)
+                            Text('Owes the Sacco now: ${kes(-info.balance)}'),
+                          if (info.limit != null)
+                            Text('Limit per pay period: ${kes(info.limit!)}'),
+                          if (info.milkAllows != null)
+                            Text(
+                              'Milk allows: ${kes(info.milkAllows!)} '
+                              '(${info.milkPercent}% of milk, less what they owe)',
+                            ),
+                          const SizedBox(height: 4),
                           Text(
-                            info.available == null
+                            info.closed != null
+                                ? 'No advance today: ${info.closed}.'
+                                : info.available == null
                                 ? 'No advance limit is set.'
-                                : 'Can still take: ${kes(info.available!)} (limit ${kes(info.limit!)})',
-                            style: const TextStyle(fontWeight: FontWeight.w700),
+                                : 'Can take now: ${kes(info.available!)}',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              color:
+                                  info.closed != null ||
+                                      (info.available ?? 1) <= 0
+                                  ? AppColors.error
+                                  : null,
+                            ),
                           ),
                         ],
                       ),

@@ -6,10 +6,8 @@ import (
 	"regexp"
 	"sort"
 	"strings"
-	"time"
 
 	"github.com/codetheuri/tusk/internal/middleware"
-	"github.com/codetheuri/tusk/pkg/audit"
 	"github.com/codetheuri/tusk/pkg/document"
 )
 
@@ -18,11 +16,6 @@ import (
 type Letterheads interface {
 	Letterhead(ctx context.Context, saccoID string) (document.Letterhead, error)
 	StaffName(ctx context.Context, userID uint) string
-}
-
-// Messenger sends an SMS in the background (sms.Service).
-type Messenger interface {
-	SendAsync(saccoID *string, phone, message string)
 }
 
 // File is a generated document.
@@ -356,76 +349,4 @@ func kindLabel(k Kind) string {
 		return "Adjustment"
 	}
 	return string(k)
-}
-
-// SendPayslipSMS texts every farmer in an approved run their pay. Messages
-// go one after another in the background; it returns how many were queued.
-func (s *Service) SendPayslipSMS(ctx context.Context, runID string) (int, error) {
-	if s.messenger == nil {
-		return 0, fmt.Errorf("%w: SMS is not set up", ErrLocked)
-	}
-	run, err := s.repo.FindRun(ctx, runID)
-	if err != nil {
-		return 0, err
-	}
-	if run.Status != RunApproved && run.Status != RunPaid {
-		return 0, fmt.Errorf("%w: payslips are sent once the pay run is approved", ErrLocked)
-	}
-	lines, err := s.repo.Lines(ctx, runID, "", false)
-	if err != nil {
-		return 0, err
-	}
-	sacco := ""
-	if s.letterheads != nil {
-		if lh, err := s.letterheads.Letterhead(ctx, run.SaccoID); err == nil {
-			sacco = lh.Name
-		}
-	}
-	type msg struct{ phone, text string }
-	var out []msg
-	for _, l := range lines {
-		if l.Phone == "" || (l.Gross == 0 && l.Net == 0 && l.Closing == 0) {
-			continue
-		}
-		out = append(out, msg{l.Phone, payslipSMS(sacco, periodLabel(run), l)})
-	}
-	now := s.now()
-	if err := s.repo.Transaction(ctx, func(tx *Repository) error {
-		run.SMSSentAt = &now
-		if err := tx.SaveRun(ctx, run); err != nil {
-			return err
-		}
-		return tx.RecordAudit(ctx, audit.Entry{SaccoID: run.SaccoID, EntityType: auditPayRun, EntityID: run.ID,
-			Action: audit.ActionUpdate, ActorID: middleware.GetUserID(ctx), NewValues: map[string]any{"payslip_sms": len(out)}})
-	}); err != nil {
-		return 0, err
-	}
-	saccoID := run.SaccoID
-	go func() {
-		for _, m := range out {
-			s.messenger.SendAsync(&saccoID, m.phone, m.text)
-			time.Sleep(200 * time.Millisecond) // gentle on the SMS provider
-		}
-	}()
-	return len(out), nil
-}
-
-// payslipSMS is a farmer's pay in one SMS, e.g. "Maru Dairy: Sep 2026 pay.
-// Milk 400L KES 20,000. Less KES 6,513. Net KES 13,487."
-func payslipSMS(sacco, period string, l PayRunLine) string {
-	money := func(v float64) string { return "KES " + document.Thousands(v, 0) }
-	off := round2(l.Gross - l.Net) // deductions, advances and charges, old arrears
-	parts := []string{fmt.Sprintf("%s: %s pay.", strings.TrimSpace(sacco), period),
-		fmt.Sprintf("Milk %sL %s.", trimZeros(l.Litres), money(l.Gross))}
-	if off > 0 {
-		parts = append(parts, "Less "+money(off)+".")
-	}
-	parts = append(parts, "Net "+money(l.Net)+".")
-	if l.Closing < 0 {
-		parts = append(parts, "You owe "+money(-l.Closing)+".")
-	}
-	if l.PaidAt != nil && l.PaidMethod != nil && *l.PaidMethod == PayMpesa {
-		parts = append(parts, "Sent to M-Pesa.")
-	}
-	return strings.TrimPrefix(strings.Join(parts, " "), ": ")
 }

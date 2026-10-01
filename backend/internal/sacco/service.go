@@ -179,6 +179,26 @@ func (s *Service) UpdateSettings(ctx context.Context, saccoID string, req *Updat
 			settings.AdvanceMaxPerPeriod = &limit
 		}
 	}
+	if req.AdvanceLastDay != nil {
+		day := *req.AdvanceLastDay
+		if day < 0 || day > 31 {
+			return nil, fmt.Errorf("advance_last_day must be between 1 and 31 (0 = any day)")
+		}
+		settings.AdvanceLastDay = nil
+		if day > 0 {
+			settings.AdvanceLastDay = &day
+		}
+	}
+	if req.AdvanceMilkPercent != nil {
+		pct := *req.AdvanceMilkPercent
+		if pct < 0 || pct > 100 {
+			return nil, fmt.Errorf("advance_milk_percent must be between 1 and 100 (0 = no milk check)")
+		}
+		settings.AdvanceMilkPercent = nil
+		if pct > 0 {
+			settings.AdvanceMilkPercent = &pct
+		}
+	}
 
 	if err := s.repo.UpdateSettings(ctx, settings); err != nil {
 		return nil, fmt.Errorf("failed to update settings: %w", err)

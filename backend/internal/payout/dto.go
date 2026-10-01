@@ -299,11 +299,3 @@ type FileOutput struct {
 	CacheControl       string `header:"Cache-Control"`
 	Body               []byte
 }
-
-type SMSData struct {
-	Queued int `json:"queued" doc:"Messages being sent"`
-}
-
-type SMSOutput struct {
-	Body response.Data[SMSData]
-}

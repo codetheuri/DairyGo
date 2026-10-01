@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/widgets/fitted_tab.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -109,15 +110,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                         fontSize: 13,
                       ),
                       tabs: const [
-                        Tab(
-                          iconMargin: EdgeInsets.only(bottom: 2),
-                          icon: Icon(Icons.badge_outlined, size: 18),
-                          text: 'Collector Shift',
+                        FittedTab(
+                          icon: Icons.badge_outlined,
+                          label: 'Collector Shift',
                         ),
-                        Tab(
-                          iconMargin: EdgeInsets.only(bottom: 2),
-                          icon: Icon(Icons.insights_rounded, size: 18),
-                          text: 'Executive Overview',
+                        FittedTab(
+                          icon: Icons.insights_rounded,
+                          label: 'Overview',
                         ),
                       ],
                     ),

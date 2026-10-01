@@ -278,33 +278,24 @@ class DailyCollectionHistoryScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 8),
 
-                    // Shift Chips
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: [
+                    // Shift filter: wraps on a narrow phone, never scrolls
+                    // sideways.
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: [
+                        for (final (label, value) in const [
+                          ('All Shifts', null),
+                          ('Morning', 'MORNING'),
+                          ('Evening', 'EVENING'),
+                        ])
                           _buildShiftChip(
                             ref,
-                            label: 'All Shifts',
-                            value: null,
+                            label: label,
+                            value: value,
                             current: shiftFilter,
                           ),
-                          const SizedBox(width: 6),
-                          _buildShiftChip(
-                            ref,
-                            label: 'Morning',
-                            value: 'MORNING',
-                            current: shiftFilter,
-                          ),
-                          const SizedBox(width: 6),
-                          _buildShiftChip(
-                            ref,
-                            label: 'Evening',
-                            value: 'EVENING',
-                            current: shiftFilter,
-                          ),
-                        ],
-                      ),
+                      ],
                     ),
                   ],
                 ),
@@ -584,6 +575,7 @@ class DailyCollectionHistoryScreen extends ConsumerWidget {
         ),
       ),
       selected: isSelected,
+      showCheckmark: false,
       selectedColor: AppColors.primary,
       backgroundColor: AppColors.background,
       visualDensity: VisualDensity.compact,

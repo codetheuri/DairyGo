@@ -57,8 +57,7 @@ class FarmerDirectoryScreen extends ConsumerWidget {
                           ref.read(memberSearchQueryProvider.notifier).state =
                               val,
                       decoration: InputDecoration(
-                        hintText:
-                            'Search by Name, Phone, or ID (e.g. M-0001)...',
+                        hintText: 'Search name, phone, number or ID',
                         hintStyle: const TextStyle(
                           fontSize: 13,
                           color: AppColors.textMuted,
@@ -108,38 +107,27 @@ class FarmerDirectoryScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 10),
 
-                    // Filter Chips
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
+                    // Status filter: the chips wrap onto a second line on a
+                    // narrow phone instead of scrolling sideways.
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        alignment: WrapAlignment.start,
                         children: [
-                          _buildFilterChip(
-                            ref,
-                            label: 'All Farmers',
-                            value: null,
-                            currentValue: statusFilter,
-                          ),
-                          const SizedBox(width: 8),
-                          _buildFilterChip(
-                            ref,
-                            label: 'Active',
-                            value: 'ACTIVE',
-                            currentValue: statusFilter,
-                          ),
-                          const SizedBox(width: 8),
-                          _buildFilterChip(
-                            ref,
-                            label: 'Inactive',
-                            value: 'INACTIVE',
-                            currentValue: statusFilter,
-                          ),
-                          const SizedBox(width: 8),
-                          _buildFilterChip(
-                            ref,
-                            label: 'Suspended',
-                            value: 'SUSPENDED',
-                            currentValue: statusFilter,
-                          ),
+                          for (final (label, value) in const [
+                            ('All', null),
+                            ('Active', 'ACTIVE'),
+                            ('Inactive', 'INACTIVE'),
+                            ('Suspended', 'SUSPENDED'),
+                          ])
+                            _buildFilterChip(
+                              ref,
+                              label: label,
+                              value: value,
+                              currentValue: statusFilter,
+                            ),
                         ],
                       ),
                     ),
@@ -371,6 +359,12 @@ class FarmerDirectoryScreen extends ConsumerWidget {
         ),
       ),
       selected: isSelected,
+      // The green fill shows the choice; a tick would only take room.
+      // Compact, so all four fit one line of the smallest phone.
+      showCheckmark: false,
+      visualDensity: VisualDensity.compact,
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      labelPadding: const EdgeInsets.symmetric(horizontal: 4),
       selectedColor: AppColors.primary,
       backgroundColor: AppColors.background,
       onSelected: (_) {

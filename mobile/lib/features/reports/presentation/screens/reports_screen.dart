@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/widgets/fitted_tab.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/cache/keep_fresh.dart';
@@ -176,7 +177,6 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
               color: Colors.white,
               child: TabBar(
                 controller: _tabController,
-                isScrollable: true,
                 indicatorColor: AppColors.primary,
                 labelColor: AppColors.primary,
                 unselectedLabelColor: AppColors.textSecondary,
@@ -184,22 +184,15 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
                   fontWeight: FontWeight.bold,
                   fontSize: 12,
                 ),
+                // Fixed, equal tabs with short labels: all three are always
+                // visible, with no scrolling sideways.
                 tabs: const [
-                  Tab(
-                    iconMargin: EdgeInsets.only(bottom: 2),
-                    icon: Icon(Icons.receipt_long_rounded, size: 18),
-                    text: 'Farmer Payouts',
+                  FittedTab(icon: Icons.receipt_long_rounded, label: 'Payouts'),
+                  FittedTab(
+                    icon: Icons.account_balance_rounded,
+                    label: 'Ledger',
                   ),
-                  Tab(
-                    iconMargin: EdgeInsets.only(bottom: 2),
-                    icon: Icon(Icons.account_balance_rounded, size: 18),
-                    text: 'Sacco Ledger',
-                  ),
-                  Tab(
-                    iconMargin: EdgeInsets.only(bottom: 2),
-                    icon: Icon(Icons.badge_outlined, size: 18),
-                    text: 'Collector Audit',
-                  ),
+                  FittedTab(icon: Icons.badge_outlined, label: 'Collectors'),
                 ],
               ),
             ),

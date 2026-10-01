@@ -33,9 +33,9 @@ void main() {
         final app = await AppUnderTest.open(tester, 'admin', '/reports');
         try {
           // The tab bar scrolls; bring the tab into view like a user would.
-          await tester.ensureVisible(find.text('Collector Audit'));
+          await tester.ensureVisible(find.text('Collectors'));
           await tester.pump(const Duration(milliseconds: 400));
-          await tester.tap(find.text('Collector Audit'));
+          await tester.tap(find.text('Collectors'));
           // Tab animation, then the report loads.
           for (var i = 0; i < 6; i++) {
             await tester.pump(const Duration(milliseconds: 250));

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/widgets/fitted_tab.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -146,20 +147,11 @@ class _FieldOperationsHistoryScreenState
                 ),
                 // Short labels: three tabs share a 320 dp phone.
                 tabs: const [
-                  Tab(
-                    iconMargin: EdgeInsets.only(bottom: 2),
-                    icon: Icon(Icons.storefront_rounded, size: 18),
-                    text: 'Sales',
-                  ),
-                  Tab(
-                    iconMargin: EdgeInsets.only(bottom: 2),
-                    icon: Icon(Icons.swap_horiz_rounded, size: 18),
-                    text: 'Transfers',
-                  ),
-                  Tab(
-                    iconMargin: EdgeInsets.only(bottom: 2),
-                    icon: Icon(Icons.report_problem_outlined, size: 18),
-                    text: 'Spoilage',
+                  FittedTab(icon: Icons.storefront_rounded, label: 'Sales'),
+                  FittedTab(icon: Icons.swap_horiz_rounded, label: 'Transfers'),
+                  FittedTab(
+                    icon: Icons.report_problem_outlined,
+                    label: 'Spoilage',
                   ),
                 ],
               ),

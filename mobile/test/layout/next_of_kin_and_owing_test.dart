@@ -216,7 +216,7 @@ void main() {
           final app = await AppUnderTest.open(tester, role, '/reports');
           final seen = <String, int>{};
           try {
-            await tester.tap(find.text('Sacco Ledger'));
+            await tester.tap(find.text('Ledger'));
             await _settle(tester);
             await _tap(tester, find.text('Customers Owe (now)'));
             seen['sheet'] = find.byType(CustomersOwingSheet).evaluate().length;

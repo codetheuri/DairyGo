@@ -30,9 +30,8 @@ the test farmers and milk records made while the Sacco tried the app.
   changes.
 - `--dry-run` does the whole job, prints the counts, and undoes it.
 
-Imported farmers have no next of kin. The app asks for it the next time a
-farmer is edited, as it does for farmers registered before next of kin was
-required.
+Imported farmers have no next of kin. It is optional and can be added
+later from the farmer's profile.
 
 Farmers registered later in the app or console without a membership number
 continue the Sacco's own numbering: after `150` comes `151`. Numbers are

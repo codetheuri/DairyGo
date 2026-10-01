@@ -32,8 +32,7 @@ type Member struct {
 	BankName          *string `json:"bank_name,omitempty"`
 	BankAccountNumber *string `json:"bank_account_number,omitempty"`
 	BankBranch        *string `json:"bank_branch,omitempty"`
-	// Next of kin: required when a farmer is registered; nil only for farmers
-	// registered before it was collected.
+	// Next of kin: optional; when given, at least the name.
 	NextOfKinName         *string `json:"next_of_kin_name,omitempty"`
 	NextOfKinRelationship *string `json:"next_of_kin_relationship,omitempty"`
 	NextOfKinPhone        *string `json:"next_of_kin_phone,omitempty"`

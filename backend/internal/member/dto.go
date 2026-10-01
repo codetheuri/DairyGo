@@ -20,11 +20,11 @@ type CreateMemberRequest struct {
 	BankName          *string `json:"bank_name,omitempty" doc:"Bank name for direct deposit"`
 	BankAccountNumber *string `json:"bank_account_number,omitempty" doc:"Bank account number"`
 	BankBranch        *string `json:"bank_branch,omitempty" doc:"Bank branch name"`
-	// Next of kin is required, but checked in the service (not the schema) so
-	// an app that does not send it yet gets a message its user can act on.
-	NextOfKinName         *string `json:"next_of_kin_name,omitempty" maxLength:"191" doc:"Next of kin's full name (required)"`
-	NextOfKinRelationship *string `json:"next_of_kin_relationship,omitempty" maxLength:"50" doc:"How the next of kin is related, e.g. Spouse, Son, Daughter, Parent, Sibling (required)"`
-	NextOfKinPhone        *string `json:"next_of_kin_phone,omitempty" maxLength:"50" doc:"Next of kin's phone number (required)"`
+	// Next of kin is optional; when any detail is given the name is needed
+	// (checked in the service).
+	NextOfKinName         *string `json:"next_of_kin_name,omitempty" maxLength:"191" doc:"Next of kin's full name (optional; needed if any next of kin detail is given)"`
+	NextOfKinRelationship *string `json:"next_of_kin_relationship,omitempty" maxLength:"50" doc:"How the next of kin is related, e.g. Spouse, Son, Daughter, Parent, Sibling (optional)"`
+	NextOfKinPhone        *string `json:"next_of_kin_phone,omitempty" maxLength:"50" doc:"Next of kin's phone number (optional, at least 10 digits)"`
 }
 
 type CreateMemberInput struct {

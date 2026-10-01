@@ -257,7 +257,7 @@ class _FarmerDetailsFieldsState extends State<FarmerDetailsFields> {
         sectionGap,
 
         _section(
-          'Next of Kin',
+          'Next of Kin (optional)',
           'Who the Sacco contacts if the farmer cannot be reached.',
         ),
         NextOfKinFields(

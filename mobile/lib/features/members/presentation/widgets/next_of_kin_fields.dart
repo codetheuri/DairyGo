@@ -14,8 +14,9 @@ const nextOfKinRelationships = [
   'Friend',
 ];
 
-/// The three next of kin details every farmer must have: full name, how
-/// they are related, and a phone number. Each field takes the full width, so
+/// A farmer's next of kin: full name, how they are related, and a phone
+/// number. All are optional; once any is filled in, the name is needed and a
+/// phone number must be a real one. Each field takes the full width, so
 /// it reads well on the smallest phones and at the largest text size. Put it
 /// inside a [Form]; the fields validate themselves.
 class NextOfKinFields extends StatelessWidget {
@@ -38,6 +39,11 @@ class NextOfKinFields extends StatelessWidget {
 
   static int _digits(String s) => s.replaceAll(RegExp(r'[^0-9]'), '').length;
 
+  bool get _anyGiven =>
+      nameController.text.trim().isNotEmpty ||
+      phoneController.text.trim().isNotEmpty ||
+      (relationship ?? '').isNotEmpty;
+
   @override
   Widget build(BuildContext context) {
     // A relationship saved earlier that is not in the list is still offered.
@@ -56,12 +62,12 @@ class NextOfKinFields extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         AppTextField(
-          label: 'Next of kin full name *',
+          label: 'Next of kin full name',
           controller: nameController,
           hint: 'e.g. Mary Wanjiku',
           prefixIcon: Icons.family_restroom_rounded,
-          validator: (v) => v == null || v.trim().length < 2
-              ? 'Next of kin name is required'
+          validator: (v) => _anyGiven && (v ?? '').trim().length < 2
+              ? 'Give their name, or leave next of kin empty'
               : null,
         ),
         const SizedBox(height: 14),
@@ -69,7 +75,7 @@ class NextOfKinFields extends StatelessWidget {
           initialValue: relationship,
           isExpanded: true,
           decoration: InputDecoration(
-            labelText: 'Relationship *',
+            labelText: 'Relationship',
             prefixIcon: const Icon(
               Icons.diversity_1_rounded,
               color: AppColors.textSecondary,
@@ -86,20 +92,18 @@ class NextOfKinFields extends StatelessWidget {
                 child: Text(r, overflow: TextOverflow.ellipsis),
               ),
           ],
-          validator: (v) =>
-              v == null || v.isEmpty ? 'Choose the relationship' : null,
           onChanged: onRelationshipChanged,
         ),
         const SizedBox(height: 14),
         AppTextField(
-          label: 'Next of kin phone *',
+          label: 'Next of kin phone',
           controller: phoneController,
           hint: 'e.g. 0712345678',
           keyboardType: TextInputType.phone,
           prefixIcon: Icons.phone_in_talk_outlined,
           validator: (v) {
             final phone = (v ?? '').trim();
-            if (phone.isEmpty) return 'Next of kin phone is required';
+            if (phone.isEmpty) return null;
             if (_digits(phone) < 10) {
               return 'Enter a valid phone number (at least 10 digits)';
             }

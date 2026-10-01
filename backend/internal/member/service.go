@@ -73,9 +73,9 @@ func (s *Service) CreateMember(ctx context.Context, req *CreateMemberRequest) (*
 		BankBranch:        req.BankBranch,
 		RegisteredByID:    registeredByID,
 
-		NextOfKinName:         &kin.Name,
-		NextOfKinRelationship: &kin.Relationship,
-		NextOfKinPhone:        &kin.Phone,
+		NextOfKinName:         orNil(kin.Name),
+		NextOfKinRelationship: orNil(kin.Relationship),
+		NextOfKinPhone:        orNil(kin.Phone),
 	}
 
 	// Two farmers registered at the same moment can be given the same
@@ -156,7 +156,8 @@ func (s *Service) UpdateMember(ctx context.Context, id string, req *UpdateMember
 		return nil, fmt.Errorf("M-Pesa number must have at least 10 digits")
 	}
 
-	// Editing any next of kin detail must leave all three complete.
+	// Next of kin is optional, but what is left must still make sense:
+	// a name whenever any detail is kept.
 	if req.NextOfKinName != nil || req.NextOfKinRelationship != nil || req.NextOfKinPhone != nil {
 		kin, err := cleanNextOfKin(
 			firstSet(req.NextOfKinName, member.NextOfKinName),
@@ -166,7 +167,7 @@ func (s *Service) UpdateMember(ctx context.Context, id string, req *UpdateMember
 		if err != nil {
 			return nil, err
 		}
-		member.NextOfKinName, member.NextOfKinRelationship, member.NextOfKinPhone = &kin.Name, &kin.Relationship, &kin.Phone
+		member.NextOfKinName, member.NextOfKinRelationship, member.NextOfKinPhone = orNil(kin.Name), orNil(kin.Relationship), orNil(kin.Phone)
 	}
 
 	old, changed := diffFields(before, auditFields(member))

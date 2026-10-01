@@ -135,7 +135,7 @@ void main() {
           seen['prefilled'] = [
             _text(tester, 'First Name *'),
             _text(tester, 'M-Pesa Number'),
-            _text(tester, 'Next of kin full name *'),
+            _text(tester, 'Next of kin full name'),
             _text(tester, 'Bank'),
           ].join('|');
           // No membership number field: it cannot change.

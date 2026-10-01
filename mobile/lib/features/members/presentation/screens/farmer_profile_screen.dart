@@ -197,11 +197,7 @@ class FarmerProfileScreen extends ConsumerWidget {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: member.hasNextOfKin
-                            ? AppColors.cardBorder
-                            : AppColors.warning,
-                      ),
+                      border: Border.all(color: AppColors.cardBorder),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -232,9 +228,7 @@ class FarmerProfileScreen extends ConsumerWidget {
                           ),
                         ] else
                           Text(
-                            canEdit
-                                ? 'Not recorded yet. This farmer was registered before next of kin was required.'
-                                : 'Not recorded yet. Ask an administrator to add it.',
+                            'Not recorded.',
                             style: const TextStyle(
                               fontSize: 13,
                               color: AppColors.textSecondary,

@@ -84,7 +84,31 @@ void main() {
       final name = '${size.width.toInt()}dp @${scale}x';
       final shoot = _screenshots && size.width == 412 && scale == 1.0;
 
-      testWidgets('Register a farmer needs next of kin: $name', (tester) async {
+      testWidgets('Register a farmer without next of kin: $name', (
+        tester,
+      ) async {
+        _setScreen(tester, size, scale);
+        final app = await AppUnderTest.open(
+          tester,
+          'collector',
+          '/members/register',
+        );
+        app.server.writes['POST sacco_members'] = _farmer();
+        try {
+          await _type(tester, 'First Name *', 'Peter');
+          await _type(tester, 'Last Name *', 'Kamau');
+          await _type(tester, 'Phone Number *', '0712000013');
+          await _tap(tester, find.text('Register Farmer Member'));
+        } finally {
+          await app.close();
+        }
+        expect(app.errors, isEmpty, reason: app.errors.join('\n'));
+        expect(app.server.sent, ['POST sacco_members']);
+        final body = app.server.sentBodies['POST sacco_members'] as Map;
+        expect(body['next_of_kin_name'] ?? '', isEmpty);
+      });
+
+      testWidgets('Register a farmer with next of kin: $name', (tester) async {
         _setScreen(tester, size, scale);
         final app = await AppUnderTest.open(
           tester,
@@ -98,36 +122,29 @@ void main() {
           await _type(tester, 'Last Name *', 'Kamau');
           await _type(tester, 'Phone Number *', '0712000013');
 
-          // Without next of kin nothing is sent.
+          // A next of kin phone without a name is not sent.
+          await _type(tester, 'Next of kin phone', '0712000099');
           await _tap(tester, find.text('Register Farmer Member'));
           seen['name needed'] = find
-              .text('Next of kin name is required')
-              .evaluate()
-              .length;
-          seen['relationship needed'] = find
-              .text('Choose the relationship')
-              .evaluate()
-              .length;
-          seen['phone needed'] = find
-              .text('Next of kin phone is required')
+              .text('Give their name, or leave next of kin empty')
               .evaluate()
               .length;
           seen['sent early'] = app.server.sent.length;
 
-          await _type(tester, 'Next of kin full name *', 'Mary Wanjiku');
-          await _tap(tester, find.text('Relationship *'));
+          await _type(tester, 'Next of kin full name', 'Mary Wanjiku');
+          await _tap(tester, find.text('Relationship'));
           await tester.tap(find.text('Spouse').last);
           await _settle(tester);
           // The farmer's own number is not a next of kin contact.
-          await _type(tester, 'Next of kin phone *', '0712000013');
+          await _type(tester, 'Next of kin phone', '0712000013');
           await _tap(tester, find.text('Register Farmer Member'));
           seen['same phone'] = find
               .text('Use a different number from the farmer\'s own')
               .evaluate()
               .length;
-          await _type(tester, 'Next of kin phone *', '0712000099');
+          await _type(tester, 'Next of kin phone', '0712000099');
           if (shoot) {
-            await tester.ensureVisible(find.text('Next of Kin'));
+            await tester.ensureVisible(find.text('Next of Kin (optional)'));
             await tester.pump();
             await expectLater(
               find.byType(DairySaccoApp),
@@ -140,8 +157,6 @@ void main() {
         }
         expect(app.errors, isEmpty, reason: app.errors.join('\n'));
         expect(seen['name needed'], 1);
-        expect(seen['relationship needed'], 1);
-        expect(seen['phone needed'], 1);
         expect(seen['sent early'], 0);
         expect(seen['same phone'], 1);
         expect(app.server.sent, ['POST sacco_members']);
@@ -161,20 +176,20 @@ void main() {
           app.container.read(appRouterProvider).push('/members/f1');
           await _settle(tester);
           seen['missing'] = find
-              .textContaining('Not recorded yet')
+              .textContaining('Not recorded.')
               .evaluate()
               .length;
           await _tap(tester, find.text('Add next of kin'));
           seen['dialog'] = find.byType(NextOfKinDialog).evaluate().length;
           await _type(
             tester,
-            'Next of kin full name *',
+            'Next of kin full name',
             'Mary Wanjiku Kamau Njoroge',
           );
-          await _tap(tester, find.text('Relationship *'));
+          await _tap(tester, find.text('Relationship'));
           await tester.tap(find.text('Spouse').last);
           await _settle(tester);
-          await _type(tester, 'Next of kin phone *', '0712000099');
+          await _type(tester, 'Next of kin phone', '0712000099');
           if (shoot) {
             await expectLater(
               find.byType(DairySaccoApp),
@@ -255,7 +270,9 @@ void main() {
     }
   }
 
-  testWidgets('A collector is told to ask an administrator', (tester) async {
+  testWidgets('A collector sees no next of kin and cannot add one', (
+    tester,
+  ) async {
     _setScreen(tester, const Size(320, 640), 2.0);
     final app = await AppUnderTest.open(tester, 'collector', '/members');
     app.server.replaced['sacco_members_f1'] = _farmer();
@@ -263,10 +280,7 @@ void main() {
     try {
       app.container.read(appRouterProvider).push('/members/f1');
       await _settle(tester);
-      seen['ask'] = find
-          .text('Not recorded yet. Ask an administrator to add it.')
-          .evaluate()
-          .length;
+      seen['ask'] = find.text('Not recorded.').evaluate().length;
       seen['button'] = find.text('Add next of kin').evaluate().length;
     } finally {
       await app.close();

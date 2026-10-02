@@ -10,9 +10,10 @@ import (
 type RecordTransferRequest struct {
 	ToCollectorID   uint    `json:"to_collector_id" minimum:"1" doc:"The collector receiving the milk (see /milk-transfers/recipients)"`
 	QuantityLitres  float64 `json:"quantity_litres" minimum:"0.01" doc:"Litres handed over"`
-	TransferDate    *string `json:"transfer_date,omitempty" doc:"Day of the handover (YYYY-MM-DD), defaults to today; not in the future"`
+	TransferDate    *string `json:"transfer_date,omitempty" doc:"Day of the handover (YYYY-MM-DD), defaults to today; only DairyGo support may enter an earlier day"`
 	FromCollectorID *uint   `json:"from_collector_id,omitempty" doc:"Admins only: the collector giving the milk; defaults to the caller"`
 	Notes           *string `json:"notes,omitempty" doc:"Optional, e.g. where it was handed over"`
+	LateReason      *string `json:"late_reason,omitempty" doc:"Platform console only: why an earlier day is entered now"`
 }
 
 type RecordTransferInput struct {

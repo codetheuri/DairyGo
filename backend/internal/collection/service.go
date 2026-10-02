@@ -143,9 +143,13 @@ func (s *Service) RecordCollection(ctx context.Context, req *RecordCollectionReq
 		return nil, fmt.Errorf("sacco context is required to record milk collections")
 	}
 
-	collectorID := middleware.GetUserID(ctx)
-	if collectorID == 0 {
+	callerID := middleware.GetUserID(ctx)
+	if callerID == 0 {
 		return nil, fmt.Errorf("authenticated collector identity is required")
+	}
+	collectorID, err := s.collectorFor(ctx, req.CollectorID)
+	if err != nil {
+		return nil, err
 	}
 
 	if req.QuantityLitres <= 0 {
@@ -170,6 +174,10 @@ func (s *Service) RecordCollection(ctx context.Context, req *RecordCollectionReq
 	collectionDate, err := time.ParseInLocation(dateLayout, dateStr, time.Local)
 	if err != nil {
 		return nil, fmt.Errorf("invalid collection_date format, expected YYYY-MM-DD")
+	}
+	late, err := lateEntry(ctx, collectionDate, req.LateReason, "milk intake")
+	if err != nil {
+		return nil, err
 	}
 	if err := s.periodOpen(ctx, saccoID, collectionDate); err != nil {
 		return nil, err
@@ -212,6 +220,7 @@ func (s *Service) RecordCollection(ctx context.Context, req *RecordCollectionReq
 		TotalAmount:    totalAmount,
 		Status:         StatusSubmitted,
 		Notes:          req.Notes,
+		LateEntry:      late,
 	}
 
 	entry := audit.Entry{
@@ -219,7 +228,8 @@ func (s *Service) RecordCollection(ctx context.Context, req *RecordCollectionReq
 		EntityType: auditEntityCollection,
 		EntityID:   collection.ID,
 		Action:     audit.ActionCreate,
-		ActorID:    collectorID,
+		ActorID:    callerID,
+		Reason:     late.LateReason,
 		NewValues:  snapshotOf(collection),
 	}
 	// An inactive farmer bringing milk is active again, recorded with the
@@ -232,7 +242,7 @@ func (s *Service) RecordCollection(ctx context.Context, req *RecordCollectionReq
 			EntityType: auditEntityMember,
 			EntityID:   member.ID,
 			Action:     audit.ActionStatus,
-			ActorID:    collectorID,
+			ActorID:    callerID,
 			Reason:     &reason,
 			OldValues:  map[string]string{"status": memberInactive},
 			NewValues:  map[string]string{"status": memberActive},
@@ -439,9 +449,13 @@ func (s *Service) RecordSale(ctx context.Context, req *RecordSaleRequest) (*Milk
 		return nil, fmt.Errorf("sacco context is required to record milk sales")
 	}
 
-	collectorID := middleware.GetUserID(ctx)
-	if collectorID == 0 {
+	callerID := middleware.GetUserID(ctx)
+	if callerID == 0 {
 		return nil, fmt.Errorf("authenticated user identity is required")
+	}
+	collectorID, err := s.collectorFor(ctx, req.CollectorID)
+	if err != nil {
+		return nil, err
 	}
 
 	if req.QuantityLitres <= 0 {
@@ -462,6 +476,10 @@ func (s *Service) RecordSale(ctx context.Context, req *RecordSaleRequest) (*Milk
 		if err != nil {
 			return nil, fmt.Errorf("invalid sale_date format, expected YYYY-MM-DD")
 		}
+	}
+	late, err := lateEntry(ctx, saleDate, req.LateReason, "a sale")
+	if err != nil {
+		return nil, err
 	}
 
 	unitPrice, err := resolveUnitPrice(req.UnitPrice, customer.DefaultPricePerLitre)
@@ -497,6 +515,7 @@ func (s *Service) RecordSale(ctx context.Context, req *RecordSaleRequest) (*Milk
 		PaymentStatus:  status,
 		PaymentMethod:  method,
 		Notes:          req.Notes,
+		LateEntry:      late,
 	}
 	if req.CashAccountID != nil && *req.CashAccountID != "" && paid > 0 {
 		if err := s.repo.CheckCashAccount(ctx, saccoID, *req.CashAccountID); err != nil {
@@ -507,7 +526,7 @@ func (s *Service) RecordSale(ctx context.Context, req *RecordSaleRequest) (*Milk
 
 	entry := audit.Entry{
 		SaccoID: saccoID, EntityType: auditEntitySale, EntityID: sale.ID,
-		Action: audit.ActionCreate, ActorID: collectorID, NewValues: saleSnapshotOf(sale),
+		Action: audit.ActionCreate, ActorID: callerID, Reason: late.LateReason, NewValues: saleSnapshotOf(sale),
 	}
 	if err := s.repo.CreateSale(ctx, sale, entry); err != nil {
 		return nil, fmt.Errorf("failed to record milk sale: %w", err)
@@ -659,9 +678,12 @@ func (s *Service) RecordSpoilage(ctx context.Context, req *RecordSpoilageRequest
 		return nil, fmt.Errorf("sacco context is required")
 	}
 
-	collectorID := middleware.GetUserID(ctx)
-	if collectorID == 0 {
+	if middleware.GetUserID(ctx) == 0 {
 		return nil, fmt.Errorf("authenticated user identity is required")
+	}
+	collectorID, err := s.collectorFor(ctx, req.CollectorID)
+	if err != nil {
+		return nil, err
 	}
 
 	if req.QuantityLitres <= 0 {
@@ -672,6 +694,10 @@ func (s *Service) RecordSpoilage(ctx context.Context, req *RecordSpoilageRequest
 	if err != nil {
 		return nil, fmt.Errorf("invalid spoilage_date format, expected YYYY-MM-DD")
 	}
+	late, err := lateEntry(ctx, spoilageDate, req.LateReason, "spoilage")
+	if err != nil {
+		return nil, err
+	}
 
 	spoilage := &MilkSpoilage{
 		ID:             uuid.New().String(),
@@ -681,6 +707,7 @@ func (s *Service) RecordSpoilage(ctx context.Context, req *RecordSpoilageRequest
 		QuantityLitres: math.Round(req.QuantityLitres*100) / 100,
 		Reason:         strings.TrimSpace(req.Reason),
 		Notes:          req.Notes,
+		LateEntry:      late,
 	}
 
 	if err := s.repo.CreateSpoilage(ctx, spoilage); err != nil {

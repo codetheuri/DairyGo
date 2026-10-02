@@ -25,6 +25,7 @@ SELECT id, username FROM users WHERE is_super_user = true AND sacco_id IS NULL;
 | **Sacco → Staff** | Add staff (roles 1/2/3), change role, deactivate/reactivate, unlock after failed logins, reset password, remove (see [staff-management.md](staff-management.md)) |
 | **Roles & permissions** | What each Sacco role may do, as tick boxes; applies at once in every Sacco and is audited (see [authorization.md](authorization.md)) |
 | **Sacco → Farmers** | Search farmers, register a farmer on the Sacco's behalf (same rules as the Sacco admin) |
+| **Sacco → Late entries** | Enter a forgotten milk intake, sale, spoilage or transfer for an earlier day, with a reason, for the collector it belongs to; list of everything entered late (Sacco staff record only today; see [collections-and-pricing.md](collections-and-pricing.md)) |
 | **Sacco → Activity / Errors** | That Sacco's audit trail and failed requests |
 | **Sacco actions** | Edit details, suspend, deactivate, reactivate (with a reason, kept in the audit trail) |
 | **Audit trail** | Every create, edit, status change and void across all Saccos, with before/after values |

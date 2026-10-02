@@ -181,6 +181,8 @@ function openForm({ title, intro, fields, submitLabel = 'Save', danger = false, 
     } else {
       input = h('input', { name: f.name, type: f.type || 'text', required: f.required, placeholder: f.placeholder || '', value: f.value || '', autocomplete: 'off' });
       if (f.minlength) input.minLength = f.minlength;
+      if (f.max) input.max = f.max;
+      if (f.step) input.step = f.step;
     }
     inputs[f.name] = input;
     grid.append(h('label', { class: `field ${f.full ? 'full' : ''}` }, `${f.label}${f.required ? ' *' : ''}`, input));
@@ -232,7 +234,7 @@ function compact(values) {
 const routes = [
   { pattern: /^$/, page: overviewPage, nav: 'overview' },
   { pattern: /^saccos$/, page: saccosPage, nav: 'saccos' },
-  { pattern: /^saccos\/([^/]+)(?:\/(staff|farmers|money|activity|errors))?$/, page: saccoPage, nav: 'saccos' },
+  { pattern: /^saccos\/([^/]+)(?:\/(staff|farmers|money|late|activity|errors))?$/, page: saccoPage, nav: 'saccos' },
   { pattern: /^roles$/, page: rolesPage, nav: 'roles' },
   { pattern: /^audit$/, page: auditPage, nav: 'audit' },
   { pattern: /^errors$/, page: errorsPage, nav: 'errors' },
@@ -512,9 +514,10 @@ async function saccoPage(id, tab = 'staff') {
       h('button', { text: 'Deactivate', onclick: () => setStatus('INACTIVE', 'Deactivate') })]
     : [h('button', { class: 'primary', text: 'Reactivate', onclick: () => setStatus('ACTIVE', 'Reactivate') })];
 
-  const tabs = [['staff', 'Staff'], ['farmers', 'Farmers'], ['money', 'Pay & money'], ['activity', 'Activity'], ['errors', 'Errors']];
+  const tabs = [['staff', 'Staff'], ['farmers', 'Farmers'], ['money', 'Pay & money'], ['late', 'Late entries'],
+    ['activity', 'Activity'], ['errors', 'Errors']];
 
-  const pages = { staff: staffTab, farmers: farmersTab, money: moneyTab, activity: activityTab, errors: saccoErrorsTab };
+  const pages = { staff: staffTab, farmers: farmersTab, money: moneyTab, late: lateTab, activity: activityTab, errors: saccoErrorsTab };
   pages[tab](sacco).then((node) => content.replaceChildren(node))
     .catch((err) => content.replaceChildren(h('p', { class: 'form-error', text: err.message })));
 
@@ -833,6 +836,106 @@ async function moneyTab(sacco) {
     h('h3', { text: 'Accounts' }), accounts,
     h('h3', { text: `Income and expenditure, ${fmt.date(s.from_date)} – ${fmt.date(s.to_date)}` }),
     table([{ label: '', render: (r) => r[0] }, { label: 'KES', num: true, render: (r) => fmt.kes(r[1]) }], lines));
+}
+
+// Milk records for an earlier day. Sacco staff record only today (the API
+// refuses other days), so a forgotten intake, sale, spoilage or transfer is
+// entered here, with a reason, for the collector the milk belongs to. The
+// Sacco's own rules still apply: a paid month stays closed, a farmer has one
+// record per day and shift, and intake is priced for its day.
+async function lateTab(sacco) {
+  const base = `/admin/saccos/${sacco.id}/late-entries`;
+  const data = await api('GET', base);
+  const pad = (n) => String(n).padStart(2, '0');
+  const d = new Date(Date.now() - 86400000);
+  const yesterday = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const collectors = [['', 'Choose…'], ...data.collectors.map((c) => [String(c.id), c.name])];
+  const day = (name) => ({ name, label: 'Day (before today)', type: 'date', required: true, max: yesterday, value: yesterday });
+  const collector = (name = 'collector_id', label = 'Collector the milk belongs to') =>
+    ({ name, label, type: 'select', required: true, options: collectors });
+  const litres = { name: 'quantity_litres', label: 'Litres', type: 'number', step: '0.01', required: true };
+  const reason = { name: 'late_reason', label: 'Why it is entered late (kept on the record)', type: 'textarea', full: true, required: true };
+  const num = (v) => (v === '' || v === undefined ? undefined : Number(v));
+  const saved = (msg) => { toast(msg); go(`saccos/${sacco.id}/late`); render(); };
+
+  const intake = () => openForm({
+    title: 'Milk intake for an earlier day',
+    intro: 'Priced at the buying price of that day. The farmer gets the usual SMS receipt.',
+    fields: [day('collection_date'),
+      { name: 'shift', label: 'Shift', type: 'select', options: [['MORNING', 'Morning'], ['EVENING', 'Evening'], ['FULL_DAY', 'Full day']] },
+      { name: 'farmer', label: 'Farmer membership number', required: true, placeholder: 'e.g. 151' },
+      litres, collector(), reason],
+    submitLabel: 'Enter intake',
+    onSubmit: async (v) => {
+      const found = await api('GET', `/admin/saccos/${sacco.id}/members${qs({ search: v.farmer, per_page: 25 })}`);
+      const farmer = found.members.find((m) => m.membership_number.toLowerCase() === v.farmer.toLowerCase());
+      if (!farmer) throw new Error(`No farmer has membership number ${v.farmer}.`);
+      await api('POST', `${base}/collections`, compact({ member_id: farmer.id, collection_date: v.collection_date, shift: v.shift,
+        quantity_litres: num(v.quantity_litres), collector_id: num(v.collector_id), late_reason: v.late_reason }));
+      saved(`Intake for ${farmer.first_name} ${farmer.last_name} entered`);
+    },
+  });
+
+  const sale = () => openForm({
+    title: 'Sale for an earlier day',
+    fields: [day('sale_date'),
+      { name: 'customer_id', label: 'Customer', type: 'select', required: true,
+        options: [['', 'Choose…'], ...data.customers.map((c) => [c.id, c.default_price_per_litre ? `${c.name} (KES ${c.default_price_per_litre}/L)` : c.name])] },
+      litres,
+      { name: 'unit_price', label: 'Price per litre (empty = the customer\'s price)', type: 'number', step: '0.01' },
+      { name: 'payment_method', label: 'Paid', type: 'select', options: [['CREDIT', 'Not paid (credit)'], ['CASH', 'Cash'], ['MPESA', 'M-Pesa'], ['BANK_TRANSFER', 'Bank']] },
+      collector('collector_id', 'Collector who sold it'), reason],
+    submitLabel: 'Enter sale',
+    onSubmit: async (v) => {
+      await api('POST', `${base}/sales`, compact({ customer_id: v.customer_id, sale_date: v.sale_date, quantity_litres: num(v.quantity_litres),
+        unit_price: num(v.unit_price), payment_method: v.payment_method, collector_id: num(v.collector_id), late_reason: v.late_reason }));
+      saved('Sale entered');
+    },
+  });
+
+  const spoilage = () => openForm({
+    title: 'Spoilage for an earlier day',
+    fields: [day('spoilage_date'), litres,
+      { name: 'reason', label: 'What happened', required: true, placeholder: 'e.g. Spilt on the road' },
+      collector(), reason],
+    submitLabel: 'Enter spoilage',
+    onSubmit: async (v) => {
+      await api('POST', `${base}/spoilage`, compact({ spoilage_date: v.spoilage_date, quantity_litres: num(v.quantity_litres),
+        reason: v.reason, collector_id: num(v.collector_id), late_reason: v.late_reason }));
+      saved('Spoilage entered');
+    },
+  });
+
+  const transfer = () => openForm({
+    title: 'Transfer for an earlier day',
+    fields: [day('transfer_date'), collector('from_collector_id', 'From collector'),
+      collector('to_collector_id', 'To collector'), litres, reason],
+    submitLabel: 'Enter transfer',
+    onSubmit: async (v) => {
+      await api('POST', `${base}/transfers`, compact({ transfer_date: v.transfer_date, from_collector_id: num(v.from_collector_id),
+        to_collector_id: num(v.to_collector_id), quantity_litres: num(v.quantity_litres), late_reason: v.late_reason }));
+      saved('Transfer entered');
+    },
+  });
+
+  const kinds = { INTAKE: 'Intake', SALE: 'Sale', SPOILAGE: 'Spoilage', TRANSFER: 'Transfer' };
+  return h('div', {},
+    h('p', { class: 'muted small', text: 'Sacco staff can record milk only for today. Enter a forgotten record for an earlier day here; '
+      + 'it is credited to the collector, marked "Entered late" with your reason, and a paid month cannot be changed.' }),
+    h('div', { class: 'actions' },
+      h('button', { class: 'primary', text: '+ Milk intake', onclick: intake }),
+      h('button', { text: '+ Sale', onclick: sale }),
+      h('button', { text: '+ Spoilage', onclick: spoilage }),
+      h('button', { text: '+ Transfer', onclick: transfer })),
+    table([
+      { label: 'Day', render: (x) => fmt.date(x.day) },
+      { label: 'Record', render: (x) => kinds[x.kind] || x.kind },
+      { label: 'Litres', num: true, render: (x) => fmt.litres(x.litres) },
+      { label: 'Collector', render: (x) => x.collector_name },
+      { label: 'Farmer / customer / detail', render: (x) => x.party },
+      { label: 'Why late', render: (x) => x.late_reason },
+      { label: 'Entered', render: (x) => h('div', {}, h('div', { text: x.entered_by || '—' }), h('div', { class: 'sub', text: fmt.dateTime(x.entered_at) })) },
+    ], data.records, { empty: 'No late entries yet.' }));
 }
 
 function activityTab(sacco) {

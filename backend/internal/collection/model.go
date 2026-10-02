@@ -61,9 +61,10 @@ type MilkCollection struct {
 	TotalAmount      float64          `json:"total_amount" gorm:"type:decimal(12,2);not null"`    // Snapshot total
 	Status           CollectionStatus `json:"status" gorm:"default:'SUBMITTED';index"`
 	Notes            *string          `json:"notes,omitempty"`
-	CreatedAt        time.Time        `json:"created_at"`
-	UpdatedAt        time.Time        `json:"updated_at"`
-	DeletedAt        gorm.DeletedAt   `json:"deleted_at,omitempty" gorm:"index"`
+	LateEntry
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt gorm.DeletedAt `json:"deleted_at,omitempty" gorm:"index"`
 }
 
 func (MilkCollection) TableName() string {
@@ -91,12 +92,13 @@ type MilkSale struct {
 	PaymentMethod  string     `json:"payment_method" gorm:"default:'CASH'"` // CASH, MPESA, BANK_TRANSFER, CREDIT
 	VoidedAt       *time.Time `json:"voided_at,omitempty"`
 	// CashAccountID is the Sacco account the amount paid at the sale went into.
-	CashAccountID *string        `json:"cash_account_id,omitempty" gorm:"type:varchar(36)"`
-	VoidReason    *string        `json:"void_reason,omitempty"`
-	Notes         *string        `json:"notes,omitempty"`
-	CreatedAt     time.Time      `json:"created_at"`
-	UpdatedAt     time.Time      `json:"updated_at"`
-	DeletedAt     gorm.DeletedAt `json:"deleted_at,omitempty" gorm:"index"`
+	CashAccountID *string `json:"cash_account_id,omitempty" gorm:"type:varchar(36)"`
+	VoidReason    *string `json:"void_reason,omitempty"`
+	Notes         *string `json:"notes,omitempty"`
+	LateEntry
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt gorm.DeletedAt `json:"deleted_at,omitempty" gorm:"index"`
 }
 
 func (MilkSale) TableName() string {
@@ -105,17 +107,18 @@ func (MilkSale) TableName() string {
 
 // MilkSpoilage represents milk loss or damage in transit.
 type MilkSpoilage struct {
-	ID             string         `json:"id" gorm:"primaryKey;type:varchar(36)"`
-	SaccoID        string         `json:"sacco_id" gorm:"index;type:varchar(36);not null"`
-	CollectorID    uint           `json:"collector_id" gorm:"index;not null"`
-	CollectorName  string         `json:"collector_name,omitempty" gorm:"-"`
-	SpoilageDate   time.Time      `json:"spoilage_date" gorm:"type:date;not null;index"`
-	QuantityLitres float64        `json:"quantity_litres" gorm:"type:decimal(10,2);not null"`
-	Reason         string         `json:"reason" gorm:"not null"`
-	Notes          *string        `json:"notes,omitempty"`
-	CreatedAt      time.Time      `json:"created_at"`
-	UpdatedAt      time.Time      `json:"updated_at"`
-	DeletedAt      gorm.DeletedAt `json:"deleted_at,omitempty" gorm:"index"`
+	ID             string    `json:"id" gorm:"primaryKey;type:varchar(36)"`
+	SaccoID        string    `json:"sacco_id" gorm:"index;type:varchar(36);not null"`
+	CollectorID    uint      `json:"collector_id" gorm:"index;not null"`
+	CollectorName  string    `json:"collector_name,omitempty" gorm:"-"`
+	SpoilageDate   time.Time `json:"spoilage_date" gorm:"type:date;not null;index"`
+	QuantityLitres float64   `json:"quantity_litres" gorm:"type:decimal(10,2);not null"`
+	Reason         string    `json:"reason" gorm:"not null"`
+	Notes          *string   `json:"notes,omitempty"`
+	LateEntry
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt gorm.DeletedAt `json:"deleted_at,omitempty" gorm:"index"`
 }
 
 func (MilkSpoilage) TableName() string {
@@ -136,12 +139,13 @@ type MilkTransfer struct {
 	QuantityLitres    float64   `json:"quantity_litres" gorm:"type:decimal(10,2);not null"`
 	Notes             *string   `json:"notes,omitempty"`
 	// RecordedByID is the sender, or an admin recording it for them.
-	RecordedByID uint           `json:"recorded_by_id" gorm:"not null"`
-	VoidedAt     *time.Time     `json:"voided_at,omitempty"`
-	VoidReason   *string        `json:"void_reason,omitempty"`
-	CreatedAt    time.Time      `json:"created_at" doc:"When it was recorded"`
-	UpdatedAt    time.Time      `json:"updated_at"`
-	DeletedAt    gorm.DeletedAt `json:"-" gorm:"index"`
+	RecordedByID uint       `json:"recorded_by_id" gorm:"not null"`
+	VoidedAt     *time.Time `json:"voided_at,omitempty"`
+	VoidReason   *string    `json:"void_reason,omitempty"`
+	LateEntry
+	CreatedAt time.Time      `json:"created_at" doc:"When it was recorded"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
 }
 
 func (MilkTransfer) TableName() string {

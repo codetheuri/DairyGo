@@ -11,7 +11,6 @@ import '../../../../core/widgets/loading_overlay.dart';
 import '../../../../core/widgets/primary_button.dart';
 import '../../../../core/widgets/skeleton.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
-import '../../../collection/presentation/controllers/collection_controller.dart';
 import '../../../field_operations/presentation/controllers/field_ops_controller.dart';
 import '../../data/transfer_models.dart';
 import '../transfer_controller.dart';
@@ -36,7 +35,6 @@ class _RecordTransferScreenState extends ConsumerState<RecordTransferScreen> {
 
   /// Admins only: the sender, when not themselves.
   TransferRecipientModel? _from;
-  DateTime _date = DateTime.now();
   bool _saving = false;
   String? _error;
 
@@ -52,23 +50,6 @@ class _RecordTransferScreenState extends ConsumerState<RecordTransferScreen> {
   }
 
   double? get _litresValue => double.tryParse(_litres.text.trim());
-
-  static String _dateString(DateTime d) =>
-      '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
-
-  bool get _isToday => _dateString(_date) == getTodayDateString();
-
-  Future<void> _pickDate() async {
-    final now = DateTime.now();
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _date,
-      firstDate: now.subtract(const Duration(days: 60)),
-      lastDate: now,
-      helpText: 'Day the milk was handed over',
-    );
-    if (picked != null) setState(() => _date = picked);
-  }
 
   Future<void> _submit(String senderName) async {
     setState(() => _error = null);
@@ -86,7 +67,7 @@ class _RecordTransferScreenState extends ConsumerState<RecordTransferScreen> {
         title: Text('Give ${_fmt(litres)} L to ${to.name}?'),
         content: Text(
           'The milk moves from $senderName to ${to.name} right away'
-          '${_isToday ? '' : ', dated ${_dateString(_date)}'}. '
+          '. '
           '${to.name} will see it on their screen.',
         ),
         actions: [
@@ -109,7 +90,6 @@ class _RecordTransferScreenState extends ConsumerState<RecordTransferScreen> {
         .record(
           toCollectorId: to.id,
           litres: litres,
-          transferDate: _isToday ? null : _dateString(_date),
           fromCollectorId: _from?.id,
           notes: _notes.text.trim().isEmpty ? null : _notes.text.trim(),
         );
@@ -137,7 +117,7 @@ class _RecordTransferScreenState extends ConsumerState<RecordTransferScreen> {
     final isAdmin = user?.canManageTransfers ?? false;
     final recipientsAsync = ref.watch(transferRecipientsProvider);
     // What the collector still holds today: the unaccounted balance.
-    final holding = !isAdmin && _isToday
+    final holding = !isAdmin
         ? ref.watch(reconciliationProvider(null)).valueOrNull?.unaccountedLitres
         : null;
     final senderName = _from?.name ?? 'you';
@@ -267,23 +247,6 @@ class _RecordTransferScreenState extends ConsumerState<RecordTransferScreen> {
                           controller: _notes,
                           hint: 'e.g. handed over at the junction',
                           prefixIcon: Icons.notes_rounded,
-                        ),
-                        const SizedBox(height: 8),
-                        ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          leading: const Icon(
-                            Icons.event_rounded,
-                            color: AppColors.primary,
-                          ),
-                          title: Text(
-                            _isToday ? 'Today' : _dateString(_date),
-                            style: const TextStyle(fontWeight: FontWeight.w600),
-                          ),
-                          subtitle: const Text('Day of the handover'),
-                          trailing: TextButton(
-                            onPressed: _pickDate,
-                            child: const Text('Change'),
-                          ),
                         ),
                         const SizedBox(height: 16),
                         PrimaryButton(

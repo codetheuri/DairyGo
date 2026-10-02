@@ -21,6 +21,7 @@ _$MilkTransferModelImpl _$$MilkTransferModelImplFromJson(
   voidedAt: json['voided_at'] as String?,
   voidReason: json['void_reason'] as String?,
   createdAt: json['created_at'] as String?,
+  lateReason: json['late_reason'] as String?,
 );
 
 Map<String, dynamic> _$$MilkTransferModelImplToJson(
@@ -38,6 +39,7 @@ Map<String, dynamic> _$$MilkTransferModelImplToJson(
   'voided_at': instance.voidedAt,
   'void_reason': instance.voidReason,
   'created_at': instance.createdAt,
+  'late_reason': instance.lateReason,
 };
 
 _$TransferRecipientModelImpl _$$TransferRecipientModelImplFromJson(

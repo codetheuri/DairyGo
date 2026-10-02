@@ -32,6 +32,8 @@ class MilkSaleModel with _$MilkSaleModel {
     String? notes,
     @JsonKey(name: 'created_at') String? createdAt,
     @JsonKey(name: 'collector_name') String? collectorName,
+    // Set when DairyGo support entered the record after its day.
+    @JsonKey(name: 'late_reason') String? lateReason,
   }) = _MilkSaleModel;
 
   bool get isVoided => voidedAt != null;
@@ -73,6 +75,8 @@ class MilkSpoilageModel with _$MilkSpoilageModel {
     String? notes,
     @JsonKey(name: 'created_at') String? createdAt,
     @JsonKey(name: 'collector_name') String? collectorName,
+    // Set when DairyGo support entered the record after its day.
+    @JsonKey(name: 'late_reason') String? lateReason,
   }) = _MilkSpoilageModel;
 
   factory MilkSpoilageModel.fromJson(Map<String, dynamic> json) =>

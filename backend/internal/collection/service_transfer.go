@@ -77,6 +77,9 @@ func (s *Service) RecordTransfer(ctx context.Context, req *RecordTransferRequest
 	}
 
 	from := a.userID
+	if middleware.IsSuperUser(ctx) && (req.FromCollectorID == nil || *req.FromCollectorID == 0) {
+		return nil, fmt.Errorf("choose the collector giving the milk (from_collector_id)")
+	}
 	if req.FromCollectorID != nil && *req.FromCollectorID != a.userID {
 		if !a.canManage {
 			return nil, fmt.Errorf("%w: you can only transfer your own milk", ErrForbidden)
@@ -101,6 +104,10 @@ func (s *Service) RecordTransfer(ctx context.Context, req *RecordTransferRequest
 	if err != nil {
 		return nil, err
 	}
+	late, err := lateEntry(ctx, day, req.LateReason, "a transfer")
+	if err != nil {
+		return nil, err
+	}
 
 	t := &MilkTransfer{
 		ID:              uuid.New().String(),
@@ -111,10 +118,11 @@ func (s *Service) RecordTransfer(ctx context.Context, req *RecordTransferRequest
 		QuantityLitres:  litres,
 		Notes:           trimmedOrNil(req.Notes),
 		RecordedByID:    a.userID,
+		LateEntry:       late,
 	}
 	entry := audit.Entry{
 		SaccoID: saccoID, EntityType: auditEntityTransfer, EntityID: t.ID,
-		Action: audit.ActionCreate, ActorID: a.userID, NewValues: transferSnapshotOf(t),
+		Action: audit.ActionCreate, ActorID: a.userID, Reason: late.LateReason, NewValues: transferSnapshotOf(t),
 	}
 	if err := s.repo.CreateTransfer(ctx, t, entry); err != nil {
 		return nil, fmt.Errorf("failed to record the transfer: %w", err)

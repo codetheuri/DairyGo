@@ -41,15 +41,23 @@ type ListPricesInput struct {
 
 type GetActivePriceInput struct{}
 
+// LateFields are for DairyGo support entering an earlier day from the
+// platform console; Sacco staff leave them out (see late.go).
+type LateFields struct {
+	CollectorID *uint   `json:"collector_id,omitempty" doc:"Platform console only: the collector the record belongs to"`
+	LateReason  *string `json:"late_reason,omitempty" doc:"Platform console only: why an earlier day is entered now"`
+}
+
 // --- COLLECTION DTOs ---
 
 type RecordCollectionRequest struct {
 	MemberID       string   `json:"member_id" doc:"Member UUID"`
-	CollectionDate *string  `json:"collection_date,omitempty" doc:"Collection date (YYYY-MM-DD), defaults to today if omitted"`
+	CollectionDate *string  `json:"collection_date,omitempty" doc:"Collection date (YYYY-MM-DD), defaults to today; only DairyGo support may enter an earlier day"`
 	Shift          *Shift   `json:"shift,omitempty" doc:"Shift: MORNING, EVENING, FULL_DAY (default MORNING)"`
 	QuantityLitres float64  `json:"quantity_litres" minimum:"0.01" doc:"Quantity of milk in litres"`
 	PricePerLitre  *float64 `json:"price_per_litre,omitempty" doc:"Optional manual price per litre override (Admins only)"`
 	Notes          *string  `json:"notes,omitempty" doc:"Optional notes"`
+	LateFields
 }
 
 type RecordCollectionInput struct {
@@ -125,13 +133,14 @@ type ListCollectionsOutput struct {
 
 type RecordSaleRequest struct {
 	CustomerID     string   `json:"customer_id" minLength:"1" doc:"Customer UUID (search or add the customer first)"`
-	SaleDate       *string  `json:"sale_date,omitempty" doc:"Sale date (YYYY-MM-DD), defaults to today"`
+	SaleDate       *string  `json:"sale_date,omitempty" doc:"Sale date (YYYY-MM-DD), defaults to today; only DairyGo support may enter an earlier day"`
 	QuantityLitres float64  `json:"quantity_litres" minimum:"0.01" doc:"Quantity sold in litres"`
 	UnitPrice      *float64 `json:"unit_price,omitempty" doc:"Selling price per litre; defaults to the customer's agreed price"`
 	AmountPaid     *float64 `json:"amount_paid,omitempty" doc:"Amount paid at the time of sale; defaults to the full total, or 0 when payment_method is CREDIT"`
 	PaymentMethod  *string  `json:"payment_method,omitempty" enum:"CASH,MPESA,BANK_TRANSFER,CREDIT" doc:"How the amount paid was received; CREDIT when nothing was paid"`
 	CashAccountID  *string  `json:"cash_account_id,omitempty" doc:"The Sacco account the money went into or came from (optional)"`
 	Notes          *string  `json:"notes,omitempty" doc:"Optional notes"`
+	LateFields
 }
 
 type UpdateSaleRequest struct {
@@ -196,10 +205,11 @@ type ListSalesOutput struct {
 // --- SPOILAGE DTOs ---
 
 type RecordSpoilageRequest struct {
-	SpoilageDate   string  `json:"spoilage_date" doc:"Spoilage date (YYYY-MM-DD)"`
+	SpoilageDate   string  `json:"spoilage_date" doc:"Spoilage date (YYYY-MM-DD): today; only DairyGo support may enter an earlier day"`
 	QuantityLitres float64 `json:"quantity_litres" minimum:"0.01" doc:"Quantity spoiled in litres"`
 	Reason         string  `json:"reason" minLength:"3" doc:"Reason for spoilage (e.g. Acidic failure, Spillage)"`
 	Notes          *string `json:"notes,omitempty" doc:"Optional notes"`
+	LateFields
 }
 
 type RecordSpoilageInput struct {

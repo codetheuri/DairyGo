@@ -10,10 +10,12 @@ import (
 
 	"github.com/codetheuri/tusk/config"
 	"github.com/codetheuri/tusk/internal/auth"
+	"github.com/codetheuri/tusk/internal/collection"
 	"github.com/codetheuri/tusk/internal/jobs"
 	"github.com/codetheuri/tusk/internal/member"
 	"github.com/codetheuri/tusk/pkg/authz"
 	"github.com/codetheuri/tusk/pkg/logger"
+	"github.com/codetheuri/tusk/pkg/sms"
 )
 
 const tag = "Platform Console"
@@ -31,6 +33,10 @@ func RegisterRoutes(api huma.API, db *gorm.DB, cfg *config.Config, log logger.Lo
 	mh := &MoneyHandler{
 		payouts: payout.NewService(payout.NewRepository(db), nil),
 		finance: finance.NewService(finance.NewRepository(db)),
+	}
+	lh := &LateHandler{
+		milk: collection.NewService(collection.NewRepository(db), sms.NewService(cfg, db, log), authz.NewEvaluator(db)),
+		db:   db,
 	}
 	guard := authz.NewGuard(api, db)
 
@@ -68,6 +74,17 @@ func RegisterRoutes(api huma.API, db *gorm.DB, cfg *config.Config, log logger.Lo
 
 	huma.Register(api, op("platform-sacco-money", http.MethodGet, "/api/v1/admin/saccos/{id}/money",
 		"Sacco pay runs and money", "Read-only, for support: the Sacco's pay runs, accounts with balances, and income and expenditure for a period (default this month)."), mh.Money)
+
+	huma.Register(api, op("platform-late-entries", http.MethodGet, "/api/v1/admin/saccos/{id}/late-entries",
+		"A Sacco's late entries", "Milk records entered after their day, newest first, with the collectors and customers the forms choose from."), lh.Records)
+	huma.Register(api, op("platform-late-collection", http.MethodPost, "/api/v1/admin/saccos/{id}/late-entries/collections",
+		"Enter milk intake for an earlier day", "Sacco staff record only today. Needs collector_id, collection_date before today and late_reason; the paid-period lock and duplicate checks still apply."), lh.Collection)
+	huma.Register(api, op("platform-late-sale", http.MethodPost, "/api/v1/admin/saccos/{id}/late-entries/sales",
+		"Enter a sale for an earlier day", "Needs collector_id, sale_date before today and late_reason."), lh.Sale)
+	huma.Register(api, op("platform-late-spoilage", http.MethodPost, "/api/v1/admin/saccos/{id}/late-entries/spoilage",
+		"Enter spoilage for an earlier day", "Needs collector_id, spoilage_date before today and late_reason."), lh.Spoilage)
+	huma.Register(api, op("platform-late-transfer", http.MethodPost, "/api/v1/admin/saccos/{id}/late-entries/transfers",
+		"Enter a transfer for an earlier day", "Needs from_collector_id, to_collector_id, transfer_date before today and late_reason."), lh.Transfer)
 
 	huma.Register(api, op("platform-audit-logs", http.MethodGet, "/api/v1/admin/audit-logs",
 		"Audit trail", "Who changed what across all Saccos, newest first."), h.AuditLogs)

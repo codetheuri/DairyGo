@@ -10,6 +10,7 @@ import '../../../collection/presentation/controllers/collection_controller.dart'
 import '../../data/transfer_models.dart';
 import '../transfer_controller.dart';
 import 'transfer_tile.dart';
+import '../../../../core/widgets/late_entry_note.dart';
 
 /// A transfer's details and history. The sender (on the day it was recorded)
 /// and admins can correct the litres or cancel it; the server applies the
@@ -280,6 +281,7 @@ class TransferDetailSheet extends ConsumerWidget {
                 style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
               ),
             ],
+            LateEntryNote(reason: t.lateReason),
             const SizedBox(height: 16),
             const Text(
               'History',

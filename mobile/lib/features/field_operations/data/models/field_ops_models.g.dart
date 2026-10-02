@@ -27,6 +27,7 @@ _$MilkSaleModelImpl _$$MilkSaleModelImplFromJson(Map<String, dynamic> json) =>
       notes: json['notes'] as String?,
       createdAt: json['created_at'] as String?,
       collectorName: json['collector_name'] as String?,
+      lateReason: json['late_reason'] as String?,
     );
 
 Map<String, dynamic> _$$MilkSaleModelImplToJson(_$MilkSaleModelImpl instance) =>
@@ -50,6 +51,7 @@ Map<String, dynamic> _$$MilkSaleModelImplToJson(_$MilkSaleModelImpl instance) =>
       'notes': instance.notes,
       'created_at': instance.createdAt,
       'collector_name': instance.collectorName,
+      'late_reason': instance.lateReason,
     };
 
 _$RecordSaleRequestModelImpl _$$RecordSaleRequestModelImplFromJson(
@@ -88,6 +90,7 @@ _$MilkSpoilageModelImpl _$$MilkSpoilageModelImplFromJson(
   notes: json['notes'] as String?,
   createdAt: json['created_at'] as String?,
   collectorName: json['collector_name'] as String?,
+  lateReason: json['late_reason'] as String?,
 );
 
 Map<String, dynamic> _$$MilkSpoilageModelImplToJson(
@@ -102,6 +105,7 @@ Map<String, dynamic> _$$MilkSpoilageModelImplToJson(
   'notes': instance.notes,
   'created_at': instance.createdAt,
   'collector_name': instance.collectorName,
+  'late_reason': instance.lateReason,
 };
 
 _$RecordSpoilageRequestModelImpl _$$RecordSpoilageRequestModelImplFromJson(

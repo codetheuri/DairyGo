@@ -43,6 +43,7 @@ _$MilkCollectionModelImpl _$$MilkCollectionModelImplFromJson(
   memberName: json['member_name'] as String?,
   membershipNumber: json['membership_number'] as String?,
   collectorName: json['collector_name'] as String?,
+  lateReason: json['late_reason'] as String?,
 );
 
 Map<String, dynamic> _$$MilkCollectionModelImplToJson(
@@ -63,6 +64,7 @@ Map<String, dynamic> _$$MilkCollectionModelImplToJson(
   'member_name': instance.memberName,
   'membership_number': instance.membershipNumber,
   'collector_name': instance.collectorName,
+  'late_reason': instance.lateReason,
 };
 
 _$RecordCollectionRequestModelImpl _$$RecordCollectionRequestModelImplFromJson(

@@ -9,6 +9,7 @@ import '../../../customers/presentation/widgets/record_payment_dialog.dart';
 import '../../data/models/field_ops_models.dart';
 import '../controllers/field_ops_controller.dart';
 import '../../../../core/widgets/skeleton.dart';
+import '../../../../core/widgets/late_entry_note.dart';
 
 /// Bottom sheet with a sale's details and change history. Admins can void it.
 class SaleDetailSheet extends ConsumerWidget {
@@ -114,6 +115,7 @@ class SaleDetailSheet extends ConsumerWidget {
                   },
                 ),
               ],
+              LateEntryNote(reason: sale.lateReason),
               const SizedBox(height: 16),
               const Text(
                 'History',

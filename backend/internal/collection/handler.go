@@ -327,7 +327,7 @@ func (h *Handler) RecordSpoilage(ctx context.Context, input *RecordSpoilageInput
 	sp, err := h.service.RecordSpoilage(ctx, &input.Body)
 	if err != nil {
 		h.log.Error("Failed to record milk spoilage", err)
-		return nil, huma.Error400BadRequest(err.Error(), err)
+		return nil, toHTTPError(err)
 	}
 
 	resp := &SpoilageOutput{}

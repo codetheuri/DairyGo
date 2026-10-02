@@ -42,7 +42,9 @@ mixin _$MilkTransferModel {
   @JsonKey(name: 'void_reason')
   String? get voidReason => throw _privateConstructorUsedError;
   @JsonKey(name: 'created_at')
-  String? get createdAt => throw _privateConstructorUsedError;
+  String? get createdAt => throw _privateConstructorUsedError; // Set when DairyGo support entered the record after its day.
+  @JsonKey(name: 'late_reason')
+  String? get lateReason => throw _privateConstructorUsedError;
 
   /// Serializes this MilkTransferModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -74,6 +76,7 @@ abstract class $MilkTransferModelCopyWith<$Res> {
     @JsonKey(name: 'voided_at') String? voidedAt,
     @JsonKey(name: 'void_reason') String? voidReason,
     @JsonKey(name: 'created_at') String? createdAt,
+    @JsonKey(name: 'late_reason') String? lateReason,
   });
 }
 
@@ -104,6 +107,7 @@ class _$MilkTransferModelCopyWithImpl<$Res, $Val extends MilkTransferModel>
     Object? voidedAt = freezed,
     Object? voidReason = freezed,
     Object? createdAt = freezed,
+    Object? lateReason = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -155,6 +159,10 @@ class _$MilkTransferModelCopyWithImpl<$Res, $Val extends MilkTransferModel>
                 ? _value.createdAt
                 : createdAt // ignore: cast_nullable_to_non_nullable
                       as String?,
+            lateReason: freezed == lateReason
+                ? _value.lateReason
+                : lateReason // ignore: cast_nullable_to_non_nullable
+                      as String?,
           )
           as $Val,
     );
@@ -183,6 +191,7 @@ abstract class _$$MilkTransferModelImplCopyWith<$Res>
     @JsonKey(name: 'voided_at') String? voidedAt,
     @JsonKey(name: 'void_reason') String? voidReason,
     @JsonKey(name: 'created_at') String? createdAt,
+    @JsonKey(name: 'late_reason') String? lateReason,
   });
 }
 
@@ -212,6 +221,7 @@ class __$$MilkTransferModelImplCopyWithImpl<$Res>
     Object? voidedAt = freezed,
     Object? voidReason = freezed,
     Object? createdAt = freezed,
+    Object? lateReason = freezed,
   }) {
     return _then(
       _$MilkTransferModelImpl(
@@ -263,6 +273,10 @@ class __$$MilkTransferModelImplCopyWithImpl<$Res>
             ? _value.createdAt
             : createdAt // ignore: cast_nullable_to_non_nullable
                   as String?,
+        lateReason: freezed == lateReason
+            ? _value.lateReason
+            : lateReason // ignore: cast_nullable_to_non_nullable
+                  as String?,
       ),
     );
   }
@@ -284,6 +298,7 @@ class _$MilkTransferModelImpl extends _MilkTransferModel {
     @JsonKey(name: 'voided_at') this.voidedAt,
     @JsonKey(name: 'void_reason') this.voidReason,
     @JsonKey(name: 'created_at') this.createdAt,
+    @JsonKey(name: 'late_reason') this.lateReason,
   }) : super._();
 
   factory _$MilkTransferModelImpl.fromJson(Map<String, dynamic> json) =>
@@ -323,10 +338,14 @@ class _$MilkTransferModelImpl extends _MilkTransferModel {
   @override
   @JsonKey(name: 'created_at')
   final String? createdAt;
+  // Set when DairyGo support entered the record after its day.
+  @override
+  @JsonKey(name: 'late_reason')
+  final String? lateReason;
 
   @override
   String toString() {
-    return 'MilkTransferModel(id: $id, fromCollectorId: $fromCollectorId, toCollectorId: $toCollectorId, fromCollectorName: $fromCollectorName, toCollectorName: $toCollectorName, transferDate: $transferDate, quantityLitres: $quantityLitres, notes: $notes, recordedById: $recordedById, voidedAt: $voidedAt, voidReason: $voidReason, createdAt: $createdAt)';
+    return 'MilkTransferModel(id: $id, fromCollectorId: $fromCollectorId, toCollectorId: $toCollectorId, fromCollectorName: $fromCollectorName, toCollectorName: $toCollectorName, transferDate: $transferDate, quantityLitres: $quantityLitres, notes: $notes, recordedById: $recordedById, voidedAt: $voidedAt, voidReason: $voidReason, createdAt: $createdAt, lateReason: $lateReason)';
   }
 
   @override
@@ -355,7 +374,9 @@ class _$MilkTransferModelImpl extends _MilkTransferModel {
             (identical(other.voidReason, voidReason) ||
                 other.voidReason == voidReason) &&
             (identical(other.createdAt, createdAt) ||
-                other.createdAt == createdAt));
+                other.createdAt == createdAt) &&
+            (identical(other.lateReason, lateReason) ||
+                other.lateReason == lateReason));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -374,6 +395,7 @@ class _$MilkTransferModelImpl extends _MilkTransferModel {
     voidedAt,
     voidReason,
     createdAt,
+    lateReason,
   );
 
   /// Create a copy of MilkTransferModel
@@ -407,6 +429,7 @@ abstract class _MilkTransferModel extends MilkTransferModel {
     @JsonKey(name: 'voided_at') final String? voidedAt,
     @JsonKey(name: 'void_reason') final String? voidReason,
     @JsonKey(name: 'created_at') final String? createdAt,
+    @JsonKey(name: 'late_reason') final String? lateReason,
   }) = _$MilkTransferModelImpl;
   const _MilkTransferModel._() : super._();
 
@@ -446,7 +469,10 @@ abstract class _MilkTransferModel extends MilkTransferModel {
   String? get voidReason;
   @override
   @JsonKey(name: 'created_at')
-  String? get createdAt;
+  String? get createdAt; // Set when DairyGo support entered the record after its day.
+  @override
+  @JsonKey(name: 'late_reason')
+  String? get lateReason;
 
   /// Create a copy of MilkTransferModel
   /// with the given fields replaced by the non-null parameter values.

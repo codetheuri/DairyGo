@@ -314,7 +314,9 @@ mixin _$MilkCollectionModel {
   @JsonKey(name: 'membership_number')
   String? get membershipNumber => throw _privateConstructorUsedError;
   @JsonKey(name: 'collector_name')
-  String? get collectorName => throw _privateConstructorUsedError;
+  String? get collectorName => throw _privateConstructorUsedError; // Set when DairyGo support entered the record after its day.
+  @JsonKey(name: 'late_reason')
+  String? get lateReason => throw _privateConstructorUsedError;
 
   /// Serializes this MilkCollectionModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -349,6 +351,7 @@ abstract class $MilkCollectionModelCopyWith<$Res> {
     @JsonKey(name: 'member_name') String? memberName,
     @JsonKey(name: 'membership_number') String? membershipNumber,
     @JsonKey(name: 'collector_name') String? collectorName,
+    @JsonKey(name: 'late_reason') String? lateReason,
   });
 }
 
@@ -382,6 +385,7 @@ class _$MilkCollectionModelCopyWithImpl<$Res, $Val extends MilkCollectionModel>
     Object? memberName = freezed,
     Object? membershipNumber = freezed,
     Object? collectorName = freezed,
+    Object? lateReason = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -445,6 +449,10 @@ class _$MilkCollectionModelCopyWithImpl<$Res, $Val extends MilkCollectionModel>
                 ? _value.collectorName
                 : collectorName // ignore: cast_nullable_to_non_nullable
                       as String?,
+            lateReason: freezed == lateReason
+                ? _value.lateReason
+                : lateReason // ignore: cast_nullable_to_non_nullable
+                      as String?,
           )
           as $Val,
     );
@@ -476,6 +484,7 @@ abstract class _$$MilkCollectionModelImplCopyWith<$Res>
     @JsonKey(name: 'member_name') String? memberName,
     @JsonKey(name: 'membership_number') String? membershipNumber,
     @JsonKey(name: 'collector_name') String? collectorName,
+    @JsonKey(name: 'late_reason') String? lateReason,
   });
 }
 
@@ -508,6 +517,7 @@ class __$$MilkCollectionModelImplCopyWithImpl<$Res>
     Object? memberName = freezed,
     Object? membershipNumber = freezed,
     Object? collectorName = freezed,
+    Object? lateReason = freezed,
   }) {
     return _then(
       _$MilkCollectionModelImpl(
@@ -571,6 +581,10 @@ class __$$MilkCollectionModelImplCopyWithImpl<$Res>
             ? _value.collectorName
             : collectorName // ignore: cast_nullable_to_non_nullable
                   as String?,
+        lateReason: freezed == lateReason
+            ? _value.lateReason
+            : lateReason // ignore: cast_nullable_to_non_nullable
+                  as String?,
       ),
     );
   }
@@ -595,6 +609,7 @@ class _$MilkCollectionModelImpl extends _MilkCollectionModel {
     @JsonKey(name: 'member_name') this.memberName,
     @JsonKey(name: 'membership_number') this.membershipNumber,
     @JsonKey(name: 'collector_name') this.collectorName,
+    @JsonKey(name: 'late_reason') this.lateReason,
   }) : super._();
 
   factory _$MilkCollectionModelImpl.fromJson(Map<String, dynamic> json) =>
@@ -644,10 +659,14 @@ class _$MilkCollectionModelImpl extends _MilkCollectionModel {
   @override
   @JsonKey(name: 'collector_name')
   final String? collectorName;
+  // Set when DairyGo support entered the record after its day.
+  @override
+  @JsonKey(name: 'late_reason')
+  final String? lateReason;
 
   @override
   String toString() {
-    return 'MilkCollectionModel(id: $id, saccoId: $saccoId, memberId: $memberId, collectorId: $collectorId, collectionDate: $collectionDate, shift: $shift, quantityLitres: $quantityLitres, pricePerLitre: $pricePerLitre, totalAmount: $totalAmount, status: $status, notes: $notes, createdAt: $createdAt, memberName: $memberName, membershipNumber: $membershipNumber, collectorName: $collectorName)';
+    return 'MilkCollectionModel(id: $id, saccoId: $saccoId, memberId: $memberId, collectorId: $collectorId, collectionDate: $collectionDate, shift: $shift, quantityLitres: $quantityLitres, pricePerLitre: $pricePerLitre, totalAmount: $totalAmount, status: $status, notes: $notes, createdAt: $createdAt, memberName: $memberName, membershipNumber: $membershipNumber, collectorName: $collectorName, lateReason: $lateReason)';
   }
 
   @override
@@ -679,7 +698,9 @@ class _$MilkCollectionModelImpl extends _MilkCollectionModel {
             (identical(other.membershipNumber, membershipNumber) ||
                 other.membershipNumber == membershipNumber) &&
             (identical(other.collectorName, collectorName) ||
-                other.collectorName == collectorName));
+                other.collectorName == collectorName) &&
+            (identical(other.lateReason, lateReason) ||
+                other.lateReason == lateReason));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -701,6 +722,7 @@ class _$MilkCollectionModelImpl extends _MilkCollectionModel {
     memberName,
     membershipNumber,
     collectorName,
+    lateReason,
   );
 
   /// Create a copy of MilkCollectionModel
@@ -737,6 +759,7 @@ abstract class _MilkCollectionModel extends MilkCollectionModel {
     @JsonKey(name: 'member_name') final String? memberName,
     @JsonKey(name: 'membership_number') final String? membershipNumber,
     @JsonKey(name: 'collector_name') final String? collectorName,
+    @JsonKey(name: 'late_reason') final String? lateReason,
   }) = _$MilkCollectionModelImpl;
   const _MilkCollectionModel._() : super._();
 
@@ -783,7 +806,10 @@ abstract class _MilkCollectionModel extends MilkCollectionModel {
   String? get membershipNumber;
   @override
   @JsonKey(name: 'collector_name')
-  String? get collectorName;
+  String? get collectorName; // Set when DairyGo support entered the record after its day.
+  @override
+  @JsonKey(name: 'late_reason')
+  String? get lateReason;
 
   /// Create a copy of MilkCollectionModel
   /// with the given fields replaced by the non-null parameter values.

@@ -16,6 +16,23 @@ in `internal/collection` (`service.go`, `rules.go`); the audit store is `pkg/aud
 
 The farmer receives an SMS receipt when an SMS provider is configured.
 
+## Today only; earlier days from the console
+
+Sacco staff (collectors and Sacco admins alike) record intake, sales,
+spoilage and transfers **for today only**. Another date is refused with
+`403` ("ask DairyGo support"), and a future date with `400`, for everyone.
+
+A forgotten record for an earlier day is entered by DairyGo support in the
+platform console (Sacco → Late entries, `POST /api/v1/admin/saccos/{id}/late-entries/collections|sales|spoilage|transfers`). It
+needs `late_reason` and the collector the milk belongs to (`collector_id`;
+`from_collector_id` for transfers). The record keeps that collector, so
+their daily balance is right, and is marked with `late_reason` and
+`entered_by_id` (migration `00025`); the app shows "Entered late by DairyGo
+support". The Sacco's rules still apply: a paid period stays closed
+(`409`), one record per farmer, day and shift, and intake is priced for its
+day. The rule is `recordDay` in `internal/collection/late.go`
+(table-tested).
+
 ## Buying prices are a schedule
 
 Each `POST /api/v1/sacco/milk-prices` adds a row with an `effective_date`. Nothing is

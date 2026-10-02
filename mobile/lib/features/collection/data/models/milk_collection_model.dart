@@ -38,6 +38,8 @@ class MilkCollectionModel with _$MilkCollectionModel {
     @JsonKey(name: 'member_name') String? memberName,
     @JsonKey(name: 'membership_number') String? membershipNumber,
     @JsonKey(name: 'collector_name') String? collectorName,
+    // Set when DairyGo support entered the record after its day.
+    @JsonKey(name: 'late_reason') String? lateReason,
   }) = _MilkCollectionModel;
 
   factory MilkCollectionModel.fromJson(Map<String, dynamic> json) =>

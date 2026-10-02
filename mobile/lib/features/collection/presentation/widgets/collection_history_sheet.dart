@@ -7,6 +7,7 @@ import '../../../../core/widgets/status_pill.dart';
 import '../../data/models/milk_collection_model.dart';
 import '../controllers/collection_controller.dart';
 import '../../../../core/widgets/skeleton.dart';
+import '../../../../core/widgets/late_entry_note.dart';
 
 /// Bottom sheet showing a collection's current status and its audit history:
 /// who recorded it, every edit and status change, with reasons.
@@ -73,6 +74,7 @@ class CollectionHistorySheet extends ConsumerWidget {
                   color: AppColors.textSecondary,
                 ),
               ),
+              LateEntryNote(reason: collection.lateReason),
               const SizedBox(height: 16),
               const Text(
                 'History',

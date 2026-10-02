@@ -22,6 +22,8 @@ class MilkTransferModel with _$MilkTransferModel {
     @JsonKey(name: 'voided_at') String? voidedAt,
     @JsonKey(name: 'void_reason') String? voidReason,
     @JsonKey(name: 'created_at') String? createdAt,
+    // Set when DairyGo support entered the record after its day.
+    @JsonKey(name: 'late_reason') String? lateReason,
   }) = _MilkTransferModel;
 
   bool get isCancelled => voidedAt != null;

@@ -172,6 +172,12 @@ function openForm({ title, intro, fields, submitLabel = 'Save', danger = false, 
 
   fields.forEach((f) => {
     if (f.section) { grid.append(h('div', { class: 'section-title', text: f.section })); return; }
+    if (f.type === 'picker') {
+      const { node, value } = pickerField(f);
+      inputs[f.name] = value;
+      grid.append(node);
+      return;
+    }
     let input;
     if (f.type === 'select') {
       input = h('select', { name: f.name, required: f.required }, f.options.map(([v, l]) => h('option', { value: v, text: l })));
@@ -220,6 +226,63 @@ function openForm({ title, intro, fields, submitLabel = 'Save', danger = false, 
   dialog.showModal();
   const first = Object.values(inputs)[0];
   if (first) first.focus();
+}
+
+/**
+ * A search box that finds records as you type and keeps the one picked.
+ * f.search(term) returns [{ value, label, note }]; the picked value is what the
+ * form submits under f.name (empty until something is picked).
+ */
+function pickerField(f) {
+  const value = h('input', { type: 'hidden', name: f.name });
+  const box = h('input', { type: 'search', placeholder: f.placeholder || 'Type to search…', autocomplete: 'off' });
+  const list = h('div', { class: 'picker-list' });
+  const chosen = h('div', { class: 'picker-chosen', hidden: true });
+  let timer;
+  let items = [];
+  let seq = 0;
+
+  const pick = (item) => {
+    value.value = item.value;
+    box.value = '';
+    list.replaceChildren();
+    chosen.replaceChildren(h('span', { text: `✓ ${item.label}` }),
+      h('button', { type: 'button', class: 'small', text: 'Change', onclick: () => { value.value = ''; chosen.hidden = true; box.hidden = false; box.focus(); } }));
+    chosen.hidden = false;
+    box.hidden = true;
+  };
+  const show = (rows) => {
+    items = rows;
+    list.replaceChildren(...(rows.length
+      ? rows.map((it) => h('button', { type: 'button', class: 'picker-item', onclick: () => pick(it) },
+        h('span', { text: it.label }), it.note ? h('span', { class: 'muted small', text: ` ${it.note}` }) : null))
+      : [h('div', { class: 'muted small picker-empty', text: 'No match. Check the spelling, or register the farmer first.' })]));
+  };
+  box.addEventListener('input', () => {
+    value.value = '';
+    clearTimeout(timer);
+    const term = box.value.trim();
+    if (!term) { list.replaceChildren(); items = []; return; }
+    timer = setTimeout(async () => {
+      const mine = ++seq;
+      try {
+        const rows = await f.search(term);
+        if (mine === seq) show(rows);
+      } catch (err) {
+        if (mine === seq) list.replaceChildren(h('div', { class: 'form-error', text: err.message }));
+      }
+    }, 250);
+  });
+  // Enter picks the only (or first) match instead of submitting the form.
+  box.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+    if (items.length) pick(items[0]);
+  });
+
+  const node = h('div', { class: `field picker ${f.full ? 'full' : ''}` },
+    h('span', { text: `${f.label}${f.required ? ' *' : ''}` }), box, chosen, list, value);
+  return { node, value };
 }
 
 /** Removes empty strings so optional fields are sent as absent. */
@@ -863,16 +926,23 @@ async function lateTab(sacco) {
     intro: 'Priced at the buying price of that day. The farmer gets the usual SMS receipt.',
     fields: [day('collection_date'),
       { name: 'shift', label: 'Shift', type: 'select', options: [['MORNING', 'Morning'], ['EVENING', 'Evening'], ['FULL_DAY', 'Full day']] },
-      { name: 'farmer', label: 'Farmer membership number', required: true, placeholder: 'e.g. 151' },
+      { name: 'member_id', label: 'Farmer', type: 'picker', required: true, full: true,
+        placeholder: 'Search by name, membership number or phone',
+        search: async (term) => {
+          const found = await api('GET', `/admin/saccos/${sacco.id}/members${qs({ search: term, per_page: 10 })}`);
+          return found.members.map((m) => ({
+            value: m.id,
+            label: `${m.membership_number} · ${m.first_name} ${m.last_name}`,
+            note: [m.phone, m.status !== 'ACTIVE' ? m.status.toLowerCase() : ''].filter(Boolean).join(' · '),
+          }));
+        } },
       litres, collector(), reason],
     submitLabel: 'Enter intake',
     onSubmit: async (v) => {
-      const found = await api('GET', `/admin/saccos/${sacco.id}/members${qs({ search: v.farmer, per_page: 25 })}`);
-      const farmer = found.members.find((m) => m.membership_number.toLowerCase() === v.farmer.toLowerCase());
-      if (!farmer) throw new Error(`No farmer has membership number ${v.farmer}.`);
-      await api('POST', `${base}/collections`, compact({ member_id: farmer.id, collection_date: v.collection_date, shift: v.shift,
+      if (!v.member_id) throw new Error('Search for the farmer and pick them from the list.');
+      const res = await api('POST', `${base}/collections`, compact({ member_id: v.member_id, collection_date: v.collection_date, shift: v.shift,
         quantity_litres: num(v.quantity_litres), collector_id: num(v.collector_id), late_reason: v.late_reason }));
-      saved(`Intake for ${farmer.first_name} ${farmer.last_name} entered`);
+      saved(`Intake of ${fmt.litres(res.record.quantity_litres)} entered for ${fmt.date(res.record.collection_date)}`);
     },
   });
 

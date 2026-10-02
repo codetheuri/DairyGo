@@ -144,6 +144,14 @@ label.field { display: block; font-size: 12px; font-weight: 600; color: var(--te
 label.field input, label.field select, label.field textarea { margin-top: 4px; }
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .form-grid .full { grid-column: 1 / -1; }
+.field.picker { display: block; font-size: 12px; font-weight: 600; color: var(--text-2); }
+.field.picker input { margin-top: 4px; }
+.picker-list { display: flex; flex-direction: column; margin-top: 4px; max-height: 220px; overflow-y: auto; }
+.picker-item { text-align: left; font-weight: 500; border: 1px solid var(--border); border-radius: 0; margin-top: -1px; background: var(--surface); }
+.picker-item:hover, .picker-item:focus { background: var(--primary-soft); }
+.picker-empty { padding: 6px 2px; font-weight: 400; }
+.picker-chosen { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 4px;
+  padding: 8px 10px; border-radius: 8px; background: var(--primary-soft); color: var(--text); font-weight: 600; }
 @media (max-width: 560px) { .form-grid { grid-template-columns: 1fr; } }
 .form-error { color: var(--danger); font-size: 13px; margin: 0 0 10px; }
 .section-title { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin: 6px 0 -4px; grid-column: 1 / -1; }

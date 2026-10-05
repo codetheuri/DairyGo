@@ -205,8 +205,10 @@ class AppUnderTest {
   /// [settle] waits for the screen to finish loading; with [cache], reads go
   /// through the saved-copy interceptors as in the app; [updates] plays the
   /// update server (nothing published by default); [permissions] replaces
-  /// what the role may do, as an operator would in the console; [extra]
-  /// overrides any other provider.
+  /// what the role may do, as an operator would in the console; [user]
+  /// replaces the signed-in person; [replaced] answers given before the app
+  /// starts (see [FixtureAdapter.replaced]); [extra] overrides any other
+  /// provider.
   static Future<AppUnderTest> open(
     WidgetTester tester,
     String role,
@@ -216,9 +218,13 @@ class AppUnderTest {
     ResponseCache? cache,
     FakeAppUpdateService? updates,
     List<String>? permissions,
+    UserEntity? user,
+    Map<String, Object> replaced = const {},
     List<Override> extra = const [],
   }) async {
-    final server = FixtureAdapter(role, delay: responseDelay);
+    final server = FixtureAdapter(role, delay: responseDelay)
+      ..replaced.addAll(replaced);
+    final signedIn = user ?? userFor(role);
     final dio = Dio(BaseOptions(baseUrl: 'http://fixtures'))
       ..httpClientAdapter = server;
     if (cache != null) {
@@ -231,8 +237,8 @@ class AppUnderTest {
         authControllerProvider.overrideWith(
           () => _SignedIn(
             permissions == null
-                ? userFor(role)
-                : userFor(role).copyWith(permissions: permissions),
+                ? signedIn
+                : signedIn.copyWith(permissions: permissions),
           ),
         ),
         dioClientProvider.overrideWithValue(dio),

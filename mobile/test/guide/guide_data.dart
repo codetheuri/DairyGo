@@ -102,11 +102,13 @@ final guideCollectors = <({int id, String name})>[
   (id: 32, name: 'Peter Njoroge'),
 ];
 
-/// What a collector at Maru may do, including seeing customer balances.
+/// What a collector at Maru may do, including customer balances and
+/// recording customers' payments.
 List<String> get collectorPermissions => [
   ...(_fixture('auth_me')['data']['user']['permissions'] as List)
       .cast<String>(),
   'customers.statement.read',
+  'customers.payments.manage',
 ];
 
 /// The collector the pictures are taken as.

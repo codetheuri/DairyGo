@@ -303,4 +303,27 @@ void main() {
       await app.close();
     }
   });
+
+  testWidgets('7. a customer pays', skip: !_on, (tester) async {
+    final app = await _open(tester, '/dashboard');
+    final g = _Guide(tester, '07-customer-pays', 'When a customer pays');
+    try {
+      await g.shot('Tap More, at the bottom right.', tap: bar('More'));
+      await g.shot('Tap Customers.', tap: find.text('Customers'));
+      await g.shot(
+        'Tap the customer who paid. What they owe is on the right.',
+        tap: find.text(guideCustomers.first.name),
+      );
+      await g.shot('Tap Record Payment.', tap: find.text('Record Payment'));
+      await _type(tester, 'Amount received (KES) *', '10000');
+      await _type(tester, 'Reference (e.g. M-Pesa code)', 'SJK4H7QX2P');
+      await g.shot(
+        'Type the amount, choose M-Pesa or Cash, add the M-Pesa code, then tap Record Payment. What they owe goes down at once.',
+        tap: find.widgetWithText(ElevatedButton, 'Record Payment'),
+        thenTap: false,
+      );
+    } finally {
+      await app.close();
+    }
+  });
 }

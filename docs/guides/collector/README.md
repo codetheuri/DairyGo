@@ -11,6 +11,7 @@ for phones that do not play video well.
 | `videos/03-record-sale.mp4` | **Recording a sale.** Home → **Direct Sale** → choose the customer → litres → Paid, Part paid or Credit → **Record Sale**. |
 | `videos/04-transfer-milk.mp4` | **Giving milk to another collector.** Home → **Transfer Milk** → choose the collector → litres → **Transfer**. It counts for both of you at once. |
 | `videos/05-who-owes.mp4` | **Seeing which customers owe money.** **More → Customers.** The yellow bar at the top shows what customers owe; tap it, then tap a customer for every sale and payment. |
+| `videos/07-customer-pays.mp4` | **When a customer pays what they owe.** **More → Customers** → tap the customer → **Record Payment** → amount, M-Pesa or Cash, and the M-Pesa code → **Record Payment**. What they owe goes down at once. |
 | `videos/06-milk-balance.mp4` | **Your day's milk balance (Home).** "Not sold yet" is milk you collected but have not yet sold, moved or recorded as spoilt: record every sale, transfer and spoilage so it reaches 0. "Oversold" means more was recorded sold than collected: check your sales. |
 
 A short note to send first:

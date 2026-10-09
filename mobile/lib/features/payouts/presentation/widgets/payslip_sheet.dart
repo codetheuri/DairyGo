@@ -73,7 +73,10 @@ class PayslipSheet extends ConsumerWidget {
             style: const TextStyle(color: AppColors.textSecondary),
           ),
           const SizedBox(height: 12),
-          _row('Milk (${litres(l.litres)})', l.gross),
+          // One row per price: a month with a price change shows both.
+          if (l.rates.isEmpty) _row('Milk (${litres(l.litres)})', l.gross),
+          for (final r in l.rates)
+            _row('Milk ${litres(r.litres)} @ ${kes(r.rate)}', r.amount),
           if (l.opening != 0)
             _row(
               l.opening < 0 ? 'Owed from last pay' : 'Brought forward',

@@ -239,10 +239,15 @@ type PayRunLine struct {
 	Net               float64    `json:"net"`
 	Closing           float64    `json:"closing_balance"`
 	Items             []LineItem `json:"deductions" gorm:"foreignKey:LineID"`
-	PaidAt            *time.Time `json:"paid_at,omitempty"`
-	PaidMethod        *PayMethod `json:"paid_method,omitempty"`
-	PaidReference     *string    `json:"paid_reference,omitempty"`
-	PaidByID          *uint      `json:"paid_by_id,omitempty"`
+	// Rates splits the milk by the price it was recorded at; Rate is the one
+	// price, or the average when MixedRates (see applyRates). Not stored.
+	Rates         []RateLine `json:"rates" gorm:"-"`
+	Rate          float64    `json:"rate" gorm:"-" doc:"Price per litre, or the average when there was more than one"`
+	MixedRates    bool       `json:"mixed_rates" gorm:"-" doc:"True when the period had more than one price"`
+	PaidAt        *time.Time `json:"paid_at,omitempty"`
+	PaidMethod    *PayMethod `json:"paid_method,omitempty"`
+	PaidReference *string    `json:"paid_reference,omitempty"`
+	PaidByID      *uint      `json:"paid_by_id,omitempty"`
 	// CashAccountID is the Sacco account the pay was sent from.
 	CashAccountID *string   `json:"cash_account_id,omitempty" gorm:"type:varchar(36)"`
 	CreatedAt     time.Time `json:"created_at"`

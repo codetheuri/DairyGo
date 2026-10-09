@@ -325,6 +325,25 @@ class PayItem {
   );
 }
 
+/// Milk paid at one price in a run: "300 L @ 42".
+class PayRate {
+  final double rate;
+  final double litres;
+  final double amount;
+
+  const PayRate({
+    required this.rate,
+    required this.litres,
+    required this.amount,
+  });
+
+  factory PayRate.fromJson(Map<String, dynamic> j) => PayRate(
+    rate: toDouble(j['rate']),
+    litres: toDouble(j['litres']),
+    amount: toDouble(j['amount']),
+  );
+}
+
 /// One farmer's pay in a run.
 class PayLine {
   final String id;
@@ -343,6 +362,12 @@ class PayLine {
   final double net;
   final double closing;
   final List<PayItem> items;
+
+  /// Milk split by price; [rate] is the one price, or the average when
+  /// [mixedRates].
+  final List<PayRate> rates;
+  final double rate;
+  final bool mixedRates;
   final DateTime? paidAt;
   final String? paidMethod;
   final String? paidReference;
@@ -364,6 +389,9 @@ class PayLine {
     required this.net,
     required this.closing,
     required this.items,
+    this.rates = const [],
+    this.rate = 0,
+    this.mixedRates = false,
     this.paidAt,
     this.paidMethod,
     this.paidReference,
@@ -389,12 +417,25 @@ class PayLine {
       for (final i in (j['deductions'] as List?) ?? const [])
         PayItem.fromJson(i as Map<String, dynamic>),
     ],
+    rates: [
+      for (final r in (j['rates'] as List?) ?? const [])
+        PayRate.fromJson(r as Map<String, dynamic>),
+    ],
+    rate: toDouble(j['rate']),
+    mixedRates: j['mixed_rates'] as bool? ?? false,
     paidAt: _date(j['paid_at']),
     paidMethod: j['paid_method'] as String?,
     paidReference: j['paid_reference'] as String?,
   );
 
   bool get isPaid => paidAt != null;
+
+  /// "@ 50" or "avg 43.25", for a farmer's row; empty without milk.
+  String get rateLabel => rate == 0
+      ? ''
+      : mixedRates
+      ? 'avg ${rate.toStringAsFixed(2)}'
+      : '@ ${rate.toStringAsFixed(rate % 1 == 0 ? 0 : 2)}';
   bool get toPay => !isPaid && net > 0;
 
   String get paidLabel => switch (paidMethod) {

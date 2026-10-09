@@ -420,7 +420,8 @@ class _LineTile extends StatelessWidget {
     } else if (owes) {
       sub = 'Owes ${kes(-line.closing, cents: false)}, carried to next pay';
     } else {
-      sub = '${litres(line.litres)} · gross ${kes(line.gross, cents: false)}';
+      sub =
+          '${litres(line.litres)} ${line.rateLabel} · gross ${kes(line.gross, cents: false)}';
     }
     return ListTile(
       contentPadding: EdgeInsets.zero,

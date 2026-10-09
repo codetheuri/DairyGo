@@ -95,6 +95,14 @@ DRAFT ──approve──► APPROVED ──(everyone paid)──► PAID
 Payslip SMS were taken out (migration `00024`) until the Sacco has SMS for
 them; the payslip PDF can be shared instead.
 
+Milk is shown by price: `ratesByFarmer` groups the period's collections by
+`price_per_litre`, so a month with a price change gives the payslip one line
+per price ("Milk 300 L @ KES 42"). The register's Rate column shows the price,
+or gross ÷ litres marked * when there was more than one. **Brought fwd** is
+the farmer's balance from earlier runs (minus = owed the Sacco); **Carried
+fwd** is what they still owe after this run. Each deduction taken in a run is
+its own register column, so a new deduction appears from its first run.
+
 Reports in the download catalog: **Deductions** and **Farmer Balances**.
 
 ## Advance rules

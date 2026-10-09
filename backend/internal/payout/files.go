@@ -199,12 +199,13 @@ func (s *Service) Register(ctx context.Context, runID, format string) (*File, er
 	// Plain numbers (amounts in KES, said once in the notes) so wide
 	// registers fit the page.
 	num := document.Number
+	const rateCol = 3
 	cols := []document.Column{col("No.", document.Text, 0.6), col("Farmer", document.Text, 1.7), col("Litres", document.Litres, 0.9),
-		col("Gross", num, 1.1), col("B/f", num, 0.9), col("Adv. & charges", num, 1.1)}
+		col("Rate", document.Text, 0.8), col("Gross", num, 1.1), col("Brought fwd", num, 1.15), col("Adv. & charges", num, 1.1)}
 	for _, n := range names {
 		cols = append(cols, col(n, num, 1))
 	}
-	cols = append(cols, col("Net pay", num, 1.1), col("C/f", num, 0.9), col("Paid", document.Text, 1.3))
+	cols = append(cols, col("Net pay", num, 1.1), col("Carried fwd", num, 1.15), col("Paid", document.Text, 1.3))
 
 	t := document.Table{Columns: cols, Empty: "No farmers in this pay run."}
 	sums := make([]float64, len(cols))
@@ -213,7 +214,7 @@ func (s *Service) Register(ctx context.Context, runID, format string) (*File, er
 		for _, it := range l.Items {
 			byName[it.Name] += it.Amount
 		}
-		row := []any{l.MembershipNumber, l.FarmerName, l.Litres, l.Gross, l.Opening, -l.Entries}
+		row := []any{l.MembershipNumber, l.FarmerName, l.Litres, rateText(l), l.Gross, l.Opening, -l.Entries}
 		for _, n := range names {
 			row = append(row, round2(byName[n]))
 		}
@@ -233,6 +234,10 @@ func (s *Service) Register(ctx context.Context, runID, format string) (*File, er
 	}
 	totals := []any{"Total", nil}
 	for i := 2; i < len(cols)-1; i++ {
+		if i == rateCol {
+			totals = append(totals, nil)
+			continue
+		}
 		totals = append(totals, round2(sums[i]))
 	}
 	totals = append(totals, nil)
@@ -247,7 +252,9 @@ func (s *Service) Register(ctx context.Context, runID, format string) (*File, er
 	}
 	d.Notes = []string{
 		"Amounts are in KES.",
-		"B/f is the balance brought forward from earlier pay runs (negative = the farmer owed the Sacco). C/f is carried forward to the next run.",
+		"Rate is the price per litre; * marks an average where the period had more than one price (the payslip lists each).",
+		"Brought fwd: the farmer's balance from earlier pay runs (minus = the farmer owed the Sacco, plus = still due to the farmer). Carried fwd: what the farmer still owes after this run, taken from the next one.",
+		"Each deduction taken in this run has its own column; a new deduction appears from the first run that takes it.",
 		"Advances & charges are those recorded since the last pay run, recovered in this one.",
 	}
 	data, ctype, ext, err := render(d, format)
@@ -298,7 +305,17 @@ func (s *Service) Payslip(ctx context.Context, runID, memberID string) (*File, e
 		{Label: "Net pay", Value: document.Format(document.Money, l.Net)},
 	}
 	t := document.Table{Title: "Pay", Columns: []document.Column{col("Item", document.Text, 3), col("Amount", document.Money, 1.2)}}
-	t.Rows = append(t.Rows, []any{"Milk delivered (" + trimZeros(l.Litres) + " L)", l.Gross})
+	// Milk, one row per price: a month with a price change shows both.
+	one := []PayRunLine{*l}
+	if err := s.withRates(ctx, run, one, memberID); err != nil {
+		return nil, err
+	}
+	if len(one[0].Rates) == 0 {
+		t.Rows = append(t.Rows, []any{"Milk delivered (" + trimZeros(l.Litres) + " L)", l.Gross})
+	}
+	for _, r := range one[0].Rates {
+		t.Rows = append(t.Rows, []any{fmt.Sprintf("Milk %s L @ KES %.2f", trimZeros(r.Litres), r.Rate), r.Amount})
+	}
 	if l.Opening != 0 {
 		label := "Brought forward from last pay run"
 		if l.Opening < 0 {

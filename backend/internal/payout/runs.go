@@ -502,6 +502,9 @@ func (s *Service) GetRun(ctx context.Context, id, search string, unpaidOnly bool
 			lines[i].Items = []LineItem{}
 		}
 	}
+	if err := s.withRates(ctx, run, lines, ""); err != nil {
+		return nil, err
+	}
 	return &RunDetail{Run: run, Lines: lines}, nil
 }
 

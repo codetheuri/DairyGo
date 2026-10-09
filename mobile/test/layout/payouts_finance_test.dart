@@ -4,6 +4,9 @@
 //
 //   flutter test test/layout/payouts_finance_test.dart
 
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -210,5 +213,54 @@ void main() {
     }
     expect(app.errors, isEmpty, reason: app.errors.join('\n'));
     expect(seen, {'from day': 1, 'milk': 1});
+  });
+
+  testWidgets('a payslip lists each price when the month had two', (
+    tester,
+  ) async {
+    _screen(tester, const Size(320, 640), 2);
+    // The paid run, with Jane's milk at two prices.
+    final name = 'sacco_pay-runs_$_paid';
+    final run =
+        jsonDecode(
+              File('test/layout/fixtures/admin/$name.json').readAsStringSync(),
+            )['body']
+            as Map<String, dynamic>;
+    for (final l
+        in (run['data']['lines'] as List).cast<Map<String, dynamic>>()) {
+      if (l['member_id'] == _jane) {
+        l['rates'] = [
+          {'rate': 42, 'litres': 300, 'amount': 12600},
+          {'rate': 45, 'litres': 100, 'amount': 4500},
+        ];
+        l['rate'] = 42.75;
+        l['mixed_rates'] = true;
+      }
+    }
+    final app = await AppUnderTest.open(
+      tester,
+      'admin',
+      '/payouts/runs/$_paid',
+      replaced: {name: run},
+    );
+    final seen = <String, int>{};
+    try {
+      await _settle(tester);
+      final jane = find.textContaining('Jane Muthoni');
+      await tester.scrollUntilVisible(
+        jane,
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.tap(jane);
+      await _settle(tester);
+      seen['at 42'] = find.textContaining('@ KES 42').evaluate().length;
+      seen['at 45'] = find.textContaining('@ KES 45').evaluate().length;
+    } finally {
+      await app.close();
+    }
+    expect(app.errors, isEmpty, reason: app.errors.join('\n'));
+    // Jane is paid, so her row shows the payment; the payslip has the prices.
+    expect(seen, {'at 42': 1, 'at 45': 1});
   });
 }

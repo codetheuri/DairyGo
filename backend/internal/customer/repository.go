@@ -202,9 +202,11 @@ func (r *Repository) LedgerEvents(ctx context.Context, saccoID, customerID strin
 		TotalAmount    float64
 		AmountPaid     float64
 		PaymentMethod  string
+		CollectorID    uint
+		LateReason     *string
 	}
 	err := r.db.WithContext(ctx).Table("milk_sales").
-		Select("id, sale_date, created_at, quantity_litres, unit_price, total_amount, amount_paid, payment_method").
+		Select("id, sale_date, created_at, quantity_litres, unit_price, total_amount, amount_paid, payment_method, collector_id, late_reason").
 		Where("sacco_id = ? AND customer_id = ? AND deleted_at IS NULL AND voided_at IS NULL AND sale_date BETWEEN ? AND ?", saccoID, customerID, fromStr, toStr).
 		Scan(&sales).Error
 	if err != nil {
@@ -221,6 +223,7 @@ func (r *Repository) LedgerEvents(ctx context.Context, saccoID, customerID strin
 
 	events := make([]LedgerEvent, 0, len(sales)+len(payments))
 	for _, s := range sales {
+		collector := s.CollectorID
 		desc := fmt.Sprintf("Milk sale %.2f L @ %.2f", s.QuantityLitres, s.UnitPrice)
 		if s.AmountPaid > 0 {
 			desc += fmt.Sprintf(", %.2f paid at sale (%s)", s.AmountPaid, s.PaymentMethod)
@@ -228,6 +231,7 @@ func (r *Repository) LedgerEvents(ctx context.Context, saccoID, customerID strin
 		events = append(events, LedgerEvent{
 			Kind: EntrySale, ReferenceID: s.ID, Date: s.SaleDate, CreatedAt: s.CreatedAt,
 			Description: desc, Litres: s.QuantityLitres, Debit: s.TotalAmount, Credit: s.AmountPaid,
+			Rate: s.UnitPrice, RecordedByID: &collector, Method: s.PaymentMethod, LateReason: s.LateReason,
 		})
 	}
 	for _, p := range payments {
@@ -235,12 +239,52 @@ func (r *Repository) LedgerEvents(ctx context.Context, saccoID, customerID strin
 		if p.Reference != nil && *p.Reference != "" {
 			desc += " ref " + *p.Reference
 		}
+		ref := ""
+		if p.Reference != nil {
+			ref = *p.Reference
+		}
 		events = append(events, LedgerEvent{
 			Kind: EntryPayment, ReferenceID: p.ID, Date: p.PaymentDate, CreatedAt: p.CreatedAt,
 			Description: desc, Credit: p.Amount,
+			RecordedByID: p.RecordedByID, Method: string(p.Method), Reference: ref,
 		})
 	}
+	r.nameRecorders(ctx, events)
 	return events, nil
+}
+
+// nameRecorders fills in who recorded each event: a staff member's full
+// name, or their username when no name is set.
+func (r *Repository) nameRecorders(ctx context.Context, events []LedgerEvent) {
+	ids := make([]uint, 0, len(events))
+	for _, e := range events {
+		if e.RecordedByID != nil {
+			ids = append(ids, *e.RecordedByID)
+		}
+	}
+	if len(ids) == 0 {
+		return
+	}
+	var rows []struct {
+		ID   uint
+		Name string
+	}
+	err := r.db.WithContext(ctx).Table("users u").
+		Select("u.id, COALESCE(NULLIF(TRIM(COALESCE(p.first_name, '') || ' ' || COALESCE(p.last_name, '')), ''), u.username) AS name").
+		Joins("LEFT JOIN user_profiles p ON p.user_id = u.id").
+		Where("u.id IN ?", ids).Scan(&rows).Error
+	if err != nil {
+		return // names are a convenience; the statement stands without them
+	}
+	names := make(map[uint]string, len(rows))
+	for _, row := range rows {
+		names[row.ID] = row.Name
+	}
+	for i := range events {
+		if events[i].RecordedByID != nil {
+			events[i].RecordedBy = names[*events[i].RecordedByID]
+		}
+	}
 }
 
 // CheckCashAccount checks an account belongs to the Sacco and is in use.

@@ -630,7 +630,18 @@ mixin _$StatementLineModel {
   double get litres => throw _privateConstructorUsedError;
   double get debit => throw _privateConstructorUsedError;
   double get credit => throw _privateConstructorUsedError;
-  double get balance => throw _privateConstructorUsedError;
+  double get balance =>
+      throw _privateConstructorUsedError; // Sales: price per litre.
+  double get rate =>
+      throw _privateConstructorUsedError; // The collector who sold, or the staff member who took the payment.
+  @JsonKey(name: 'recorded_by')
+  String? get recordedBy => throw _privateConstructorUsedError;
+  @JsonKey(name: 'recorded_at')
+  String? get recordedAt => throw _privateConstructorUsedError;
+  String? get method => throw _privateConstructorUsedError;
+  String? get reference => throw _privateConstructorUsedError;
+  @JsonKey(name: 'late_reason')
+  String? get lateReason => throw _privateConstructorUsedError;
 
   /// Serializes this StatementLineModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -658,6 +669,12 @@ abstract class $StatementLineModelCopyWith<$Res> {
     double debit,
     double credit,
     double balance,
+    double rate,
+    @JsonKey(name: 'recorded_by') String? recordedBy,
+    @JsonKey(name: 'recorded_at') String? recordedAt,
+    String? method,
+    String? reference,
+    @JsonKey(name: 'late_reason') String? lateReason,
   });
 }
 
@@ -684,6 +701,12 @@ class _$StatementLineModelCopyWithImpl<$Res, $Val extends StatementLineModel>
     Object? debit = null,
     Object? credit = null,
     Object? balance = null,
+    Object? rate = null,
+    Object? recordedBy = freezed,
+    Object? recordedAt = freezed,
+    Object? method = freezed,
+    Object? reference = freezed,
+    Object? lateReason = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -719,6 +742,30 @@ class _$StatementLineModelCopyWithImpl<$Res, $Val extends StatementLineModel>
                 ? _value.balance
                 : balance // ignore: cast_nullable_to_non_nullable
                       as double,
+            rate: null == rate
+                ? _value.rate
+                : rate // ignore: cast_nullable_to_non_nullable
+                      as double,
+            recordedBy: freezed == recordedBy
+                ? _value.recordedBy
+                : recordedBy // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            recordedAt: freezed == recordedAt
+                ? _value.recordedAt
+                : recordedAt // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            method: freezed == method
+                ? _value.method
+                : method // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            reference: freezed == reference
+                ? _value.reference
+                : reference // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            lateReason: freezed == lateReason
+                ? _value.lateReason
+                : lateReason // ignore: cast_nullable_to_non_nullable
+                      as String?,
           )
           as $Val,
     );
@@ -743,6 +790,12 @@ abstract class _$$StatementLineModelImplCopyWith<$Res>
     double debit,
     double credit,
     double balance,
+    double rate,
+    @JsonKey(name: 'recorded_by') String? recordedBy,
+    @JsonKey(name: 'recorded_at') String? recordedAt,
+    String? method,
+    String? reference,
+    @JsonKey(name: 'late_reason') String? lateReason,
   });
 }
 
@@ -768,6 +821,12 @@ class __$$StatementLineModelImplCopyWithImpl<$Res>
     Object? debit = null,
     Object? credit = null,
     Object? balance = null,
+    Object? rate = null,
+    Object? recordedBy = freezed,
+    Object? recordedAt = freezed,
+    Object? method = freezed,
+    Object? reference = freezed,
+    Object? lateReason = freezed,
   }) {
     return _then(
       _$StatementLineModelImpl(
@@ -803,6 +862,30 @@ class __$$StatementLineModelImplCopyWithImpl<$Res>
             ? _value.balance
             : balance // ignore: cast_nullable_to_non_nullable
                   as double,
+        rate: null == rate
+            ? _value.rate
+            : rate // ignore: cast_nullable_to_non_nullable
+                  as double,
+        recordedBy: freezed == recordedBy
+            ? _value.recordedBy
+            : recordedBy // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        recordedAt: freezed == recordedAt
+            ? _value.recordedAt
+            : recordedAt // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        method: freezed == method
+            ? _value.method
+            : method // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        reference: freezed == reference
+            ? _value.reference
+            : reference // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        lateReason: freezed == lateReason
+            ? _value.lateReason
+            : lateReason // ignore: cast_nullable_to_non_nullable
+                  as String?,
       ),
     );
   }
@@ -820,6 +903,12 @@ class _$StatementLineModelImpl implements _StatementLineModel {
     this.debit = 0.0,
     this.credit = 0.0,
     this.balance = 0.0,
+    this.rate = 0.0,
+    @JsonKey(name: 'recorded_by') this.recordedBy,
+    @JsonKey(name: 'recorded_at') this.recordedAt,
+    this.method,
+    this.reference,
+    @JsonKey(name: 'late_reason') this.lateReason,
   });
 
   factory _$StatementLineModelImpl.fromJson(Map<String, dynamic> json) =>
@@ -849,10 +938,28 @@ class _$StatementLineModelImpl implements _StatementLineModel {
   @override
   @JsonKey()
   final double balance;
+  // Sales: price per litre.
+  @override
+  @JsonKey()
+  final double rate;
+  // The collector who sold, or the staff member who took the payment.
+  @override
+  @JsonKey(name: 'recorded_by')
+  final String? recordedBy;
+  @override
+  @JsonKey(name: 'recorded_at')
+  final String? recordedAt;
+  @override
+  final String? method;
+  @override
+  final String? reference;
+  @override
+  @JsonKey(name: 'late_reason')
+  final String? lateReason;
 
   @override
   String toString() {
-    return 'StatementLineModel(kind: $kind, referenceId: $referenceId, date: $date, description: $description, litres: $litres, debit: $debit, credit: $credit, balance: $balance)';
+    return 'StatementLineModel(kind: $kind, referenceId: $referenceId, date: $date, description: $description, litres: $litres, debit: $debit, credit: $credit, balance: $balance, rate: $rate, recordedBy: $recordedBy, recordedAt: $recordedAt, method: $method, reference: $reference, lateReason: $lateReason)';
   }
 
   @override
@@ -869,7 +976,17 @@ class _$StatementLineModelImpl implements _StatementLineModel {
             (identical(other.litres, litres) || other.litres == litres) &&
             (identical(other.debit, debit) || other.debit == debit) &&
             (identical(other.credit, credit) || other.credit == credit) &&
-            (identical(other.balance, balance) || other.balance == balance));
+            (identical(other.balance, balance) || other.balance == balance) &&
+            (identical(other.rate, rate) || other.rate == rate) &&
+            (identical(other.recordedBy, recordedBy) ||
+                other.recordedBy == recordedBy) &&
+            (identical(other.recordedAt, recordedAt) ||
+                other.recordedAt == recordedAt) &&
+            (identical(other.method, method) || other.method == method) &&
+            (identical(other.reference, reference) ||
+                other.reference == reference) &&
+            (identical(other.lateReason, lateReason) ||
+                other.lateReason == lateReason));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -884,6 +1001,12 @@ class _$StatementLineModelImpl implements _StatementLineModel {
     debit,
     credit,
     balance,
+    rate,
+    recordedBy,
+    recordedAt,
+    method,
+    reference,
+    lateReason,
   );
 
   /// Create a copy of StatementLineModel
@@ -913,6 +1036,12 @@ abstract class _StatementLineModel implements StatementLineModel {
     final double debit,
     final double credit,
     final double balance,
+    final double rate,
+    @JsonKey(name: 'recorded_by') final String? recordedBy,
+    @JsonKey(name: 'recorded_at') final String? recordedAt,
+    final String? method,
+    final String? reference,
+    @JsonKey(name: 'late_reason') final String? lateReason,
   }) = _$StatementLineModelImpl;
 
   factory _StatementLineModel.fromJson(Map<String, dynamic> json) =
@@ -934,7 +1063,22 @@ abstract class _StatementLineModel implements StatementLineModel {
   @override
   double get credit;
   @override
-  double get balance;
+  double get balance; // Sales: price per litre.
+  @override
+  double get rate; // The collector who sold, or the staff member who took the payment.
+  @override
+  @JsonKey(name: 'recorded_by')
+  String? get recordedBy;
+  @override
+  @JsonKey(name: 'recorded_at')
+  String? get recordedAt;
+  @override
+  String? get method;
+  @override
+  String? get reference;
+  @override
+  @JsonKey(name: 'late_reason')
+  String? get lateReason;
 
   /// Create a copy of StatementLineModel
   /// with the given fields replaced by the non-null parameter values.

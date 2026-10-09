@@ -72,6 +72,14 @@ class StatementLineModel with _$StatementLineModel {
     @Default(0.0) double debit,
     @Default(0.0) double credit,
     @Default(0.0) double balance,
+    // Sales: price per litre.
+    @Default(0.0) double rate,
+    // The collector who sold, or the staff member who took the payment.
+    @JsonKey(name: 'recorded_by') String? recordedBy,
+    @JsonKey(name: 'recorded_at') String? recordedAt,
+    String? method,
+    String? reference,
+    @JsonKey(name: 'late_reason') String? lateReason,
   }) = _StatementLineModel;
 
   factory StatementLineModel.fromJson(Map<String, dynamic> json) =>

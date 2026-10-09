@@ -62,6 +62,12 @@ _$StatementLineModelImpl _$$StatementLineModelImplFromJson(
   debit: (json['debit'] as num?)?.toDouble() ?? 0.0,
   credit: (json['credit'] as num?)?.toDouble() ?? 0.0,
   balance: (json['balance'] as num?)?.toDouble() ?? 0.0,
+  rate: (json['rate'] as num?)?.toDouble() ?? 0.0,
+  recordedBy: json['recorded_by'] as String?,
+  recordedAt: json['recorded_at'] as String?,
+  method: json['method'] as String?,
+  reference: json['reference'] as String?,
+  lateReason: json['late_reason'] as String?,
 );
 
 Map<String, dynamic> _$$StatementLineModelImplToJson(
@@ -75,6 +81,12 @@ Map<String, dynamic> _$$StatementLineModelImplToJson(
   'debit': instance.debit,
   'credit': instance.credit,
   'balance': instance.balance,
+  'rate': instance.rate,
+  'recorded_by': instance.recordedBy,
+  'recorded_at': instance.recordedAt,
+  'method': instance.method,
+  'reference': instance.reference,
+  'late_reason': instance.lateReason,
 };
 
 _$CustomerStatementModelImpl _$$CustomerStatementModelImplFromJson(

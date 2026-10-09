@@ -26,6 +26,14 @@ type LedgerEvent struct {
 	Litres      float64
 	Debit       float64
 	Credit      float64
+	// Who and how, shown when a line is opened: Rate is the sale's price
+	// per litre; RecordedByID the collector (sale) or staff (payment).
+	Rate         float64
+	RecordedByID *uint
+	RecordedBy   string
+	Method       string
+	Reference    string
+	LateReason   *string
 }
 
 // StatementLine is one row of a customer statement with its running balance.
@@ -38,6 +46,12 @@ type StatementLine struct {
 	Debit       float64   `json:"debit"`
 	Credit      float64   `json:"credit"`
 	Balance     float64   `json:"balance"`
+	Rate        float64   `json:"rate,omitempty" doc:"Sales: price per litre"`
+	RecordedBy  string    `json:"recorded_by,omitempty" doc:"The collector who made the sale, or the staff member who recorded the payment"`
+	RecordedAt  time.Time `json:"recorded_at" doc:"When it was entered"`
+	Method      string    `json:"method,omitempty" doc:"How it was paid (CASH, MPESA, BANK_TRANSFER, CHEQUE, CREDIT)"`
+	Reference   string    `json:"reference,omitempty" doc:"Payments: M-Pesa code or other reference"`
+	LateReason  *string   `json:"late_reason,omitempty" doc:"Sales entered after their day by DairyGo support: why"`
 }
 
 // Statement is a customer's ledger over a period. A positive balance is money
@@ -80,6 +94,12 @@ func buildStatement(opening float64, events []LedgerEvent) (lines []StatementLin
 			Debit:       round2(e.Debit),
 			Credit:      round2(e.Credit),
 			Balance:     balance,
+			Rate:        round2(e.Rate),
+			RecordedBy:  e.RecordedBy,
+			RecordedAt:  e.CreatedAt,
+			Method:      e.Method,
+			Reference:   e.Reference,
+			LateReason:  e.LateReason,
 		})
 	}
 	return lines, round2(totalDebit), round2(totalCredit), balance

@@ -203,16 +203,19 @@ func customerStatement(ctx context.Context, s *Service, in *input) error {
 	}
 	t := document.Table{
 		Columns: []document.Column{
-			col("Date", day, 1.1), col("Details", txt, 2.6), col("Litres", ltr, 0.9),
-			col("Sales", money, 1.3), col("Payments", money, 1.3), col("Balance", money, 1.4),
+			col("Date", day, 1.15), col("Details", txt, 1.85), col("Litres", ltr, 0.8), col("Rate", num, 0.7),
+			col("Sales", money, 1.45), col("Payments", money, 1.5), col("Balance", money, 1.55), col("Recorded by", txt, 1.4),
 		},
-		Rows: [][]any{{in.from, "Balance brought forward", nil, nil, nil, st.OpeningBalance}},
+		Rows: [][]any{{in.from, "Balance brought forward", nil, nil, nil, nil, st.OpeningBalance, nil}},
 	}
 	for _, line := range st.Lines {
 		date, _ := time.Parse(dateLayout, line.Date[:min(len(line.Date), 10)])
-		var l, debit, credit any
+		var l, rate, debit, credit any
 		if line.Litres != 0 {
 			l = line.Litres
+		}
+		if line.Rate != 0 {
+			rate = line.Rate
 		}
 		if line.Debit != 0 {
 			debit = line.Debit
@@ -220,9 +223,10 @@ func customerStatement(ctx context.Context, s *Service, in *input) error {
 		if line.Credit != 0 {
 			credit = line.Credit
 		}
-		t.Rows = append(t.Rows, []any{date, statementDetails(line.Kind, line.Description, line.Debit, line.Credit), l, debit, credit, line.Balance})
+		t.Rows = append(t.Rows, []any{date, statementDetails(line.Kind, line.Description, line.Debit, line.Credit), l, rate,
+			debit, credit, line.Balance, line.RecordedBy})
 	}
-	t.Totals = []any{"Closing balance", nil, nil, st.TotalDebit, st.TotalCredit, st.ClosingBalance}
+	t.Totals = []any{"Total", "Closing balance", nil, nil, st.TotalDebit, st.TotalCredit, st.ClosingBalance, nil}
 	owes := "Owes the Sacco"
 	if st.ClosingBalance < 0 {
 		owes = "In credit"
@@ -232,7 +236,8 @@ func customerStatement(ctx context.Context, s *Service, in *input) error {
 		{Label: "Payments", Value: kes(st.TotalCredit)}, {Label: owes, Value: kes(abs(st.ClosingBalance))},
 	}
 	in.doc.Tables = []document.Table{t}
-	in.doc.Notes = []string{"Sales add to what the customer owes; payments reduce it. A negative balance is money paid in advance."}
+	in.doc.Notes = []string{"Sales add to what the customer owes; payments reduce it. A negative balance is money paid in advance.",
+		"Rate is the price per litre of each sale. Recorded by: the collector who made the sale, or who recorded the payment."}
 	return nil
 }
 

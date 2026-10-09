@@ -42,3 +42,19 @@ func TestBuildStatementEmptyKeepsOpening(t *testing.T) {
 		t.Fatalf("unexpected: %v %v %v %v", lines, debit, credit, closing)
 	}
 }
+
+// A line keeps who recorded it, when, the rate and how it was paid, so the
+// app can show them when the line is opened.
+func TestBuildStatementKeepsWhoAndRate(t *testing.T) {
+	at := time.Date(2026, 10, 5, 10, 42, 0, 0, time.UTC)
+	late := "Receipt found later"
+	id := uint(7)
+	lines, _, _, _ := buildStatement(0, []LedgerEvent{{
+		Kind: EntrySale, ReferenceID: "s1", Date: at, CreatedAt: at, Litres: 20, Debit: 1240,
+		Rate: 62, RecordedByID: &id, RecordedBy: "Alice Wanjiru", Method: "CREDIT", LateReason: &late,
+	}})
+	l := lines[0]
+	if l.Rate != 62 || l.RecordedBy != "Alice Wanjiru" || !l.RecordedAt.Equal(at) || l.Method != "CREDIT" || l.LateReason != &late {
+		t.Errorf("line lost who/rate: %+v", l)
+	}
+}

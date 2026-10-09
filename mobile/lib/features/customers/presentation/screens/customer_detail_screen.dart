@@ -12,6 +12,7 @@ import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../data/models/customer_models.dart';
 import '../controllers/customer_controller.dart';
 import '../widgets/record_payment_dialog.dart';
+import '../widgets/statement_line_sheet.dart';
 import '../../../../core/layout/breakpoints.dart';
 import '../../../../core/widgets/skeleton.dart';
 
@@ -300,12 +301,14 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
         e.toString().replaceAll('Exception: ', ''),
         style: const TextStyle(color: AppColors.error),
       ),
-      data: (st) => Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
+      // Material, so the tappable lines show their touch feedback.
+      data: (st) => Material(
+        color: Colors.white,
+        shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.cardBorder),
+          side: const BorderSide(color: AppColors.cardBorder),
         ),
+        clipBehavior: Clip.antiAlias,
         child: Column(
           children: [
             _summaryRow('Opening balance', st.openingBalance, bold: true),
@@ -337,9 +340,11 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                 subtitle: Text(
                   '${line.date}  •  '
                   '${line.debit > 0 ? '+${line.debit.toStringAsFixed(2)}  ' : ''}'
-                  '${line.credit > 0 ? '−${line.credit.toStringAsFixed(2)}' : ''}',
+                  '${line.credit > 0 ? '−${line.credit.toStringAsFixed(2)}' : ''}'
+                  '${(line.recordedBy ?? '').isEmpty ? '' : '\nby ${line.recordedBy}'}',
                   style: const TextStyle(fontSize: 11),
                 ),
+                onTap: () => StatementLineSheet.show(context, line),
                 trailing: Text(
                   line.balance.toStringAsFixed(2),
                   style: const TextStyle(fontWeight: FontWeight.w700),
@@ -353,11 +358,13 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
             _summaryRow('Sales in period', st.totalDebit),
             _summaryRow('Paid in period', -st.totalCredit),
             _summaryRow('Closing balance', st.closingBalance, bold: true),
-            if (isAdmin && st.lines.any((l) => l.kind == 'PAYMENT'))
-              const Padding(
-                padding: EdgeInsets.only(bottom: 10),
+            if (st.lines.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10),
                 child: Text(
-                  'Long-press a payment to void it.',
+                  isAdmin && st.lines.any((l) => l.kind == 'PAYMENT')
+                      ? 'Tap a line to see who recorded it. Long-press a payment to void it.'
+                      : 'Tap a line to see who recorded it.',
                   style: TextStyle(fontSize: 11, color: AppColors.textMuted),
                 ),
               ),

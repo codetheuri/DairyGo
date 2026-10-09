@@ -52,6 +52,32 @@ price in force today.
 
 `is_active = false` marks a price row as voided; voided rows are never used.
 
+## A farmer's own price
+
+Some farmers are agreed a different price (e.g. 45 instead of the Sacco's
+42). `member_prices` (migration `00026`) is a farmer's own schedule: the
+latest row on or before a day sets that day's price, and a row with no
+price puts them back on the Sacco's price from its date. With no row, the
+Sacco's schedule applies. `pricedOn` in `internal/collection/member_price.go`
+is the one rule, used both at intake and when repricing (table-tested).
+
+Adding or cancelling a row **reprices the farmer's unpaid milk**: every
+collection dated after `payroll_closed_through` is compared with the rule,
+and those whose price changes get the new price and total, each with a
+history line ("Farmer price from 3 Oct 2026: KES 45.00 (reason)"). Paid
+months never change. A draft pay run must be worked out again.
+
+| Method | Path | Who |
+| :--- | :--- | :--- |
+| GET | `/sacco/members/{id}/prices` | `milk.prices.read`: price today, own or Sacco's, and the schedule |
+| GET | `/sacco/members/{id}/price?date=` | `milk.prices.read`: the price for a day (intake form) |
+| POST | `/sacco/members/{id}/prices` | `milk.prices.manage`: `price_per_litre` or `back_to_sacco_price`, `effective_date`, `reason`; `preview` only counts |
+| POST | `/sacco/members/{id}/prices/{price_id}/void` | `milk.prices.manage`: cancel a row (with `reason`) |
+
+App: Farmer profile → **Buying price** (Set own price, with the number of
+records that will change shown before saving); Record Intake shows the
+farmer's own price once they are picked.
+
 ## Who can edit, and when
 
 | Caller | May edit |

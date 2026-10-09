@@ -42,6 +42,28 @@ func RegisterRoutes(api huma.API, db *gorm.DB, cfg *config.Config, log logger.Lo
 		Tags:        []string{"Milk Pricing"},
 	}, PermMilkPricesRead), handler.GetActivePrice)
 
+	// A farmer's own buying price (member_price.go).
+	huma.Register(api, guard.Protected(huma.Operation{
+		OperationID: "member-prices", Method: http.MethodGet, Path: "/api/v1/sacco/members/{id}/prices",
+		Summary: "A farmer's buying price", Tags: []string{"Milk Pricing"},
+		Description: "The price this farmer's milk is bought at today, whether it is their own or the Sacco's, and their own price schedule.",
+	}, PermMilkPricesRead), handler.MemberPrices)
+	huma.Register(api, guard.Protected(huma.Operation{
+		OperationID: "member-price-for-day", Method: http.MethodGet, Path: "/api/v1/sacco/members/{id}/price",
+		Summary: "A farmer's price on a day", Tags: []string{"Milk Pricing"},
+		Description: "What this farmer's milk on a day (default today) is bought at, for the intake form.",
+	}, PermMilkPricesRead), handler.MemberPriceForDay)
+	huma.Register(api, guard.Protected(huma.Operation{
+		OperationID: "set-member-price", Method: http.MethodPost, Path: "/api/v1/sacco/members/{id}/prices",
+		Summary: "Set a farmer's own buying price", Tags: []string{"Milk Pricing"},
+		Description: "From effective_date this farmer is paid price_per_litre (or the Sacco's price again with back_to_sacco_price). Their milk from that date not yet in an approved pay run is repriced, each with a history line; paid months never change. preview only counts.",
+	}, PermMilkPricesManage), handler.SetMemberPrice)
+	huma.Register(api, guard.Protected(huma.Operation{
+		OperationID: "void-member-price", Method: http.MethodPost, Path: "/api/v1/sacco/members/{id}/prices/{price_id}/void",
+		Summary: "Cancel a farmer's price entered in error", Tags: []string{"Milk Pricing"},
+		Description: "Cancels a row of the farmer's schedule and reprices their unpaid milk accordingly.",
+	}, PermMilkPricesManage), handler.VoidMemberPrice)
+
 	huma.Register(api, guard.Protected(huma.Operation{
 		OperationID: "list-milk-prices",
 		Method:      http.MethodGet,

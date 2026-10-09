@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 
 ### Added
+- **A farmer's own buying price** (migration `00026`, [docs/collections-and-pricing.md](docs/collections-and-pricing.md)): a price schedule per farmer (or back to the Sacco's price) from a date; their unpaid milk from that date is repriced with a history line, paid months never change. App: Farmer profile → Buying price; Record Intake shows the farmer's price.
 - **Farmer pay** (`internal/payout`, migrations `00021`, `00022`, [docs/payouts.md](docs/payouts.md)):
   - every farmer has an account; advances (with a per-period limit), charges and adjustments;
   - deductions are rules each Sacco sets (fixed, percent, per litre or fee bands; every run, once, yearly or until a target), with per-farmer amounts, targets and exemptions;

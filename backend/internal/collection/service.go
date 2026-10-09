@@ -194,16 +194,18 @@ func (s *Service) RecordCollection(ctx context.Context, req *RecordCollectionReq
 		return nil, fmt.Errorf("a collection for this member has already been recorded for date '%s' shift '%s'. Please edit the existing record instead", dateStr, shift)
 	}
 
-	// Snapshot the buying price in force on the collection date.
+	// Snapshot the buying price in force on the collection date for this
+	// farmer.
 	var pricePerLitre float64
 	if req.PricePerLitre != nil && *req.PricePerLitre > 0 && middleware.IsSuperUser(ctx) {
 		pricePerLitre = *req.PricePerLitre
 	} else {
-		price, err := s.repo.GetPriceForDate(ctx, collectionDate)
+		// The farmer's own price when they have one, else the Sacco's.
+		price, _, err := s.priceFor(ctx, saccoID, req.MemberID, collectionDate)
 		if err != nil {
 			return nil, fmt.Errorf("cannot record collection: %w", err)
 		}
-		pricePerLitre = price.PricePerLitre
+		pricePerLitre = price
 	}
 
 	totalAmount := math.Round(req.QuantityLitres*pricePerLitre*100) / 100

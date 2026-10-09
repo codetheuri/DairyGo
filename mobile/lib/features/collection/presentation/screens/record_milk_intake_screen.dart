@@ -12,6 +12,7 @@ import '../../../members/presentation/widgets/farmer_picker_sheet.dart';
 import '../../data/models/milk_collection_model.dart';
 import '../controllers/collection_controller.dart';
 import '../../../../core/layout/breakpoints.dart';
+import '../../../members/data/prices/member_price_providers.dart';
 
 class RecordMilkIntakeScreen extends ConsumerStatefulWidget {
   final String? initialMemberId;
@@ -110,6 +111,16 @@ class _RecordMilkIntakeScreenState
     );
     final selectedMember = _selectedMember ?? _initialMember();
     final hasMember = selectedMember != null;
+    // Once a farmer is picked, their own price if they have one.
+    final own = hasMember
+        ? ref.watch(memberPriceTodayProvider(selectedMember.id)).valueOrNull
+        : null;
+    final rateLabel = own != null && own.own
+        ? "${selectedMember!.firstName}'s own price"
+        : 'Active Sacco Buying Rate';
+    final rateText = own != null && own.own
+        ? 'KES ${own.price.toStringAsFixed(2)} / Litre'
+        : priceText;
 
     return Scaffold(
       appBar: AppBar(
@@ -191,16 +202,16 @@ class _RecordMilkIntakeScreenState
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text(
-                                  'Active Sacco Buying Rate',
-                                  style: TextStyle(
+                                Text(
+                                  rateLabel,
+                                  style: const TextStyle(
                                     fontSize: 12,
                                     color: AppColors.textSecondary,
                                   ),
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
-                                  priceText,
+                                  rateText,
                                   style: const TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,

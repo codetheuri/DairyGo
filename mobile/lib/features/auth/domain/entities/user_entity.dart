@@ -140,6 +140,7 @@ class UserEntity with _$UserEntity {
   bool get canManageAccounts =>
       can('finance.accounts.manage', whenUnknown: false);
   bool get canSetPrice => can('milk.prices.manage', whenUnknown: isSaccoAdmin);
+  bool get seesPrices => can('milk.prices.read', whenUnknown: true);
 
   String get displayRole {
     if (isSuperUser) return 'Platform Administrator';

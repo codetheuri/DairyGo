@@ -16,6 +16,7 @@ import '../widgets/farmer_status_sheet.dart';
 import '../widgets/next_of_kin_dialog.dart';
 import '../../../../core/layout/breakpoints.dart';
 import '../../../../core/widgets/skeleton.dart';
+import '../widgets/buying_price_card.dart';
 
 class FarmerProfileScreen extends ConsumerWidget {
   final String memberId;
@@ -327,6 +328,14 @@ class FarmerProfileScreen extends ConsumerWidget {
 
                   if (user?.seesPayRuns ?? false) ...[
                     FarmerAccountCard(memberId: member.id),
+                    const SizedBox(height: 20),
+                  ],
+
+                  if (user?.seesPrices ?? false) ...[
+                    BuyingPriceCard(
+                      memberId: member.id,
+                      farmerName: member.fullName,
+                    ),
                     const SizedBox(height: 20),
                   ],
 

@@ -85,6 +85,10 @@ func RegisterRoutes(api huma.API, db *gorm.DB, cfg *config.Config, log logger.Lo
 		"Enter spoilage for an earlier day", "Needs collector_id, spoilage_date before today and late_reason."), lh.Spoilage)
 	huma.Register(api, op("platform-late-transfer", http.MethodPost, "/api/v1/admin/saccos/{id}/late-entries/transfers",
 		"Enter a transfer for an earlier day", "Needs from_collector_id, to_collector_id, transfer_date before today and late_reason."), lh.Transfer)
+	huma.Register(api, op("platform-collector-day", http.MethodGet, "/api/v1/admin/saccos/{id}/collector-records",
+		"What a collector's account saved on a day", "Intakes, sales and spoilage for the day and customer payments dated that day, in the order saved, with the collectors they can be moved to."), lh.CollectorDay)
+	huma.Register(api, op("platform-reassign-records", http.MethodPost, "/api/v1/admin/saccos/{id}/collector-records/move",
+		"Move records to the collector who made them", "For records saved on a colleague's signed-in phone. Changes only who made them (litres, prices and pay stay); needs a reason, kept in each record's history. Every record must still be on from_collector_id, or nothing moves."), lh.Reassign)
 
 	huma.Register(api, op("platform-audit-logs", http.MethodGet, "/api/v1/admin/audit-logs",
 		"Audit trail", "Who changed what across all Saccos, newest first."), h.AuditLogs)

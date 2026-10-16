@@ -297,7 +297,7 @@ function compact(values) {
 const routes = [
   { pattern: /^$/, page: overviewPage, nav: 'overview' },
   { pattern: /^saccos$/, page: saccosPage, nav: 'saccos' },
-  { pattern: /^saccos\/([^/]+)(?:\/(staff|farmers|money|late|activity|errors))?$/, page: saccoPage, nav: 'saccos' },
+  { pattern: /^saccos\/([^/]+)(?:\/(staff|farmers|money|late|who|activity|errors))?$/, page: saccoPage, nav: 'saccos' },
   { pattern: /^roles$/, page: rolesPage, nav: 'roles' },
   { pattern: /^audit$/, page: auditPage, nav: 'audit' },
   { pattern: /^errors$/, page: errorsPage, nav: 'errors' },
@@ -578,9 +578,9 @@ async function saccoPage(id, tab = 'staff') {
     : [h('button', { class: 'primary', text: 'Reactivate', onclick: () => setStatus('ACTIVE', 'Reactivate') })];
 
   const tabs = [['staff', 'Staff'], ['farmers', 'Farmers'], ['money', 'Pay & money'], ['late', 'Late entries'],
-    ['activity', 'Activity'], ['errors', 'Errors']];
+    ['who', 'Who recorded'], ['activity', 'Activity'], ['errors', 'Errors']];
 
-  const pages = { staff: staffTab, farmers: farmersTab, money: moneyTab, late: lateTab, activity: activityTab, errors: saccoErrorsTab };
+  const pages = { staff: staffTab, farmers: farmersTab, money: moneyTab, late: lateTab, who: whoTab, activity: activityTab, errors: saccoErrorsTab };
   pages[tab](sacco).then((node) => content.replaceChildren(node))
     .catch((err) => content.replaceChildren(h('p', { class: 'form-error', text: err.message })));
 
@@ -1008,6 +1008,85 @@ async function lateTab(sacco) {
     ], data.records, { empty: 'No late entries yet.' }));
 }
 
+// Records saved on the wrong collector's account: a collector whose phone
+// failed worked on a colleague's phone that was still signed in. List what
+// that account saved on the day, tick the ones the other collector made and
+// move them. Only who made them changes (litres, prices and pay stay); each
+// moved record keeps the reason in its history.
+async function whoTab(sacco) {
+  const base = `/admin/saccos/${sacco.id}/collector-records`;
+  const pad = (n) => String(n).padStart(2, '0');
+  const now = new Date();
+  const today = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+  const { collectors } = await api('GET', base);
+  const who = select([['', 'Whose account…'], ...collectors.map((c) => [String(c.id), c.name])]);
+  const day = h('input', { type: 'date', value: today, max: today, attrs: { 'aria-label': 'Day' } });
+  const holder = h('div', { class: 'muted small', text: 'Choose the account the records were saved on, and the day.' });
+  const kinds = { INTAKE: 'Intake', SALE: 'Sale', SPOILAGE: 'Spoilage', PAYMENT: 'Payment' };
+
+  const load = async () => {
+    if (!who.value) return;
+    holder.replaceChildren(h('div', { class: 'loading', text: 'Loading…' }));
+    let records;
+    try {
+      ({ records } = await api('GET', `${base}${qs({ collector_id: who.value, date: day.value })}`));
+    } catch (err) { holder.replaceChildren(h('p', { class: 'form-error', text: err.message })); return; }
+    const from = collectors.find((c) => String(c.id) === who.value);
+    const picked = new Set();
+    const boxes = [];
+    const moveBtn = h('button', { class: 'primary', text: 'Move selected…', disabled: true });
+    const count = () => { moveBtn.disabled = picked.size === 0; moveBtn.textContent = picked.size ? `Move ${plural(picked.size, 'record')}…` : 'Move selected…'; };
+    const box = (x) => {
+      const key = `${x.kind}:${x.id}`;
+      const el = h('input', { type: 'checkbox', attrs: { 'aria-label': 'Choose' },
+        onchange: () => { if (el.checked) picked.add(key); else picked.delete(key); count(); } });
+      boxes.push([el, key]);
+      return el;
+    };
+    const all = (on) => { boxes.forEach(([el, key]) => { el.checked = on; if (on) picked.add(key); else picked.delete(key); }); count(); };
+    moveBtn.addEventListener('click', () => openForm({
+      title: `Move ${plural(picked.size, 'record')} from ${from.name}`,
+      intro: 'Only who made them changes: litres, prices, the day and the farmer\'s pay stay. Both collectors\' daily balances follow at once.',
+      fields: [
+        { name: 'to', label: 'Collector who really made them', type: 'select', required: true,
+          options: [['', 'Choose…'], ...collectors.filter((c) => c.id !== from.id).map((c) => [String(c.id), c.name])] },
+        { name: 'reason', label: 'Why (kept in each record\'s history)', type: 'textarea', full: true, required: true,
+          placeholder: `e.g. ${from.name}'s phone was used while the other collector's was off` },
+      ],
+      submitLabel: 'Move records',
+      onSubmit: async (v) => {
+        const res = await api('POST', `${base}/move`, { from_collector_id: from.id, to_collector_id: Number(v.to), reason: v.reason,
+          records: [...picked].map((k) => { const [kind, id] = k.split(':'); return { kind, id }; }) });
+        toast(`${plural(res.moved, 'record')} moved to ${res.to}`);
+        load();
+      },
+    }));
+    holder.replaceChildren(
+      h('div', { class: 'actions' },
+        h('button', { text: 'Select all', onclick: () => all(true), disabled: records.length === 0 }),
+        h('button', { text: 'Clear', onclick: () => all(false), disabled: records.length === 0 }), moveBtn),
+      table([
+        { label: '', render: box },
+        { label: 'Saved at', render: (x) => new Date(x.at).toLocaleTimeString('en-KE', { hour: '2-digit', minute: '2-digit' }) },
+        { label: 'Record', render: (x) => h('span', {}, kinds[x.kind] || x.kind, x.voided ? ' ' : '', x.voided ? pill('VOID') : '') },
+        { label: 'Farmer / customer / detail', render: (x) => h('div', {}, h('div', { text: x.party || '—' }),
+          x.shift ? h('div', { class: 'sub', text: x.shift.replace('_', ' ').toLowerCase() }) : null,
+          x.late_reason ? h('div', { class: 'sub', text: `Entered late: ${x.late_reason}` }) : null) },
+        { label: 'Litres', num: true, render: (x) => (x.litres ? fmt.litres(x.litres) : '') },
+        { label: 'KES', num: true, render: (x) => (x.amount ? fmt.kes(x.amount) : '') },
+      ], records, { empty: `${from.name}'s account saved nothing on ${fmt.date(day.value)}.` }));
+  };
+  who.addEventListener('change', load);
+  day.addEventListener('change', load);
+
+  return h('div', {},
+    h('p', { class: 'muted small', text: 'Records saved on the wrong collector\'s account (for example, on a colleague\'s phone that was still signed in) '
+      + 'can be moved to the collector who made them. Intakes, sales and spoilage of the day and customer payments dated that day are listed in the order saved. '
+      + 'Transfers are not moved: void and enter them again.' }),
+    h('div', { class: 'filters' }, who, day),
+    holder);
+}
+
 function activityTab(sacco) {
   return Promise.resolve(auditView({ sacco_id: sacco.id }, false));
 }
@@ -1088,7 +1167,7 @@ function auditView(fixed = {}, withSacco = true) {
   const holder = h('div');
   const build = (options) => {
     if (withSacco) controls.sacco_id = select(options);
-    controls.entity_type = select([['', 'All records'], ['milk_collection', 'Collections'], ['milk_sale', 'Sales'], ['milk_transfer', 'Transfers'],
+    controls.entity_type = select([['', 'All records'], ['milk_collection', 'Collections'], ['milk_sale', 'Sales'], ['milk_transfer', 'Transfers'], ['milk_spoilage', 'Spoilage'],
       ['customer', 'Customers'], ['customer_payment', 'Customer payments'], ['user', 'Users'], ['role', 'Roles'], ['sacco', 'Saccos']]);
     controls.action = select([['', 'All actions'], ['CREATE', 'Created'], ['UPDATE', 'Edited'], ['STATUS', 'Status change'], ['VOID', 'Voided'], ['DELETE', 'Removed']]);
     controls.from_date = dateInput('From date');

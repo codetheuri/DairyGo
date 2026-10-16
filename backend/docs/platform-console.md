@@ -26,6 +26,7 @@ SELECT id, username FROM users WHERE is_super_user = true AND sacco_id IS NULL;
 | **Roles & permissions** | What each Sacco role may do, as tick boxes; applies at once in every Sacco and is audited (see [authorization.md](authorization.md)) |
 | **Sacco → Farmers** | Search farmers, register a farmer on the Sacco's behalf (same rules as the Sacco admin) |
 | **Sacco → Late entries** | Enter a forgotten milk intake, sale, spoilage or transfer for an earlier day, with a reason, for the collector it belongs to; list of everything entered late (Sacco staff record only today; see [collections-and-pricing.md](collections-and-pricing.md)) |
+| **Sacco → Who recorded** | Records saved on the wrong collector's account (e.g. on a colleague's phone that was still signed in): choose the account and day, tick the records and move them to the collector who made them, with a reason (see below) |
 | **Sacco → Activity / Errors** | That Sacco's audit trail and failed requests |
 | **Sacco actions** | Edit details, suspend, deactivate, reactivate (with a reason, kept in the audit trail) |
 | **Audit trail** | Every create, edit, status change and void across all Saccos, with before/after values |
@@ -34,8 +35,30 @@ SELECT id, username FROM users WHERE is_super_user = true AND sacco_id IS NULL;
 
 API: `/api/v1/admin/overview`, `/admin/saccos/{id}/users`, `/admin/saccos/{id}/members`,
 `/admin/users/{id}/status|unlock|reset-password|role`, `DELETE /admin/users/{id}`, `/admin/audit-logs`,
-`/admin/error-logs`, `/admin/sms-logs`, plus the existing `/admin/saccos` endpoints.
+`/admin/error-logs`, `/admin/sms-logs`, `/admin/saccos/{id}/late-entries`, `/admin/saccos/{id}/collector-records` (and `/move`),
+plus the existing `/admin/saccos` endpoints.
 See `/docs` under **Platform Console**.
+
+## Moving records to the collector who made them
+
+When a collector's phone fails and they work on a colleague's phone that is
+still signed in, their intakes, sales, spoilage and customer payments are
+saved as the colleague's. **Sacco → Who recorded** lists what one account
+saved on a day (intakes, sales and spoilage for that day, customer payments
+dated that day), in the order saved, so the ones made in that window can be
+ticked and moved (`internal/collection/reassign.go`).
+
+- Only who made the record changes (`collector_id`, or `recorded_by_id` on a
+  payment). Litres, prices, the day and the farmer's pay stay, so a paid
+  month can be corrected too.
+- Both collectors' daily balances, the collector audit and "who recorded"
+  on customer statements follow at once: they are worked out from the records.
+- A reason is required and kept in each record's history (Activity: "Recorded
+  by Alice Wanjiru → Bob Kamau").
+- Every chosen record must still be on that account, or nothing moves (so two
+  people correcting at once cannot half-move a day).
+- Transfers are not moved (one belongs to two collectors): void and enter again.
+- Platform operators only, like late entries; Sacco staff cannot.
 
 ## Account enforcement
 

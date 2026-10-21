@@ -276,8 +276,17 @@ func (s *Service) RecordPayment(ctx context.Context, customerID string, req *Rec
 		Reference:   trimmedOrNil(req.Reference),
 		Notes:       req.Notes,
 	}
-	if userID > 0 {
+	if req.RecordedByID != nil && *req.RecordedByID > 0 {
+		p.RecordedByID = req.RecordedByID
+	} else if userID > 0 {
 		p.RecordedByID = &userID
+	}
+	if req.EnteredByID != nil && *req.EnteredByID > 0 {
+		p.EnteredByID = req.EnteredByID
+	}
+	if req.LateReason != nil && strings.TrimSpace(*req.LateReason) != "" {
+		why := strings.TrimSpace(*req.LateReason)
+		p.LateReason = &why
 	}
 	if req.CashAccountID != nil && *req.CashAccountID != "" {
 		if err := s.repo.CheckCashAccount(ctx, c.SaccoID, *req.CashAccountID); err != nil {
@@ -288,7 +297,7 @@ func (s *Service) RecordPayment(ctx context.Context, customerID string, req *Rec
 
 	entry := audit.Entry{
 		SaccoID: c.SaccoID, EntityType: auditEntityPayment, EntityID: p.ID,
-		Action: audit.ActionCreate, ActorID: userID, NewValues: p,
+		Action: audit.ActionCreate, ActorID: userID, Reason: p.LateReason, NewValues: p,
 	}
 	if err := s.repo.CreatePayment(ctx, p, entry); err != nil {
 		return nil, fmt.Errorf("failed to record payment: %w", err)

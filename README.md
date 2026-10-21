@@ -246,3 +246,27 @@ curl http://localhost:9002/health
 
 Copyright © 2026 **codetheuri / DairyGo Platform**. All rights reserved.  
 Licensed under the [MIT License](LICENSE).
+
+
+this are done
+settings and cooperative profiler
+30 months inactive farmer
+suspension
+adance and dedcurtions
+shares
+registration
+advance
+annual subsrctibtion
+transaction cost
+
+
+
+some adjustments aslo
+-on customers ledger when viewing we can put a small modal or altenative to see who diid the action eg seeling or making payment 
+-aslo they need a way where we can adjust a farmers buying price intead of fixed cooperstive price eg normalmis 42 the farmer is out to 45 with aslo having the effecfive dates
+---aslo not to implemnat now but a question inacse they need an accountant what account should he/she be given or create another role the assign the permiiosns , aslo which pemrision so that he/she have screens on the mobile phone ?
+aslo another problem aon aufito logs it doesn show update dates eg today is date 9 but showing upto date  check this screenshot /var/www/html/startup/Dairy/WhatsApp Image 2026-10-09 at 12.17.23 PM.jpeg
+on customer report add another column of rate 
+- also paslip shoul show rate i donr now how wea re going to do it if month had more than one rate
+- aslo payrun include the column for rate -- i donr know how we are going to aslo if there were more than one rate 
+- aslo on famers pay run what does bf and cf mena slo when nother dection is set will ti be addedn to the columns which it should

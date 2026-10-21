@@ -58,3 +58,17 @@ func TestBuildStatementKeepsWhoAndRate(t *testing.T) {
 		t.Errorf("line lost who/rate: %+v", l)
 	}
 }
+
+func TestBuildStatementKeepsPaymentLateReason(t *testing.T) {
+	at := time.Date(2026, 10, 5, 10, 42, 0, 0, time.UTC)
+	late := "Payment found in bank statement later"
+	id := uint(8)
+	lines, _, _, _ := buildStatement(0, []LedgerEvent{{
+		Kind: EntryPayment, ReferenceID: "p1", Date: at, CreatedAt: at, Credit: 5000,
+		RecordedByID: &id, RecordedBy: "Support User", Method: "BANK_TRANSFER", LateReason: &late,
+	}})
+	l := lines[0]
+	if l.RecordedBy != "Support User" || l.Method != "BANK_TRANSFER" || l.LateReason != &late {
+		t.Errorf("line lost payment late reason: %+v", l)
+	}
+}

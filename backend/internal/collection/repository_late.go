@@ -7,10 +7,11 @@ import (
 
 // LateRecord is one record entered after its day, for the console's list.
 type LateRecord struct {
-	Kind          string    `json:"kind" doc:"INTAKE, SALE, SPOILAGE or TRANSFER"`
+	Kind          string    `json:"kind" doc:"INTAKE, SALE, SPOILAGE, TRANSFER or PAYMENT"`
 	ID            string    `json:"id"`
 	Day           time.Time `json:"day" doc:"The day the record is for"`
 	Litres        float64   `json:"litres"`
+	Amount        float64   `json:"amount,omitempty"`
 	CollectorID   uint      `json:"collector_id"`
 	CollectorName string    `json:"collector_name"`
 	Party         string    `json:"party" doc:"The farmer, the customer, what spoiled, or the receiving collector"`
@@ -21,29 +22,35 @@ type LateRecord struct {
 	OtherID       uint      `json:"-"`
 }
 
-// lateRecordsSQL lists a Sacco's late entries across the four kinds of milk
-// record, newest first.
+// lateRecordsSQL lists a Sacco's late entries across milk records and payments,
+// newest first.
 const lateRecordsSQL = `
-SELECT 'INTAKE' AS kind, c.id, c.collection_date AS day, c.quantity_litres AS litres, c.collector_id,
+SELECT 'INTAKE' AS kind, c.id, c.collection_date AS day, c.quantity_litres AS litres, 0.0 AS amount, c.collector_id,
        COALESCE(m.membership_number || ' ' || m.first_name || ' ' || m.last_name, '') AS party,
        c.late_reason AS reason, c.entered_by_id, c.created_at AS entered_at, 0 AS other_id
   FROM milk_collections c LEFT JOIN members m ON m.id = c.member_id
  WHERE c.sacco_id = @sacco AND c.late_reason IS NOT NULL AND c.deleted_at IS NULL
 UNION ALL
-SELECT 'SALE', s.id, s.sale_date, s.quantity_litres, s.collector_id, s.buyer_name,
+SELECT 'SALE', s.id, s.sale_date, s.quantity_litres, s.total_amount, s.collector_id, s.buyer_name,
        s.late_reason, s.entered_by_id, s.created_at, 0
   FROM milk_sales s
  WHERE s.sacco_id = @sacco AND s.late_reason IS NOT NULL AND s.deleted_at IS NULL
 UNION ALL
-SELECT 'SPOILAGE', sp.id, sp.spoilage_date, sp.quantity_litres, sp.collector_id, sp.reason,
+SELECT 'SPOILAGE', sp.id, sp.spoilage_date, sp.quantity_litres, 0.0, sp.collector_id, sp.reason,
        sp.late_reason, sp.entered_by_id, sp.created_at, 0
   FROM milk_spoilage sp
  WHERE sp.sacco_id = @sacco AND sp.late_reason IS NOT NULL AND sp.deleted_at IS NULL
 UNION ALL
-SELECT 'TRANSFER', t.id, t.transfer_date, t.quantity_litres, t.from_collector_id, '',
+SELECT 'TRANSFER', t.id, t.transfer_date, t.quantity_litres, 0.0, t.from_collector_id, '',
        t.late_reason, t.entered_by_id, t.created_at, t.to_collector_id
   FROM milk_transfers t
  WHERE t.sacco_id = @sacco AND t.late_reason IS NOT NULL AND t.deleted_at IS NULL
+UNION ALL
+SELECT 'PAYMENT', p.id, p.payment_date, 0.0, p.amount, COALESCE(p.recorded_by_id, 0),
+       COALESCE(c.name, ''),
+       p.late_reason, p.entered_by_id, p.created_at, 0
+  FROM customer_payments p LEFT JOIN customers c ON c.id = p.customer_id
+ WHERE p.sacco_id = @sacco AND p.late_reason IS NOT NULL AND p.voided_at IS NULL
 ORDER BY entered_at DESC
 LIMIT 200`
 

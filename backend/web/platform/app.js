@@ -912,10 +912,12 @@ async function lateTab(sacco) {
   const pad = (n) => String(n).padStart(2, '0');
   const d = new Date(Date.now() - 86400000);
   const yesterday = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const now = new Date();
+  const today = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
   const collectors = [['', 'Choose…'], ...data.collectors.map((c) => [String(c.id), c.name])];
   const day = (name) => ({ name, label: 'Day (before today)', type: 'date', required: true, max: yesterday, value: yesterday });
-  const collector = (name = 'collector_id', label = 'Collector the milk belongs to') =>
-    ({ name, label, type: 'select', required: true, options: collectors });
+  const collector = (name = 'collector_id', label = 'Collector the milk belongs to', required = true) =>
+    ({ name, label, type: 'select', required, options: collectors });
   const litres = { name: 'quantity_litres', label: 'Litres', type: 'number', step: '0.01', required: true };
   const reason = { name: 'late_reason', label: 'Why it is entered late (kept on the record)', type: 'textarea', full: true, required: true };
   const num = (v) => (v === '' || v === undefined ? undefined : Number(v));
@@ -988,20 +990,56 @@ async function lateTab(sacco) {
     },
   });
 
-  const kinds = { INTAKE: 'Intake', SALE: 'Sale', SPOILAGE: 'Spoilage', TRANSFER: 'Transfer' };
+  const payment = () => openForm({
+    title: 'Customer payment for a specific date',
+    intro: 'Record a payment that was received from a customer but was not recorded in the app. Reduces the customer\'s balance.',
+    fields: [
+      { name: 'payment_date', label: 'Date received', type: 'date', required: true, max: today, value: yesterday },
+      { name: 'customer_id', label: 'Customer', type: 'select', required: true,
+        options: [['', 'Choose…'], ...data.customers.map((c) => [c.id, c.name])] },
+      { name: 'amount', label: 'Amount received (KES)', type: 'number', step: '0.01', min: '0.01', required: true },
+      { name: 'method', label: 'Payment method', type: 'select', required: true,
+        options: [['MPESA', 'M-Pesa'], ['CASH', 'Cash'], ['BANK_TRANSFER', 'Bank transfer'], ['CHEQUE', 'Cheque']] },
+      { name: 'reference', label: 'Reference (e.g. M-Pesa transaction code or cheque #)', placeholder: 'e.g. QX12AB34CD' },
+      collector('collector_id', 'Collector or staff who received it (optional)', false),
+      ...(data.accounts && data.accounts.length > 0 ? [
+        { name: 'cash_account_id', label: 'Sacco account deposited into (optional)', type: 'select',
+          options: [['', 'None / Unspecified'], ...data.accounts.map((a) => [a.id, `${a.name} (${a.kind})`])] }
+      ] : []),
+      { name: 'notes', label: 'Notes (optional)', type: 'text' },
+      reason],
+    submitLabel: 'Record payment',
+    onSubmit: async (v) => {
+      await api('POST', `${base}/payments`, compact({
+        customer_id: v.customer_id,
+        payment_date: v.payment_date,
+        amount: num(v.amount),
+        method: v.method,
+        reference: v.reference,
+        collector_id: num(v.collector_id),
+        cash_account_id: v.cash_account_id,
+        notes: v.notes,
+        late_reason: v.late_reason,
+      }));
+      saved('Customer payment recorded');
+    },
+  });
+
+  const kinds = { INTAKE: 'Intake', SALE: 'Sale', SPOILAGE: 'Spoilage', TRANSFER: 'Transfer', PAYMENT: 'Payment' };
   return h('div', {},
-    h('p', { class: 'muted small', text: 'Sacco staff can record milk only for today. Enter a forgotten record for an earlier day here; '
-      + 'it is credited to the collector, marked "Entered late" with your reason, and a paid month cannot be changed.' }),
+    h('p', { class: 'muted small', text: 'Sacco staff can record milk only for today. Enter a forgotten record or unrecorded payment for a specific day here; '
+      + 'it is marked "Entered late" with your reason, and a paid month cannot be changed.' }),
     h('div', { class: 'actions' },
       h('button', { class: 'primary', text: '+ Milk intake', onclick: intake }),
       h('button', { text: '+ Sale', onclick: sale }),
       h('button', { text: '+ Spoilage', onclick: spoilage }),
-      h('button', { text: '+ Transfer', onclick: transfer })),
+      h('button', { text: '+ Transfer', onclick: transfer }),
+      h('button', { text: '+ Payment', onclick: payment })),
     table([
       { label: 'Day', render: (x) => fmt.date(x.day) },
       { label: 'Record', render: (x) => kinds[x.kind] || x.kind },
-      { label: 'Litres', num: true, render: (x) => fmt.litres(x.litres) },
-      { label: 'Collector', render: (x) => x.collector_name },
+      { label: 'Litres / Amount', num: true, render: (x) => x.kind === 'PAYMENT' ? fmt.kes(x.amount || x.litres) : fmt.litres(x.litres) },
+      { label: 'Collector / Staff', render: (x) => x.collector_name || '—' },
       { label: 'Farmer / customer / detail', render: (x) => x.party },
       { label: 'Why late', render: (x) => x.late_reason },
       { label: 'Entered', render: (x) => h('div', {}, h('div', { text: x.entered_by || '—' }), h('div', { class: 'sub', text: fmt.dateTime(x.entered_at) })) },

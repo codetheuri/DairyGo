@@ -54,6 +54,7 @@ paid in advance. Payments are **not** matched to individual sales.
 | Endpoint | Who | Purpose |
 | :--- | :--- | :--- |
 | `POST /customers/{id}/payments` | Admin | Money received (M-Pesa, cash, bank, cheque) with a reference |
+| `POST /admin/saccos/{id}/late-entries/payments` | Support (Console) | Unrecorded payment received for a specific date (with late reason) |
 | `POST /customer-payments/{id}/void` | Admin | Cancel a payment recorded in error (reason required) |
 | `GET /customers/{id}/statement?from_date&to_date` | Admin, board | Opening balance, sales and payments with running balance, closing balance |
 | `GET /customers/balances?owing_only=true` | Admin, board | Who owes what, largest first, plus the total owed |

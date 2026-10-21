@@ -23,11 +23,12 @@ spoilage and transfers **for today only**. Another date is refused with
 `403` ("ask DairyGo support"), and a future date with `400`, for everyone.
 
 A forgotten record for an earlier day is entered by DairyGo support in the
-platform console (Sacco → Late entries, `POST /api/v1/admin/saccos/{id}/late-entries/collections|sales|spoilage|transfers`). It
+platform console (Sacco → Late entries, `POST /api/v1/admin/saccos/{id}/late-entries/collections|sales|spoilage|transfers|payments`). It
 needs `late_reason` and the collector the milk belongs to (`collector_id`;
-`from_collector_id` for transfers). The record keeps that collector, so
+`from_collector_id` for transfers). Unrecorded customer payments can also be
+entered for a specific date (migration `00027`). The record keeps that collector, so
 their daily balance is right, and is marked with `late_reason` and
-`entered_by_id` (migration `00025`); the app shows "Entered late by DairyGo
+`entered_by_id` (migrations `00025` and `00027`); the app shows "Entered late by DairyGo
 support". The Sacco's rules still apply: a paid period stays closed
 (`409`), one record per farmer, day and shift, and intake is priced for its
 day. The rule is `recordDay` in `internal/collection/late.go`

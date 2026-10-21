@@ -87,6 +87,9 @@ type RecordPaymentRequest struct {
 	Reference     *string `json:"reference,omitempty" doc:"Transaction reference, e.g. M-Pesa code"`
 	CashAccountID *string `json:"cash_account_id,omitempty" doc:"The Sacco account the money went into or came from (optional)"`
 	Notes         *string `json:"notes,omitempty" doc:"Optional notes"`
+	RecordedByID  *uint   `json:"recorded_by_id,omitempty" doc:"Staff or collector who received the money (optional)"`
+	EnteredByID   *uint   `json:"entered_by_id,omitempty" doc:"Platform operator who entered it (optional)"`
+	LateReason    *string `json:"late_reason,omitempty" doc:"Why the payment is being entered late / unrecorded (optional)"`
 }
 
 type RecordPaymentInput struct {

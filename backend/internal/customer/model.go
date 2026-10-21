@@ -79,6 +79,8 @@ type Payment struct {
 	VoidReason   *string       `json:"void_reason,omitempty"`
 	// CashAccountID is the Sacco account the money went into.
 	CashAccountID *string   `json:"cash_account_id,omitempty" gorm:"type:varchar(36)"`
+	LateReason    *string   `json:"late_reason,omitempty"`
+	EnteredByID   *uint     `json:"entered_by_id,omitempty"`
 	CreatedAt     time.Time `json:"created_at"`
 	UpdatedAt     time.Time `json:"updated_at"`
 }

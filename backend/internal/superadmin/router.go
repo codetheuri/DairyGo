@@ -1,8 +1,6 @@
 package superadmin
 
 import (
-	"github.com/codetheuri/tusk/internal/finance"
-	"github.com/codetheuri/tusk/internal/payout"
 	"net/http"
 
 	"github.com/danielgtaylor/huma/v2"
@@ -11,8 +9,11 @@ import (
 	"github.com/codetheuri/tusk/config"
 	"github.com/codetheuri/tusk/internal/auth"
 	"github.com/codetheuri/tusk/internal/collection"
+	"github.com/codetheuri/tusk/internal/customer"
+	"github.com/codetheuri/tusk/internal/finance"
 	"github.com/codetheuri/tusk/internal/jobs"
 	"github.com/codetheuri/tusk/internal/member"
+	"github.com/codetheuri/tusk/internal/payout"
 	"github.com/codetheuri/tusk/pkg/authz"
 	"github.com/codetheuri/tusk/pkg/logger"
 	"github.com/codetheuri/tusk/pkg/sms"
@@ -35,8 +36,9 @@ func RegisterRoutes(api huma.API, db *gorm.DB, cfg *config.Config, log logger.Lo
 		finance: finance.NewService(finance.NewRepository(db)),
 	}
 	lh := &LateHandler{
-		milk: collection.NewService(collection.NewRepository(db), sms.NewService(cfg, db, log), authz.NewEvaluator(db)),
-		db:   db,
+		milk:      collection.NewService(collection.NewRepository(db), sms.NewService(cfg, db, log), authz.NewEvaluator(db)),
+		customers: customer.NewService(customer.NewRepository(db), authz.NewEvaluator(db)),
+		db:        db,
 	}
 	guard := authz.NewGuard(api, db)
 
@@ -85,6 +87,8 @@ func RegisterRoutes(api huma.API, db *gorm.DB, cfg *config.Config, log logger.Lo
 		"Enter spoilage for an earlier day", "Needs collector_id, spoilage_date before today and late_reason."), lh.Spoilage)
 	huma.Register(api, op("platform-late-transfer", http.MethodPost, "/api/v1/admin/saccos/{id}/late-entries/transfers",
 		"Enter a transfer for an earlier day", "Needs from_collector_id, to_collector_id, transfer_date before today and late_reason."), lh.Transfer)
+	huma.Register(api, op("platform-late-payment", http.MethodPost, "/api/v1/admin/saccos/{id}/late-entries/payments",
+		"Enter a customer payment for a specific date", "Record a payment that was received but not recorded in the app. Needs customer_id, amount, payment_date, method and late_reason."), lh.Payment)
 	huma.Register(api, op("platform-collector-day", http.MethodGet, "/api/v1/admin/saccos/{id}/collector-records",
 		"What a collector's account saved on a day", "Intakes, sales and spoilage for the day and customer payments dated that day, in the order saved, with the collectors they can be moved to."), lh.CollectorDay)
 	huma.Register(api, op("platform-reassign-records", http.MethodPost, "/api/v1/admin/saccos/{id}/collector-records/move",

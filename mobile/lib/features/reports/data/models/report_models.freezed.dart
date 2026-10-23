@@ -1046,6 +1046,351 @@ abstract class _CollectorAuditSummaryModel
   get copyWith => throw _privateConstructorUsedError;
 }
 
+LedgerDayModel _$LedgerDayModelFromJson(Map<String, dynamic> json) {
+  return _LedgerDayModel.fromJson(json);
+}
+
+/// @nodoc
+mixin _$LedgerDayModel {
+  String get date => throw _privateConstructorUsedError;
+  @JsonKey(name: 'collected_litres')
+  double get collectedLitres => throw _privateConstructorUsedError;
+  @JsonKey(name: 'sold_litres')
+  double get soldLitres => throw _privateConstructorUsedError;
+  @JsonKey(name: 'spoiled_litres')
+  double get spoiledLitres => throw _privateConstructorUsedError;
+  @JsonKey(name: 'sales_kes')
+  double get salesKes => throw _privateConstructorUsedError;
+  @JsonKey(name: 'unaccounted_litres')
+  double get unaccountedLitres => throw _privateConstructorUsedError;
+  @JsonKey(name: 'allowance_litres')
+  double get allowanceLitres => throw _privateConstructorUsedError;
+  @JsonKey(name: 'balance_status')
+  String get balanceStatus => throw _privateConstructorUsedError;
+
+  /// Serializes this LedgerDayModel to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of LedgerDayModel
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $LedgerDayModelCopyWith<LedgerDayModel> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $LedgerDayModelCopyWith<$Res> {
+  factory $LedgerDayModelCopyWith(
+    LedgerDayModel value,
+    $Res Function(LedgerDayModel) then,
+  ) = _$LedgerDayModelCopyWithImpl<$Res, LedgerDayModel>;
+  @useResult
+  $Res call({
+    String date,
+    @JsonKey(name: 'collected_litres') double collectedLitres,
+    @JsonKey(name: 'sold_litres') double soldLitres,
+    @JsonKey(name: 'spoiled_litres') double spoiledLitres,
+    @JsonKey(name: 'sales_kes') double salesKes,
+    @JsonKey(name: 'unaccounted_litres') double unaccountedLitres,
+    @JsonKey(name: 'allowance_litres') double allowanceLitres,
+    @JsonKey(name: 'balance_status') String balanceStatus,
+  });
+}
+
+/// @nodoc
+class _$LedgerDayModelCopyWithImpl<$Res, $Val extends LedgerDayModel>
+    implements $LedgerDayModelCopyWith<$Res> {
+  _$LedgerDayModelCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of LedgerDayModel
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? date = null,
+    Object? collectedLitres = null,
+    Object? soldLitres = null,
+    Object? spoiledLitres = null,
+    Object? salesKes = null,
+    Object? unaccountedLitres = null,
+    Object? allowanceLitres = null,
+    Object? balanceStatus = null,
+  }) {
+    return _then(
+      _value.copyWith(
+            date: null == date
+                ? _value.date
+                : date // ignore: cast_nullable_to_non_nullable
+                      as String,
+            collectedLitres: null == collectedLitres
+                ? _value.collectedLitres
+                : collectedLitres // ignore: cast_nullable_to_non_nullable
+                      as double,
+            soldLitres: null == soldLitres
+                ? _value.soldLitres
+                : soldLitres // ignore: cast_nullable_to_non_nullable
+                      as double,
+            spoiledLitres: null == spoiledLitres
+                ? _value.spoiledLitres
+                : spoiledLitres // ignore: cast_nullable_to_non_nullable
+                      as double,
+            salesKes: null == salesKes
+                ? _value.salesKes
+                : salesKes // ignore: cast_nullable_to_non_nullable
+                      as double,
+            unaccountedLitres: null == unaccountedLitres
+                ? _value.unaccountedLitres
+                : unaccountedLitres // ignore: cast_nullable_to_non_nullable
+                      as double,
+            allowanceLitres: null == allowanceLitres
+                ? _value.allowanceLitres
+                : allowanceLitres // ignore: cast_nullable_to_non_nullable
+                      as double,
+            balanceStatus: null == balanceStatus
+                ? _value.balanceStatus
+                : balanceStatus // ignore: cast_nullable_to_non_nullable
+                      as String,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$LedgerDayModelImplCopyWith<$Res>
+    implements $LedgerDayModelCopyWith<$Res> {
+  factory _$$LedgerDayModelImplCopyWith(
+    _$LedgerDayModelImpl value,
+    $Res Function(_$LedgerDayModelImpl) then,
+  ) = __$$LedgerDayModelImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    String date,
+    @JsonKey(name: 'collected_litres') double collectedLitres,
+    @JsonKey(name: 'sold_litres') double soldLitres,
+    @JsonKey(name: 'spoiled_litres') double spoiledLitres,
+    @JsonKey(name: 'sales_kes') double salesKes,
+    @JsonKey(name: 'unaccounted_litres') double unaccountedLitres,
+    @JsonKey(name: 'allowance_litres') double allowanceLitres,
+    @JsonKey(name: 'balance_status') String balanceStatus,
+  });
+}
+
+/// @nodoc
+class __$$LedgerDayModelImplCopyWithImpl<$Res>
+    extends _$LedgerDayModelCopyWithImpl<$Res, _$LedgerDayModelImpl>
+    implements _$$LedgerDayModelImplCopyWith<$Res> {
+  __$$LedgerDayModelImplCopyWithImpl(
+    _$LedgerDayModelImpl _value,
+    $Res Function(_$LedgerDayModelImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of LedgerDayModel
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? date = null,
+    Object? collectedLitres = null,
+    Object? soldLitres = null,
+    Object? spoiledLitres = null,
+    Object? salesKes = null,
+    Object? unaccountedLitres = null,
+    Object? allowanceLitres = null,
+    Object? balanceStatus = null,
+  }) {
+    return _then(
+      _$LedgerDayModelImpl(
+        date: null == date
+            ? _value.date
+            : date // ignore: cast_nullable_to_non_nullable
+                  as String,
+        collectedLitres: null == collectedLitres
+            ? _value.collectedLitres
+            : collectedLitres // ignore: cast_nullable_to_non_nullable
+                  as double,
+        soldLitres: null == soldLitres
+            ? _value.soldLitres
+            : soldLitres // ignore: cast_nullable_to_non_nullable
+                  as double,
+        spoiledLitres: null == spoiledLitres
+            ? _value.spoiledLitres
+            : spoiledLitres // ignore: cast_nullable_to_non_nullable
+                  as double,
+        salesKes: null == salesKes
+            ? _value.salesKes
+            : salesKes // ignore: cast_nullable_to_non_nullable
+                  as double,
+        unaccountedLitres: null == unaccountedLitres
+            ? _value.unaccountedLitres
+            : unaccountedLitres // ignore: cast_nullable_to_non_nullable
+                  as double,
+        allowanceLitres: null == allowanceLitres
+            ? _value.allowanceLitres
+            : allowanceLitres // ignore: cast_nullable_to_non_nullable
+                  as double,
+        balanceStatus: null == balanceStatus
+            ? _value.balanceStatus
+            : balanceStatus // ignore: cast_nullable_to_non_nullable
+                  as String,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$LedgerDayModelImpl implements _LedgerDayModel {
+  const _$LedgerDayModelImpl({
+    this.date = '',
+    @JsonKey(name: 'collected_litres') this.collectedLitres = 0.0,
+    @JsonKey(name: 'sold_litres') this.soldLitres = 0.0,
+    @JsonKey(name: 'spoiled_litres') this.spoiledLitres = 0.0,
+    @JsonKey(name: 'sales_kes') this.salesKes = 0.0,
+    @JsonKey(name: 'unaccounted_litres') this.unaccountedLitres = 0.0,
+    @JsonKey(name: 'allowance_litres') this.allowanceLitres = 0.0,
+    @JsonKey(name: 'balance_status') this.balanceStatus = 'BALANCED',
+  });
+
+  factory _$LedgerDayModelImpl.fromJson(Map<String, dynamic> json) =>
+      _$$LedgerDayModelImplFromJson(json);
+
+  @override
+  @JsonKey()
+  final String date;
+  @override
+  @JsonKey(name: 'collected_litres')
+  final double collectedLitres;
+  @override
+  @JsonKey(name: 'sold_litres')
+  final double soldLitres;
+  @override
+  @JsonKey(name: 'spoiled_litres')
+  final double spoiledLitres;
+  @override
+  @JsonKey(name: 'sales_kes')
+  final double salesKes;
+  @override
+  @JsonKey(name: 'unaccounted_litres')
+  final double unaccountedLitres;
+  @override
+  @JsonKey(name: 'allowance_litres')
+  final double allowanceLitres;
+  @override
+  @JsonKey(name: 'balance_status')
+  final String balanceStatus;
+
+  @override
+  String toString() {
+    return 'LedgerDayModel(date: $date, collectedLitres: $collectedLitres, soldLitres: $soldLitres, spoiledLitres: $spoiledLitres, salesKes: $salesKes, unaccountedLitres: $unaccountedLitres, allowanceLitres: $allowanceLitres, balanceStatus: $balanceStatus)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$LedgerDayModelImpl &&
+            (identical(other.date, date) || other.date == date) &&
+            (identical(other.collectedLitres, collectedLitres) ||
+                other.collectedLitres == collectedLitres) &&
+            (identical(other.soldLitres, soldLitres) ||
+                other.soldLitres == soldLitres) &&
+            (identical(other.spoiledLitres, spoiledLitres) ||
+                other.spoiledLitres == spoiledLitres) &&
+            (identical(other.salesKes, salesKes) ||
+                other.salesKes == salesKes) &&
+            (identical(other.unaccountedLitres, unaccountedLitres) ||
+                other.unaccountedLitres == unaccountedLitres) &&
+            (identical(other.allowanceLitres, allowanceLitres) ||
+                other.allowanceLitres == allowanceLitres) &&
+            (identical(other.balanceStatus, balanceStatus) ||
+                other.balanceStatus == balanceStatus));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    date,
+    collectedLitres,
+    soldLitres,
+    spoiledLitres,
+    salesKes,
+    unaccountedLitres,
+    allowanceLitres,
+    balanceStatus,
+  );
+
+  /// Create a copy of LedgerDayModel
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$LedgerDayModelImplCopyWith<_$LedgerDayModelImpl> get copyWith =>
+      __$$LedgerDayModelImplCopyWithImpl<_$LedgerDayModelImpl>(
+        this,
+        _$identity,
+      );
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$LedgerDayModelImplToJson(this);
+  }
+}
+
+abstract class _LedgerDayModel implements LedgerDayModel {
+  const factory _LedgerDayModel({
+    final String date,
+    @JsonKey(name: 'collected_litres') final double collectedLitres,
+    @JsonKey(name: 'sold_litres') final double soldLitres,
+    @JsonKey(name: 'spoiled_litres') final double spoiledLitres,
+    @JsonKey(name: 'sales_kes') final double salesKes,
+    @JsonKey(name: 'unaccounted_litres') final double unaccountedLitres,
+    @JsonKey(name: 'allowance_litres') final double allowanceLitres,
+    @JsonKey(name: 'balance_status') final String balanceStatus,
+  }) = _$LedgerDayModelImpl;
+
+  factory _LedgerDayModel.fromJson(Map<String, dynamic> json) =
+      _$LedgerDayModelImpl.fromJson;
+
+  @override
+  String get date;
+  @override
+  @JsonKey(name: 'collected_litres')
+  double get collectedLitres;
+  @override
+  @JsonKey(name: 'sold_litres')
+  double get soldLitres;
+  @override
+  @JsonKey(name: 'spoiled_litres')
+  double get spoiledLitres;
+  @override
+  @JsonKey(name: 'sales_kes')
+  double get salesKes;
+  @override
+  @JsonKey(name: 'unaccounted_litres')
+  double get unaccountedLitres;
+  @override
+  @JsonKey(name: 'allowance_litres')
+  double get allowanceLitres;
+  @override
+  @JsonKey(name: 'balance_status')
+  String get balanceStatus;
+
+  /// Create a copy of LedgerDayModel
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$LedgerDayModelImplCopyWith<_$LedgerDayModelImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
 SaccoReconciliationLedgerModel _$SaccoReconciliationLedgerModelFromJson(
   Map<String, dynamic> json,
 ) {
@@ -1096,7 +1441,9 @@ mixin _$SaccoReconciliationLedgerModel {
       throw _privateConstructorUsedError;
   @JsonKey(name: 'collectors_summary')
   List<CollectorAuditSummaryModel> get collectorsSummary =>
-      throw _privateConstructorUsedError;
+      throw _privateConstructorUsedError; // The period day by day (days with milk only), when it spans more than
+  // one day.
+  List<LedgerDayModel> get days => throw _privateConstructorUsedError;
 
   /// Serializes this SaccoReconciliationLedgerModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -1142,6 +1489,7 @@ abstract class $SaccoReconciliationLedgerModelCopyWith<$Res> {
     List<CustomerTypeTotalModel> salesByCustomerType,
     @JsonKey(name: 'collectors_summary')
     List<CollectorAuditSummaryModel> collectorsSummary,
+    List<LedgerDayModel> days,
   });
 }
 
@@ -1183,6 +1531,7 @@ class _$SaccoReconciliationLedgerModelCopyWithImpl<
     Object? receivablesKes = null,
     Object? salesByCustomerType = null,
     Object? collectorsSummary = null,
+    Object? days = null,
   }) {
     return _then(
       _value.copyWith(
@@ -1266,6 +1615,10 @@ class _$SaccoReconciliationLedgerModelCopyWithImpl<
                 ? _value.collectorsSummary
                 : collectorsSummary // ignore: cast_nullable_to_non_nullable
                       as List<CollectorAuditSummaryModel>,
+            days: null == days
+                ? _value.days
+                : days // ignore: cast_nullable_to_non_nullable
+                      as List<LedgerDayModel>,
           )
           as $Val,
     );
@@ -1304,6 +1657,7 @@ abstract class _$$SaccoReconciliationLedgerModelImplCopyWith<$Res>
     List<CustomerTypeTotalModel> salesByCustomerType,
     @JsonKey(name: 'collectors_summary')
     List<CollectorAuditSummaryModel> collectorsSummary,
+    List<LedgerDayModel> days,
   });
 }
 
@@ -1345,6 +1699,7 @@ class __$$SaccoReconciliationLedgerModelImplCopyWithImpl<$Res>
     Object? receivablesKes = null,
     Object? salesByCustomerType = null,
     Object? collectorsSummary = null,
+    Object? days = null,
   }) {
     return _then(
       _$SaccoReconciliationLedgerModelImpl(
@@ -1428,6 +1783,10 @@ class __$$SaccoReconciliationLedgerModelImplCopyWithImpl<$Res>
             ? _value._collectorsSummary
             : collectorsSummary // ignore: cast_nullable_to_non_nullable
                   as List<CollectorAuditSummaryModel>,
+        days: null == days
+            ? _value._days
+            : days // ignore: cast_nullable_to_non_nullable
+                  as List<LedgerDayModel>,
       ),
     );
   }
@@ -1463,8 +1822,10 @@ class _$SaccoReconciliationLedgerModelImpl
     final List<CustomerTypeTotalModel> salesByCustomerType = const [],
     @JsonKey(name: 'collectors_summary')
     final List<CollectorAuditSummaryModel> collectorsSummary = const [],
+    final List<LedgerDayModel> days = const [],
   }) : _salesByCustomerType = salesByCustomerType,
-       _collectorsSummary = collectorsSummary;
+       _collectorsSummary = collectorsSummary,
+       _days = days;
 
   factory _$SaccoReconciliationLedgerModelImpl.fromJson(
     Map<String, dynamic> json,
@@ -1546,9 +1907,22 @@ class _$SaccoReconciliationLedgerModelImpl
     return EqualUnmodifiableListView(_collectorsSummary);
   }
 
+  // The period day by day (days with milk only), when it spans more than
+  // one day.
+  final List<LedgerDayModel> _days;
+  // The period day by day (days with milk only), when it spans more than
+  // one day.
+  @override
+  @JsonKey()
+  List<LedgerDayModel> get days {
+    if (_days is EqualUnmodifiableListView) return _days;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_days);
+  }
+
   @override
   String toString() {
-    return 'SaccoReconciliationLedgerModel(saccoId: $saccoId, saccoName: $saccoName, fromDate: $fromDate, toDate: $toDate, totalFarmerIntakeLitres: $totalFarmerIntakeLitres, totalFarmerLiabilityKes: $totalFarmerLiabilityKes, totalSoldLitres: $totalSoldLitres, totalSalesRevenueKes: $totalSalesRevenueKes, cashReceivedKes: $cashReceivedKes, creditSalesKes: $creditSalesKes, totalSpoilageLitres: $totalSpoilageLitres, totalTransferredLitres: $totalTransferredLitres, unaccountedLitres: $unaccountedLitres, allowanceLitres: $allowanceLitres, isBalanced: $isBalanced, balanceStatus: $balanceStatus, grossMarginKes: $grossMarginKes, receivablesKes: $receivablesKes, salesByCustomerType: $salesByCustomerType, collectorsSummary: $collectorsSummary)';
+    return 'SaccoReconciliationLedgerModel(saccoId: $saccoId, saccoName: $saccoName, fromDate: $fromDate, toDate: $toDate, totalFarmerIntakeLitres: $totalFarmerIntakeLitres, totalFarmerLiabilityKes: $totalFarmerLiabilityKes, totalSoldLitres: $totalSoldLitres, totalSalesRevenueKes: $totalSalesRevenueKes, cashReceivedKes: $cashReceivedKes, creditSalesKes: $creditSalesKes, totalSpoilageLitres: $totalSpoilageLitres, totalTransferredLitres: $totalTransferredLitres, unaccountedLitres: $unaccountedLitres, allowanceLitres: $allowanceLitres, isBalanced: $isBalanced, balanceStatus: $balanceStatus, grossMarginKes: $grossMarginKes, receivablesKes: $receivablesKes, salesByCustomerType: $salesByCustomerType, collectorsSummary: $collectorsSummary, days: $days)';
   }
 
   @override
@@ -1603,7 +1977,8 @@ class _$SaccoReconciliationLedgerModelImpl
             const DeepCollectionEquality().equals(
               other._collectorsSummary,
               _collectorsSummary,
-            ));
+            ) &&
+            const DeepCollectionEquality().equals(other._days, _days));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1630,6 +2005,7 @@ class _$SaccoReconciliationLedgerModelImpl
     receivablesKes,
     const DeepCollectionEquality().hash(_salesByCustomerType),
     const DeepCollectionEquality().hash(_collectorsSummary),
+    const DeepCollectionEquality().hash(_days),
   ]);
 
   /// Create a copy of SaccoReconciliationLedgerModel
@@ -1679,6 +2055,7 @@ abstract class _SaccoReconciliationLedgerModel
     final List<CustomerTypeTotalModel> salesByCustomerType,
     @JsonKey(name: 'collectors_summary')
     final List<CollectorAuditSummaryModel> collectorsSummary,
+    final List<LedgerDayModel> days,
   }) = _$SaccoReconciliationLedgerModelImpl;
 
   factory _SaccoReconciliationLedgerModel.fromJson(Map<String, dynamic> json) =
@@ -1744,7 +2121,10 @@ abstract class _SaccoReconciliationLedgerModel
   List<CustomerTypeTotalModel> get salesByCustomerType;
   @override
   @JsonKey(name: 'collectors_summary')
-  List<CollectorAuditSummaryModel> get collectorsSummary;
+  List<CollectorAuditSummaryModel> get collectorsSummary; // The period day by day (days with milk only), when it spans more than
+  // one day.
+  @override
+  List<LedgerDayModel> get days;
 
   /// Create a copy of SaccoReconciliationLedgerModel
   /// with the given fields replaced by the non-null parameter values.

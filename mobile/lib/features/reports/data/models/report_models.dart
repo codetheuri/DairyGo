@@ -71,6 +71,24 @@ class CollectorAuditSummaryModel with _$CollectorAuditSummaryModel {
       _$CollectorAuditSummaryModelFromJson(json);
 }
 
+/// The Sacco's milk on one day of a ledger period.
+@freezed
+class LedgerDayModel with _$LedgerDayModel {
+  const factory LedgerDayModel({
+    @Default('') String date,
+    @JsonKey(name: 'collected_litres') @Default(0.0) double collectedLitres,
+    @JsonKey(name: 'sold_litres') @Default(0.0) double soldLitres,
+    @JsonKey(name: 'spoiled_litres') @Default(0.0) double spoiledLitres,
+    @JsonKey(name: 'sales_kes') @Default(0.0) double salesKes,
+    @JsonKey(name: 'unaccounted_litres') @Default(0.0) double unaccountedLitres,
+    @JsonKey(name: 'allowance_litres') @Default(0.0) double allowanceLitres,
+    @JsonKey(name: 'balance_status') @Default('BALANCED') String balanceStatus,
+  }) = _LedgerDayModel;
+
+  factory LedgerDayModel.fromJson(Map<String, dynamic> json) =>
+      _$LedgerDayModelFromJson(json);
+}
+
 @freezed
 class SaccoReconciliationLedgerModel with _$SaccoReconciliationLedgerModel {
   const factory SaccoReconciliationLedgerModel({
@@ -110,6 +128,9 @@ class SaccoReconciliationLedgerModel with _$SaccoReconciliationLedgerModel {
     @JsonKey(name: 'collectors_summary')
     @Default([])
     List<CollectorAuditSummaryModel> collectorsSummary,
+    // The period day by day (days with milk only), when it spans more than
+    // one day.
+    @Default([]) List<LedgerDayModel> days,
   }) = _SaccoReconciliationLedgerModel;
 
   factory SaccoReconciliationLedgerModel.fromJson(Map<String, dynamic> json) =>

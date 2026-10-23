@@ -46,6 +46,9 @@ type SaccoReconciliationLedger struct {
 	ReceivablesKES      float64                 `json:"receivables_kes" doc:"What customers owe the Sacco right now (all periods)"`
 	SalesByCustomerType []reconcile.TypeTotal   `json:"sales_by_customer_type"`
 	CollectorsSummary   []CollectorAuditSummary `json:"collectors_summary"`
+	// Days is the period day by day (only days with milk), when it spans
+	// more than one day.
+	Days []LedgerDay `json:"days"`
 }
 
 // CollectorAuditSummary balances one collector's milk over a period,

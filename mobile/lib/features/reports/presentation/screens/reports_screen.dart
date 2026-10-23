@@ -20,6 +20,8 @@ import '../../../customers/data/models/customer_models.dart';
 import '../../../customers/presentation/widgets/customers_owing_sheet.dart';
 import '../../../../core/widgets/skeleton.dart';
 import '../../../../core/widgets/figure_cell.dart';
+import '../widgets/ledger_days.dart';
+import '../widgets/period_bar.dart';
 
 class ReportsScreen extends ConsumerStatefulWidget {
   const ReportsScreen({super.key});
@@ -31,7 +33,6 @@ class ReportsScreen extends ConsumerStatefulWidget {
 class _ReportsScreenState extends ConsumerState<ReportsScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  DateTime _selectedMonth = DateTime.now();
 
   @override
   void initState() {
@@ -43,39 +44,6 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
   void dispose() {
     _tabController.dispose();
     super.dispose();
-  }
-
-  void _stepMonth(int offset) {
-    final nextMonth = DateTime(
-      _selectedMonth.year,
-      _selectedMonth.month + offset,
-      1,
-    );
-    setState(() {
-      _selectedMonth = nextMonth;
-    });
-    ref.read(reportFilterFromDateProvider.notifier).state =
-        getFirstDayOfMonthString(nextMonth);
-    ref.read(reportFilterToDateProvider.notifier).state =
-        getLastDayOfMonthString(nextMonth);
-  }
-
-  String _formatMonthHeader(DateTime date) {
-    final monthNames = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
-    ];
-    return '${monthNames[date.month - 1]} ${date.year}';
   }
 
   void _refreshAllReports() {
@@ -152,8 +120,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
     final ledgerAsync = ref.watch(saccoLedgerReportProvider);
     final auditAsync = ref.watch(collectorAuditReportProvider);
 
-    final fromDate = ref.watch(reportFilterFromDateProvider);
-    final toDate = ref.watch(reportFilterToDateProvider);
+    final period = ref.watch(reportPeriodProvider);
 
     return RefreshOnShow(
       providers: [
@@ -211,80 +178,8 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
         ),
         body: Column(
           children: [
-            // Monthly Filter Bar
-            Container(
-              color: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.background,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.cardBorder),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    IconButton(
-                      icon: const Icon(
-                        Icons.chevron_left_rounded,
-                        color: AppColors.primary,
-                      ),
-                      tooltip: 'Previous Month',
-                      constraints: const BoxConstraints(),
-                      padding: const EdgeInsets.all(6),
-                      onPressed: () => _stepMonth(-1),
-                    ),
-                    // The month name always shows; the exact dates only when there is room.
-                    Flexible(
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.calendar_month_rounded,
-                            size: 18,
-                            color: AppColors.primary,
-                          ),
-                          const SizedBox(width: 8),
-                          Flexible(
-                            child: Text(
-                              _formatMonthHeader(_selectedMonth),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                                color: AppColors.textPrimary,
-                              ),
-                            ),
-                          ),
-                          if (MediaQuery.sizeOf(context).width >= 420) ...[
-                            const SizedBox(width: 6),
-                            Text(
-                              '($fromDate to $toDate)',
-                              style: const TextStyle(
-                                fontSize: 10,
-                                color: AppColors.textMuted,
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(
-                        Icons.chevron_right_rounded,
-                        color: AppColors.primary,
-                      ),
-                      tooltip: 'Next Month',
-                      constraints: const BoxConstraints(),
-                      padding: const EdgeInsets.all(6),
-                      onPressed: () => _stepMonth(1),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            // Day, week, month or chosen dates; every tab follows.
+            const PeriodBar(),
             const Divider(height: 1, color: AppColors.cardBorder),
 
             // Tab Views
@@ -299,7 +194,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
                         return EmptyStateWidget(
                           title: 'No Payout Statements',
                           description:
-                              'No farmer payout records for ${_formatMonthHeader(_selectedMonth)}.',
+                              'No farmer payout records for ${period.label}.',
                           icon: Icons.receipt_long_outlined,
                         );
                       }
@@ -737,6 +632,10 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
                                   ],
                                 ),
                               ),
+                              if (ledger.days.isNotEmpty) ...[
+                                const SizedBox(height: 20),
+                                LedgerDays(days: ledger.days),
+                              ],
                             ],
                           ),
                         ),
@@ -757,7 +656,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
                         return EmptyStateWidget(
                           title: 'No Collector Audits',
                           description:
-                              'No field collector audits recorded for ${_formatMonthHeader(_selectedMonth)}.',
+                              'No field collector audits recorded for ${period.label}.',
                           icon: Icons.badge_outlined,
                         );
                       }

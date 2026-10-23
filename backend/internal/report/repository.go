@@ -146,6 +146,12 @@ func (r *Repository) GetSaccoReconciliationLedger(ctx context.Context, fromDateS
 	ledger.Result = reconcile.Compute(collected, sold, spoiled, tolerance*float64(collectorDays))
 	ledger.ReceivablesKES = reconcile.Receivables(ctx, r.db, saccoID)
 	ledger.CollectorsSummary = collectors
+	ledger.Days = []LedgerDay{}
+	if fromDateStr != toDateStr {
+		if ledger.Days, err = r.ledgerDays(ctx, saccoID, fromDateStr, toDateStr, tolerance); err != nil {
+			return nil, err
+		}
+	}
 
 	from, _ := time.ParseInLocation(reconcile.DateLayout, fromDateStr, time.Local)
 	to, _ := time.ParseInLocation(reconcile.DateLayout, toDateStr, time.Local)

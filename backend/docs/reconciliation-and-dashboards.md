@@ -44,7 +44,7 @@ the **collectors to check** separately.
 | Endpoint | Scope |
 | :--- | :--- |
 | `GET /sacco/reconciliation?date=` | One collector's day. Collectors see only their own. |
-| `GET /sacco/reports/reconciliation?from_date&to_date` | Sacco ledger: volumes, sales by customer type, unaccounted litres, money (owed to farmers, revenue, paid at sale, credit, gross margin, customers owe now), per-collector summaries |
+| `GET /sacco/reports/reconciliation?from_date&to_date` | Sacco ledger: volumes, sales by customer type, unaccounted litres, money (owed to farmers, revenue, paid at sale, credit, gross margin, customers owe now), per-collector summaries, and for a period longer than a day `days`: each day with milk (collected, sold, spoilt, sales KES, balance status; tolerance per collector who took milk that day) |
 | `GET /sacco/reports/collector-audit` | Per-collector balance over a period, with `tolerance_litres` (per collector per day) so the app balances each day of the period the same way |
 | `GET /sacco/dashboard/summary?days=` | Executive cards (today's balance status, month gross margin, receivables) and daily trend including unaccounted litres |
 | `GET /sacco/dashboard/collector` | A collector's day, including unaccounted litres, cash received, and litres received from / transferred to other collectors |
@@ -63,6 +63,12 @@ stations are sales to a customer like any other.
 were removed. Use `unaccounted_litres`, `balance_status`, `is_balanced` and
 `allowance_litres` instead.
 
+In the app, **Reports** chooses its period: **Day**, **Week** (Monday to
+Sunday), **Month** (the default) or **Dates** from a calendar; the arrows step
+by that period and stop at today. All three tabs and their detail screens use
+the same dates (`reportPeriodProvider`). On a week, month or chosen dates, the
+Ledger ends with **Day by Day**; tapping a day shows that day alone.
+
 ## Performance
 
 The dashboards and reports used to run one query **per day** and **per
@@ -70,7 +76,8 @@ collector** (about 90 queries for a 30-day trend, and 3 per user for the
 collector audit). They now use:
 
 - **One grouped query per table** (`GROUP BY collection_date`, or `GROUP BY collector_id`),
-  merged in Go with zero-filled days. The executive dashboard runs 7 queries
+  merged in Go with zero-filled days. The ledger's day by day is 3 more grouped
+  queries (intake, sales, spoilage by date), run only for periods longer than a day. The executive dashboard runs 7 queries
   for any range, and the collector audit runs 3 however many collectors there are.
 - **Plain date comparisons** (`collection_date BETWEEN ? AND ?`) instead of
   `DATE(collection_date)`. The columns are already `DATE`, and wrapping them in a

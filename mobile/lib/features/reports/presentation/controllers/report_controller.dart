@@ -12,17 +12,7 @@ import '../../data/datasources/report_remote_data_source.dart';
 import '../../data/models/report_models.dart';
 import '../../data/repositories/report_repository_impl.dart';
 import '../../domain/repositories/report_repository.dart';
-
-String getFirstDayOfMonthString([DateTime? date]) {
-  final now = date ?? DateTime.now();
-  return "${now.year}-${now.month.toString().padLeft(2, '0')}-01";
-}
-
-String getLastDayOfMonthString([DateTime? date]) {
-  final now = date ?? DateTime.now();
-  final lastDay = DateTime(now.year, now.month + 1, 0);
-  return "${lastDay.year}-${lastDay.month.toString().padLeft(2, '0')}-${lastDay.day.toString().padLeft(2, '0')}";
-}
+import '../../domain/stepped_period.dart';
 
 /// Reloads the lists, dashboards and reports that change when milk is
 /// recorded, sold, spoiled or priced. Only screens that are open refetch at
@@ -50,11 +40,16 @@ final reportRepositoryProvider = Provider<ReportRepository>((ref) {
   return ReportRepositoryImpl(dataSource);
 });
 
-final reportFilterFromDateProvider = StateProvider.autoDispose<String>(
-  (ref) => getFirstDayOfMonthString(),
+/// The period the Reports screen covers (this month when it opens). The
+/// dates below follow it, so every report and detail screen shows the same.
+final reportPeriodProvider = StateProvider.autoDispose<SteppedPeriod>(
+  (ref) => SteppedPeriod.thisMonth(),
 );
-final reportFilterToDateProvider = StateProvider.autoDispose<String>(
-  (ref) => getLastDayOfMonthString(),
+final reportFilterFromDateProvider = Provider.autoDispose<String>(
+  (ref) => ref.watch(reportPeriodProvider).fromDate,
+);
+final reportFilterToDateProvider = Provider.autoDispose<String>(
+  (ref) => ref.watch(reportPeriodProvider).toDate,
 );
 
 // Persistent cached providers (no autoDispose) for instant screen transitions

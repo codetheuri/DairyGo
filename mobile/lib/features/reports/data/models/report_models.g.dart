@@ -87,6 +87,32 @@ Map<String, dynamic> _$$CollectorAuditSummaryModelImplToJson(
   'farmers_serviced_count': instance.farmersServicedCount,
 };
 
+_$LedgerDayModelImpl _$$LedgerDayModelImplFromJson(Map<String, dynamic> json) =>
+    _$LedgerDayModelImpl(
+      date: json['date'] as String? ?? '',
+      collectedLitres: (json['collected_litres'] as num?)?.toDouble() ?? 0.0,
+      soldLitres: (json['sold_litres'] as num?)?.toDouble() ?? 0.0,
+      spoiledLitres: (json['spoiled_litres'] as num?)?.toDouble() ?? 0.0,
+      salesKes: (json['sales_kes'] as num?)?.toDouble() ?? 0.0,
+      unaccountedLitres:
+          (json['unaccounted_litres'] as num?)?.toDouble() ?? 0.0,
+      allowanceLitres: (json['allowance_litres'] as num?)?.toDouble() ?? 0.0,
+      balanceStatus: json['balance_status'] as String? ?? 'BALANCED',
+    );
+
+Map<String, dynamic> _$$LedgerDayModelImplToJson(
+  _$LedgerDayModelImpl instance,
+) => <String, dynamic>{
+  'date': instance.date,
+  'collected_litres': instance.collectedLitres,
+  'sold_litres': instance.soldLitres,
+  'spoiled_litres': instance.spoiledLitres,
+  'sales_kes': instance.salesKes,
+  'unaccounted_litres': instance.unaccountedLitres,
+  'allowance_litres': instance.allowanceLitres,
+  'balance_status': instance.balanceStatus,
+};
+
 _$SaccoReconciliationLedgerModelImpl
 _$$SaccoReconciliationLedgerModelImplFromJson(
   Map<String, dynamic> json,
@@ -129,6 +155,11 @@ _$$SaccoReconciliationLedgerModelImplFromJson(
           )
           .toList() ??
       const [],
+  days:
+      (json['days'] as List<dynamic>?)
+          ?.map((e) => LedgerDayModel.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
 );
 
 Map<String, dynamic> _$$SaccoReconciliationLedgerModelImplToJson(
@@ -154,4 +185,5 @@ Map<String, dynamic> _$$SaccoReconciliationLedgerModelImplToJson(
   'receivables_kes': instance.receivablesKes,
   'sales_by_customer_type': instance.salesByCustomerType,
   'collectors_summary': instance.collectorsSummary,
+  'days': instance.days,
 };

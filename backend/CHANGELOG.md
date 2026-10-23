@@ -9,6 +9,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 
 ### Added
+- **Reports by day, week, month or chosen dates** (app): the period bar on Reports replaces the month stepper; the Ledger's new **Day by Day** list shows each day's milk and balance (`days` on `/sacco/reports/reconciliation`), and tapping a day opens it. [docs/reconciliation-and-dashboards.md](docs/reconciliation-and-dashboards.md)
+- **Litres sold to each customer**: this month's litres on the customer list and the who-owes list (`month_litres`), and "Litres in period" on statements (`total_litres`). [docs/customers-and-ledger.md](docs/customers-and-ledger.md)
 - **Move records to the collector who made them** (console, Sacco → Who recorded; [docs/platform-console.md](docs/platform-console.md)): for intakes, sales, spoilage and customer payments saved on a colleague's signed-in phone. Only who made them changes; needs a reason, kept in each record's history; DairyGo support only.
 - **A farmer's own buying price** (migration `00026`, [docs/collections-and-pricing.md](docs/collections-and-pricing.md)): a price schedule per farmer (or back to the Sacco's price) from a date; their unpaid milk from that date is repriced with a history line, paid months never change. App: Farmer profile → Buying price; Record Intake shows the farmer's price.
 - **Farmer pay** (`internal/payout`, migrations `00021`, `00022`, [docs/payouts.md](docs/payouts.md)):

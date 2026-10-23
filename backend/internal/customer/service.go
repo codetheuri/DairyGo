@@ -198,13 +198,13 @@ func (s *Service) List(ctx context.Context, q query.Query) ([]Customer, query.Me
 	if err != nil {
 		return nil, meta, err
 	}
-	byID := make(map[string]float64, len(balances))
+	byID := make(map[string]Balance, len(balances))
 	for _, b := range balances {
-		byID[b.CustomerID] = b.Balance
+		byID[b.CustomerID] = b
 	}
 	for i := range customers {
 		b := byID[customers[i].ID]
-		customers[i].Balance = &b
+		customers[i].Balance, customers[i].MonthLitres = &b.Balance, &b.MonthLitres
 	}
 	return customers, meta, nil
 }
@@ -357,6 +357,12 @@ func (s *Service) Statement(ctx context.Context, customerID, fromStr, toStr stri
 		return nil, err
 	}
 	lines, debit, credit, closing := buildStatement(opening, events)
+	litres := 0.0
+	for _, l := range lines {
+		if l.Kind == EntrySale {
+			litres += l.Litres
+		}
+	}
 
 	if c, err = s.withBalance(ctx, c); err != nil {
 		return nil, err
@@ -368,6 +374,7 @@ func (s *Service) Statement(ctx context.Context, customerID, fromStr, toStr stri
 		OpeningBalance: opening,
 		TotalDebit:     debit,
 		TotalCredit:    credit,
+		TotalLitres:    round2(litres),
 		ClosingBalance: closing,
 		Lines:          lines,
 	}, nil
@@ -391,11 +398,11 @@ func (s *Service) withBalance(ctx context.Context, c *Customer) (*Customer, erro
 	if err != nil {
 		return nil, err
 	}
-	b := 0.0
+	var b Balance
 	if len(balances) == 1 {
-		b = balances[0].Balance
+		b = balances[0]
 	}
-	c.Balance = &b
+	c.Balance, c.MonthLitres = &b.Balance, &b.MonthLitres
 	return c, nil
 }
 

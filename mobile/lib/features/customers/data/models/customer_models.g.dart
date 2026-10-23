@@ -17,6 +17,7 @@ _$CustomerModelImpl _$$CustomerModelImplFromJson(Map<String, dynamic> json) =>
       status: json['status'] as String? ?? 'ACTIVE',
       notes: json['notes'] as String?,
       balance: (json['balance'] as num?)?.toDouble(),
+      monthLitres: (json['month_litres'] as num?)?.toDouble(),
     );
 
 Map<String, dynamic> _$$CustomerModelImplToJson(_$CustomerModelImpl instance) =>
@@ -29,6 +30,7 @@ Map<String, dynamic> _$$CustomerModelImplToJson(_$CustomerModelImpl instance) =>
       'status': instance.status,
       'notes': instance.notes,
       'balance': instance.balance,
+      'month_litres': instance.monthLitres,
     };
 
 _$CreateCustomerRequestModelImpl _$$CreateCustomerRequestModelImplFromJson(
@@ -98,6 +100,7 @@ _$CustomerStatementModelImpl _$$CustomerStatementModelImplFromJson(
   openingBalance: (json['opening_balance'] as num?)?.toDouble() ?? 0.0,
   totalDebit: (json['total_debit'] as num?)?.toDouble() ?? 0.0,
   totalCredit: (json['total_credit'] as num?)?.toDouble() ?? 0.0,
+  totalLitres: (json['total_litres'] as num?)?.toDouble() ?? 0.0,
   closingBalance: (json['closing_balance'] as num?)?.toDouble() ?? 0.0,
   lines:
       (json['lines'] as List<dynamic>?)
@@ -115,6 +118,7 @@ Map<String, dynamic> _$$CustomerStatementModelImplToJson(
   'opening_balance': instance.openingBalance,
   'total_debit': instance.totalDebit,
   'total_credit': instance.totalCredit,
+  'total_litres': instance.totalLitres,
   'closing_balance': instance.closingBalance,
   'lines': instance.lines,
 };
@@ -129,6 +133,7 @@ _$CustomerBalanceModelImpl _$$CustomerBalanceModelImplFromJson(
   totalSales: (json['total_sales'] as num?)?.toDouble() ?? 0.0,
   totalPaid: (json['total_paid'] as num?)?.toDouble() ?? 0.0,
   balance: (json['balance'] as num?)?.toDouble() ?? 0.0,
+  monthLitres: (json['month_litres'] as num?)?.toDouble() ?? 0.0,
 );
 
 Map<String, dynamic> _$$CustomerBalanceModelImplToJson(
@@ -141,6 +146,7 @@ Map<String, dynamic> _$$CustomerBalanceModelImplToJson(
   'total_sales': instance.totalSales,
   'total_paid': instance.totalPaid,
   'balance': instance.balance,
+  'month_litres': instance.monthLitres,
 };
 
 _$RecordPaymentRequestModelImpl _$$RecordPaymentRequestModelImplFromJson(

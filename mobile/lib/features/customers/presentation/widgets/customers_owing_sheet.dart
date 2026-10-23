@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../core/utils/money.dart';
 import '../../../../core/widgets/skeleton.dart';
 import '../controllers/customer_controller.dart';
 
@@ -110,15 +111,18 @@ class CustomersOwingSheet extends ConsumerWidget {
                                           color: AppColors.warning,
                                         ),
                                       ),
-                                      if (c.phone != null &&
-                                          c.phone!.isNotEmpty)
-                                        Text(
-                                          c.phone!,
-                                          style: const TextStyle(
-                                            fontSize: 12,
-                                            color: AppColors.textSecondary,
-                                          ),
+                                      Text(
+                                        [
+                                          '${litres(c.monthLitres)} this month',
+                                          if (c.phone != null &&
+                                              c.phone!.isNotEmpty)
+                                            c.phone!,
+                                        ].join(' • '),
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          color: AppColors.textSecondary,
                                         ),
+                                      ),
                                     ],
                                   ),
                                 ),

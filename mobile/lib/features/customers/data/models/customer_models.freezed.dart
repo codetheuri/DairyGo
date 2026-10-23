@@ -30,7 +30,10 @@ mixin _$CustomerModel {
   double? get defaultPricePerLitre => throw _privateConstructorUsedError;
   String get status => throw _privateConstructorUsedError;
   String? get notes => throw _privateConstructorUsedError;
-  double? get balance => throw _privateConstructorUsedError;
+  double? get balance =>
+      throw _privateConstructorUsedError; // Litres bought this month; sent with the balance.
+  @JsonKey(name: 'month_litres')
+  double? get monthLitres => throw _privateConstructorUsedError;
 
   /// Serializes this CustomerModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -58,6 +61,7 @@ abstract class $CustomerModelCopyWith<$Res> {
     String status,
     String? notes,
     double? balance,
+    @JsonKey(name: 'month_litres') double? monthLitres,
   });
 }
 
@@ -84,6 +88,7 @@ class _$CustomerModelCopyWithImpl<$Res, $Val extends CustomerModel>
     Object? status = null,
     Object? notes = freezed,
     Object? balance = freezed,
+    Object? monthLitres = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -119,6 +124,10 @@ class _$CustomerModelCopyWithImpl<$Res, $Val extends CustomerModel>
                 ? _value.balance
                 : balance // ignore: cast_nullable_to_non_nullable
                       as double?,
+            monthLitres: freezed == monthLitres
+                ? _value.monthLitres
+                : monthLitres // ignore: cast_nullable_to_non_nullable
+                      as double?,
           )
           as $Val,
     );
@@ -143,6 +152,7 @@ abstract class _$$CustomerModelImplCopyWith<$Res>
     String status,
     String? notes,
     double? balance,
+    @JsonKey(name: 'month_litres') double? monthLitres,
   });
 }
 
@@ -168,6 +178,7 @@ class __$$CustomerModelImplCopyWithImpl<$Res>
     Object? status = null,
     Object? notes = freezed,
     Object? balance = freezed,
+    Object? monthLitres = freezed,
   }) {
     return _then(
       _$CustomerModelImpl(
@@ -203,6 +214,10 @@ class __$$CustomerModelImplCopyWithImpl<$Res>
             ? _value.balance
             : balance // ignore: cast_nullable_to_non_nullable
                   as double?,
+        monthLitres: freezed == monthLitres
+            ? _value.monthLitres
+            : monthLitres // ignore: cast_nullable_to_non_nullable
+                  as double?,
       ),
     );
   }
@@ -220,6 +235,7 @@ class _$CustomerModelImpl extends _CustomerModel {
     this.status = 'ACTIVE',
     this.notes,
     this.balance,
+    @JsonKey(name: 'month_litres') this.monthLitres,
   }) : super._();
 
   factory _$CustomerModelImpl.fromJson(Map<String, dynamic> json) =>
@@ -244,10 +260,14 @@ class _$CustomerModelImpl extends _CustomerModel {
   final String? notes;
   @override
   final double? balance;
+  // Litres bought this month; sent with the balance.
+  @override
+  @JsonKey(name: 'month_litres')
+  final double? monthLitres;
 
   @override
   String toString() {
-    return 'CustomerModel(id: $id, name: $name, phone: $phone, customerType: $customerType, defaultPricePerLitre: $defaultPricePerLitre, status: $status, notes: $notes, balance: $balance)';
+    return 'CustomerModel(id: $id, name: $name, phone: $phone, customerType: $customerType, defaultPricePerLitre: $defaultPricePerLitre, status: $status, notes: $notes, balance: $balance, monthLitres: $monthLitres)';
   }
 
   @override
@@ -264,7 +284,9 @@ class _$CustomerModelImpl extends _CustomerModel {
                 other.defaultPricePerLitre == defaultPricePerLitre) &&
             (identical(other.status, status) || other.status == status) &&
             (identical(other.notes, notes) || other.notes == notes) &&
-            (identical(other.balance, balance) || other.balance == balance));
+            (identical(other.balance, balance) || other.balance == balance) &&
+            (identical(other.monthLitres, monthLitres) ||
+                other.monthLitres == monthLitres));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -279,6 +301,7 @@ class _$CustomerModelImpl extends _CustomerModel {
     status,
     notes,
     balance,
+    monthLitres,
   );
 
   /// Create a copy of CustomerModel
@@ -306,6 +329,7 @@ abstract class _CustomerModel extends CustomerModel {
     final String status,
     final String? notes,
     final double? balance,
+    @JsonKey(name: 'month_litres') final double? monthLitres,
   }) = _$CustomerModelImpl;
   const _CustomerModel._() : super._();
 
@@ -329,7 +353,10 @@ abstract class _CustomerModel extends CustomerModel {
   @override
   String? get notes;
   @override
-  double? get balance;
+  double? get balance; // Litres bought this month; sent with the balance.
+  @override
+  @JsonKey(name: 'month_litres')
+  double? get monthLitres;
 
   /// Create a copy of CustomerModel
   /// with the given fields replaced by the non-null parameter values.
@@ -1107,6 +1134,8 @@ mixin _$CustomerStatementModel {
   double get totalDebit => throw _privateConstructorUsedError;
   @JsonKey(name: 'total_credit')
   double get totalCredit => throw _privateConstructorUsedError;
+  @JsonKey(name: 'total_litres')
+  double get totalLitres => throw _privateConstructorUsedError;
   @JsonKey(name: 'closing_balance')
   double get closingBalance => throw _privateConstructorUsedError;
   List<StatementLineModel> get lines => throw _privateConstructorUsedError;
@@ -1135,6 +1164,7 @@ abstract class $CustomerStatementModelCopyWith<$Res> {
     @JsonKey(name: 'opening_balance') double openingBalance,
     @JsonKey(name: 'total_debit') double totalDebit,
     @JsonKey(name: 'total_credit') double totalCredit,
+    @JsonKey(name: 'total_litres') double totalLitres,
     @JsonKey(name: 'closing_balance') double closingBalance,
     List<StatementLineModel> lines,
   });
@@ -1166,6 +1196,7 @@ class _$CustomerStatementModelCopyWithImpl<
     Object? openingBalance = null,
     Object? totalDebit = null,
     Object? totalCredit = null,
+    Object? totalLitres = null,
     Object? closingBalance = null,
     Object? lines = null,
   }) {
@@ -1194,6 +1225,10 @@ class _$CustomerStatementModelCopyWithImpl<
             totalCredit: null == totalCredit
                 ? _value.totalCredit
                 : totalCredit // ignore: cast_nullable_to_non_nullable
+                      as double,
+            totalLitres: null == totalLitres
+                ? _value.totalLitres
+                : totalLitres // ignore: cast_nullable_to_non_nullable
                       as double,
             closingBalance: null == closingBalance
                 ? _value.closingBalance
@@ -1235,6 +1270,7 @@ abstract class _$$CustomerStatementModelImplCopyWith<$Res>
     @JsonKey(name: 'opening_balance') double openingBalance,
     @JsonKey(name: 'total_debit') double totalDebit,
     @JsonKey(name: 'total_credit') double totalCredit,
+    @JsonKey(name: 'total_litres') double totalLitres,
     @JsonKey(name: 'closing_balance') double closingBalance,
     List<StatementLineModel> lines,
   });
@@ -1264,6 +1300,7 @@ class __$$CustomerStatementModelImplCopyWithImpl<$Res>
     Object? openingBalance = null,
     Object? totalDebit = null,
     Object? totalCredit = null,
+    Object? totalLitres = null,
     Object? closingBalance = null,
     Object? lines = null,
   }) {
@@ -1293,6 +1330,10 @@ class __$$CustomerStatementModelImplCopyWithImpl<$Res>
             ? _value.totalCredit
             : totalCredit // ignore: cast_nullable_to_non_nullable
                   as double,
+        totalLitres: null == totalLitres
+            ? _value.totalLitres
+            : totalLitres // ignore: cast_nullable_to_non_nullable
+                  as double,
         closingBalance: null == closingBalance
             ? _value.closingBalance
             : closingBalance // ignore: cast_nullable_to_non_nullable
@@ -1316,6 +1357,7 @@ class _$CustomerStatementModelImpl implements _CustomerStatementModel {
     @JsonKey(name: 'opening_balance') this.openingBalance = 0.0,
     @JsonKey(name: 'total_debit') this.totalDebit = 0.0,
     @JsonKey(name: 'total_credit') this.totalCredit = 0.0,
+    @JsonKey(name: 'total_litres') this.totalLitres = 0.0,
     @JsonKey(name: 'closing_balance') this.closingBalance = 0.0,
     final List<StatementLineModel> lines = const [],
   }) : _lines = lines;
@@ -1341,6 +1383,9 @@ class _$CustomerStatementModelImpl implements _CustomerStatementModel {
   @JsonKey(name: 'total_credit')
   final double totalCredit;
   @override
+  @JsonKey(name: 'total_litres')
+  final double totalLitres;
+  @override
   @JsonKey(name: 'closing_balance')
   final double closingBalance;
   final List<StatementLineModel> _lines;
@@ -1354,7 +1399,7 @@ class _$CustomerStatementModelImpl implements _CustomerStatementModel {
 
   @override
   String toString() {
-    return 'CustomerStatementModel(customer: $customer, fromDate: $fromDate, toDate: $toDate, openingBalance: $openingBalance, totalDebit: $totalDebit, totalCredit: $totalCredit, closingBalance: $closingBalance, lines: $lines)';
+    return 'CustomerStatementModel(customer: $customer, fromDate: $fromDate, toDate: $toDate, openingBalance: $openingBalance, totalDebit: $totalDebit, totalCredit: $totalCredit, totalLitres: $totalLitres, closingBalance: $closingBalance, lines: $lines)';
   }
 
   @override
@@ -1373,6 +1418,8 @@ class _$CustomerStatementModelImpl implements _CustomerStatementModel {
                 other.totalDebit == totalDebit) &&
             (identical(other.totalCredit, totalCredit) ||
                 other.totalCredit == totalCredit) &&
+            (identical(other.totalLitres, totalLitres) ||
+                other.totalLitres == totalLitres) &&
             (identical(other.closingBalance, closingBalance) ||
                 other.closingBalance == closingBalance) &&
             const DeepCollectionEquality().equals(other._lines, _lines));
@@ -1388,6 +1435,7 @@ class _$CustomerStatementModelImpl implements _CustomerStatementModel {
     openingBalance,
     totalDebit,
     totalCredit,
+    totalLitres,
     closingBalance,
     const DeepCollectionEquality().hash(_lines),
   );
@@ -1418,6 +1466,7 @@ abstract class _CustomerStatementModel implements CustomerStatementModel {
     @JsonKey(name: 'opening_balance') final double openingBalance,
     @JsonKey(name: 'total_debit') final double totalDebit,
     @JsonKey(name: 'total_credit') final double totalCredit,
+    @JsonKey(name: 'total_litres') final double totalLitres,
     @JsonKey(name: 'closing_balance') final double closingBalance,
     final List<StatementLineModel> lines,
   }) = _$CustomerStatementModelImpl;
@@ -1442,6 +1491,9 @@ abstract class _CustomerStatementModel implements CustomerStatementModel {
   @override
   @JsonKey(name: 'total_credit')
   double get totalCredit;
+  @override
+  @JsonKey(name: 'total_litres')
+  double get totalLitres;
   @override
   @JsonKey(name: 'closing_balance')
   double get closingBalance;
@@ -1473,6 +1525,8 @@ mixin _$CustomerBalanceModel {
   @JsonKey(name: 'total_paid')
   double get totalPaid => throw _privateConstructorUsedError;
   double get balance => throw _privateConstructorUsedError;
+  @JsonKey(name: 'month_litres')
+  double get monthLitres => throw _privateConstructorUsedError;
 
   /// Serializes this CustomerBalanceModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -1499,6 +1553,7 @@ abstract class $CustomerBalanceModelCopyWith<$Res> {
     @JsonKey(name: 'total_sales') double totalSales,
     @JsonKey(name: 'total_paid') double totalPaid,
     double balance,
+    @JsonKey(name: 'month_litres') double monthLitres,
   });
 }
 
@@ -1527,6 +1582,7 @@ class _$CustomerBalanceModelCopyWithImpl<
     Object? totalSales = null,
     Object? totalPaid = null,
     Object? balance = null,
+    Object? monthLitres = null,
   }) {
     return _then(
       _value.copyWith(
@@ -1558,6 +1614,10 @@ class _$CustomerBalanceModelCopyWithImpl<
                 ? _value.balance
                 : balance // ignore: cast_nullable_to_non_nullable
                       as double,
+            monthLitres: null == monthLitres
+                ? _value.monthLitres
+                : monthLitres // ignore: cast_nullable_to_non_nullable
+                      as double,
           )
           as $Val,
     );
@@ -1581,6 +1641,7 @@ abstract class _$$CustomerBalanceModelImplCopyWith<$Res>
     @JsonKey(name: 'total_sales') double totalSales,
     @JsonKey(name: 'total_paid') double totalPaid,
     double balance,
+    @JsonKey(name: 'month_litres') double monthLitres,
   });
 }
 
@@ -1605,6 +1666,7 @@ class __$$CustomerBalanceModelImplCopyWithImpl<$Res>
     Object? totalSales = null,
     Object? totalPaid = null,
     Object? balance = null,
+    Object? monthLitres = null,
   }) {
     return _then(
       _$CustomerBalanceModelImpl(
@@ -1636,6 +1698,10 @@ class __$$CustomerBalanceModelImplCopyWithImpl<$Res>
             ? _value.balance
             : balance // ignore: cast_nullable_to_non_nullable
                   as double,
+        monthLitres: null == monthLitres
+            ? _value.monthLitres
+            : monthLitres // ignore: cast_nullable_to_non_nullable
+                  as double,
       ),
     );
   }
@@ -1652,6 +1718,7 @@ class _$CustomerBalanceModelImpl implements _CustomerBalanceModel {
     @JsonKey(name: 'total_sales') this.totalSales = 0.0,
     @JsonKey(name: 'total_paid') this.totalPaid = 0.0,
     this.balance = 0.0,
+    @JsonKey(name: 'month_litres') this.monthLitres = 0.0,
   });
 
   factory _$CustomerBalanceModelImpl.fromJson(Map<String, dynamic> json) =>
@@ -1676,10 +1743,13 @@ class _$CustomerBalanceModelImpl implements _CustomerBalanceModel {
   @override
   @JsonKey()
   final double balance;
+  @override
+  @JsonKey(name: 'month_litres')
+  final double monthLitres;
 
   @override
   String toString() {
-    return 'CustomerBalanceModel(customerId: $customerId, name: $name, phone: $phone, customerType: $customerType, totalSales: $totalSales, totalPaid: $totalPaid, balance: $balance)';
+    return 'CustomerBalanceModel(customerId: $customerId, name: $name, phone: $phone, customerType: $customerType, totalSales: $totalSales, totalPaid: $totalPaid, balance: $balance, monthLitres: $monthLitres)';
   }
 
   @override
@@ -1697,7 +1767,9 @@ class _$CustomerBalanceModelImpl implements _CustomerBalanceModel {
                 other.totalSales == totalSales) &&
             (identical(other.totalPaid, totalPaid) ||
                 other.totalPaid == totalPaid) &&
-            (identical(other.balance, balance) || other.balance == balance));
+            (identical(other.balance, balance) || other.balance == balance) &&
+            (identical(other.monthLitres, monthLitres) ||
+                other.monthLitres == monthLitres));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1711,6 +1783,7 @@ class _$CustomerBalanceModelImpl implements _CustomerBalanceModel {
     totalSales,
     totalPaid,
     balance,
+    monthLitres,
   );
 
   /// Create a copy of CustomerBalanceModel
@@ -1740,6 +1813,7 @@ abstract class _CustomerBalanceModel implements CustomerBalanceModel {
     @JsonKey(name: 'total_sales') final double totalSales,
     @JsonKey(name: 'total_paid') final double totalPaid,
     final double balance,
+    @JsonKey(name: 'month_litres') final double monthLitres,
   }) = _$CustomerBalanceModelImpl;
 
   factory _CustomerBalanceModel.fromJson(Map<String, dynamic> json) =
@@ -1763,6 +1837,9 @@ abstract class _CustomerBalanceModel implements CustomerBalanceModel {
   double get totalPaid;
   @override
   double get balance;
+  @override
+  @JsonKey(name: 'month_litres')
+  double get monthLitres;
 
   /// Create a copy of CustomerBalanceModel
   /// with the given fields replaced by the non-null parameter values.

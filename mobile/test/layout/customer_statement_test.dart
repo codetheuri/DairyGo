@@ -40,6 +40,7 @@ final _answers = <String, Object>{
       'opening_balance': 0,
       'total_debit': 1240,
       'total_credit': 0,
+      'total_litres': 20,
       'closing_balance': 1240,
       'lines': [
         {
@@ -92,6 +93,7 @@ void main() {
             scrollable: find.byType(Scrollable).first,
           );
           seen['on the line'] = line.evaluate().length;
+          seen['litres in period'] = find.text('20 L').evaluate().length;
           await tester.tap(line);
           for (var i = 0; i < 6; i++) {
             await tester.pump(const Duration(milliseconds: 200));
@@ -106,7 +108,13 @@ void main() {
           await app.close();
         }
         expect(app.errors, isEmpty, reason: app.errors.join('\n'));
-        expect(seen, {'on the line': 1, 'sold by': 1, 'rate': 1, 'late': 1});
+        expect(seen, {
+          'on the line': 1,
+          'litres in period': 1,
+          'sold by': 1,
+          'rate': 1,
+          'late': 1,
+        });
       },
     );
   }

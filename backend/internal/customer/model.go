@@ -57,6 +57,9 @@ type Customer struct {
 	// Balance is the amount the customer currently owes. It is filled in by
 	// list and detail queries and never stored.
 	Balance *float64 `json:"balance,omitempty" gorm:"-"`
+	// MonthLitres is what the customer bought this month, shown with the
+	// balance to callers allowed to see it.
+	MonthLitres *float64 `json:"month_litres,omitempty" gorm:"-"`
 }
 
 // TableName sets the database table name.
@@ -99,4 +102,5 @@ type Balance struct {
 	TotalSales   float64 `json:"total_sales"`
 	TotalPaid    float64 `json:"total_paid"`
 	Balance      float64 `json:"balance"`
+	MonthLitres  float64 `json:"month_litres" doc:"Litres sold to the customer this month"`
 }

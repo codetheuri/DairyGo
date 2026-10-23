@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/cache/keep_fresh.dart';
 import '../../../../app/theme/app_colors.dart';
+import '../../../../core/utils/money.dart';
 import '../../../../core/pagination/paged_list_notifier.dart';
 import '../../../../core/widgets/empty_state_widget.dart';
 import '../../../../core/widgets/error_view.dart';
@@ -241,6 +242,15 @@ class _CustomerTile extends StatelessWidget {
                         color: AppColors.textSecondary,
                       ),
                     ),
+                    if (customer.monthLitres != null)
+                      Text(
+                        '${litres(customer.monthLitres!)} this month',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.primary,
+                        ),
+                      ),
                   ],
                 ),
               ),

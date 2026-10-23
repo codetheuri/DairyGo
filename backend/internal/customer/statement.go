@@ -63,6 +63,7 @@ type Statement struct {
 	OpeningBalance float64         `json:"opening_balance"`
 	TotalDebit     float64         `json:"total_debit"`
 	TotalCredit    float64         `json:"total_credit"`
+	TotalLitres    float64         `json:"total_litres" doc:"Litres sold to the customer in the period"`
 	ClosingBalance float64         `json:"closing_balance"`
 	Lines          []StatementLine `json:"lines"`
 }

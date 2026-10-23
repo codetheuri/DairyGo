@@ -59,6 +59,12 @@ paid in advance. Payments are **not** matched to individual sales.
 | `GET /customers/{id}/statement?from_date&to_date` | Admin, board | Opening balance, sales and payments with running balance, closing balance |
 | `GET /customers/balances?owing_only=true` | Admin, board | Who owes what, largest first, plus the total owed |
 
+Customers in the list and in `/customers/balances` carry `month_litres`
+(litres sold to them this month) next to the balance, and a statement has
+`total_litres` for its period ("Litres in period" in the app). They follow the
+same rule as balances: only for users allowed to read statements. When the list
+shows a page of customers, only those customers' sales and payments are totalled.
+
 Collectors can search and add customers but never see balances.
 
 ### Statement example

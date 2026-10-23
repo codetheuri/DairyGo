@@ -37,6 +37,8 @@ class CustomerModel with _$CustomerModel {
     @Default('ACTIVE') String status,
     String? notes,
     double? balance,
+    // Litres bought this month; sent with the balance.
+    @JsonKey(name: 'month_litres') double? monthLitres,
   }) = _CustomerModel;
 
   bool get isActive => status == 'ACTIVE';
@@ -95,6 +97,7 @@ class CustomerStatementModel with _$CustomerStatementModel {
     @JsonKey(name: 'opening_balance') @Default(0.0) double openingBalance,
     @JsonKey(name: 'total_debit') @Default(0.0) double totalDebit,
     @JsonKey(name: 'total_credit') @Default(0.0) double totalCredit,
+    @JsonKey(name: 'total_litres') @Default(0.0) double totalLitres,
     @JsonKey(name: 'closing_balance') @Default(0.0) double closingBalance,
     @Default([]) List<StatementLineModel> lines,
   }) = _CustomerStatementModel;
@@ -113,6 +116,7 @@ class CustomerBalanceModel with _$CustomerBalanceModel {
     @JsonKey(name: 'total_sales') @Default(0.0) double totalSales,
     @JsonKey(name: 'total_paid') @Default(0.0) double totalPaid,
     @Default(0.0) double balance,
+    @JsonKey(name: 'month_litres') @Default(0.0) double monthLitres,
   }) = _CustomerBalanceModel;
 
   factory CustomerBalanceModel.fromJson(Map<String, dynamic> json) =>

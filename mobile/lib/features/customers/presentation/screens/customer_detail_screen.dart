@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/cache/keep_fresh.dart';
 import '../../../../app/router/app_router.dart';
 import '../../../../app/theme/app_colors.dart';
+import '../../../../core/utils/money.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/status_pill.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
@@ -355,6 +356,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
               ),
               const Divider(height: 1, color: AppColors.cardBorder),
             ],
+            _litresRow(st.totalLitres),
             _summaryRow('Sales in period', st.totalDebit),
             _summaryRow('Paid in period', -st.totalCredit),
             _summaryRow('Closing balance', st.closingBalance, bold: true),
@@ -373,6 +375,24 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
       ),
     );
   }
+
+  Widget _litresRow(double value) => Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+    child: Row(
+      children: [
+        const Expanded(
+          child: Text(
+            'Litres in period',
+            style: TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
+          ),
+        ),
+        Text(
+          litres(value),
+          style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
+        ),
+      ],
+    ),
+  );
 
   Widget _summaryRow(String label, double value, {bool bold = false}) {
     final style = TextStyle(

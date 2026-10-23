@@ -259,6 +259,17 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
               ),
             ),
           ],
+          if (c.monthLitres != null) ...[
+            const SizedBox(height: 4),
+            Text(
+              'Bought ${litres(c.monthLitres!)} this month',
+              style: const TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 14,
+                color: AppColors.primary,
+              ),
+            ),
+          ],
         ],
       ),
     );

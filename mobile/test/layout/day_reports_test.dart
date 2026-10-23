@@ -10,6 +10,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:dairy_sacco_mobile/features/reports/domain/stepped_period.dart';
+
 import 'harness.dart';
 
 Map<String, dynamic> _fixture(String name) =>
@@ -54,9 +56,11 @@ Map<String, Object> _answers() {
     for (final c in customers['customers'] as List)
       {...(c as Map), 'balance': 18600, 'month_litres': 1240.5},
   ];
+  final first = (customers['customers'] as List).first as Map;
   return {
     'sacco_reports_reconciliation': _ok({'ledger': ledger}),
     'sacco_customers': _ok(customers),
+    'sacco_customers_${first['id']}': _ok({'customer': first}),
   };
 }
 
@@ -138,6 +142,18 @@ void main() {
             .text(_dayLabel(today.subtract(const Duration(days: 1))))
             .evaluate()
             .length;
+        // Straight from Day to Week: the week holding that day.
+        await tester.tap(find.text('Week'));
+        await _settle(tester);
+        seen['its week'] = find
+            .text(
+              SteppedPeriod.of(
+                PeriodKind.week,
+                today.subtract(const Duration(days: 1)),
+              ).label,
+            )
+            .evaluate()
+            .length;
 
         await tester.tap(find.text('Month'));
         await _settle(tester);
@@ -162,6 +178,7 @@ void main() {
         'today': 1,
         'no later than today': true,
         'yesterday': 1,
+        'its week': 1,
         'to check': 1,
         'that day': 1,
       });
@@ -175,15 +192,21 @@ void main() {
         '/customers',
         replaced: _answers(),
       );
-      int litres;
+      int litres, card;
       try {
         await _settle(tester);
         litres = find.text('1240.5 L this month').evaluate().length;
+        await tester.ensureVisible(find.text('1240.5 L this month').first);
+        await _settle(tester);
+        await tester.tap(find.text('1240.5 L this month').first);
+        await _settle(tester);
+        card = find.text('Bought 1240.5 L this month').evaluate().length;
       } finally {
         await app.close();
       }
       expect(app.errors, isEmpty, reason: app.errors.join('\n'));
       expect(litres, greaterThan(0));
+      expect(card, 1);
     });
   }
 }

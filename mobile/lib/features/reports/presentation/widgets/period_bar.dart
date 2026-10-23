@@ -52,6 +52,8 @@ class PeriodBar extends ConsumerWidget {
     final set = ref.read(reportPeriodProvider.notifier);
 
     void choose(PeriodKind kind) {
+      // What is showing now, not when the bar was last drawn.
+      final period = ref.read(reportPeriodProvider);
       if (kind == period.kind) return;
       if (kind == PeriodKind.range) {
         // Start from what is showing, then let them pick.
@@ -60,7 +62,8 @@ class PeriodBar extends ConsumerWidget {
         return;
       }
       // Keep the day in view: today when the period holds it, else its start.
-      final today = DateTime.now();
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
       final anchor = !today.isBefore(period.from) && !today.isAfter(period.to)
           ? today
           : period.from;

@@ -124,7 +124,14 @@ func (s *Service) Update(ctx context.Context, id string, req *UpdateCustomerRequ
 	if req.CustomerType != nil && *req.CustomerType != "" {
 		c.CustomerType = Type(strings.ToUpper(*req.CustomerType))
 	}
-	if req.DefaultPricePerLitre != nil {
+	if req.DefaultPricePerLitre != nil && !samePrice(req.DefaultPricePerLitre, c.DefaultPricePerLitre) {
+		// Once a customer has a price history, the price changes only there,
+		// from a date, so every change is kept.
+		if has, err := s.repo.HasPriceHistory(ctx, c.ID); err != nil {
+			return nil, err
+		} else if has {
+			return nil, fmt.Errorf("%s's price has a history: change it under Price, from a date", c.Name)
+		}
 		if *req.DefaultPricePerLitre == 0 {
 			c.DefaultPricePerLitre = nil // 0 clears the default price
 		} else {
@@ -359,7 +366,7 @@ func (s *Service) Statement(ctx context.Context, customerID, fromStr, toStr stri
 	lines, debit, credit, closing := buildStatement(opening, events)
 	litres := 0.0
 	for _, l := range lines {
-		if l.Kind == EntrySale {
+		if l.Kind == EntrySale && !l.Voided {
 			litres += l.Litres
 		}
 	}
@@ -490,4 +497,17 @@ func roundPtr(v *float64) *float64 {
 	}
 	r := math.Round(*v*100) / 100
 	return &r
+}
+
+// samePrice reports whether a requested price equals the current one (0 and
+// none both mean no price).
+func samePrice(req, cur *float64) bool {
+	r, c := 0.0, 0.0
+	if req != nil {
+		r = math.Round(*req*100) / 100
+	}
+	if cur != nil {
+		c = *cur
+	}
+	return r == c
 }

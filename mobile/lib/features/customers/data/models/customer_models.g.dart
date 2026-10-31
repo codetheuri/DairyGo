@@ -70,6 +70,10 @@ _$StatementLineModelImpl _$$StatementLineModelImplFromJson(
   method: json['method'] as String?,
   reference: json['reference'] as String?,
   lateReason: json['late_reason'] as String?,
+  voided: json['voided'] as bool? ?? false,
+  voidReason: json['void_reason'] as String?,
+  voidedBy: json['voided_by'] as String?,
+  voidedAt: json['voided_at'] as String?,
 );
 
 Map<String, dynamic> _$$StatementLineModelImplToJson(
@@ -89,6 +93,10 @@ Map<String, dynamic> _$$StatementLineModelImplToJson(
   'method': instance.method,
   'reference': instance.reference,
   'late_reason': instance.lateReason,
+  'voided': instance.voided,
+  'void_reason': instance.voidReason,
+  'voided_by': instance.voidedBy,
+  'voided_at': instance.voidedAt,
 };
 
 _$CustomerStatementModelImpl _$$CustomerStatementModelImplFromJson(

@@ -21,11 +21,18 @@ const (
 	PermMilkTransfersRead      = "milk.transfers.read"
 	PermMilkTransfersCreate    = "milk.transfers.create"
 	PermMilkTransfersManage    = "milk.transfers.manage"
-	PermMilkRecordsReadAll     = middleware.PermReadAllRecords
+	// PermCustomerPricesManage changes a customer's price from a date
+	// (customer_price.go); granted to administrators in migration 00028.
+	PermCustomerPricesManage = "customers.prices.manage"
+	PermMilkRecordsReadAll   = middleware.PermReadAllRecords
 )
 
 // Permissions exported by the collection module.
 var Permissions = []authz.Permission{
+	{
+		Name:        PermCustomerPricesManage,
+		Description: "Allows changing a customer's price from a date, repricing their sales from then",
+	},
 	{
 		Name:        PermMilkRecordsReadAll,
 		Description: "Allows seeing every collector's records, not only your own",

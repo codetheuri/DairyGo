@@ -484,7 +484,13 @@ func (s *Service) RecordSale(ctx context.Context, req *RecordSaleRequest) (*Milk
 		return nil, err
 	}
 
-	unitPrice, err := resolveUnitPrice(req.UnitPrice, customer.DefaultPricePerLitre)
+	// The customer's price for the sale's day (their price history), unless
+	// one is typed.
+	agreed, err := s.salePriceFor(ctx, customer, saleDate)
+	if err != nil {
+		return nil, err
+	}
+	unitPrice, err := resolveUnitPrice(req.UnitPrice, agreed)
 	if err != nil {
 		return nil, err
 	}

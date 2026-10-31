@@ -34,24 +34,33 @@ type LedgerEvent struct {
 	Method       string
 	Reference    string
 	LateReason   *string
+	// A voided sale or payment stays on the statement, crossed out, but
+	// counts nowhere.
+	VoidedAt   *time.Time
+	VoidReason *string
+	VoidedBy   string
 }
 
 // StatementLine is one row of a customer statement with its running balance.
 type StatementLine struct {
-	Kind        EntryKind `json:"kind"`
-	ReferenceID string    `json:"reference_id"`
-	Date        string    `json:"date"`
-	Description string    `json:"description"`
-	Litres      float64   `json:"litres,omitempty"`
-	Debit       float64   `json:"debit"`
-	Credit      float64   `json:"credit"`
-	Balance     float64   `json:"balance"`
-	Rate        float64   `json:"rate,omitempty" doc:"Sales: price per litre"`
-	RecordedBy  string    `json:"recorded_by,omitempty" doc:"The collector who made the sale, or the staff member who recorded the payment"`
-	RecordedAt  time.Time `json:"recorded_at" doc:"When it was entered"`
-	Method      string    `json:"method,omitempty" doc:"How it was paid (CASH, MPESA, BANK_TRANSFER, CHEQUE, CREDIT)"`
-	Reference   string    `json:"reference,omitempty" doc:"Payments: M-Pesa code or other reference"`
-	LateReason  *string   `json:"late_reason,omitempty" doc:"Sales entered after their day by DairyGo support: why"`
+	Kind        EntryKind  `json:"kind"`
+	ReferenceID string     `json:"reference_id"`
+	Date        string     `json:"date"`
+	Description string     `json:"description"`
+	Litres      float64    `json:"litres,omitempty"`
+	Debit       float64    `json:"debit"`
+	Credit      float64    `json:"credit"`
+	Balance     float64    `json:"balance"`
+	Rate        float64    `json:"rate,omitempty" doc:"Sales: price per litre"`
+	RecordedBy  string     `json:"recorded_by,omitempty" doc:"The collector who made the sale, or the staff member who recorded the payment"`
+	RecordedAt  time.Time  `json:"recorded_at" doc:"When it was entered"`
+	Method      string     `json:"method,omitempty" doc:"How it was paid (CASH, MPESA, BANK_TRANSFER, CHEQUE, CREDIT)"`
+	Reference   string     `json:"reference,omitempty" doc:"Payments: M-Pesa code or other reference"`
+	LateReason  *string    `json:"late_reason,omitempty" doc:"Sales entered after their day by DairyGo support: why"`
+	Voided      bool       `json:"voided,omitempty" doc:"Cancelled: shown for the record, not counted in the balance or totals"`
+	VoidReason  *string    `json:"void_reason,omitempty"`
+	VoidedBy    string     `json:"voided_by,omitempty"`
+	VoidedAt    *time.Time `json:"voided_at,omitempty"`
 }
 
 // Statement is a customer's ledger over a period. A positive balance is money
@@ -83,10 +92,17 @@ func buildStatement(opening float64, events []LedgerEvent) (lines []StatementLin
 	balance := opening
 	lines = make([]StatementLine, 0, len(sorted))
 	for _, e := range sorted {
-		balance = round2(balance + e.Debit - e.Credit)
-		totalDebit += e.Debit
-		totalCredit += e.Credit
+		voided := e.VoidedAt != nil
+		if !voided {
+			balance = round2(balance + e.Debit - e.Credit)
+			totalDebit += e.Debit
+			totalCredit += e.Credit
+		}
 		lines = append(lines, StatementLine{
+			Voided:      voided,
+			VoidReason:  e.VoidReason,
+			VoidedBy:    e.VoidedBy,
+			VoidedAt:    e.VoidedAt,
 			Kind:        e.Kind,
 			ReferenceID: e.ReferenceID,
 			Date:        e.Date.Format("2006-01-02"),

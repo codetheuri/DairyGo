@@ -13,6 +13,7 @@ import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../data/models/customer_models.dart';
 import '../controllers/customer_controller.dart';
 import '../widgets/record_payment_dialog.dart';
+import '../widgets/customer_price_card.dart';
 import '../widgets/statement_line_sheet.dart';
 import '../../../../core/layout/breakpoints.dart';
 import '../../../../core/widgets/skeleton.dart';
@@ -187,6 +188,11 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                         ),
                     ],
                   ),
+                  const SizedBox(height: 16),
+                  CustomerPriceCard(
+                    customerId: customer.id,
+                    customerName: customer.name,
+                  ),
                   if (seesStatement) ...[
                     const SizedBox(height: 20),
                     _monthSelector(),
@@ -337,33 +343,48 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
               ListTile(
                 dense: true,
                 leading: Icon(
-                  line.kind == 'PAYMENT'
+                  line.voided
+                      ? Icons.block_rounded
+                      : line.kind == 'PAYMENT'
                       ? Icons.south_west_rounded
                       : Icons.north_east_rounded,
-                  color: line.kind == 'PAYMENT'
+                  color: line.voided
+                      ? AppColors.textMuted
+                      : line.kind == 'PAYMENT'
                       ? AppColors.success
                       : AppColors.primary,
                   size: 20,
                 ),
                 title: Text(
                   line.description,
-                  style: const TextStyle(fontSize: 12),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: line.voided ? AppColors.textMuted : null,
+                    decoration: line.voided ? TextDecoration.lineThrough : null,
+                  ),
                 ),
                 subtitle: Text(
                   '${line.date}  •  '
                   '${line.debit > 0 ? '+${line.debit.toStringAsFixed(2)}  ' : ''}'
                   '${line.credit > 0 ? '−${line.credit.toStringAsFixed(2)}' : ''}'
-                  '${(line.recordedBy ?? '').isEmpty ? '' : '\nby ${line.recordedBy}'}',
+                  '${(line.recordedBy ?? '').isEmpty ? '' : '\nby ${line.recordedBy}'}'
+                  '${line.voided ? '\nVoided${(line.voidedBy ?? '').isEmpty ? '' : ' by ${line.voidedBy}'}: ${line.voidReason ?? ''}' : ''}',
                   style: const TextStyle(fontSize: 11),
                 ),
-                onTap: () => StatementLineSheet.show(context, line),
-                trailing: Text(
-                  line.balance.toStringAsFixed(2),
-                  style: const TextStyle(fontWeight: FontWeight.w700),
+                onTap: () => StatementLineSheet.show(
+                  context,
+                  line,
+                  onVoid: isAdmin && line.kind == 'PAYMENT' && !line.voided
+                      ? () => _voidPayment(line)
+                      : null,
                 ),
-                onLongPress: isAdmin && line.kind == 'PAYMENT'
-                    ? () => _voidPayment(line)
-                    : null,
+                trailing: Text(
+                  line.voided ? 'Voided' : line.balance.toStringAsFixed(2),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    color: line.voided ? AppColors.textMuted : null,
+                  ),
+                ),
               ),
               const Divider(height: 1, color: AppColors.cardBorder),
             ],
@@ -376,7 +397,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                 padding: const EdgeInsets.only(bottom: 10),
                 child: Text(
                   isAdmin && st.lines.any((l) => l.kind == 'PAYMENT')
-                      ? 'Tap a line to see who recorded it. Long-press a payment to void it.'
+                      ? 'Tap a line to see who recorded it, or to void a payment.'
                       : 'Tap a line to see who recorded it.',
                   style: TextStyle(fontSize: 11, color: AppColors.textMuted),
                 ),

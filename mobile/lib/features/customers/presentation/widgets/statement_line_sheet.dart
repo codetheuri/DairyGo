@@ -9,16 +9,22 @@ import '../../data/models/customer_models.dart';
 class StatementLineSheet extends StatelessWidget {
   final StatementLineModel line;
 
-  const StatementLineSheet({super.key, required this.line});
+  /// Voids this payment (asks for the reason); only for those who may.
+  final VoidCallback? onVoid;
 
-  static Future<void> show(BuildContext context, StatementLineModel line) =>
-      showModalBottomSheet(
-        context: context,
-        showDragHandle: true,
-        useSafeArea: true,
-        isScrollControlled: true,
-        builder: (_) => StatementLineSheet(line: line),
-      );
+  const StatementLineSheet({super.key, required this.line, this.onVoid});
+
+  static Future<void> show(
+    BuildContext context,
+    StatementLineModel line, {
+    VoidCallback? onVoid,
+  }) => showModalBottomSheet(
+    context: context,
+    showDragHandle: true,
+    useSafeArea: true,
+    isScrollControlled: true,
+    builder: (_) => StatementLineSheet(line: line, onVoid: onVoid),
+  );
 
   static String _kes(double v) => 'KES ${v.toStringAsFixed(2)}';
 
@@ -60,10 +66,16 @@ class StatementLineSheet extends StatelessWidget {
       if (!sale) ('Amount paid', _kes(line.credit)),
       if (_method(line.method).isNotEmpty) ('Paid by', _method(line.method)),
       if ((line.reference ?? '').isNotEmpty) ('Reference', line.reference!),
-      ('Balance after', _kes(line.balance)),
+      if (!line.voided) ('Balance after', _kes(line.balance)),
       (sale ? 'Sold by' : 'Recorded by', line.recordedBy ?? 'Not known'),
       if (_when(line.recordedAt).isNotEmpty)
         ('Entered on', _when(line.recordedAt)),
+      if (line.voided) ...[
+        ('Voided by', line.voidedBy ?? 'Not known'),
+        if (_when(line.voidedAt).isNotEmpty)
+          ('Voided on', _when(line.voidedAt)),
+        ('Why', line.voidReason ?? ''),
+      ],
     ];
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
@@ -72,9 +84,14 @@ class StatementLineSheet extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            sale ? 'Milk sale' : 'Payment',
+            '${sale ? 'Milk sale' : 'Payment'}${line.voided ? ' (voided)' : ''}',
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
           ),
+          if (line.voided)
+            const Text(
+              'Cancelled: kept for the record, not counted in the balance.',
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+            ),
           const SizedBox(height: 12),
           for (final (label, value) in rows)
             Padding(
@@ -100,6 +117,22 @@ class StatementLineSheet extends StatelessWidget {
               ),
             ),
           LateEntryNote(reason: line.lateReason),
+          if (onVoid != null && !sale && !line.voided) ...[
+            const SizedBox(height: 16),
+            OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(foregroundColor: AppColors.error),
+              onPressed: () {
+                Navigator.pop(context);
+                onVoid!();
+              },
+              icon: const Icon(Icons.block_rounded, size: 18),
+              label: const Text('Void payment'),
+            ),
+            const Text(
+              'Voided payments stay on the statement with your reason. Payments cannot be edited.',
+              style: TextStyle(fontSize: 11, color: AppColors.textMuted),
+            ),
+          ],
         ],
       ),
     );

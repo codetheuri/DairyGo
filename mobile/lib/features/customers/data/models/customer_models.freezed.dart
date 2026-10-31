@@ -668,7 +668,14 @@ mixin _$StatementLineModel {
   String? get method => throw _privateConstructorUsedError;
   String? get reference => throw _privateConstructorUsedError;
   @JsonKey(name: 'late_reason')
-  String? get lateReason => throw _privateConstructorUsedError;
+  String? get lateReason => throw _privateConstructorUsedError; // Cancelled: shown crossed out, not counted in the balance.
+  bool get voided => throw _privateConstructorUsedError;
+  @JsonKey(name: 'void_reason')
+  String? get voidReason => throw _privateConstructorUsedError;
+  @JsonKey(name: 'voided_by')
+  String? get voidedBy => throw _privateConstructorUsedError;
+  @JsonKey(name: 'voided_at')
+  String? get voidedAt => throw _privateConstructorUsedError;
 
   /// Serializes this StatementLineModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -702,6 +709,10 @@ abstract class $StatementLineModelCopyWith<$Res> {
     String? method,
     String? reference,
     @JsonKey(name: 'late_reason') String? lateReason,
+    bool voided,
+    @JsonKey(name: 'void_reason') String? voidReason,
+    @JsonKey(name: 'voided_by') String? voidedBy,
+    @JsonKey(name: 'voided_at') String? voidedAt,
   });
 }
 
@@ -734,6 +745,10 @@ class _$StatementLineModelCopyWithImpl<$Res, $Val extends StatementLineModel>
     Object? method = freezed,
     Object? reference = freezed,
     Object? lateReason = freezed,
+    Object? voided = null,
+    Object? voidReason = freezed,
+    Object? voidedBy = freezed,
+    Object? voidedAt = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -793,6 +808,22 @@ class _$StatementLineModelCopyWithImpl<$Res, $Val extends StatementLineModel>
                 ? _value.lateReason
                 : lateReason // ignore: cast_nullable_to_non_nullable
                       as String?,
+            voided: null == voided
+                ? _value.voided
+                : voided // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            voidReason: freezed == voidReason
+                ? _value.voidReason
+                : voidReason // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            voidedBy: freezed == voidedBy
+                ? _value.voidedBy
+                : voidedBy // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            voidedAt: freezed == voidedAt
+                ? _value.voidedAt
+                : voidedAt // ignore: cast_nullable_to_non_nullable
+                      as String?,
           )
           as $Val,
     );
@@ -823,6 +854,10 @@ abstract class _$$StatementLineModelImplCopyWith<$Res>
     String? method,
     String? reference,
     @JsonKey(name: 'late_reason') String? lateReason,
+    bool voided,
+    @JsonKey(name: 'void_reason') String? voidReason,
+    @JsonKey(name: 'voided_by') String? voidedBy,
+    @JsonKey(name: 'voided_at') String? voidedAt,
   });
 }
 
@@ -854,6 +889,10 @@ class __$$StatementLineModelImplCopyWithImpl<$Res>
     Object? method = freezed,
     Object? reference = freezed,
     Object? lateReason = freezed,
+    Object? voided = null,
+    Object? voidReason = freezed,
+    Object? voidedBy = freezed,
+    Object? voidedAt = freezed,
   }) {
     return _then(
       _$StatementLineModelImpl(
@@ -913,6 +952,22 @@ class __$$StatementLineModelImplCopyWithImpl<$Res>
             ? _value.lateReason
             : lateReason // ignore: cast_nullable_to_non_nullable
                   as String?,
+        voided: null == voided
+            ? _value.voided
+            : voided // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        voidReason: freezed == voidReason
+            ? _value.voidReason
+            : voidReason // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        voidedBy: freezed == voidedBy
+            ? _value.voidedBy
+            : voidedBy // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        voidedAt: freezed == voidedAt
+            ? _value.voidedAt
+            : voidedAt // ignore: cast_nullable_to_non_nullable
+                  as String?,
       ),
     );
   }
@@ -936,6 +991,10 @@ class _$StatementLineModelImpl implements _StatementLineModel {
     this.method,
     this.reference,
     @JsonKey(name: 'late_reason') this.lateReason,
+    this.voided = false,
+    @JsonKey(name: 'void_reason') this.voidReason,
+    @JsonKey(name: 'voided_by') this.voidedBy,
+    @JsonKey(name: 'voided_at') this.voidedAt,
   });
 
   factory _$StatementLineModelImpl.fromJson(Map<String, dynamic> json) =>
@@ -983,10 +1042,23 @@ class _$StatementLineModelImpl implements _StatementLineModel {
   @override
   @JsonKey(name: 'late_reason')
   final String? lateReason;
+  // Cancelled: shown crossed out, not counted in the balance.
+  @override
+  @JsonKey()
+  final bool voided;
+  @override
+  @JsonKey(name: 'void_reason')
+  final String? voidReason;
+  @override
+  @JsonKey(name: 'voided_by')
+  final String? voidedBy;
+  @override
+  @JsonKey(name: 'voided_at')
+  final String? voidedAt;
 
   @override
   String toString() {
-    return 'StatementLineModel(kind: $kind, referenceId: $referenceId, date: $date, description: $description, litres: $litres, debit: $debit, credit: $credit, balance: $balance, rate: $rate, recordedBy: $recordedBy, recordedAt: $recordedAt, method: $method, reference: $reference, lateReason: $lateReason)';
+    return 'StatementLineModel(kind: $kind, referenceId: $referenceId, date: $date, description: $description, litres: $litres, debit: $debit, credit: $credit, balance: $balance, rate: $rate, recordedBy: $recordedBy, recordedAt: $recordedAt, method: $method, reference: $reference, lateReason: $lateReason, voided: $voided, voidReason: $voidReason, voidedBy: $voidedBy, voidedAt: $voidedAt)';
   }
 
   @override
@@ -1013,7 +1085,14 @@ class _$StatementLineModelImpl implements _StatementLineModel {
             (identical(other.reference, reference) ||
                 other.reference == reference) &&
             (identical(other.lateReason, lateReason) ||
-                other.lateReason == lateReason));
+                other.lateReason == lateReason) &&
+            (identical(other.voided, voided) || other.voided == voided) &&
+            (identical(other.voidReason, voidReason) ||
+                other.voidReason == voidReason) &&
+            (identical(other.voidedBy, voidedBy) ||
+                other.voidedBy == voidedBy) &&
+            (identical(other.voidedAt, voidedAt) ||
+                other.voidedAt == voidedAt));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1034,6 +1113,10 @@ class _$StatementLineModelImpl implements _StatementLineModel {
     method,
     reference,
     lateReason,
+    voided,
+    voidReason,
+    voidedBy,
+    voidedAt,
   );
 
   /// Create a copy of StatementLineModel
@@ -1069,6 +1152,10 @@ abstract class _StatementLineModel implements StatementLineModel {
     final String? method,
     final String? reference,
     @JsonKey(name: 'late_reason') final String? lateReason,
+    final bool voided,
+    @JsonKey(name: 'void_reason') final String? voidReason,
+    @JsonKey(name: 'voided_by') final String? voidedBy,
+    @JsonKey(name: 'voided_at') final String? voidedAt,
   }) = _$StatementLineModelImpl;
 
   factory _StatementLineModel.fromJson(Map<String, dynamic> json) =
@@ -1105,7 +1192,18 @@ abstract class _StatementLineModel implements StatementLineModel {
   String? get reference;
   @override
   @JsonKey(name: 'late_reason')
-  String? get lateReason;
+  String? get lateReason; // Cancelled: shown crossed out, not counted in the balance.
+  @override
+  bool get voided;
+  @override
+  @JsonKey(name: 'void_reason')
+  String? get voidReason;
+  @override
+  @JsonKey(name: 'voided_by')
+  String? get voidedBy;
+  @override
+  @JsonKey(name: 'voided_at')
+  String? get voidedAt;
 
   /// Create a copy of StatementLineModel
   /// with the given fields replaced by the non-null parameter values.

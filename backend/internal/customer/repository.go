@@ -217,10 +217,12 @@ func (r *Repository) LedgerEvents(ctx context.Context, saccoID, customerID strin
 		PaymentMethod  string
 		CollectorID    uint
 		LateReason     *string
+		VoidedAt       *time.Time
+		VoidReason     *string
 	}
 	err := r.db.WithContext(ctx).Table("milk_sales").
-		Select("id, sale_date, created_at, quantity_litres, unit_price, total_amount, amount_paid, payment_method, collector_id, late_reason").
-		Where("sacco_id = ? AND customer_id = ? AND deleted_at IS NULL AND voided_at IS NULL AND sale_date BETWEEN ? AND ?", saccoID, customerID, fromStr, toStr).
+		Select("id, sale_date, created_at, quantity_litres, unit_price, total_amount, amount_paid, payment_method, collector_id, late_reason, voided_at, void_reason").
+		Where("sacco_id = ? AND customer_id = ? AND deleted_at IS NULL AND sale_date BETWEEN ? AND ?", saccoID, customerID, fromStr, toStr).
 		Scan(&sales).Error
 	if err != nil {
 		return nil, err
@@ -228,7 +230,7 @@ func (r *Repository) LedgerEvents(ctx context.Context, saccoID, customerID strin
 
 	var payments []Payment
 	err = r.db.WithContext(ctx).
-		Where("sacco_id = ? AND customer_id = ? AND voided_at IS NULL AND payment_date BETWEEN ? AND ?", saccoID, customerID, fromStr, toStr).
+		Where("sacco_id = ? AND customer_id = ? AND payment_date BETWEEN ? AND ?", saccoID, customerID, fromStr, toStr).
 		Find(&payments).Error
 	if err != nil {
 		return nil, err
@@ -245,6 +247,7 @@ func (r *Repository) LedgerEvents(ctx context.Context, saccoID, customerID strin
 			Kind: EntrySale, ReferenceID: s.ID, Date: s.SaleDate, CreatedAt: s.CreatedAt,
 			Description: desc, Litres: s.QuantityLitres, Debit: s.TotalAmount, Credit: s.AmountPaid,
 			Rate: s.UnitPrice, RecordedByID: &collector, Method: s.PaymentMethod, LateReason: s.LateReason,
+			VoidedAt: s.VoidedAt, VoidReason: s.VoidReason,
 		})
 	}
 	for _, p := range payments {
@@ -260,9 +263,11 @@ func (r *Repository) LedgerEvents(ctx context.Context, saccoID, customerID strin
 			Kind: EntryPayment, ReferenceID: p.ID, Date: p.PaymentDate, CreatedAt: p.CreatedAt,
 			Description: desc, Credit: p.Amount,
 			RecordedByID: p.RecordedByID, Method: string(p.Method), Reference: ref,
+			VoidedAt: p.VoidedAt, VoidReason: p.VoidReason,
 		})
 	}
 	r.nameRecorders(ctx, events)
+	r.nameVoiders(ctx, saccoID, events)
 	return events, nil
 }
 
@@ -308,4 +313,47 @@ func (r *Repository) CheckCashAccount(ctx context.Context, saccoID, id string) e
 // monthStart is the first day of t's month, the start of "this month".
 func monthStart(t time.Time) string {
 	return time.Date(t.Year(), t.Month(), 1, 0, 0, 0, 0, t.Location()).Format(dateLayout)
+}
+
+// HasPriceHistory reports whether the customer's price has been changed from
+// a date (customer_prices, migration 00028).
+func (r *Repository) HasPriceHistory(ctx context.Context, customerID string) (bool, error) {
+	var n int64
+	err := r.db.WithContext(ctx).Table("customer_prices").
+		Where("customer_id = ? AND is_active = ?", customerID, true).Count(&n).Error
+	return n > 0, err
+}
+
+// nameVoiders fills in who voided each voided event, from the history.
+func (r *Repository) nameVoiders(ctx context.Context, saccoID string, events []LedgerEvent) {
+	ids := []string{}
+	for _, e := range events {
+		if e.VoidedAt != nil {
+			ids = append(ids, e.ReferenceID)
+		}
+	}
+	if len(ids) == 0 {
+		return
+	}
+	var rows []struct {
+		EntityID string
+		Name     string
+	}
+	if err := r.db.WithContext(ctx).Table("audit_logs a").
+		Select(`a.entity_id, COALESCE(NULLIF(TRIM(COALESCE(p.first_name, '') || ' ' || COALESCE(p.last_name, '')), ''), u.username) AS name`).
+		Joins("JOIN users u ON u.id = a.actor_id").
+		Joins("LEFT JOIN user_profiles p ON p.user_id = u.id").
+		Where("a.sacco_id = ? AND a.action = ? AND a.entity_id IN ?", saccoID, "VOID", ids).
+		Scan(&rows).Error; err != nil {
+		return
+	}
+	names := make(map[string]string, len(rows))
+	for _, row := range rows {
+		names[row.EntityID] = row.Name
+	}
+	for i := range events {
+		if events[i].VoidedAt != nil {
+			events[i].VoidedBy = names[events[i].ReferenceID]
+		}
+	}
 }

@@ -118,6 +118,9 @@ class UserEntity with _$UserEntity {
       can('customers.statement.read', whenUnknown: isExecutive);
   bool get canRecordPayments =>
       can('customers.payments.manage', whenUnknown: isSaccoAdmin);
+  // A customer's price from a date, repricing their sales (migration 00028).
+  bool get canChangeCustomerPrices =>
+      can('customers.prices.manage', whenUnknown: isSaccoAdmin);
 
   bool get canManageStaff => can('users.read', whenUnknown: isSaccoAdmin);
 

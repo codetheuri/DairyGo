@@ -9,6 +9,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 
 ### Added
+- **A customer's price from a date** (migration `00028`, [docs/customers-and-ledger.md](docs/customers-and-ledger.md)): Sacco admins (`customers.prices.manage`) change the price from any day since the customer's first; their sales at the agreed price are repriced with a history line, typed prices and voided sales never change, and sales paid in full only when chosen. App: Customer → Price → Change price (check first).
+- **Voided payments and sales stay on the statement**, crossed out with who voided them and why; a payment's line has a **Void payment** button for anyone who records payments. Payments are never edited.
 - **Reports by day, week, month or chosen dates** (app): the period bar on Reports replaces the month stepper; the Ledger's new **Day by Day** list shows each day's milk and balance (`days` on `/sacco/reports/reconciliation`), and tapping a day opens it. [docs/reconciliation-and-dashboards.md](docs/reconciliation-and-dashboards.md)
 - **Litres sold to each customer**: this month's litres on the customer list and the who-owes list (`month_litres`), and "Litres in period" on statements (`total_litres`). [docs/customers-and-ledger.md](docs/customers-and-ledger.md)
 - **Move records to the collector who made them** (console, Sacco → Who recorded; [docs/platform-console.md](docs/platform-console.md)): for intakes, sales, spoilage and customer payments saved on a colleague's signed-in phone. Only who made them changes; needs a reason, kept in each record's history; DairyGo support only.

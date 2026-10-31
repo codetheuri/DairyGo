@@ -82,6 +82,11 @@ class StatementLineModel with _$StatementLineModel {
     String? method,
     String? reference,
     @JsonKey(name: 'late_reason') String? lateReason,
+    // Cancelled: shown crossed out, not counted in the balance.
+    @Default(false) bool voided,
+    @JsonKey(name: 'void_reason') String? voidReason,
+    @JsonKey(name: 'voided_by') String? voidedBy,
+    @JsonKey(name: 'voided_at') String? voidedAt,
   }) = _StatementLineModel;
 
   factory StatementLineModel.fromJson(Map<String, dynamic> json) =>

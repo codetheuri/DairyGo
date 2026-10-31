@@ -209,6 +209,9 @@ func customerStatement(ctx context.Context, s *Service, in *input) error {
 		Rows: [][]any{{in.from, "Balance brought forward", nil, nil, nil, nil, st.OpeningBalance, nil}},
 	}
 	for _, line := range st.Lines {
+		if line.Voided {
+			continue // cancelled: in the app's statement and the history, not the customer's copy
+		}
 		date, _ := time.Parse(dateLayout, line.Date[:min(len(line.Date), 10)])
 		var l, rate, debit, credit any
 		if line.Litres != 0 {

@@ -55,7 +55,7 @@ paid in advance. Payments are **not** matched to individual sales.
 | :--- | :--- | :--- |
 | `POST /customers/{id}/payments` | Admin | Money received (M-Pesa, cash, bank, cheque) with a reference |
 | `POST /admin/saccos/{id}/late-entries/payments` | Support (Console) | Unrecorded payment received for a specific date (with late reason) |
-| `POST /customer-payments/{id}/void` | Admin | Cancel a payment recorded in error (reason required) |
+| `POST /customer-payments/{id}/void` | Anyone who records payments (`customers.payments.manage`) | Cancel a payment recorded in error (reason required). Payments are never edited |
 | `GET /customers/{id}/statement?from_date&to_date` | Admin, board | Opening balance, sales and payments with running balance, closing balance |
 | `GET /customers/balances?owing_only=true` | Admin, board | Who owes what, largest first, plus the total owed |
 
@@ -66,6 +66,43 @@ same rule as balances: only for users allowed to read statements. When the list
 shows a page of customers, only those customers' sales and payments are totalled.
 
 Collectors can search and add customers but never see balances.
+
+Voided sales and payments stay on the statement (`voided`, `void_reason`,
+`voided_by`, `voided_at`) for the record but count nowhere: not in the running
+balance, the totals or the litres. The app shows them crossed out; a payment's
+line opens with a **Void payment** button. The downloaded statement leaves them
+out.
+
+## A customer's price from a date
+
+A Sacco admin (`customers.prices.manage`, migration 00028) changes a customer's
+price from a date, as far back as the customer's first day (the day they were
+added, or their first sale if earlier). The rows form a history; the latest on
+or before a day is that day's price, and `default_price_per_litre` follows the
+one in force today. The first change also saves the price agreed before it,
+from the first day, so earlier sales keep a known price. Once there is a
+history the edit form cannot change the price.
+
+Repricing (`internal/collection/customer_price.go`), in one transaction with a
+history line per sale:
+
+- only sales **at the agreed price** for their day change; a price typed on the
+  day (a discount) and voided sales never do;
+- sales **not fully paid** are repriced; sales **paid in full** only when the
+  person saving chooses to (`include_paid`). The cash received stays as it
+  was, so the customer then owes the difference, or is in credit for it;
+- `preview` reports what would change (`summary`: sales and KES for each group,
+  and how many have typed prices) before saving. The app's sheet checks first,
+  then asks about sales paid in full.
+
+| Endpoint | Purpose |
+| :--- | :--- |
+| `GET /sacco/customers/{id}/prices` | Price today, first day, history and cancelled rows |
+| `POST /sacco/customers/{id}/prices` | `{price_per_litre, effective_date, reason, include_paid?, preview?}` |
+| `POST /sacco/customers/{id}/prices/{price_id}/void` | Cancel a row entered in error; reprices back (`include_paid`, `preview`) |
+
+New sales without a typed price take the price for their day (console late
+sales included).
 
 ### Statement example
 

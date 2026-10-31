@@ -64,6 +64,23 @@ func RegisterRoutes(api huma.API, db *gorm.DB, cfg *config.Config, log logger.Lo
 		Description: "Cancels a row of the farmer's schedule and reprices their unpaid milk accordingly.",
 	}, PermMilkPricesManage), handler.VoidMemberPrice)
 
+	// A customer's selling price over time (customer_price.go).
+	huma.Register(api, guard.Protected(huma.Operation{
+		OperationID: "customer-prices", Method: http.MethodGet, Path: "/api/v1/sacco/customers/{id}/prices",
+		Summary: "A customer's price history", Tags: []string{"Customers"},
+		Description: "The customer's price today, the earliest day a price can start, and their price schedule (cancelled rows separately).",
+	}, permCustomersRead), handler.CustomerPrices)
+	huma.Register(api, guard.Protected(huma.Operation{
+		OperationID: "set-customer-price", Method: http.MethodPost, Path: "/api/v1/sacco/customers/{id}/prices",
+		Summary: "Change a customer's price from a date", Tags: []string{"Customers"},
+		Description: "From effective_date (as early as the customer's first day) the customer pays price_per_litre. Their sales from then at the agreed price are repriced with a history line; hand-typed prices and voided sales never change; sales paid in full only with include_paid. preview only reports what would change.",
+	}, PermCustomerPricesManage), handler.SetCustomerPrice)
+	huma.Register(api, guard.Protected(huma.Operation{
+		OperationID: "void-customer-price", Method: http.MethodPost, Path: "/api/v1/sacco/customers/{id}/prices/{price_id}/void",
+		Summary: "Cancel a customer's price entered in error", Tags: []string{"Customers"},
+		Description: "Cancels a row of the schedule and reprices the customer's sales back the same way (include_paid, preview).",
+	}, PermCustomerPricesManage), handler.VoidCustomerPrice)
+
 	huma.Register(api, guard.Protected(huma.Operation{
 		OperationID: "list-milk-prices",
 		Method:      http.MethodGet,

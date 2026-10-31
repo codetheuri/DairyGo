@@ -94,6 +94,10 @@ void main() {
           );
           seen['on the line'] = line.evaluate().length;
           seen['litres in period'] = find.text('20 L').evaluate().length;
+          await tester.ensureVisible(line);
+          for (var i = 0; i < 3; i++) {
+            await tester.pump(const Duration(milliseconds: 200));
+          }
           await tester.tap(line);
           for (var i = 0; i < 6; i++) {
             await tester.pump(const Duration(milliseconds: 200));

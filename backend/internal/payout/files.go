@@ -3,6 +3,7 @@ package payout
 import (
 	"context"
 	"fmt"
+	"github.com/codetheuri/tusk/pkg/payto"
 	"regexp"
 	"sort"
 	"strings"
@@ -117,20 +118,31 @@ func (s *Service) PaymentFile(ctx context.Context, runID, kind string) (*File, e
 		pay.Columns = []document.Column{col("Phone", document.Text, 1.3), col("Amount", document.Money, 1.2), col("Name", document.Text, 2), col("Reference", document.Text, 1)}
 	}
 	total := 0.0
+	// Each farmer is on one list only: the one for their payout method.
+	want := payto.MPesa
+	if bank {
+		want = payto.Bank
+	}
 	for _, l := range lines {
+		d := payto.Details{Method: l.PayoutMethod, Phone: l.Phone, MpesaNumber: l.MpesaNumber,
+			BankName: l.BankName, Account: l.BankAccountNumber}
+		if payto.Method(l.PayoutMethod) == payto.Bank {
+			d.Method = payto.Bank
+		} else {
+			d.Method = payto.MPesa
+		}
+		if d.Method != want {
+			continue
+		}
 		switch {
-		case bank && deref(l.BankAccountNumber) != "":
+		case !d.Ready():
+			missing.Rows = append(missing.Rows, []any{l.MembershipNumber, l.FarmerName, l.Phone, l.Net})
+		case bank:
 			pay.Rows = append(pay.Rows, []any{deref(l.BankName), deref(l.BankAccountNumber), l.FarmerName, l.Net, l.MembershipNumber})
 			total += l.Net
-		case !bank && (deref(l.MpesaNumber) != "" || l.Phone != ""):
-			phone := deref(l.MpesaNumber)
-			if phone == "" {
-				phone = l.Phone
-			}
-			pay.Rows = append(pay.Rows, []any{mpesaPhone(phone), l.Net, l.FarmerName, l.MembershipNumber})
-			total += l.Net
 		default:
-			missing.Rows = append(missing.Rows, []any{l.MembershipNumber, l.FarmerName, l.Phone, l.Net})
+			pay.Rows = append(pay.Rows, []any{mpesaPhone(d.MpesaPhone()), l.Net, l.FarmerName, l.MembershipNumber})
+			total += l.Net
 		}
 	}
 	if bank {
@@ -144,9 +156,9 @@ func (s *Service) PaymentFile(ctx context.Context, runID, kind string) (*File, e
 	}
 	d.Tables = []document.Table{pay}
 	if bank {
-		d.Notes = append(d.Notes, "Only farmers with a bank account are listed. Farmers paid by M-Pesa are in the M-Pesa list.")
+		d.Notes = append(d.Notes, "Farmers set to be paid by bank. Farmers paid by M-Pesa are on the M-Pesa list; nobody is on both.")
 	} else {
-		d.Notes = append(d.Notes, "Farmers are paid on their M-Pesa number, or their phone when no M-Pesa number is set.")
+		d.Notes = append(d.Notes, "Farmers set to be paid by M-Pesa, on their M-Pesa number, or their phone when none is set. Farmers paid by bank are on the bank list; nobody is on both.")
 	}
 	if !bank || len(missing.Rows) > 0 {
 		d.Tables = append(d.Tables, missing)
@@ -167,7 +179,7 @@ func (s *Service) Register(ctx context.Context, runID, format string) (*File, er
 		return nil, err
 	}
 	run := detail.Run
-	title := "Pay Run Register"
+	title := "Farmers' Pay Sheet"
 	if run.Status == RunDraft {
 		title += " (draft, not approved)"
 	}
@@ -261,7 +273,7 @@ func (s *Service) Register(ctx context.Context, runID, format string) (*File, er
 	if err != nil {
 		return nil, err
 	}
-	return &File{Name: fileName(d.Letterhead.Name, "pay-run", run, ext), ContentType: ctype, Data: data}, nil
+	return &File{Name: fileName(d.Letterhead.Name, "pay-sheet", run, ext), ContentType: ctype, Data: data}, nil
 }
 
 func methodLabel(m *PayMethod) string {

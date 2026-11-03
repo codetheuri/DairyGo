@@ -35,6 +35,7 @@ func auditFields(m *Member) map[string]string {
 		"email":                    deref(m.Email),
 		"gender":                   deref(m.Gender),
 		"location":                 deref(m.Location),
+		"payout_method":            m.PayoutMethod,
 		"mpesa_number":             deref(m.MpesaNumber),
 		"mpesa_name":               deref(m.MpesaName),
 		"bank_name":                deref(m.BankName),

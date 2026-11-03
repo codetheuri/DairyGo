@@ -16,6 +16,7 @@ class MemberRepositoryImpl implements MemberRepository {
     int perPage = 50,
     String? status,
     bool canSupply = false,
+    String? paidBy,
   }) {
     return _remoteDataSource.listMembers(
       search: search,
@@ -23,6 +24,7 @@ class MemberRepositoryImpl implements MemberRepository {
       perPage: perPage,
       status: status,
       canSupply: canSupply,
+      paidBy: paidBy,
     );
   }
 

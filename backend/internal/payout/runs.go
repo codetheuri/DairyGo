@@ -3,6 +3,7 @@ package payout
 import (
 	"context"
 	"fmt"
+	"github.com/codetheuri/tusk/pkg/payto"
 	"math"
 	"sort"
 	"strings"
@@ -220,7 +221,7 @@ func (s *Service) work(ctx context.Context, tx *Repository, run *PayRun, cutoff 
 		line := PayRunLine{
 			ID: uuid.New().String(), PayRunID: run.ID, SaccoID: saccoID, MemberID: id,
 			MembershipNumber: f.MembershipNumber, FarmerName: strings.TrimSpace(f.Name()), Phone: f.Phone,
-			MpesaNumber: f.MpesaNumber, BankName: f.BankName, BankAccountNumber: f.BankAccountNumber,
+			PayoutMethod: payto.Method(f.PayoutMethod), MpesaNumber: f.MpesaNumber, BankName: f.BankName, BankAccountNumber: f.BankAccountNumber,
 			Litres: slip.Litres, Gross: slip.Gross, Opening: slip.Opening, Entries: slip.Entries,
 			Deductions: slip.Deductions, Net: slip.Net, Closing: slip.Closing,
 		}

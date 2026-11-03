@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/codetheuri/tusk/pkg/payto"
 
 	"github.com/codetheuri/tusk/pkg/audit"
 	"github.com/codetheuri/tusk/pkg/query"
@@ -63,6 +64,9 @@ const statusOrder = "CASE members.status WHEN 'ACTIVE' THEN 0 WHEN 'INACTIVE' TH
 // filterCanSupply limits a list to farmers milk may be taken from.
 const filterCanSupply = "can_supply"
 
+// filterPaidBy limits a list by payout method, or to missing details.
+const filterPaidBy = "paid_by"
+
 func (r *Repository) List(ctx context.Context, q query.Query) ([]Member, query.Meta, error) {
 	cfg := query.Config{
 		// No DefaultSort: without a requested sort, statusOrder applies below.
@@ -92,6 +96,15 @@ func (r *Repository) List(ctx context.Context, q query.Query) ([]Member, query.M
 		session = session.Where("members.status <> ?", StatusSuspended)
 	}
 	delete(q.Filters, filterCanSupply)
+	// Paid by: MPESA, BANK, or MISSING (the chosen method lacks its details).
+	switch q.Filters[filterPaidBy] {
+	case payto.MPesa, payto.Bank:
+		session = session.Where("members.payout_method = ?", q.Filters[filterPaidBy])
+	case "MISSING":
+		session = session.Where(`(members.payout_method = 'BANK' AND COALESCE(TRIM(members.bank_account_number), '') = '')
+			OR (members.payout_method <> 'BANK' AND COALESCE(TRIM(members.mpesa_number), '') = '' AND LENGTH(COALESCE(TRIM(members.phone), '')) < 10)`)
+	}
+	delete(q.Filters, filterPaidBy)
 	return query.Paginate[Member](ctx, session, q, cfg)
 }
 

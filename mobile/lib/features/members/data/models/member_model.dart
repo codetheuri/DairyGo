@@ -19,6 +19,8 @@ class MemberModel with _$MemberModel {
     String? gender,
     String? location,
     @Default('ACTIVE') String status,
+    // How the farmer is paid: MPESA (M-Pesa number, or the phone) or BANK.
+    @JsonKey(name: 'payout_method') @Default('MPESA') String payoutMethod,
     @JsonKey(name: 'mpesa_number') String? mpesaNumber,
     @JsonKey(name: 'mpesa_name') String? mpesaName,
     @JsonKey(name: 'bank_name') String? bankName,
@@ -35,6 +37,32 @@ class MemberModel with _$MemberModel {
   /// False for farmers registered before next of kin was collected.
   bool get hasNextOfKin => (nextOfKinName ?? '').trim().isNotEmpty;
 
+  bool get paidByBank => payoutMethod == 'BANK';
+
+  /// The number M-Pesa pay goes to: the M-Pesa number, else the phone.
+  String get mpesaPhone {
+    final own = (mpesaNumber ?? '').trim();
+    return own.isNotEmpty ? own : phone.trim();
+  }
+
+  /// Where the farmer's pay goes, or what is missing (as on the payouts
+  /// report; backend pkg/payto).
+  String get payTo {
+    if (paidByBank) {
+      final account = (bankAccountNumber ?? '').trim();
+      if (account.isEmpty) return 'Bank: account missing';
+      return [
+        (bankName ?? '').trim().isEmpty ? 'Bank' : bankName!.trim(),
+        account,
+        (bankBranch ?? '').trim(),
+      ].where((s) => s.isNotEmpty).join(' ');
+    }
+    final number = mpesaPhone;
+    return number.replaceAll(RegExp(r'[^0-9]'), '').length >= 10
+        ? 'M-Pesa $number'
+        : 'M-Pesa: number missing';
+  }
+
   factory MemberModel.fromJson(Map<String, dynamic> json) =>
       _$MemberModelFromJson(json);
 }
@@ -50,6 +78,7 @@ class CreateMemberRequestModel with _$CreateMemberRequestModel {
     String? email,
     String? gender,
     String? location,
+    @JsonKey(name: 'payout_method') String? payoutMethod,
     @JsonKey(name: 'mpesa_number') String? mpesaNumber,
     @JsonKey(name: 'mpesa_name') String? mpesaName,
     @JsonKey(name: 'bank_name') String? bankName,

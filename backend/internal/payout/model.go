@@ -228,6 +228,7 @@ type PayRunLine struct {
 	MembershipNumber  string     `json:"membership_number"`
 	FarmerName        string     `json:"farmer_name"`
 	Phone             string     `json:"phone"`
+	PayoutMethod      string     `json:"payout_method" doc:"MPESA or BANK, as when the run was worked out"`
 	MpesaNumber       *string    `json:"mpesa_number,omitempty"`
 	BankName          *string    `json:"bank_name,omitempty"`
 	BankAccountNumber *string    `json:"bank_account_number,omitempty"`

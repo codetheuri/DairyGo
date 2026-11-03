@@ -47,6 +47,7 @@ type Farmer struct {
 	Gender                *string
 	Location              *string
 	Status                string
+	PayoutMethod          string
 	MpesaNumber           *string
 	MpesaName             *string
 	BankName              *string

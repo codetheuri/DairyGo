@@ -24,6 +24,9 @@ class FarmerFormData {
   String? gender;
   String? kinRelationship;
 
+  /// How the farmer is paid: 'MPESA' or 'BANK'.
+  String payoutMethod = 'MPESA';
+
   FarmerFormData();
 
   /// The form filled with [m]'s current details.
@@ -40,6 +43,7 @@ class FarmerFormData {
     d.bankName.text = m.bankName ?? '';
     d.bankAccount.text = m.bankAccountNumber ?? '';
     d.bankBranch.text = m.bankBranch ?? '';
+    d.payoutMethod = m.paidByBank ? 'BANK' : 'MPESA';
     d.kinName.text = m.nextOfKinName ?? '';
     d.kinPhone.text = m.nextOfKinPhone ?? '';
     const genders = ['MALE', 'FEMALE', 'OTHER'];
@@ -65,6 +69,7 @@ class FarmerFormData {
     nationalId: _optional(nationalId),
     location: _optional(location),
     gender: gender,
+    payoutMethod: payoutMethod,
     mpesaNumber: _optional(mpesaNumber),
     mpesaName: _optional(mpesaName),
     bankName: _optional(bankName),
@@ -84,6 +89,7 @@ class FarmerFormData {
     'national_id': nationalId.text.trim(),
     'location': location.text.trim(),
     if (gender != null) 'gender': gender,
+    'payout_method': payoutMethod,
     'mpesa_number': mpesaNumber.text.trim(),
     'mpesa_name': mpesaName.text.trim(),
     'bank_name': bankName.text.trim(),
@@ -279,44 +285,73 @@ class _FarmerDetailsFieldsState extends State<FarmerDetailsFields> {
         sectionGap,
 
         _section(
-          'Payout Details',
-          'Where the farmer is paid. Leave blank what does not apply.',
+          'How the farmer is paid',
+          'Each farmer is on one payment list: M-Pesa or bank.',
         ),
-        AppTextField(
-          label: 'M-Pesa Number',
-          controller: d.mpesaNumber,
-          hint: 'If different from the phone number',
-          keyboardType: TextInputType.phone,
-          prefixIcon: Icons.account_balance_wallet_outlined,
-          validator: (v) => _phone(v, required: false),
-        ),
-        gap,
-        AppTextField(
-          label: 'M-Pesa Registered Name',
-          controller: d.mpesaName,
-          hint: 'As M-Pesa shows it',
-          prefixIcon: Icons.badge_outlined,
-        ),
-        gap,
-        AppTextField(
-          label: 'Bank',
-          controller: d.bankName,
-          hint: 'e.g. Equity Bank',
-          prefixIcon: Icons.account_balance_outlined,
-        ),
-        gap,
-        AppTextField(
-          label: 'Bank Account Number',
-          controller: d.bankAccount,
-          keyboardType: TextInputType.number,
-          prefixIcon: Icons.numbers_rounded,
+        Row(
+          children: [
+            for (final (method, label, icon) in const [
+              ('MPESA', 'M-Pesa', Icons.phone_android_rounded),
+              ('BANK', 'Bank', Icons.account_balance_outlined),
+            ]) ...[
+              if (method == 'BANK') const SizedBox(width: 8),
+              Expanded(
+                child: ChoiceChip(
+                  avatar: Icon(icon, size: 18),
+                  label: SizedBox(
+                    width: double.infinity,
+                    child: Text(label, textAlign: TextAlign.center),
+                  ),
+                  selected: d.payoutMethod == method,
+                  showCheckmark: false,
+                  onSelected: (_) => setState(() => d.payoutMethod = method),
+                ),
+              ),
+            ],
+          ],
         ),
         gap,
-        AppTextField(
-          label: 'Bank Branch',
-          controller: d.bankBranch,
-          prefixIcon: Icons.store_mall_directory_outlined,
-        ),
+        if (d.payoutMethod == 'MPESA') ...[
+          AppTextField(
+            label: 'M-Pesa Number',
+            controller: d.mpesaNumber,
+            hint: 'Leave blank to use the phone number',
+            keyboardType: TextInputType.phone,
+            prefixIcon: Icons.account_balance_wallet_outlined,
+            validator: (v) => _phone(v, required: false),
+          ),
+          gap,
+          AppTextField(
+            label: 'M-Pesa Registered Name',
+            controller: d.mpesaName,
+            hint: 'As M-Pesa shows it',
+            prefixIcon: Icons.badge_outlined,
+          ),
+        ] else ...[
+          AppTextField(
+            label: 'Bank',
+            controller: d.bankName,
+            hint: 'e.g. Equity Bank',
+            prefixIcon: Icons.account_balance_outlined,
+          ),
+          gap,
+          AppTextField(
+            label: 'Bank Account Number *',
+            controller: d.bankAccount,
+            keyboardType: TextInputType.number,
+            prefixIcon: Icons.numbers_rounded,
+            validator: (v) =>
+                d.payoutMethod == 'BANK' && (v ?? '').trim().isEmpty
+                ? 'The account number is needed to pay by bank'
+                : null,
+          ),
+          gap,
+          AppTextField(
+            label: 'Bank Branch',
+            controller: d.bankBranch,
+            prefixIcon: Icons.store_mall_directory_outlined,
+          ),
+        ],
       ],
     );
   }

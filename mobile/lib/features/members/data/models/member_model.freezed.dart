@@ -36,7 +36,10 @@ mixin _$MemberModel {
   String? get email => throw _privateConstructorUsedError;
   String? get gender => throw _privateConstructorUsedError;
   String? get location => throw _privateConstructorUsedError;
-  String get status => throw _privateConstructorUsedError;
+  String get status =>
+      throw _privateConstructorUsedError; // How the farmer is paid: MPESA (M-Pesa number, or the phone) or BANK.
+  @JsonKey(name: 'payout_method')
+  String get payoutMethod => throw _privateConstructorUsedError;
   @JsonKey(name: 'mpesa_number')
   String? get mpesaNumber => throw _privateConstructorUsedError;
   @JsonKey(name: 'mpesa_name')
@@ -85,6 +88,7 @@ abstract class $MemberModelCopyWith<$Res> {
     String? gender,
     String? location,
     String status,
+    @JsonKey(name: 'payout_method') String payoutMethod,
     @JsonKey(name: 'mpesa_number') String? mpesaNumber,
     @JsonKey(name: 'mpesa_name') String? mpesaName,
     @JsonKey(name: 'bank_name') String? bankName,
@@ -123,6 +127,7 @@ class _$MemberModelCopyWithImpl<$Res, $Val extends MemberModel>
     Object? gender = freezed,
     Object? location = freezed,
     Object? status = null,
+    Object? payoutMethod = null,
     Object? mpesaNumber = freezed,
     Object? mpesaName = freezed,
     Object? bankName = freezed,
@@ -178,6 +183,10 @@ class _$MemberModelCopyWithImpl<$Res, $Val extends MemberModel>
             status: null == status
                 ? _value.status
                 : status // ignore: cast_nullable_to_non_nullable
+                      as String,
+            payoutMethod: null == payoutMethod
+                ? _value.payoutMethod
+                : payoutMethod // ignore: cast_nullable_to_non_nullable
                       as String,
             mpesaNumber: freezed == mpesaNumber
                 ? _value.mpesaNumber
@@ -242,6 +251,7 @@ abstract class _$$MemberModelImplCopyWith<$Res>
     String? gender,
     String? location,
     String status,
+    @JsonKey(name: 'payout_method') String payoutMethod,
     @JsonKey(name: 'mpesa_number') String? mpesaNumber,
     @JsonKey(name: 'mpesa_name') String? mpesaName,
     @JsonKey(name: 'bank_name') String? bankName,
@@ -279,6 +289,7 @@ class __$$MemberModelImplCopyWithImpl<$Res>
     Object? gender = freezed,
     Object? location = freezed,
     Object? status = null,
+    Object? payoutMethod = null,
     Object? mpesaNumber = freezed,
     Object? mpesaName = freezed,
     Object? bankName = freezed,
@@ -334,6 +345,10 @@ class __$$MemberModelImplCopyWithImpl<$Res>
         status: null == status
             ? _value.status
             : status // ignore: cast_nullable_to_non_nullable
+                  as String,
+        payoutMethod: null == payoutMethod
+            ? _value.payoutMethod
+            : payoutMethod // ignore: cast_nullable_to_non_nullable
                   as String,
         mpesaNumber: freezed == mpesaNumber
             ? _value.mpesaNumber
@@ -391,6 +406,7 @@ class _$MemberModelImpl extends _MemberModel {
     this.gender,
     this.location,
     this.status = 'ACTIVE',
+    @JsonKey(name: 'payout_method') this.payoutMethod = 'MPESA',
     @JsonKey(name: 'mpesa_number') this.mpesaNumber,
     @JsonKey(name: 'mpesa_name') this.mpesaName,
     @JsonKey(name: 'bank_name') this.bankName,
@@ -434,6 +450,10 @@ class _$MemberModelImpl extends _MemberModel {
   @override
   @JsonKey()
   final String status;
+  // How the farmer is paid: MPESA (M-Pesa number, or the phone) or BANK.
+  @override
+  @JsonKey(name: 'payout_method')
+  final String payoutMethod;
   @override
   @JsonKey(name: 'mpesa_number')
   final String? mpesaNumber;
@@ -464,7 +484,7 @@ class _$MemberModelImpl extends _MemberModel {
 
   @override
   String toString() {
-    return 'MemberModel(id: $id, saccoId: $saccoId, membershipNumber: $membershipNumber, firstName: $firstName, lastName: $lastName, nationalId: $nationalId, phone: $phone, email: $email, gender: $gender, location: $location, status: $status, mpesaNumber: $mpesaNumber, mpesaName: $mpesaName, bankName: $bankName, bankAccountNumber: $bankAccountNumber, bankBranch: $bankBranch, nextOfKinName: $nextOfKinName, nextOfKinRelationship: $nextOfKinRelationship, nextOfKinPhone: $nextOfKinPhone, createdAt: $createdAt)';
+    return 'MemberModel(id: $id, saccoId: $saccoId, membershipNumber: $membershipNumber, firstName: $firstName, lastName: $lastName, nationalId: $nationalId, phone: $phone, email: $email, gender: $gender, location: $location, status: $status, payoutMethod: $payoutMethod, mpesaNumber: $mpesaNumber, mpesaName: $mpesaName, bankName: $bankName, bankAccountNumber: $bankAccountNumber, bankBranch: $bankBranch, nextOfKinName: $nextOfKinName, nextOfKinRelationship: $nextOfKinRelationship, nextOfKinPhone: $nextOfKinPhone, createdAt: $createdAt)';
   }
 
   @override
@@ -488,6 +508,8 @@ class _$MemberModelImpl extends _MemberModel {
             (identical(other.location, location) ||
                 other.location == location) &&
             (identical(other.status, status) || other.status == status) &&
+            (identical(other.payoutMethod, payoutMethod) ||
+                other.payoutMethod == payoutMethod) &&
             (identical(other.mpesaNumber, mpesaNumber) ||
                 other.mpesaNumber == mpesaNumber) &&
             (identical(other.mpesaName, mpesaName) ||
@@ -523,6 +545,7 @@ class _$MemberModelImpl extends _MemberModel {
     gender,
     location,
     status,
+    payoutMethod,
     mpesaNumber,
     mpesaName,
     bankName,
@@ -561,6 +584,7 @@ abstract class _MemberModel extends MemberModel {
     final String? gender,
     final String? location,
     final String status,
+    @JsonKey(name: 'payout_method') final String payoutMethod,
     @JsonKey(name: 'mpesa_number') final String? mpesaNumber,
     @JsonKey(name: 'mpesa_name') final String? mpesaName,
     @JsonKey(name: 'bank_name') final String? bankName,
@@ -603,7 +627,10 @@ abstract class _MemberModel extends MemberModel {
   @override
   String? get location;
   @override
-  String get status;
+  String get status; // How the farmer is paid: MPESA (M-Pesa number, or the phone) or BANK.
+  @override
+  @JsonKey(name: 'payout_method')
+  String get payoutMethod;
   @override
   @JsonKey(name: 'mpesa_number')
   String? get mpesaNumber;
@@ -660,6 +687,8 @@ mixin _$CreateMemberRequestModel {
   String? get email => throw _privateConstructorUsedError;
   String? get gender => throw _privateConstructorUsedError;
   String? get location => throw _privateConstructorUsedError;
+  @JsonKey(name: 'payout_method')
+  String? get payoutMethod => throw _privateConstructorUsedError;
   @JsonKey(name: 'mpesa_number')
   String? get mpesaNumber => throw _privateConstructorUsedError;
   @JsonKey(name: 'mpesa_name')
@@ -703,6 +732,7 @@ abstract class $CreateMemberRequestModelCopyWith<$Res> {
     String? email,
     String? gender,
     String? location,
+    @JsonKey(name: 'payout_method') String? payoutMethod,
     @JsonKey(name: 'mpesa_number') String? mpesaNumber,
     @JsonKey(name: 'mpesa_name') String? mpesaName,
     @JsonKey(name: 'bank_name') String? bankName,
@@ -740,6 +770,7 @@ class _$CreateMemberRequestModelCopyWithImpl<
     Object? email = freezed,
     Object? gender = freezed,
     Object? location = freezed,
+    Object? payoutMethod = freezed,
     Object? mpesaNumber = freezed,
     Object? mpesaName = freezed,
     Object? bankName = freezed,
@@ -782,6 +813,10 @@ class _$CreateMemberRequestModelCopyWithImpl<
             location: freezed == location
                 ? _value.location
                 : location // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            payoutMethod: freezed == payoutMethod
+                ? _value.payoutMethod
+                : payoutMethod // ignore: cast_nullable_to_non_nullable
                       as String?,
             mpesaNumber: freezed == mpesaNumber
                 ? _value.mpesaNumber
@@ -839,6 +874,7 @@ abstract class _$$CreateMemberRequestModelImplCopyWith<$Res>
     String? email,
     String? gender,
     String? location,
+    @JsonKey(name: 'payout_method') String? payoutMethod,
     @JsonKey(name: 'mpesa_number') String? mpesaNumber,
     @JsonKey(name: 'mpesa_name') String? mpesaName,
     @JsonKey(name: 'bank_name') String? bankName,
@@ -876,6 +912,7 @@ class __$$CreateMemberRequestModelImplCopyWithImpl<$Res>
     Object? email = freezed,
     Object? gender = freezed,
     Object? location = freezed,
+    Object? payoutMethod = freezed,
     Object? mpesaNumber = freezed,
     Object? mpesaName = freezed,
     Object? bankName = freezed,
@@ -918,6 +955,10 @@ class __$$CreateMemberRequestModelImplCopyWithImpl<$Res>
         location: freezed == location
             ? _value.location
             : location // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        payoutMethod: freezed == payoutMethod
+            ? _value.payoutMethod
+            : payoutMethod // ignore: cast_nullable_to_non_nullable
                   as String?,
         mpesaNumber: freezed == mpesaNumber
             ? _value.mpesaNumber
@@ -968,6 +1009,7 @@ class _$CreateMemberRequestModelImpl implements _CreateMemberRequestModel {
     this.email,
     this.gender,
     this.location,
+    @JsonKey(name: 'payout_method') this.payoutMethod,
     @JsonKey(name: 'mpesa_number') this.mpesaNumber,
     @JsonKey(name: 'mpesa_name') this.mpesaName,
     @JsonKey(name: 'bank_name') this.bankName,
@@ -1003,6 +1045,9 @@ class _$CreateMemberRequestModelImpl implements _CreateMemberRequestModel {
   @override
   final String? location;
   @override
+  @JsonKey(name: 'payout_method')
+  final String? payoutMethod;
+  @override
   @JsonKey(name: 'mpesa_number')
   final String? mpesaNumber;
   @override
@@ -1029,7 +1074,7 @@ class _$CreateMemberRequestModelImpl implements _CreateMemberRequestModel {
 
   @override
   String toString() {
-    return 'CreateMemberRequestModel(membershipNumber: $membershipNumber, firstName: $firstName, lastName: $lastName, nationalId: $nationalId, phone: $phone, email: $email, gender: $gender, location: $location, mpesaNumber: $mpesaNumber, mpesaName: $mpesaName, bankName: $bankName, bankAccountNumber: $bankAccountNumber, bankBranch: $bankBranch, nextOfKinName: $nextOfKinName, nextOfKinRelationship: $nextOfKinRelationship, nextOfKinPhone: $nextOfKinPhone)';
+    return 'CreateMemberRequestModel(membershipNumber: $membershipNumber, firstName: $firstName, lastName: $lastName, nationalId: $nationalId, phone: $phone, email: $email, gender: $gender, location: $location, payoutMethod: $payoutMethod, mpesaNumber: $mpesaNumber, mpesaName: $mpesaName, bankName: $bankName, bankAccountNumber: $bankAccountNumber, bankBranch: $bankBranch, nextOfKinName: $nextOfKinName, nextOfKinRelationship: $nextOfKinRelationship, nextOfKinPhone: $nextOfKinPhone)';
   }
 
   @override
@@ -1050,6 +1095,8 @@ class _$CreateMemberRequestModelImpl implements _CreateMemberRequestModel {
             (identical(other.gender, gender) || other.gender == gender) &&
             (identical(other.location, location) ||
                 other.location == location) &&
+            (identical(other.payoutMethod, payoutMethod) ||
+                other.payoutMethod == payoutMethod) &&
             (identical(other.mpesaNumber, mpesaNumber) ||
                 other.mpesaNumber == mpesaNumber) &&
             (identical(other.mpesaName, mpesaName) ||
@@ -1080,6 +1127,7 @@ class _$CreateMemberRequestModelImpl implements _CreateMemberRequestModel {
     email,
     gender,
     location,
+    payoutMethod,
     mpesaNumber,
     mpesaName,
     bankName,
@@ -1117,6 +1165,7 @@ abstract class _CreateMemberRequestModel implements CreateMemberRequestModel {
     final String? email,
     final String? gender,
     final String? location,
+    @JsonKey(name: 'payout_method') final String? payoutMethod,
     @JsonKey(name: 'mpesa_number') final String? mpesaNumber,
     @JsonKey(name: 'mpesa_name') final String? mpesaName,
     @JsonKey(name: 'bank_name') final String? bankName,
@@ -1151,6 +1200,9 @@ abstract class _CreateMemberRequestModel implements CreateMemberRequestModel {
   String? get gender;
   @override
   String? get location;
+  @override
+  @JsonKey(name: 'payout_method')
+  String? get payoutMethod;
   @override
   @JsonKey(name: 'mpesa_number')
   String? get mpesaNumber;

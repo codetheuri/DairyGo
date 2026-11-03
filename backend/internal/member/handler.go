@@ -65,6 +65,9 @@ func (h *Handler) List(ctx context.Context, input *ListMembersInput) (*ListMembe
 	if input.CanSupply {
 		q.Filters[filterCanSupply] = "true"
 	}
+	if input.PaidBy != "" {
+		q.Filters[filterPaidBy] = input.PaidBy
+	}
 
 	members, meta, err := h.service.ListMembers(ctx, q)
 	if err != nil {

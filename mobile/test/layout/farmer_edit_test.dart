@@ -69,6 +69,7 @@ Map<String, Object?> _farmer() => {
       'gender': 'MALE',
       'location': 'Githunguri Route A',
       'status': 'ACTIVE',
+      'payout_method': 'BANK',
       'mpesa_number': '0712000013',
       'mpesa_name': 'PETER KAMAU',
       'bank_name': 'Equity Bank',
@@ -122,9 +123,10 @@ void main() {
           app.container.read(appRouterProvider).push('/members/f1');
           await _settle(tester);
           seen['bank shown'] = find
-              .text('Equity Bank · 0123456789 · Kiambu')
+              .text('Equity Bank 0123456789 Kiambu')
               .evaluate()
               .length;
+          seen['paid by'] = find.text('Paid by bank').evaluate().length;
 
           await _tap(tester, find.text('Change history'));
           seen['history'] = find.textContaining('0711111111').evaluate().length;
@@ -134,22 +136,23 @@ void main() {
           // Starts from the saved details.
           seen['prefilled'] = [
             _text(tester, 'First Name *'),
-            _text(tester, 'M-Pesa Number'),
             _text(tester, 'Next of kin full name'),
             _text(tester, 'Bank'),
           ].join('|');
+          // Paid by bank: the M-Pesa fields are hidden until M-Pesa is chosen.
+          seen['mpesa hidden'] = _field('M-Pesa Number').evaluate().length;
+          await _tap(tester, find.text('M-Pesa'));
+          seen['mpesa prefilled'] = _text(tester, 'M-Pesa Number');
+          seen['bank hidden'] = _field('Bank Account Number').evaluate().length;
           // No membership number field: it cannot change.
           seen['membership field'] = _field(
             'Membership Number',
           ).evaluate().length;
 
           await _type(tester, 'M-Pesa Number', '0799000000');
-          await _type(tester, 'Bank', '');
-          await _type(tester, 'Bank Account Number', '');
-          await _type(tester, 'Bank Branch', '');
           await _type(tester, 'Collection Route / Village', 'Ndumberi');
           if (shoot) {
-            await tester.ensureVisible(find.text('Payout Details'));
+            await tester.ensureVisible(find.text('How the farmer is paid'));
             await tester.pump();
             await expectLater(
               find.byType(DairySaccoApp),
@@ -164,19 +167,24 @@ void main() {
         }
         expect(app.errors, isEmpty, reason: app.errors.join('\n'));
         expect(seen['bank shown'], 1);
+        expect(seen['paid by'], 1);
+        expect(seen['mpesa hidden'], 0);
+        expect(seen['mpesa prefilled'], '0712000013');
+        expect(seen['bank hidden'], 0);
         expect(seen['history'], greaterThan(0));
         expect(seen['form'], 1);
-        expect(seen['prefilled'], 'Peter|0712000013|Mary Wanjiku|Equity Bank');
+        expect(seen['prefilled'], 'Peter|Mary Wanjiku|Equity Bank');
         expect(seen['membership field'], 0);
         expect(seen['saved'], 1);
         expect(seen['closed'], 0);
         expect(app.server.sent, ['PUT sacco_members_f1']);
         final body = app.server.sentBodies['PUT sacco_members_f1'] as Map;
+        expect(body['payout_method'], 'MPESA');
         expect(body['mpesa_number'], '0799000000');
         expect(body['location'], 'Ndumberi');
-        // Emptied fields are sent empty, which clears them.
-        expect(body['bank_name'], '');
-        expect(body['bank_account_number'], '');
+        // The bank details stay on file; only the method changed.
+        expect(body['bank_name'], 'Equity Bank');
+        expect(body['bank_account_number'], '0123456789');
         // Untouched details are sent as they were.
         expect(body['first_name'], 'Peter');
         expect(body['gender'], 'MALE');

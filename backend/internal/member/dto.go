@@ -15,6 +15,7 @@ type CreateMemberRequest struct {
 	Email             *string `json:"email,omitempty" format:"email" doc:"Optional email address"`
 	Gender            *string `json:"gender,omitempty" enum:"MALE,FEMALE,OTHER" doc:"Gender identifier"`
 	Location          *string `json:"location,omitempty" doc:"Village / Sub-County / Route location"`
+	PayoutMethod      *string `json:"payout_method,omitempty" enum:"MPESA,BANK" doc:"How the farmer is paid. Default: BANK when a bank account is given, else MPESA (the M-Pesa number, or the phone)"`
 	MpesaNumber       *string `json:"mpesa_number,omitempty" doc:"Mobile money payment phone number"`
 	MpesaName         *string `json:"mpesa_name,omitempty" doc:"M-Pesa registered account holder name"`
 	BankName          *string `json:"bank_name,omitempty" doc:"Bank name for direct deposit"`
@@ -39,6 +40,7 @@ type UpdateMemberRequest struct {
 	Email                 *string `json:"email,omitempty" format:"email" doc:"Email address"`
 	Gender                *string `json:"gender,omitempty" doc:"Gender"`
 	Location              *string `json:"location,omitempty" doc:"Location"`
+	PayoutMethod          *string `json:"payout_method,omitempty" enum:"MPESA,BANK" doc:"How the farmer is paid. BANK needs the bank name and account number"`
 	MpesaNumber           *string `json:"mpesa_number,omitempty" doc:"M-Pesa phone number"`
 	MpesaName             *string `json:"mpesa_name,omitempty" doc:"M-Pesa account name"`
 	BankName              *string `json:"bank_name,omitempty" doc:"Bank name"`
@@ -75,7 +77,8 @@ type ListMembersInput struct {
 	Sort    string `query:"sort" doc:"Sort field e.g. -created_at or membership_number"`
 	Status  string `query:"status" doc:"Filter by status (ACTIVE, INACTIVE, SUSPENDED)"`
 	// CanSupply lists the farmers milk may be taken from (not suspended).
-	CanSupply bool `query:"can_supply" doc:"Only farmers who can supply milk: ACTIVE and INACTIVE (not SUSPENDED)"`
+	CanSupply bool   `query:"can_supply" doc:"Only farmers who can supply milk: ACTIVE and INACTIVE (not SUSPENDED)"`
+	PaidBy    string `query:"paid_by" enum:"MPESA,BANK,MISSING," doc:"Only farmers paid by M-Pesa, by bank, or whose payment details are missing"`
 }
 
 type MemberData struct {

@@ -3,6 +3,7 @@ package export
 import (
 	"context"
 	"fmt"
+	"github.com/codetheuri/tusk/pkg/payto"
 	"strings"
 	"time"
 
@@ -36,19 +37,10 @@ func perLitre(amount, l float64) float64 {
 	return amount / l
 }
 
-// payoutTo is where a farmer is paid: M-Pesa, else bank, else nothing set.
+// payoutTo is where a farmer is paid, by their payout method (pkg/payto).
 func payoutTo(f Farmer) string {
-	if v := deref(f.MpesaNumber); v != "" {
-		return "M-Pesa " + v
-	}
-	if v := deref(f.BankAccountNumber); v != "" {
-		bank := deref(f.BankName)
-		if bank == "" {
-			bank = "Bank"
-		}
-		return strings.TrimSpace(bank + " " + v + " " + deref(f.BankBranch))
-	}
-	return "Not set"
+	return payto.Details{Method: f.PayoutMethod, Phone: f.Phone, MpesaNumber: f.MpesaNumber,
+		BankName: f.BankName, Account: f.BankAccountNumber, Branch: f.BankBranch}.Describe()
 }
 
 func farmerPayouts(ctx context.Context, s *Service, in *input) error {

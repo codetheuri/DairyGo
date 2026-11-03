@@ -134,7 +134,7 @@ func RegisterRoutes(api huma.API, db *gorm.DB, cfg *config.Config, log logger.Lo
 	}, PermRunsPay), handler.PaymentFile)
 	huma.Register(api, guard.Protected(huma.Operation{
 		OperationID: "pay-run-register", Method: http.MethodGet, Path: "/api/v1/sacco/pay-runs/{id}/register",
-		Summary: "Pay run register (PDF or Excel)", Tags: []string{tag},
+		Summary: "Farmers' pay sheet (PDF or Excel)", Tags: []string{tag},
 		Description: "Every farmer's milk, each deduction as a column, advances and charges, net pay, balances and how they were paid.",
 	}, PermRead), handler.Register)
 	huma.Register(api, guard.Protected(huma.Operation{

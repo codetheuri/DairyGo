@@ -85,10 +85,13 @@ DRAFT ──approve──► APPROVED ──(everyone paid)──► PAID
 
 ## Files
 
-- `GET /pay-runs/{id}/payment-file?kind=mpesa|bank`: Excel list of farmers
-  still to pay (M-Pesa: phone as 2547…, amount, name). Farmers without the
-  details are listed apart.
-- `GET /pay-runs/{id}/register?format=pdf|xlsx`: every farmer, a column per
+- `GET /pay-runs/{id}/payment-file?kind=mpesa|bank` (approved runs, Excel):
+  the list to pay from. **The bank list is what goes to the bank**; the M-Pesa
+  list is for the bulk payment. Each farmer is on exactly one list, by their
+  payout method (below); farmers whose details are missing for that method are
+  in a second sheet and never fall back to the other list.
+- `GET /pay-runs/{id}/register?format=pdf|xlsx`, the **pay sheet** ("Farmers'
+  Pay Sheet"; the app's **Pay sheet** button): every farmer, a column per
   deduction.
 - `GET /pay-runs/{id}/payslips/{member_id}`: a farmer's payslip PDF.
 
@@ -104,6 +107,19 @@ fwd** is what they still owe after this run. Each deduction taken in a run is
 its own register column, so a new deduction appears from its first run.
 
 Reports in the download catalog: **Deductions** and **Farmer Balances**.
+
+## How each farmer is paid
+
+Every farmer has a payout method (`members.payout_method`, migration 00029):
+**M-Pesa**, to their M-Pesa number or their phone when none is set, or
+**Bank**, which needs the account number (bank name and branch optional). The
+migration set Bank where a bank account was on file and M-Pesa for everyone
+else; a new farmer defaults the same way unless chosen. One rule
+(`pkg/payto`) decides where pay goes and what is missing, for the farmer
+record, the payouts report's Pay to column and the payment lists. Pay run lines
+keep the method as worked out. The app shows only the chosen method's fields
+(M-Pesa | Bank) and the farmer list filters by **Paid by** (M-Pesa, Bank,
+Details missing); `GET /sacco/members?paid_by=MPESA|BANK|MISSING`.
 
 ## Advance rules
 

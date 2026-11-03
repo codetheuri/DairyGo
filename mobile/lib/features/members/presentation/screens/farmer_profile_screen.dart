@@ -272,7 +272,7 @@ class FarmerProfileScreen extends ConsumerWidget {
 
                   // Payment Details Card
                   Text(
-                    'Payout & Mobile Money Information',
+                    'How the farmer is paid',
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: AppColors.primary,
@@ -289,12 +289,19 @@ class FarmerProfileScreen extends ConsumerWidget {
                     ),
                     child: Column(
                       children: [
+                        // Only the chosen method: each farmer is on one
+                        // payment list.
                         _buildInfoRow(
-                          Icons.account_balance_wallet_outlined,
-                          'M-Pesa Number',
-                          member.mpesaNumber ?? member.phone,
+                          member.paidByBank
+                              ? Icons.account_balance_outlined
+                              : Icons.account_balance_wallet_outlined,
+                          member.paidByBank ? 'Paid by bank' : 'Paid by M-Pesa',
+                          member.payTo
+                              .replaceFirst('M-Pesa ', '')
+                              .replaceFirst('M-Pesa: ', ''),
                         ),
-                        if (member.mpesaName != null &&
+                        if (!member.paidByBank &&
+                            member.mpesaName != null &&
                             member.mpesaName!.isNotEmpty) ...[
                           const Divider(
                             height: 20,
@@ -304,21 +311,6 @@ class FarmerProfileScreen extends ConsumerWidget {
                             Icons.badge_outlined,
                             'M-Pesa Account Name',
                             member.mpesaName!,
-                          ),
-                        ],
-                        if ((member.bankAccountNumber ?? '').isNotEmpty) ...[
-                          const Divider(
-                            height: 20,
-                            color: AppColors.cardBorder,
-                          ),
-                          _buildInfoRow(
-                            Icons.account_balance_outlined,
-                            'Bank',
-                            [
-                              member.bankName,
-                              member.bankAccountNumber,
-                              member.bankBranch,
-                            ].where((v) => (v ?? '').isNotEmpty).join(' · '),
                           ),
                         ],
                       ],
@@ -500,6 +492,7 @@ class _FarmerHistory extends ConsumerWidget {
     'national_id': 'National ID',
     'gender': 'Gender',
     'location': 'Location',
+    'payout_method': 'Paid by',
     'mpesa_number': 'M-Pesa number',
     'mpesa_name': 'M-Pesa name',
     'bank_name': 'Bank',

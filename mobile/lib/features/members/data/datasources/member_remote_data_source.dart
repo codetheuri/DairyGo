@@ -11,6 +11,7 @@ abstract class MemberRemoteDataSource {
     int perPage = 50,
     String? status,
     bool canSupply = false,
+    String? paidBy,
   });
   Future<MemberModel> getMemberById(String id);
   Future<MemberModel> createMember(CreateMemberRequestModel request);
@@ -31,6 +32,7 @@ class MemberRemoteDataSourceImpl implements MemberRemoteDataSource {
     int perPage = 50,
     String? status,
     bool canSupply = false,
+    String? paidBy,
   }) async {
     try {
       final queryParams = <String, dynamic>{'page': page, 'per_page': perPage};
@@ -41,6 +43,7 @@ class MemberRemoteDataSourceImpl implements MemberRemoteDataSource {
         queryParams['status'] = status.trim();
       }
       if (canSupply) queryParams['can_supply'] = true;
+      if (paidBy != null) queryParams['paid_by'] = paidBy;
 
       final response = await _dio.get(
         ApiConstants.members,

@@ -3,6 +3,7 @@ package member
 import (
 	"context"
 	"fmt"
+	"github.com/codetheuri/tusk/pkg/payto"
 	"strings"
 	"time"
 
@@ -66,6 +67,7 @@ func (s *Service) CreateMember(ctx context.Context, req *CreateMemberRequest) (*
 		Gender:            &gender,
 		Location:          req.Location,
 		Status:            StatusActive,
+		PayoutMethod:      newPayoutMethod(req.PayoutMethod, req.BankAccountNumber),
 		MpesaNumber:       req.MpesaNumber,
 		MpesaName:         req.MpesaName,
 		BankName:          req.BankName,
@@ -76,6 +78,9 @@ func (s *Service) CreateMember(ctx context.Context, req *CreateMemberRequest) (*
 		NextOfKinName:         orNil(kin.Name),
 		NextOfKinRelationship: orNil(kin.Relationship),
 		NextOfKinPhone:        orNil(kin.Phone),
+	}
+	if err := checkPayout(member); err != nil {
+		return nil, err
 	}
 
 	// Two farmers registered at the same moment can be given the same
@@ -146,6 +151,12 @@ func (s *Service) UpdateMember(ctx context.Context, id string, req *UpdateMember
 	setOptional(&member.BankName, req.BankName)
 	setOptional(&member.BankAccountNumber, req.BankAccountNumber)
 	setOptional(&member.BankBranch, req.BankBranch)
+	if req.PayoutMethod != nil {
+		member.PayoutMethod = payto.Method(*req.PayoutMethod)
+	}
+	if err := checkPayout(member); err != nil {
+		return nil, err
+	}
 
 	switch {
 	case len(member.FirstName) < 2 || len(member.LastName) < 2:
@@ -225,4 +236,33 @@ func (s *Service) History(ctx context.Context, id string) ([]audit.Log, error) {
 		return nil, fmt.Errorf("member not found")
 	}
 	return s.repo.History(ctx, m)
+}
+
+// newPayoutMethod is a new farmer's payout method: as asked, else bank when
+// an account is given, else M-Pesa.
+func newPayoutMethod(asked, account *string) string {
+	if asked != nil && payto.Method(*asked) != "" {
+		return payto.Method(*asked)
+	}
+	if account != nil && strings.TrimSpace(*account) != "" {
+		return payto.Bank
+	}
+	return payto.MPesa
+}
+
+// checkPayout makes sure the method is known and that bank pay has the
+// account. M-Pesa pay goes to the phone when no M-Pesa number is set.
+func checkPayout(m *Member) error {
+	switch payto.Method(m.PayoutMethod) {
+	case payto.MPesa:
+		m.PayoutMethod = payto.MPesa
+	case payto.Bank:
+		m.PayoutMethod = payto.Bank
+		if m.BankAccountNumber == nil || strings.TrimSpace(*m.BankAccountNumber) == "" {
+			return fmt.Errorf("to pay by bank, give the bank account number")
+		}
+	default:
+		return fmt.Errorf("payout_method must be MPESA or BANK")
+	}
+	return nil
 }

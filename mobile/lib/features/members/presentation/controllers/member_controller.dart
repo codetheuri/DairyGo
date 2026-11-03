@@ -26,6 +26,11 @@ final memberStatusFilterProvider = StateProvider.autoDispose<String?>(
   (ref) => null,
 );
 
+/// Paid by: 'MPESA', 'BANK', 'MISSING' (details missing), or null for all.
+final memberPaidByFilterProvider = StateProvider.autoDispose<String?>(
+  (ref) => null,
+);
+
 /// The farmer directory, loaded page by page as the user scrolls.
 final membersListProvider =
     AsyncNotifierProvider<MembersListNotifier, PagedList<MemberModel>>(
@@ -38,11 +43,13 @@ class MembersListNotifier extends PagedListNotifier<MemberModel> {
     final repository = ref.watch(memberRepositoryProvider);
     final search = ref.watch(memberSearchQueryProvider).trim();
     final status = ref.watch(memberStatusFilterProvider);
+    final paidBy = ref.watch(memberPaidByFilterProvider);
     await debounce(search);
     return loadFirstPage(
       (page) => repository.listMembers(
         search: search,
         status: status,
+        paidBy: paidBy,
         page: page,
         perPage: PagedListNotifier.pageSize,
       ),

@@ -159,6 +159,7 @@ type Farmer struct {
 	FirstName         string
 	LastName          string
 	Phone             string
+	PayoutMethod      string
 	MpesaNumber       *string
 	BankName          *string
 	BankAccountNumber *string
@@ -167,7 +168,7 @@ type Farmer struct {
 // Name is the farmer's full name.
 func (f Farmer) Name() string { return f.FirstName + " " + f.LastName }
 
-const farmerColumns = "id, membership_number, first_name, last_name, phone, mpesa_number, bank_name, bank_account_number"
+const farmerColumns = "id, membership_number, first_name, last_name, phone, payout_method, mpesa_number, bank_name, bank_account_number"
 
 // FindFarmer loads a farmer of the caller's Sacco.
 func (r *Repository) FindFarmer(ctx context.Context, id string) (*Farmer, error) {

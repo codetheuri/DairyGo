@@ -139,7 +139,7 @@ class _PayRunDetailScreenState extends ConsumerState<PayRunDetailScreen> {
               ),
               title: const Text('M-Pesa list'),
               subtitle: const Text(
-                'Phone, amount and name, for a bulk payment',
+                'Farmers paid by M-Pesa: phone, amount and name, for a bulk payment',
               ),
               onTap: () => Navigator.pop(ctx, 'mpesa'),
             ),
@@ -149,7 +149,9 @@ class _PayRunDetailScreenState extends ConsumerState<PayRunDetailScreen> {
                 color: AppColors.primary,
               ),
               title: const Text('Bank list'),
-              subtitle: const Text('Bank, account, name and amount'),
+              subtitle: const Text(
+                'Farmers paid by bank: bank, account, name and amount. Send this to the bank',
+              ),
               onTap: () => Navigator.pop(ctx, 'bank'),
             ),
           ],
@@ -267,7 +269,9 @@ class _PayRunDetailScreenState extends ConsumerState<PayRunDetailScreen> {
             }
           }, primary: true),
       ],
-      button(Icons.description_outlined, 'Register', () => _register(run)),
+      // Every farmer's milk, deductions and net pay, for the committee and
+      // the accounts. The bank gets the Payment list (Bank).
+      button(Icons.description_outlined, 'Pay sheet', () => _register(run)),
       if (run.isDraft && (user?.canPreparePayRuns ?? false))
         button(Icons.delete_outline_rounded, 'Discard', () async {
           final ok = await _confirm(

@@ -11,6 +11,7 @@ abstract class MemberRepository {
     int perPage = 50,
     String? status,
     bool canSupply = false,
+    String? paidBy,
   });
   Future<MemberModel> getMemberById(String id);
   Future<MemberModel> createMember(CreateMemberRequestModel request);

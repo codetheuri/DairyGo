@@ -20,6 +20,7 @@ class FarmerDirectoryScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final searchQuery = ref.watch(memberSearchQueryProvider);
     final statusFilter = ref.watch(memberStatusFilterProvider);
+    final paidByFilter = ref.watch(memberPaidByFilterProvider);
     final membersAsync = ref.watch(membersListProvider);
 
     return RefreshOnShow(
@@ -127,6 +128,40 @@ class FarmerDirectoryScreen extends ConsumerWidget {
                               label: label,
                               value: value,
                               currentValue: statusFilter,
+                              filter: memberStatusFilterProvider,
+                            ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    // How farmers are paid, to find missing details before
+                    // a payment list is made.
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          const Text(
+                            'Paid by',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                          for (final (label, value) in const [
+                            ('All', null),
+                            ('M-Pesa', 'MPESA'),
+                            ('Bank', 'BANK'),
+                            ('Details missing', 'MISSING'),
+                          ])
+                            _buildFilterChip(
+                              ref,
+                              label: label,
+                              value: value,
+                              currentValue: paidByFilter,
+                              filter: memberPaidByFilterProvider,
                             ),
                         ],
                       ),
@@ -284,6 +319,22 @@ class FarmerDirectoryScreen extends ConsumerWidget {
                                               ),
                                             ],
                                           ),
+                                          if (paidByFilter != null) ...[
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              member.payTo,
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w600,
+                                                color:
+                                                    member.payTo.contains(
+                                                      'missing',
+                                                    )
+                                                    ? AppColors.error
+                                                    : AppColors.primary,
+                                              ),
+                                            ),
+                                          ],
                                           if (member.location != null &&
                                               member.location!.isNotEmpty) ...[
                                             const SizedBox(height: 4),
@@ -347,6 +398,7 @@ class FarmerDirectoryScreen extends ConsumerWidget {
     required String label,
     required String? value,
     required String? currentValue,
+    required AutoDisposeStateProvider<String?> filter,
   }) {
     final isSelected = currentValue == value;
     return ChoiceChip(
@@ -368,7 +420,7 @@ class FarmerDirectoryScreen extends ConsumerWidget {
       selectedColor: AppColors.primary,
       backgroundColor: AppColors.background,
       onSelected: (_) {
-        ref.read(memberStatusFilterProvider.notifier).state = value;
+        ref.read(filter.notifier).state = value;
       },
     );
   }

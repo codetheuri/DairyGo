@@ -16,17 +16,20 @@ const (
 
 // Member represents a Dairy Producer / Farmer belonging to a specific Sacco.
 type Member struct {
-	ID                string  `json:"id" gorm:"primaryKey;type:varchar(36)"`
-	SaccoID           string  `json:"sacco_id" gorm:"index;type:varchar(36);not null"`
-	MembershipNumber  string  `json:"membership_number" gorm:"not null"`
-	FirstName         string  `json:"first_name" gorm:"not null"`
-	LastName          string  `json:"last_name" gorm:"not null"`
-	NationalID        *string `json:"national_id,omitempty"`
-	Phone             string  `json:"phone" gorm:"not null"`
-	Email             *string `json:"email,omitempty"`
-	Gender            *string `json:"gender,omitempty"`
-	Location          *string `json:"location,omitempty"`
-	Status            Status  `json:"status" gorm:"default:'ACTIVE';index"`
+	ID               string  `json:"id" gorm:"primaryKey;type:varchar(36)"`
+	SaccoID          string  `json:"sacco_id" gorm:"index;type:varchar(36);not null"`
+	MembershipNumber string  `json:"membership_number" gorm:"not null"`
+	FirstName        string  `json:"first_name" gorm:"not null"`
+	LastName         string  `json:"last_name" gorm:"not null"`
+	NationalID       *string `json:"national_id,omitempty"`
+	Phone            string  `json:"phone" gorm:"not null"`
+	Email            *string `json:"email,omitempty"`
+	Gender           *string `json:"gender,omitempty"`
+	Location         *string `json:"location,omitempty"`
+	Status           Status  `json:"status" gorm:"default:'ACTIVE';index"`
+	// PayoutMethod is how the farmer is paid: MPESA (M-Pesa number, or the
+	// phone) or BANK. See pkg/payto.
+	PayoutMethod      string  `json:"payout_method" gorm:"default:'MPESA'"`
 	MpesaNumber       *string `json:"mpesa_number,omitempty"`
 	MpesaName         *string `json:"mpesa_name,omitempty"`
 	BankName          *string `json:"bank_name,omitempty"`

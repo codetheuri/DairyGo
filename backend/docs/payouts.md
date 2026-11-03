@@ -92,7 +92,14 @@ DRAFT ──approve──► APPROVED ──(everyone paid)──► PAID
   in a second sheet and never fall back to the other list.
 - `GET /pay-runs/{id}/register?format=pdf|xlsx`, the **pay sheet** ("Farmers'
   Pay Sheet"; the app's **Pay sheet** button): every farmer, a column per
-  deduction.
+  deduction, net pay and **Paid by** (M-Pesa or Bank). For the committee and
+  the accounts; the bank gets the Bank list.
+
+The **Farmers' Milk Value** report (`/sacco/exports/farmer-payouts`) is the
+milk before deductions, for any dates. It has no pay-to details on purpose and
+says "not for paying": paying from it would overpay every farmer. Where each
+farmer is paid is on the farmer's profile, the Farmers list (Paid by filter)
+and the Farmer Register report.
 - `GET /pay-runs/{id}/payslips/{member_id}`: a farmer's payslip PDF.
 
 Payslip SMS were taken out (migration `00024`) until the Sacco has SMS for

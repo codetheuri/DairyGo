@@ -45,8 +45,8 @@ type Report struct {
 // catalog lists the reports in the order people look for them.
 var catalog = []Report{
 	{
-		Key: "farmer-payouts", Title: "Farmer Payouts",
-		Description: "What each farmer is owed for the period, with M-Pesa or bank details, for paying farmers.",
+		Key: "farmer-payouts", Title: "Farmers' Milk Value",
+		Description: "Each farmer's milk and its value for any dates, before deductions. Not for paying: pay from the pay run's Bank or M-Pesa list.",
 		permission:  report.PermReportsPayoutRead, landscape: true, build: farmerPayouts,
 	},
 	{

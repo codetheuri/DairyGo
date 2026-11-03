@@ -50,27 +50,33 @@ func farmerPayouts(ctx context.Context, s *Service, in *input) error {
 	}
 	t := document.Table{
 		Columns: []document.Column{
-			col("No.", txt, 0.7), col("Farmer", txt, 2), col("Phone", txt, 1.2), col("Pay to", txt, 2.2),
-			col("Deliveries", cnt, 0.9), col("Litres", ltr, 1), col("Avg price/L", num, 1), col("Amount owed", money, 1.4),
+			col("No.", txt, 0.7), col("Farmer", txt, 2.4), col("Phone", txt, 1.3),
+			col("Deliveries", cnt, 0.9), col("Litres", ltr, 1), col("Avg price/L", num, 1), col("Milk value", money, 1.4),
 		},
 		Empty: "No farmer delivered accepted milk in this period.",
 	}
 	var l, a float64
 	var deliveries int64
 	for _, p := range rows {
-		t.Rows = append(t.Rows, []any{p.MembershipNumber, p.FullName(), p.Phone, payoutTo(p.Farmer),
+		t.Rows = append(t.Rows, []any{p.MembershipNumber, p.FullName(), p.Phone,
 			p.Deliveries, p.Litres, perLitre(p.Amount, p.Litres), p.Amount})
 		l, a, deliveries = l+p.Litres, a+p.Amount, deliveries+p.Deliveries
 	}
 	if len(rows) > 0 {
-		t.Totals = []any{"Total", fmt.Sprintf("%d farmers", len(rows)), nil, nil, deliveries, l, perLitre(a, l), a}
+		t.Totals = []any{"Total", fmt.Sprintf("%d farmers", len(rows)), nil, deliveries, l, perLitre(a, l), a}
 	}
 	in.doc.Figures = []document.Figure{
-		{Label: "Total owed to farmers", Value: kes(a)}, {Label: "Litres", Value: litres(l)},
+		{Label: "Milk value", Value: kes(a)}, {Label: "Litres", Value: litres(l)},
 		{Label: "Farmers", Value: count(len(rows))}, {Label: "Average price", Value: kes(perLitre(a, l)) + "/L"},
 	}
 	in.doc.Tables = []document.Table{t}
-	in.doc.Notes = []string{"Only accepted milk is counted: rejected collections are left out."}
+	in.doc.Subject = "Before deductions: not for paying farmers"
+	// Pay-to details are left off on purpose: this is the milk before
+	// deductions, and someone paying from it would overpay every farmer.
+	in.doc.Notes = []string{
+		"Before deductions, advances and balances from earlier pay runs. Not for paying: pay from the pay run's Bank list or M-Pesa list, which have each farmer's net pay.",
+		"Only accepted milk is counted: rejected collections are left out.",
+	}
 	return nil
 }
 

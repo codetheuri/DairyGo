@@ -217,7 +217,7 @@ func (s *Service) Register(ctx context.Context, runID, format string) (*File, er
 	for _, n := range names {
 		cols = append(cols, col(n, num, 1))
 	}
-	cols = append(cols, col("Net pay", num, 1.1), col("Carried fwd", num, 1.15), col("Paid", document.Text, 1.3))
+	cols = append(cols, col("Net pay", num, 1.1), col("Carried fwd", num, 1.15), col("Paid by", document.Text, 0.8), col("Paid", document.Text, 1.3))
 
 	t := document.Table{Columns: cols, Empty: "No farmers in this pay run."}
 	sums := make([]float64, len(cols))
@@ -236,7 +236,7 @@ func (s *Service) Register(ctx context.Context, runID, format string) (*File, er
 		} else if l.Net > 0 {
 			paid = "Not yet"
 		}
-		row = append(row, l.Net, l.Closing, paid)
+		row = append(row, l.Net, l.Closing, paidBy(l.PayoutMethod), paid)
 		for i, v := range row {
 			if f, ok := v.(float64); ok {
 				sums[i] += f
@@ -245,14 +245,14 @@ func (s *Service) Register(ctx context.Context, runID, format string) (*File, er
 		t.Rows = append(t.Rows, row)
 	}
 	totals := []any{"Total", nil}
-	for i := 2; i < len(cols)-1; i++ {
+	for i := 2; i < len(cols)-2; i++ { // the last two (Paid by, Paid) are text
 		if i == rateCol {
 			totals = append(totals, nil)
 			continue
 		}
 		totals = append(totals, round2(sums[i]))
 	}
-	totals = append(totals, nil)
+	totals = append(totals, nil, nil)
 	t.Totals = totals
 	d.Tables = []document.Table{t}
 	d.Figures = []document.Figure{
@@ -268,12 +268,21 @@ func (s *Service) Register(ctx context.Context, runID, format string) (*File, er
 		"Brought fwd: the farmer's balance from earlier pay runs (minus = the farmer owed the Sacco, plus = still due to the farmer). Carried fwd: what the farmer still owes after this run, taken from the next one.",
 		"Each deduction taken in this run has its own column; a new deduction appears from the first run that takes it.",
 		"Advances & charges are those recorded since the last pay run, recovered in this one.",
+		"Paid by: how the farmer is set to be paid. The bank gets the Bank list and M-Pesa the M-Pesa list (Payment list on the pay run), with the net pay.",
 	}
 	data, ctype, ext, err := render(d, format)
 	if err != nil {
 		return nil, err
 	}
 	return &File{Name: fileName(d.Letterhead.Name, "pay-sheet", run, ext), ContentType: ctype, Data: data}, nil
+}
+
+// paidBy reads a pay run line's payout method for people.
+func paidBy(method string) string {
+	if payto.Method(method) == payto.Bank {
+		return "Bank"
+	}
+	return "M-Pesa"
 }
 
 func methodLabel(m *PayMethod) string {

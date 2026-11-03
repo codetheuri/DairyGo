@@ -9,7 +9,7 @@ slow connections. Making a report takes 5–250 ms.
 
 | Key | Report | Permission | Asks for |
 | --- | --- | --- | --- |
-| `farmer-payouts` | What each farmer is owed, with M-Pesa or bank details | `reports.payout.read` | period |
+| `farmer-payouts` | Farmers' Milk Value: each farmer's milk and its value, before deductions. No pay-to details: not for paying (pay from the pay run's Bank or M-Pesa list) | `reports.payout.read` | period |
 | `farmer-statement` | Every delivery by one farmer (to give to the farmer) | `reports.payout.read` | period, `member_id` |
 | `collections` | Every intake | `milk.collections.read` | period, `collector_id`, `shift` |
 | `sales` | Every sale, paid and owed | `milk.sales.read` | period, `collector_id` |

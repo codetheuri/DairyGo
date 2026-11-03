@@ -94,6 +94,9 @@ func RegisterRoutes(api huma.API, db *gorm.DB, cfg *config.Config, log logger.Lo
 	huma.Register(api, op("platform-reassign-records", http.MethodPost, "/api/v1/admin/saccos/{id}/collector-records/move",
 		"Move records to the collector who made them", "For records saved on a colleague's signed-in phone. Changes only who made them (litres, prices and pay stay); needs a reason, kept in each record's history. Every record must still be on from_collector_id, or nothing moves."), lh.Reassign)
 
+	huma.Register(api, op("platform-merge-farmers", http.MethodPost, "/api/v1/admin/saccos/{id}/farmers/merge",
+		"Merge a farmer registered twice", "Moves the wrong farmer's milk not yet paid, open advances, charges and adjustments, and any balance left from paid months to the right farmer, then makes the wrong farmer inactive. Paid months stay as paid. Needs a reason, kept in each record's history; preview=true only says what would move."), mh.MergeFarmers)
+
 	huma.Register(api, op("platform-audit-logs", http.MethodGet, "/api/v1/admin/audit-logs",
 		"Audit trail", "Who changed what across all Saccos, newest first."), h.AuditLogs)
 	huma.Register(api, op("platform-error-logs", http.MethodGet, "/api/v1/admin/error-logs",

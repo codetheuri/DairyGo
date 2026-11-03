@@ -797,7 +797,9 @@ async function farmersTab(sacco) {
           { label: 'Next of kin', render: (m) => m.next_of_kin_name
             ? h('div', {}, h('div', { text: `${m.next_of_kin_name} (${m.next_of_kin_relationship || '—'})` }), h('div', { class: 'sub', text: m.next_of_kin_phone || '' }))
             : '—' },
-          { label: 'Payout', render: (m) => m.mpesa_number ? `M-Pesa ${m.mpesa_number}` : (m.bank_account_number ? `${m.bank_name || 'Bank'} ${m.bank_account_number}` : '—') },
+          { label: 'Paid by', render: (m) => (m.payout_method === 'BANK'
+            ? (m.bank_account_number ? `${m.bank_name || 'Bank'} ${m.bank_account_number}` : 'Bank: account missing')
+            : `M-Pesa ${m.mpesa_number || m.phone || '— number missing'}`) },
           { label: 'Status', render: (m) => pill(m.status) },
           { label: 'Registered', render: (m) => fmt.date(m.created_at) },
           { label: '', render: (m) => h('button', { class: 'small', text: 'Change status', onclick: () => changeStatus(m) }) },
@@ -862,9 +864,59 @@ async function farmersTab(sacco) {
     },
   });
 
+  // One farmer registered twice (e.g. recorded as "Janet Kamunya", really
+  // "Janet Murage"): check what would move, then merge. Paid months stay.
+  const farmerPicker = (name, label) => ({ name, label, type: 'picker', required: true, full: true,
+    placeholder: 'Search by name, membership number or phone',
+    search: async (term) => {
+      const found = await api('GET', `/admin/saccos/${sacco.id}/members${qs({ search: term, per_page: 10 })}`);
+      return found.members.map((m) => ({
+        value: m.id,
+        label: `${m.membership_number} · ${m.first_name} ${m.last_name}`,
+        note: [m.phone, m.status !== 'ACTIVE' ? m.status.toLowerCase() : ''].filter(Boolean).join(' · '),
+      }));
+    } });
+  const mergeFarmers = () => openForm({
+    title: 'Merge a farmer registered twice',
+    intro: 'Everything not yet paid on the wrong farmer moves to the right one: milk, advances, charges and adjustments, and any balance '
+      + 'left from paid months. The wrong farmer is made inactive; months already paid stay as they were paid. You see what moves before anything is saved.',
+    submitLabel: 'Check what moves',
+    fields: [
+      farmerPicker('from_member_id', 'Recorded under the wrong name (made inactive)'),
+      farmerPicker('to_member_id', 'The right farmer (keeps everything)'),
+      { name: 'reason', label: 'Why (kept in each record\'s history)', type: 'textarea', full: true, required: true,
+        placeholder: 'e.g. Same farmer: recorded as Janet Kamunya at first, her name is Janet Murage' },
+    ],
+    onSubmit: async (v) => {
+      const p = await api('POST', `/admin/saccos/${sacco.id}/farmers/merge`, { ...v, preview: true });
+      const lines = [
+        `${plural(p.milk_records, 'milk record')} not yet paid (${fmt.litres(p.litres)}, ${fmt.kes(p.milk_value)})${p.open_from ? ` from ${fmt.date(p.open_from)}` : ''}`,
+        `advances, charges and adjustments not yet taken: ${fmt.num(p.entries)} (${fmt.kes(p.entries_total)})`,
+      ];
+      if (p.balance_moved) lines.push(`Balance from paid months: ${fmt.kes(p.balance_moved)}, moved as an adjustment`);
+      if (p.paid_records_left) lines.push(`${plural(p.paid_records_left, 'milk record')} in months already paid stay on ${p.from}`);
+      if (p.shares_left) lines.push(`Shares saved on ${p.from} (${fmt.kes(p.shares_left)}) stay there`);
+      if (p.own_price_left) lines.push(`${p.from} had their own buying price: it is not moved; moved milk keeps its price`);
+      setTimeout(() => openForm({
+        title: `Merge ${p.from} into ${p.to}?`,
+        intro: `Moves to ${p.to}: ${lines.join('; ')}. ${p.from} is then made inactive. If a pay run is a draft, work it out again before approving.`,
+        submitLabel: 'Merge farmers',
+        danger: true,
+        fields: [],
+        onSubmit: async () => {
+          const r = await api('POST', `/admin/saccos/${sacco.id}/farmers/merge`, v);
+          toast(`Merged: ${plural(r.milk_records, 'milk record')} moved to ${r.to}`);
+          load();
+        },
+      }), 0);
+    },
+  });
+
   return h('div', {},
     h('div', { class: 'page-head' }, h('div', { class: 'filters' }, search, status),
-      h('button', { class: 'primary', text: 'Register farmer', onclick: addFarmer })),
+      h('div', { class: 'actions' },
+        h('button', { text: 'Merge farmers…', onclick: mergeFarmers }),
+        h('button', { class: 'primary', text: 'Register farmer', onclick: addFarmer }))),
     holder);
 }
 

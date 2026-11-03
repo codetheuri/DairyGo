@@ -26,6 +26,7 @@ SELECT id, username FROM users WHERE is_super_user = true AND sacco_id IS NULL;
 | **Roles & permissions** | What each Sacco role may do, as tick boxes; applies at once in every Sacco and is audited (see [authorization.md](authorization.md)) |
 | **Sacco → Farmers** | Search farmers, register a farmer on the Sacco's behalf (same rules as the Sacco admin) |
 | **Sacco → Late entries** | Enter a forgotten milk intake, sale, spoilage or transfer for an earlier day, with a reason, for the collector it belongs to; list of everything entered late (Sacco staff record only today; see [collections-and-pricing.md](collections-and-pricing.md)) |
+| **Sacco → Farmers → Merge farmers…** | One farmer registered twice (e.g. recorded as "Janet Kamunya", really "Janet Murage"): choose the wrong and the right farmer and a reason, check what moves, then merge (see below) |
 | **Sacco → Who recorded** | Records saved on the wrong collector's account (e.g. on a colleague's phone that was still signed in): choose the account and day, tick the records and move them to the collector who made them, with a reason (see below) |
 | **Sacco → Activity / Errors** | That Sacco's audit trail and failed requests |
 | **Sacco actions** | Edit details, suspend, deactivate, reactivate (with a reason, kept in the audit trail) |
@@ -59,6 +60,31 @@ ticked and moved (`internal/collection/reassign.go`).
   people correcting at once cannot half-move a day).
 - Transfers are not moved (one belongs to two collectors): void and enter again.
 - Platform operators only, like late entries; Sacco staff cannot.
+
+## Merging a farmer registered twice
+
+A collector may record a farmer under a wrong name and later register her
+again under the right one, so her milk is split across two farmers.
+**Sacco → Farmers → Merge farmers…** (`POST /admin/saccos/{id}/farmers/merge`,
+`payout/merge.go`) first shows what would move (`preview: true`), then:
+
+- moves milk not yet paid (dated after `payroll_closed_through`) to the right
+  farmer, keeping its date, litres and price;
+- moves advances, charges and adjustments no pay run has taken yet;
+- moves any balance left from paid months (a debt carried forward, or pay
+  still due) as a pair of adjustments, "Balance moved to …" and "Balance
+  from …";
+- makes the wrong farmer inactive. Nothing is removed: months already paid
+  stay under the name they were paid under, with their shares and payslips.
+
+All of it happens in one transaction, and each moved record's history
+carries the reason. Sacco staff can't merge (403). The right farmer must be
+active. When a balance was moved, the wrong farmer appears once more on the
+next pay run at net 0 (brought forward and the adjustment cancel out). They
+are on no payment list and are clear after that. A draft pay run must be
+worked out again, though approval does that anyway. The wrong farmer's own
+buying price and deduction settings are not moved; the preview says when
+they had a price.
 
 ## Account enforcement
 

@@ -22,6 +22,8 @@ var (
 	ErrConflict = errors.New("conflict")
 	ErrLocked   = errors.New("locked")
 	ErrInvalid  = errors.New("invalid")
+	// ErrForbidden: only DairyGo support may do it (merging farmers).
+	ErrForbidden = errors.New("forbidden")
 )
 
 const (

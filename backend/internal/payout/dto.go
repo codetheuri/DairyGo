@@ -139,6 +139,12 @@ type EntryRequest struct {
 	Method        string  `json:"method,omitempty" enum:"CASH,MPESA,BANK_TRANSFER,CHEQUE," doc:"How an advance was paid out"`
 	Reference     string  `json:"reference,omitempty" maxLength:"100" doc:"M-Pesa or bank reference"`
 	CashAccountID string  `json:"cash_account_id,omitempty" doc:"The Sacco account an advance was paid from (optional)"`
+	LateReason    string  `json:"late_reason,omitempty" maxLength:"255" doc:"Why it is recorded after the day; required when date is before today"`
+}
+
+type AdvanceInfoInput struct {
+	MemberID string `path:"member_id" doc:"Farmer UUID"`
+	Date     string `query:"date" doc:"YYYY-MM-DD the advance was given (default today)"`
 }
 
 type RecordEntryInput struct {

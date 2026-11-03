@@ -91,9 +91,14 @@ class PayoutService {
     return FarmerAccount.fromJson(data['account'] as Map<String, dynamic>);
   }
 
-  Future<AdvanceInfo> advanceInfo(String memberId) async {
+  /// The advance rules for an advance given on [date] (yyyy-MM-dd, default
+  /// today).
+  Future<AdvanceInfo> advanceInfo(String memberId, {String? date}) async {
     final data = await apiData(
-      () => _dio.get('$_base/members/$memberId/advance'),
+      () => _dio.get(
+        '$_base/members/$memberId/advance',
+        queryParameters: {'date': ?date},
+      ),
       'Could not check the advance limit',
     );
     return AdvanceInfo.fromJson(data['advance'] as Map<String, dynamic>);

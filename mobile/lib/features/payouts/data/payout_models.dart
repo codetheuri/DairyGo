@@ -224,6 +224,10 @@ class AdvanceInfo {
   final double? available;
   final double balance;
 
+  /// The first day not yet paid for: the earliest date an advance, charge or
+  /// adjustment may carry. Null before the first pay run.
+  final DateTime? sinceDate;
+
   const AdvanceInfo({
     required this.milkSoFar,
     required this.litresSoFar,
@@ -235,6 +239,7 @@ class AdvanceInfo {
     this.closed,
     this.available,
     required this.balance,
+    this.sinceDate,
   });
 
   factory AdvanceInfo.fromJson(Map<String, dynamic> j) => AdvanceInfo(
@@ -248,6 +253,7 @@ class AdvanceInfo {
     closed: j['closed'] as String?,
     available: j['available'] == null ? null : toDouble(j['available']),
     balance: toDouble(j['balance']),
+    sinceDate: DateTime.tryParse(j['since_date'] as String? ?? ''),
   );
 }
 

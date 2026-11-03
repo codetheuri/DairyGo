@@ -355,9 +355,14 @@ type AdvanceInfo struct {
 	Balance     float64  `json:"balance" doc:"The farmer's account balance now (negative = owes the Sacco)"`
 }
 
-// AdvanceInfo shows a farmer's milk so far and how much they may take today.
-func (s *Service) AdvanceInfo(ctx context.Context, memberID string) (*AdvanceInfo, error) {
-	return s.advanceInfo(ctx, memberID, s.today())
+// AdvanceInfo shows a farmer's milk so far and how much they may take on
+// date (default today).
+func (s *Service) AdvanceInfo(ctx context.Context, memberID, date string) (*AdvanceInfo, error) {
+	day, err := parseDay(date, s.today())
+	if err != nil {
+		return nil, err
+	}
+	return s.advanceInfo(ctx, memberID, day)
 }
 
 // advanceInfo applies the Sacco's advance rules (roomFor) for an advance
@@ -435,8 +440,9 @@ func (s *Service) RecordEntry(ctx context.Context, memberID string, kind Kind, r
 	if err != nil {
 		return nil, err
 	}
-	if day.After(s.today()) {
-		return nil, fmt.Errorf("%w: the date cannot be in the future", ErrInvalid)
+	late, err := s.checkEntryDay(ctx, saccoID, day, req.LateReason)
+	if err != nil {
+		return nil, err
 	}
 	amount := round2(req.Amount)
 	desc := strings.TrimSpace(req.Description)
@@ -487,10 +493,41 @@ func (s *Service) RecordEntry(ctx context.Context, memberID string, kind Kind, r
 	}
 	entry := audit.Entry{SaccoID: saccoID, EntityType: auditEntry, EntityID: t.ID, Action: audit.ActionCreate,
 		ActorID: middleware.GetUserID(ctx), NewValues: t}
+	if late != "" {
+		entry.Reason = &late
+	}
 	if err := s.repo.AddTransaction(ctx, t, entry); err != nil {
 		return nil, err
 	}
 	return t, nil
+}
+
+// checkEntryDay allows an entry dated today, or earlier in the period not yet
+// paid (an advance given in October but forgotten until November), never in
+// a month a pay run has closed, nor in the future. An earlier date needs a
+// reason, which goes into the entry's history. It returns that reason.
+func (s *Service) checkEntryDay(ctx context.Context, saccoID string, day time.Time, reason string) (string, error) {
+	d, today := day.Format(dateLayout), s.today().Format(dateLayout)
+	switch {
+	case d > today:
+		return "", fmt.Errorf("%w: the date cannot be in the future", ErrInvalid)
+	case d == today:
+		return "", nil
+	}
+	settings, err := s.repo.Settings(ctx, saccoID)
+	if err != nil {
+		return "", err
+	}
+	if c := settings.ClosedThrough; c != nil && d <= c.Format(dateLayout) {
+		first := c.AddDate(0, 0, 1)
+		return "", fmt.Errorf("%w: the pay run up to %s is done, so the date can be from %s",
+			ErrLocked, c.Format("2 Jan 2006"), first.Format("2 Jan 2006"))
+	}
+	reason = strings.TrimSpace(reason)
+	if len(reason) < 3 {
+		return "", fmt.Errorf("%w: say why it is recorded after the day", ErrInvalid)
+	}
+	return reason, nil
 }
 
 // VoidEntry cancels an advance, charge or adjustment recorded in error.

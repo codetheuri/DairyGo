@@ -18,6 +18,15 @@ Sacco owes the farmer; a negative balance is what the farmer owes.
 | `DEDUCTION` | − each | a pay run is approved |
 | `PAYOUT` | − net | a pay run is approved (the net pay to be sent) |
 
+An advance, charge or adjustment is dated today, or earlier when it was
+forgotten on the day: from the first day not yet paid (the day after
+`payroll_closed_through`), never in a month a pay run has closed (409) nor in
+the future. An earlier date needs `late_reason`, kept as the history entry's
+reason. The date is what the payslip shows ("Advance (20 Oct)"); which pay
+run takes the entry is by when it was recorded: the next run approved after
+it. The advance rules are checked for the date given
+(`GET /members/{id}/advance?date=`).
+
 Advances, charges and adjustments have no `pay_run_id` until a pay run
 settles them. Until then they can be voided (with a reason); afterwards
 only an adjustment corrects them.

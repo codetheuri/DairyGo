@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/network/api_call.dart';
@@ -58,6 +59,9 @@ class _AccountEntrySheetState extends ConsumerState<AccountEntrySheet> {
   final _amount = TextEditingController();
   final _description = TextEditingController();
   final _reference = TextEditingController();
+  final _lateReason = TextEditingController();
+  final DateTime _today = DateUtils.dateOnly(DateTime.now());
+  late DateTime _day = _today; // when it was given; earlier = recorded late
   String _method = 'MPESA';
   String? _accountId;
   bool _addsToPay = false; // adjustments: in the farmer's favour
@@ -65,14 +69,45 @@ class _AccountEntrySheetState extends ConsumerState<AccountEntrySheet> {
   String? _error;
   AdvanceInfo? _info;
 
+  bool get _late => _day.isBefore(_today);
+  static String _ymd(DateTime d) => DateFormat('yyyy-MM-dd').format(d);
+
   @override
   void initState() {
     super.initState();
-    if (widget.kind == EntryKind.advance) {
-      ref.read(payoutServiceProvider).advanceInfo(widget.memberId).then((i) {
-        if (mounted) setState(() => _info = i);
-      }, onError: (_) {});
-    }
+    if (widget.kind == EntryKind.advance) _loadInfo();
+  }
+
+  /// The advance rules depend on the date (e.g. "from the 15th"), so they
+  /// are fetched again when it changes.
+  void _loadInfo() {
+    final day = _day;
+    ref
+        .read(payoutServiceProvider)
+        .advanceInfo(widget.memberId, date: _late ? _ymd(day) : null)
+        .then((i) {
+          if (mounted && day == _day) setState(() => _info = i);
+        }, onError: (_) {});
+  }
+
+  Future<void> _pickDay() async {
+    // Back to the first day not yet paid (the server checks it too); a
+    // month a pay run has closed cannot take new entries.
+    final first = _info?.sinceDate ?? _today.subtract(const Duration(days: 92));
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _day.isBefore(first) ? first : _day,
+      firstDate: first.isAfter(_today) ? _today : first,
+      lastDate: _today,
+      helpText: widget.kind == EntryKind.advance ? 'Advance given on' : 'Date',
+    );
+    if (picked == null || picked == _day) return;
+    setState(() {
+      _day = picked;
+      _error = null;
+      if (widget.kind == EntryKind.advance) _info = null;
+    });
+    if (widget.kind == EntryKind.advance) _loadInfo();
   }
 
   @override
@@ -80,6 +115,7 @@ class _AccountEntrySheetState extends ConsumerState<AccountEntrySheet> {
     _amount.dispose();
     _description.dispose();
     _reference.dispose();
+    _lateReason.dispose();
     super.dispose();
   }
 
@@ -98,23 +134,31 @@ class _AccountEntrySheetState extends ConsumerState<AccountEntrySheet> {
       );
       return;
     }
+    final late = _lateReason.text.trim();
+    if (_late && late.length < 3) {
+      setState(() => _error = 'Say why it is recorded after the day.');
+      return;
+    }
     setState(() {
       _busy = true;
       _error = null;
     });
     try {
-      await ref
-          .read(payoutServiceProvider)
-          .recordEntry(widget.memberId, widget.kind.path, {
-            'amount': widget.kind == EntryKind.adjustment && !_addsToPay
-                ? -amount
-                : amount,
-            if (desc.isNotEmpty) 'description': desc,
-            if (widget.kind == EntryKind.advance) 'method': _method,
-            if (_reference.text.trim().isNotEmpty)
-              'reference': _reference.text.trim(),
-            'cash_account_id': ?_accountId,
-          });
+      await ref.read(payoutServiceProvider).recordEntry(
+        widget.memberId,
+        widget.kind.path,
+        {
+          'amount': widget.kind == EntryKind.adjustment && !_addsToPay
+              ? -amount
+              : amount,
+          if (desc.isNotEmpty) 'description': desc,
+          if (widget.kind == EntryKind.advance) 'method': _method,
+          if (_reference.text.trim().isNotEmpty)
+            'reference': _reference.text.trim(),
+          'cash_account_id': ?_accountId,
+          if (_late) ...{'date': _ymd(_day), 'late_reason': late},
+        },
+      );
       ref.invalidate(farmerAccountProvider(widget.memberId));
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
@@ -178,7 +222,7 @@ class _AccountEntrySheetState extends ConsumerState<AccountEntrySheet> {
                           const SizedBox(height: 4),
                           Text(
                             info.closed != null
-                                ? 'No advance today: ${info.closed}.'
+                                ? 'No advance ${_late ? 'on this date' : 'today'}: ${info.closed}.'
                                 : info.available == null
                                 ? 'No advance limit is set.'
                                 : 'Can take now: ${kes(info.available!)}',
@@ -223,7 +267,37 @@ class _AccountEntrySheetState extends ConsumerState<AccountEntrySheet> {
                 ],
               ),
             ],
-            const SizedBox(height: 12),
+            const SizedBox(height: 4),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.event_outlined),
+              title: Text(
+                kind == EntryKind.advance ? 'Date given' : 'Date',
+                style: const TextStyle(color: AppColors.textSecondary),
+              ),
+              subtitle: Text(
+                _late ? DateFormat('EEE d MMM y').format(_day) : 'Today',
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+              trailing: const Text('Change'),
+              onTap: _busy ? null : _pickDay,
+            ),
+            if (_late) ...[
+              TextField(
+                controller: _lateReason,
+                enabled: !_busy,
+                decoration: const InputDecoration(
+                  labelText: 'Why it is recorded late',
+                  hintText: 'e.g. Forgot to record it in October',
+                ),
+              ),
+              const SizedBox(height: 4),
+              const Text(
+                'Kept in the history with your name. It is taken from the next pay run that is approved.',
+                style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+              ),
+            ],
+            const SizedBox(height: 8),
             TextField(
               controller: _amount,
               enabled: !_busy,

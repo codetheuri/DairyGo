@@ -99,8 +99,8 @@ func (h *Handler) Account(ctx context.Context, in *AccountInput) (*AccountOutput
 	return out, nil
 }
 
-func (h *Handler) AdvanceInfo(ctx context.Context, in *MemberIDInput) (*AdvanceInfoOutput, error) {
-	info, err := h.service.AdvanceInfo(ctx, in.MemberID)
+func (h *Handler) AdvanceInfo(ctx context.Context, in *AdvanceInfoInput) (*AdvanceInfoOutput, error) {
+	info, err := h.service.AdvanceInfo(ctx, in.MemberID, in.Date)
 	if err != nil {
 		return nil, h.toHTTPError(err)
 	}

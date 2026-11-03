@@ -60,7 +60,7 @@ func RegisterRoutes(api huma.API, db *gorm.DB, cfg *config.Config, log logger.Lo
 	huma.Register(api, guard.Protected(huma.Operation{
 		OperationID: "farmer-advance-info", Method: http.MethodGet, Path: "/api/v1/sacco/members/{member_id}/advance",
 		Summary: "Before giving an advance", Tags: []string{tag},
-		Description: "Milk delivered since the last pay run, advances already taken, and how much more the farmer may take.",
+		Description: "Milk delivered since the last pay run, advances already taken, and how much more the farmer may take on the date (default today).",
 	}, PermAdvancesManage), handler.AdvanceInfo)
 	huma.Register(api, guard.Protected(huma.Operation{
 		OperationID: "record-advance", Method: http.MethodPost, Path: "/api/v1/sacco/members/{member_id}/advances",

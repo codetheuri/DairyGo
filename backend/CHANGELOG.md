@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 
 ### Added
+- **Advances and charges forgotten on the day** ([docs/payouts.md](docs/payouts.md)): the app's Advance, Charge and Adjust sheets have a date (default today). An earlier date is allowed back to the first day not yet paid, needs a reason (kept in the history), and shows on the payslip; a month already paid is refused.
 - **How each farmer is paid: M-Pesa or Bank** (migration `00029`, `pkg/payto`, [docs/payouts.md](docs/payouts.md)): set on the farmer (toggle in the app; Bank needs the account), filled in from existing details; the farmer list filters by Paid by. Each farmer is now on exactly one payment list (before, a farmer with a bank account and a phone was on both); The pay run register is now the **Pay sheet**, with a **Paid by** column.
 - The **Farmer Payouts** report is now **Farmers' Milk Value** ("Milk value" instead of "Amount owed") and drops the Pay to column, with a "before deductions: not for paying farmers" line, so nobody pays from it. Pay-to details stay on the farmer, the Farmer Register and the payment lists.
 - **A customer's price from a date** (migration `00028`, [docs/customers-and-ledger.md](docs/customers-and-ledger.md)): Sacco admins (`customers.prices.manage`) change the price from any day since the customer's first; their sales at the agreed price are repriced with a history line, typed prices and voided sales never change, and sales paid in full only when chosen. App: Customer → Price → Change price (check first).

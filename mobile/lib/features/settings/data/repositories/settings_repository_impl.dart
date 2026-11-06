@@ -19,8 +19,16 @@ class SettingsRepositoryImpl implements SettingsRepository {
   }
 
   @override
-  Future<MilkPriceModel> setMilkPrice(SetPriceRequestModel request) {
-    return _remoteDataSource.setMilkPrice(request);
+  Future<SaccoPriceCheck> setMilkPrice(
+    SetPriceRequestModel request, {
+    String? reason,
+    bool preview = false,
+  }) {
+    return _remoteDataSource.setMilkPrice(
+      request,
+      reason: reason,
+      preview: preview,
+    );
   }
 
   @override

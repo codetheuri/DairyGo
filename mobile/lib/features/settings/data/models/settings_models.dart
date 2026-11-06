@@ -1,5 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../../../../core/utils/money.dart';
+
 part 'settings_models.freezed.dart';
 part 'settings_models.g.dart';
 
@@ -44,6 +46,39 @@ class SaccoSettingsModel with _$SaccoSettingsModel {
 
   factory SaccoSettingsModel.fromJson(Map<String, dynamic> json) =>
       _$SaccoSettingsModelFromJson(json);
+}
+
+/// What a Sacco price from a date changes (or would change, when checking):
+/// unpaid milk from that date follows it, paid months and farmers on their
+/// own price do not.
+class SaccoPriceCheck {
+  final int repriced;
+  final int farmers;
+  final int ownPriceFarmers;
+  final double valueChange;
+
+  /// Set when the date falls in a closed period: milk up to this day is paid
+  /// and keeps its price.
+  final DateTime? paidThrough;
+
+  const SaccoPriceCheck({
+    required this.repriced,
+    required this.farmers,
+    required this.ownPriceFarmers,
+    required this.valueChange,
+    this.paidThrough,
+  });
+
+  factory SaccoPriceCheck.fromJson(Map<String, dynamic> j) => SaccoPriceCheck(
+    repriced: (j['repriced'] as num?)?.toInt() ?? 0,
+    farmers: (j['farmers'] as num?)?.toInt() ?? 0,
+    ownPriceFarmers: (j['own_price_farmers'] as num?)?.toInt() ?? 0,
+    valueChange: toDouble(j['value_change']),
+    paidThrough: DateTime.tryParse(j['paid_through'] as String? ?? ''),
+  );
+
+  /// The person should see this before the price is saved.
+  bool get worthShowing => repriced > 0 || paidThrough != null;
 }
 
 @freezed

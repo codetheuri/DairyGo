@@ -6,7 +6,11 @@ import '../models/settings_models.dart';
 abstract class SettingsRemoteDataSource {
   Future<SaccoProfileModel> getSaccoProfile();
   Future<List<MilkPriceModel>> getPriceHistory();
-  Future<MilkPriceModel> setMilkPrice(SetPriceRequestModel request);
+  Future<SaccoPriceCheck> setMilkPrice(
+    SetPriceRequestModel request, {
+    String? reason,
+    bool preview = false,
+  });
   Future<SaccoSettingsModel> getSettings();
   Future<SaccoSettingsModel> updateTolerance(double litres);
   Future<SaccoSettingsModel> updateInactiveAfterDays(int days);
@@ -67,17 +71,23 @@ class SettingsRemoteDataSourceImpl implements SettingsRemoteDataSource {
   }
 
   @override
-  Future<MilkPriceModel> setMilkPrice(SetPriceRequestModel request) async {
+  Future<SaccoPriceCheck> setMilkPrice(
+    SetPriceRequestModel request, {
+    String? reason,
+    bool preview = false,
+  }) async {
     try {
       final response = await _dio.post(
         ApiConstants.milkPrices,
-        data: request.toJson(),
+        data: {
+          ...request.toJson(),
+          'reason': ?reason,
+          if (preview) 'preview': true,
+        },
       );
       final data = response.data as Map<String, dynamic>;
       if (data['success'] == true && data['data'] != null) {
-        return MilkPriceModel.fromJson(
-          data['data']['price'] as Map<String, dynamic>,
-        );
+        return SaccoPriceCheck.fromJson(data['data'] as Map<String, dynamic>);
       }
       throw Exception(data['message'] ?? 'Failed to update milk price rate');
     } on DioException catch (e) {

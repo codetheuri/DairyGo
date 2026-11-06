@@ -29,7 +29,7 @@ func RegisterRoutes(api huma.API, db *gorm.DB, cfg *config.Config, log logger.Lo
 		Method:      http.MethodPost,
 		Path:        "/api/v1/sacco/milk-prices",
 		Summary:     "Configure active Milk buying price",
-		Description: "Sets a new buying price per litre for the Sacco. Past collections retain their historical snapshot rates.",
+		Description: "Adds a buying price from a date. Unpaid milk from that date moves to it, each record with a history line; months a pay run has closed never change, and farmers on their own price stay on it. An earlier date that changes recorded milk needs a reason; preview only says what would change.",
 		Tags:        []string{"Milk Pricing"},
 	}, PermMilkPricesManage), handler.SetPrice)
 

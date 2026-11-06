@@ -23,17 +23,20 @@ func NewHandler(service *Service, log logger.Logger) *Handler {
 
 // --- PRICING HANDLERS ---
 
-func (h *Handler) SetPrice(ctx context.Context, input *SetPriceInput) (*PriceOutput, error) {
-	price, err := h.service.SetPrice(ctx, &input.Body)
+func (h *Handler) SetPrice(ctx context.Context, input *SetPriceInput) (*SetPriceOutput, error) {
+	res, err := h.service.SetPrice(ctx, &input.Body)
 	if err != nil {
 		h.log.Error("Failed to set milk price", err)
-		return nil, huma.Error400BadRequest(err.Error(), err)
+		return nil, huma.Error400BadRequest(err.Error())
 	}
 
-	resp := &PriceOutput{}
+	resp := &SetPriceOutput{}
 	resp.Body.Success = true
 	resp.Body.Message = "Milk price configured successfully"
-	resp.Body.Data.Price = price
+	if res.Preview {
+		resp.Body.Message = "Nothing saved yet"
+	}
+	resp.Body.Data = *res
 	return resp, nil
 }
 

@@ -47,27 +47,43 @@ class SetMilkPriceController
   SetMilkPriceController(this._repository, this._ref)
     : super(const AsyncValue.data(null));
 
-  Future<bool> setMilkPrice(SetPriceRequestModel request) async {
+  /// What saving the price would change; nothing is saved. Null on failure.
+  Future<SaccoPriceCheck?> check(SetPriceRequestModel request) async {
     state = const AsyncValue.loading();
     try {
-      final price = await _repository.setMilkPrice(request);
-      state = AsyncValue.data(price);
+      final check = await _repository.setMilkPrice(request, preview: true);
+      state = const AsyncValue.data(null);
+      return check;
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      return null;
+    }
+  }
+
+  /// Saves the price; unpaid milk from its date follows. Null on failure.
+  Future<SaccoPriceCheck?> setMilkPrice(
+    SetPriceRequestModel request, {
+    String? reason,
+  }) async {
+    state = const AsyncValue.loading();
+    try {
+      final saved = await _repository.setMilkPrice(request, reason: reason);
+      state = const AsyncValue.data(null);
       _ref.invalidate(activeMilkPriceProvider);
       _ref.invalidate(milkPriceHistoryProvider);
       invalidateAllAppMetrics(_ref);
-      return true;
+      return saved;
     } catch (e, st) {
       state = AsyncValue.error(e, st);
-      return false;
+      return null;
     }
   }
 }
 
 final setMilkPriceControllerProvider =
-    StateNotifierProvider.autoDispose<
-      SetMilkPriceController,
-      AsyncValue<MilkPriceModel?>
-    >((ref) {
-      final repository = ref.watch(settingsRepositoryProvider);
-      return SetMilkPriceController(repository, ref);
-    });
+    StateNotifierProvider.autoDispose<SetMilkPriceController, AsyncValue<void>>(
+      (ref) {
+        final repository = ref.watch(settingsRepositoryProvider);
+        return SetMilkPriceController(repository, ref);
+      },
+    );

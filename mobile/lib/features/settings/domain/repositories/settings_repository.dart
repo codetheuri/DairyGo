@@ -4,7 +4,11 @@ import '../../data/models/settings_models.dart';
 abstract class SettingsRepository {
   Future<SaccoProfileModel> getSaccoProfile();
   Future<List<MilkPriceModel>> getPriceHistory();
-  Future<MilkPriceModel> setMilkPrice(SetPriceRequestModel request);
+  Future<SaccoPriceCheck> setMilkPrice(
+    SetPriceRequestModel request, {
+    String? reason,
+    bool preview = false,
+  });
   Future<SaccoSettingsModel> getSettings();
   Future<SaccoSettingsModel> updateTolerance(double litres);
 

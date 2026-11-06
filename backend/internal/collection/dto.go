@@ -11,6 +11,8 @@ import (
 type SetPriceRequest struct {
 	PricePerLitre float64 `json:"price_per_litre" minimum:"0.01" doc:"New Sacco buying price per litre"`
 	EffectiveDate *string `json:"effective_date,omitempty" doc:"Effective date (YYYY-MM-DD), defaults to today"`
+	Reason        string  `json:"reason,omitempty" maxLength:"255" doc:"Why; required when an earlier date changes milk already recorded"`
+	Preview       bool    `json:"preview,omitempty" doc:"Only say what would change; nothing is saved"`
 }
 
 type SetPriceInput struct {
@@ -23,6 +25,10 @@ type PriceData struct {
 
 type PriceOutput struct {
 	Body response.Data[PriceData]
+}
+
+type SetPriceOutput struct {
+	Body response.Data[SaccoPriceResult]
 }
 
 type ListPricesData struct {

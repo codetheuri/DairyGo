@@ -60,18 +60,52 @@ func (Log) TableName() string {
 	return "audit_logs"
 }
 
+// batchSize bounds one insert in RecordAll.
+const batchSize = 500
+
 // Record stores an entry using tx, which should be the transaction that
 // performs the audited change.
 func Record(tx *gorm.DB, e Entry) error {
+	log, err := newLog(e)
+	if err != nil {
+		return err
+	}
+	if err := tx.Omit("ActorName").Create(&log).Error; err != nil {
+		return fmt.Errorf("audit: save entry: %w", err)
+	}
+	return nil
+}
+
+// RecordAll stores many entries in batches, for one change that touches
+// thousands of records.
+func RecordAll(tx *gorm.DB, entries []Entry) error {
+	if len(entries) == 0 {
+		return nil
+	}
+	logs := make([]Log, 0, len(entries))
+	for _, e := range entries {
+		log, err := newLog(e)
+		if err != nil {
+			return err
+		}
+		logs = append(logs, log)
+	}
+	if err := tx.Omit("ActorName").CreateInBatches(logs, batchSize).Error; err != nil {
+		return fmt.Errorf("audit: save entries: %w", err)
+	}
+	return nil
+}
+
+// newLog turns an entry into the row to store.
+func newLog(e Entry) (Log, error) {
 	oldJSON, err := marshal(e.OldValues)
 	if err != nil {
-		return fmt.Errorf("audit: encode old values: %w", err)
+		return Log{}, fmt.Errorf("audit: encode old values: %w", err)
 	}
 	newJSON, err := marshal(e.NewValues)
 	if err != nil {
-		return fmt.Errorf("audit: encode new values: %w", err)
+		return Log{}, fmt.Errorf("audit: encode new values: %w", err)
 	}
-
 	log := Log{
 		ID:         uuid.New().String(),
 		EntityType: e.EntityType,
@@ -87,11 +121,7 @@ func Record(tx *gorm.DB, e Entry) error {
 	if e.ActorID > 0 {
 		log.ActorID = &e.ActorID
 	}
-
-	if err := tx.Omit("ActorName").Create(&log).Error; err != nil {
-		return fmt.Errorf("audit: save entry: %w", err)
-	}
-	return nil
+	return log, nil
 }
 
 // List returns the history of one record in a Sacco, oldest first, with the

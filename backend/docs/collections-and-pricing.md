@@ -53,6 +53,36 @@ price in force today.
 
 `is_active = false` marks a price row as voided; voided rows are never used.
 
+### A price from an earlier date
+
+A price applies to milk from its date, including milk already recorded and not
+yet paid. Each record stores its price, and a pay run adds up the stored totals
+(`milk_collections.total_amount`), so saving a schedule row alone would change
+nothing. `POST /milk-prices` therefore also reprices (`SetPrice` in
+`internal/collection/sacco_price.go`, using `pricedOn`, the one rule):
+
+- every record dated from the price's date and after `payroll_closed_through`
+  that the rule prices differently gets the new price and total, in one
+  transaction, each with a history line ("Sacco price from 1 Oct 2026: KES
+  45.00 (reason)");
+- months a pay run has closed never change; when the date falls in one, the
+  reply has `paid_through` and only later milk moves;
+- farmers on their own price stay on it (`own_price_farmers` counts them);
+- rejected milk is repriced too but left out of `value_change`, since it is
+  not paid.
+
+`preview: true` only says what would change (`repriced`, `farmers`, `litres`,
+`value_change`); the app shows that before saving. An earlier date that changes
+recorded milk needs a `reason` (400 without one, so an older app cannot reprice
+unseen). Entering the price already in force for a date adds no second row and
+only reprices, which is how milk recorded before this rule existed is brought
+to a price already on the schedule. A wrong price is corrected the same way:
+enter the right one for the same date. A draft pay run must then be worked out
+again; if it is not, approval refuses because the total no longer matches.
+
+Records save in batches (`repriceBatch`, `audit.RecordAll`): 20,000 records take
+about 8 seconds locally, and the preview under half a second.
+
 ## A farmer's own price
 
 Some farmers are agreed a different price (e.g. 45 instead of the Sacco's

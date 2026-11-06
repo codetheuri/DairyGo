@@ -759,9 +759,14 @@ class SettingsScreen extends ConsumerWidget {
       children: [
         Icon(icon, size: 16, color: AppColors.textMuted),
         const SizedBox(width: 8),
-        Text(
-          '$label: ',
-          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+        Flexible(
+          child: Text(
+            '$label: ',
+            style: const TextStyle(
+              fontSize: 12,
+              color: AppColors.textSecondary,
+            ),
+          ),
         ),
         Expanded(
           child: Text(

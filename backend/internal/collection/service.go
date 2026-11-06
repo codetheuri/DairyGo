@@ -45,49 +45,6 @@ func (s *Service) actorFrom(ctx context.Context, managePerm string) (actor, erro
 
 // --- PRICING BUSINESS LOGIC ---
 
-// SetPrice adds a buying price to the Sacco's rate schedule. It applies to
-// collections dated on or after its effective date.
-func (s *Service) SetPrice(ctx context.Context, req *SetPriceRequest) (*MilkPrice, error) {
-	saccoID, ok := middleware.GetSaccoID(ctx)
-	if !ok || saccoID == "" {
-		return nil, fmt.Errorf("sacco context is required")
-	}
-
-	if req.PricePerLitre <= 0 {
-		return nil, fmt.Errorf("price per litre must be greater than zero")
-	}
-
-	effectiveDate := time.Now()
-	if req.EffectiveDate != nil && strings.TrimSpace(*req.EffectiveDate) != "" {
-		parsed, err := time.ParseInLocation(dateLayout, strings.TrimSpace(*req.EffectiveDate), time.Local)
-		if err != nil {
-			return nil, fmt.Errorf("invalid effective_date format, expected YYYY-MM-DD")
-		}
-		effectiveDate = parsed
-	}
-
-	userID := middleware.GetUserID(ctx)
-	var createdByID *uint
-	if userID > 0 {
-		createdByID = &userID
-	}
-
-	price := &MilkPrice{
-		ID:            uuid.New().String(),
-		SaccoID:       saccoID,
-		PricePerLitre: math.Round(req.PricePerLitre*100) / 100,
-		EffectiveDate: effectiveDate,
-		IsActive:      true,
-		CreatedByID:   createdByID,
-	}
-
-	if err := s.repo.CreatePrice(ctx, price); err != nil {
-		return nil, fmt.Errorf("failed to save milk price: %w", err)
-	}
-
-	return price, nil
-}
-
 func (s *Service) GetActivePrice(ctx context.Context) (*MilkPrice, error) {
 	return s.repo.GetActivePrice(ctx)
 }

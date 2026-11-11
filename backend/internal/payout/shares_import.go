@@ -1,13 +1,10 @@
 package payout
 
 import (
-	"bytes"
-	"encoding/csv"
 	"fmt"
-	"strconv"
 	"strings"
 
-	"github.com/xuri/excelize/v2"
+	"github.com/codetheuri/tusk/pkg/sheet"
 )
 
 // ParseShareRows reads a spreadsheet (Excel .xlsx, or CSV) of opening
@@ -17,7 +14,7 @@ import (
 // shares are skipped; anything unreadable is a problem, and nothing should
 // be imported until the file is fixed.
 func ParseShareRows(data []byte) (rows []ShareRow, problems []string) {
-	table, err := readTable(data)
+	table, err := sheet.Read(data)
 	if err != nil {
 		return nil, []string{err.Error()}
 	}
@@ -53,7 +50,7 @@ func ParseShareRows(data []byte) (rows []ShareRow, problems []string) {
 		if number == "" {
 			continue
 		}
-		amount, ok := parseAmount(raw)
+		amount, ok := sheet.Amount(raw)
 		switch {
 		case !ok:
 			problems = append(problems, fmt.Sprintf("line %d (%s): %q is not an amount", line, number, raw))
@@ -76,38 +73,4 @@ func ParseShareRows(data []byte) (rows []ShareRow, problems []string) {
 		problems = append(problems, "the file has no shares to import")
 	}
 	return rows, problems
-}
-
-// readTable reads the first sheet of an Excel file, or a CSV file.
-func readTable(data []byte) ([][]string, error) {
-	if bytes.HasPrefix(data, []byte("PK")) {
-		f, err := excelize.OpenReader(bytes.NewReader(data))
-		if err != nil {
-			return nil, fmt.Errorf("cannot read the Excel file: %v", err)
-		}
-		defer f.Close()
-		sheets := f.GetSheetList()
-		if len(sheets) == 0 {
-			return nil, fmt.Errorf("the Excel file has no sheets")
-		}
-		return f.GetRows(sheets[0])
-	}
-	r := csv.NewReader(bytes.NewReader(bytes.TrimPrefix(data, []byte("\xef\xbb\xbf"))))
-	r.FieldsPerRecord = -1
-	table, err := r.ReadAll()
-	if err != nil {
-		return nil, fmt.Errorf("cannot read the file as Excel or CSV: %v", err)
-	}
-	return table, nil
-}
-
-// parseAmount reads "12,500", "KES 12,500.50" or "12500"; blank is 0.
-func parseAmount(s string) (float64, bool) {
-	s = strings.TrimSpace(strings.TrimPrefix(strings.ToUpper(strings.TrimSpace(s)), "KES"))
-	s = strings.NewReplacer(",", "", " ", "").Replace(s)
-	if s == "" || s == "-" {
-		return 0, true
-	}
-	v, err := strconv.ParseFloat(s, 64)
-	return v, err == nil
 }

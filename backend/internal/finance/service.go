@@ -204,6 +204,15 @@ func (s *Service) Cashbook(ctx context.Context, id, from, to string) (*Cashbook,
 	}
 	cb := &Cashbook{CashAccount: a, FromDate: start.Format(dateLayout), ToDate: end.Format(dateLayout)}
 	cb.OpeningBalance, cb.Lines, cb.TotalIn, cb.TotalOut, cb.ClosingBalance = buildCashbook(a.OpeningBalance, start, moves)
+	// Lines matched to the bank's statement are ticked.
+	matched, err := s.matchedKeys(ctx, a.ID)
+	if err != nil {
+		return nil, err
+	}
+	for i := range cb.Lines {
+		cb.Lines[i].MatchKey = cb.Lines[i].Key()
+		cb.Lines[i].Matched = matched[cb.Lines[i].MatchKey]
+	}
 	all, err := s.repo.Balances(ctx, saccoID)
 	if err != nil {
 		return nil, err

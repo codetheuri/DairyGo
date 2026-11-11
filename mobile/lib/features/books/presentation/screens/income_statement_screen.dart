@@ -65,6 +65,8 @@ class _IncomeStatementScreenState extends ConsumerState<IncomeStatementScreen> {
         ref.watch(financialYearProvider).valueOrNull?.startMonth ?? 1;
     final period = _periodFor(_anchor, startMonth);
     final st = ref.watch(incomeStatementProvider(period));
+    final closed = ref.watch(booksStatusProvider).valueOrNull?.closedThrough;
+    final isClosed = closed != null && !period.to.isAfter(closed);
     final label = _byYear
         ? FinancialYear.label(
             period.from,
@@ -190,6 +192,8 @@ class _IncomeStatementScreenState extends ConsumerState<IncomeStatementScreen> {
                         Text(
                           [
                             'Milk bought is counted when its pay run is approved, on the pay run\'s last day.',
+                            if (isClosed)
+                              'This period is closed: its figures will not change.',
                             if (period.from.isBefore(s.startDate))
                               'The books start on ${DateFormat('d MMM y').format(s.startDate)}; '
                                   'what came before is in the opening balances.',

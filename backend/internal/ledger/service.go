@@ -73,14 +73,16 @@ func (s *Service) started(ctx context.Context, db *gorm.DB, saccoID string) (*Bo
 // BooksStatus is the books at a glance: whether they have started, and whether
 // they agree with the records.
 type BooksStatus struct {
-	Started      bool       `json:"started"`
-	StartDate    *string    `json:"start_date,omitempty"`
-	Journals     int64      `json:"journals"`
-	SyncedAt     *time.Time `json:"checked_at,omitempty" doc:"When every record was last compared with the books"`
-	Balanced     bool       `json:"balanced" doc:"Debits equal credits"`
-	Agrees       bool       `json:"agrees" doc:"Every account kept from records equals what the records say"`
-	Controls     []Control  `json:"controls"`
-	NotInAccount float64    `json:"not_in_account" doc:"Money recorded without naming an account (Money not in an account)"`
+	Started           bool       `json:"started"`
+	StartDate         *string    `json:"start_date,omitempty"`
+	Journals          int64      `json:"journals"`
+	SyncedAt          *time.Time `json:"checked_at,omitempty" doc:"When every record was last compared with the books"`
+	Balanced          bool       `json:"balanced" doc:"Debits equal credits"`
+	Agrees            bool       `json:"agrees" doc:"Every account kept from records equals what the records say"`
+	Controls          []Control  `json:"controls"`
+	NotInAccount      float64    `json:"not_in_account" doc:"Money recorded without naming an account (Money not in an account)"`
+	ClosedThrough     *string    `json:"closed_through,omitempty" doc:"Nothing may be dated on or before this day"`
+	YearClosedThrough *string    `json:"year_closed_through,omitempty" doc:"The end of the last financial year closed into retained surplus"`
 }
 
 // Status reports on the Sacco's books.
@@ -100,6 +102,7 @@ func (s *Service) Status(ctx context.Context) (*BooksStatus, error) {
 	}
 	start := b.StartDate.Format(dateLayout)
 	out.Started, out.StartDate, out.SyncedAt = true, &start, b.SyncedAt
+	out.ClosedThrough, out.YearClosedThrough = dayPtr(b.ClosedThrough), dayPtr(b.YearClosedThrough)
 	if err := db.Model(&Journal{}).Where("sacco_id = ?", saccoID).Count(&out.Journals).Error; err != nil {
 		return nil, err
 	}
@@ -154,6 +157,10 @@ func (s *Service) Start(ctx context.Context, req *StartRequest) (*BooksStatus, i
 			}
 			if len(reason) < 3 {
 				return fmt.Errorf("%w: give the reason for moving the start of the books", ErrInvalid)
+			}
+			if old.ClosedThrough != nil {
+				return fmt.Errorf("%w: the books are closed through %s; reopen every month before moving their start",
+					ErrConflict, old.ClosedThrough.Format("2 Jan 2006"))
 			}
 			var early int64
 			if err := tx.Model(&Journal{}).Where("sacco_id = ? AND kind = ? AND journal_date < ?", saccoID, KindManual, start.Format(dateLayout)).
@@ -248,4 +255,12 @@ func SyncEverySacco(ctx context.Context, db *gorm.DB) (saccos, made int, err err
 		saccos++
 	}
 	return saccos, made, errors.Join(errs...)
+}
+
+func dayPtr(d *time.Time) *string {
+	if d == nil {
+		return nil
+	}
+	v := d.Format(dateLayout)
+	return &v
 }

@@ -227,4 +227,81 @@ class FinanceService {
     ),
     'The payment could not be voided',
   );
+
+  // --- bank reconciliation ---
+
+  Future<List<BankStatement>> statements(String accountId) async {
+    final data = await apiData(
+      () => _dio.get('$_base/cash-accounts/$accountId/statements'),
+      'Could not load the statements',
+    );
+    return [
+      for (final s in (data['statements'] as List?) ?? const [])
+        BankStatement.fromJson(s as Map<String, dynamic>),
+    ];
+  }
+
+  /// Reads (preview) or imports a statement file.
+  Future<StatementImport> importStatement(
+    String accountId, {
+    required String fileBase64,
+    required String fileName,
+    bool preview = false,
+  }) async {
+    final data = await apiData(
+      () => _dio.post(
+        '$_base/cash-accounts/$accountId/statements',
+        data: {'file': fileBase64, 'file_name': fileName, 'preview': preview},
+      ),
+      'The statement could not be imported',
+    );
+    return StatementImport.fromJson(data);
+  }
+
+  Future<Reconciliation> reconciliation(String statementId) async {
+    final data = await apiData(
+      () => _dio.get('$_base/bank-statements/$statementId'),
+      'Could not load the statement',
+    );
+    return Reconciliation.fromJson(
+      data['reconciliation'] as Map<String, dynamic>,
+    );
+  }
+
+  Future<void> deleteStatement(String id) => apiData(
+    () => _dio.delete('$_base/bank-statements/$id'),
+    'The statement could not be removed',
+  );
+
+  Future<int> autoMatch(String statementId) async {
+    final data = await apiData(
+      () => _dio.post('$_base/bank-statements/$statementId/auto-match'),
+      'Could not match the statement',
+    );
+    return (data['matched'] as num?)?.toInt() ?? 0;
+  }
+
+  Future<List<BookMovement>> candidates(String lineId) async {
+    final data = await apiData(
+      () => _dio.get('$_base/bank-statement-lines/$lineId/candidates'),
+      'Could not load the cashbook',
+    );
+    return [
+      for (final m in (data['movements'] as List?) ?? const [])
+        BookMovement.fromJson(m as Map<String, dynamic>),
+    ];
+  }
+
+  Future<void> matchLine(String lineId, String key) => apiData(
+    () => _dio.post(
+      '$_base/bank-statement-lines/$lineId/match',
+      data: {'match_key': key},
+    ),
+    'The line could not be matched',
+  );
+
+  Future<void> unmatchLine(String lineId) => apiData(
+    () => _dio.post('$_base/bank-statement-lines/$lineId/unmatch'),
+    'The line could not be unmatched',
+  );
 }

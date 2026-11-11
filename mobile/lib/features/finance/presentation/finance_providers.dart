@@ -83,4 +83,17 @@ void refreshMoney(WidgetRef ref) {
   ref.invalidate(otherIncomeProvider);
   ref.invalidate(suppliersProvider);
   ref.invalidate(supplierProvider);
+  ref.invalidate(statementsProvider);
+  ref.invalidate(reconciliationProvider);
 }
+
+final statementsProvider = FutureProvider.autoDispose
+    .family<List<BankStatement>, String>(
+      (ref, accountId) =>
+          ref.watch(financeServiceProvider).statements(accountId),
+    );
+
+final reconciliationProvider = FutureProvider.autoDispose
+    .family<Reconciliation, String>(
+      (ref, id) => ref.watch(financeServiceProvider).reconciliation(id),
+    );

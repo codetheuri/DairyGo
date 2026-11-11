@@ -137,3 +137,77 @@ func (h *Handler) VoidSupplierPayment(ctx context.Context, in *FinVoidInput) (*O
 	}
 	return ok("Payment voided", FinSupplierPaymentData{p}), nil
 }
+
+// --- bank reconciliation ---
+
+func (h *Handler) Statements(ctx context.Context, in *FinAccountIDInput) (*Out[FinStatementsData], error) {
+	list, err := h.service.Statements(ctx, in.ID)
+	if err != nil {
+		return nil, h.toHTTPError(err)
+	}
+	return ok("Statements", FinStatementsData{list}), nil
+}
+
+func (h *Handler) ImportStatement(ctx context.Context, in *FinImportStatementInput) (*Out[StatementImport], error) {
+	imp, err := h.service.ImportStatement(ctx, in.ID, &in.Body)
+	if err != nil {
+		return nil, h.toHTTPError(err)
+	}
+	msg := "Statement imported"
+	switch {
+	case len(imp.Problems) > 0:
+		msg = "Fix the file first; nothing was imported"
+	case imp.Preview:
+		msg = "Nothing saved yet"
+	case imp.Statement == nil:
+		msg = "Every line was imported already"
+	}
+	return ok(msg, *imp), nil
+}
+
+func (h *Handler) Reconcile(ctx context.Context, in *FinStatementIDInput) (*Out[FinReconciliationData], error) {
+	r, err := h.service.Reconcile(ctx, in.ID)
+	if err != nil {
+		return nil, h.toHTTPError(err)
+	}
+	return ok("Reconciliation", FinReconciliationData{r}), nil
+}
+
+func (h *Handler) DeleteStatement(ctx context.Context, in *FinStatementIDInput) (*Out[FinAutoMatchData], error) {
+	if err := h.service.DeleteStatement(ctx, in.ID); err != nil {
+		return nil, h.toHTTPError(err)
+	}
+	return ok("Statement removed", FinAutoMatchData{}), nil
+}
+
+func (h *Handler) AutoMatch(ctx context.Context, in *FinStatementIDInput) (*Out[FinAutoMatchData], error) {
+	n, err := h.service.AutoMatch(ctx, in.ID)
+	if err != nil {
+		return nil, h.toHTTPError(err)
+	}
+	return ok("Matched", FinAutoMatchData{n}), nil
+}
+
+func (h *Handler) Candidates(ctx context.Context, in *FinLineIDInput) (*Out[FinCandidatesData], error) {
+	list, err := h.service.Candidates(ctx, in.ID)
+	if err != nil {
+		return nil, h.toHTTPError(err)
+	}
+	return ok("Movements it may match", FinCandidatesData{list}), nil
+}
+
+func (h *Handler) Match(ctx context.Context, in *FinMatchInput) (*Out[FinLineData], error) {
+	l, err := h.service.Match(ctx, in.ID, in.Body.MatchKey)
+	if err != nil {
+		return nil, h.toHTTPError(err)
+	}
+	return ok("Matched", FinLineData{l}), nil
+}
+
+func (h *Handler) Unmatch(ctx context.Context, in *FinLineIDInput) (*Out[FinLineData], error) {
+	l, err := h.service.Unmatch(ctx, in.ID)
+	if err != nil {
+		return nil, h.toHTTPError(err)
+	}
+	return ok("Unmatched", FinLineData{l}), nil
+}

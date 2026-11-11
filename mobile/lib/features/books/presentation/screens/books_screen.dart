@@ -408,6 +408,15 @@ class _Started extends StatelessWidget {
               ),
               const Divider(height: 1),
               _Tile(
+                icon: Icons.lock_clock_outlined,
+                title: 'Months and years',
+                subtitle: status.closedThrough == null
+                    ? 'Close months so their figures cannot change; the year end'
+                    : 'Closed through ${BooksScreen._day.format(status.closedThrough!)}',
+                path: '/books/periods',
+              ),
+              const Divider(height: 1),
+              _Tile(
                 icon: Icons.flag_outlined,
                 title: 'Opening balances',
                 subtitle:

@@ -410,6 +410,9 @@ class CashbookLine {
   final double moneyOut;
   final double balance;
 
+  /// Matched to a line of the bank's statement.
+  final bool matched;
+
   const CashbookLine({
     required this.source,
     required this.date,
@@ -418,6 +421,7 @@ class CashbookLine {
     required this.moneyIn,
     required this.moneyOut,
     required this.balance,
+    this.matched = false,
   });
 
   factory CashbookLine.fromJson(Map<String, dynamic> j) => CashbookLine(
@@ -428,6 +432,7 @@ class CashbookLine {
     moneyIn: toDouble(j['in']),
     moneyOut: toDouble(j['out']),
     balance: toDouble(j['balance']),
+    matched: j['matched'] == true,
   );
 }
 
@@ -642,4 +647,187 @@ class FinancialYear {
     if (from.month == 1) return 'Financial year ${from.year}';
     return '${m[from.month - 1]} ${from.year} – ${m[to.month - 1]} ${to.year}';
   }
+}
+
+/// A movement in an account's cashbook, as a statement line may match it.
+class BookMovement {
+  final String key;
+  final String source;
+  final DateTime date;
+  final String description;
+  final String? reference;
+  final double moneyIn;
+  final double moneyOut;
+
+  const BookMovement({
+    required this.key,
+    required this.source,
+    required this.date,
+    required this.description,
+    this.reference,
+    required this.moneyIn,
+    required this.moneyOut,
+  });
+
+  double get amount => moneyIn - moneyOut;
+
+  factory BookMovement.fromJson(Map<String, dynamic> j) => BookMovement(
+    key: j['match_key'] as String? ?? '',
+    source: j['source'] as String? ?? '',
+    date: _date(j['date']) ?? DateTime(2000),
+    description: j['description'] as String? ?? '',
+    reference: j['reference'] as String?,
+    moneyIn: toDouble(j['in']),
+    moneyOut: toDouble(j['out']),
+  );
+}
+
+/// A bank or M-Pesa statement imported for an account.
+class BankStatement {
+  final String id;
+  final String? fileName;
+  final DateTime from;
+  final DateTime to;
+  final int lines;
+  final int matched;
+  final double? closingBalance;
+
+  const BankStatement({
+    required this.id,
+    this.fileName,
+    required this.from,
+    required this.to,
+    required this.lines,
+    required this.matched,
+    this.closingBalance,
+  });
+
+  factory BankStatement.fromJson(Map<String, dynamic> j) => BankStatement(
+    id: j['id'] as String,
+    fileName: j['file_name'] as String?,
+    from: _date(j['from_date']) ?? DateTime(2000),
+    to: _date(j['to_date']) ?? DateTime(2000),
+    lines: (j['lines'] as num?)?.toInt() ?? 0,
+    matched: (j['matched'] as num?)?.toInt() ?? 0,
+    closingBalance: j['closing_balance'] == null
+        ? null
+        : toDouble(j['closing_balance']),
+  );
+}
+
+/// One line of an imported statement, and the movement it is matched to.
+class BankLine {
+  final String id;
+  final DateTime date;
+  final String description;
+  final String? reference;
+  final double amount;
+  final String? matchKey;
+  final BookMovement? movement;
+
+  const BankLine({
+    required this.id,
+    required this.date,
+    required this.description,
+    this.reference,
+    required this.amount,
+    this.matchKey,
+    this.movement,
+  });
+
+  bool get matched => matchKey != null;
+
+  factory BankLine.fromJson(Map<String, dynamic> j) => BankLine(
+    id: j['id'] as String,
+    date: _date(j['date']) ?? DateTime(2000),
+    description: j['description'] as String? ?? '',
+    reference: j['reference'] as String?,
+    amount: toDouble(j['amount']),
+    matchKey: j['match_key'] as String?,
+    movement: j['movement'] == null
+        ? null
+        : BookMovement.fromJson(j['movement'] as Map<String, dynamic>),
+  );
+}
+
+/// A statement against the account's cashbook.
+class Reconciliation {
+  final BankStatement statement;
+  final CashAccount account;
+  final List<BankLine> lines;
+  final List<BookMovement> bookOnly;
+  final int matched;
+  final int bankOnly;
+  final double bankOnlyTotal;
+  final double bookOnlyTotal;
+  final double bookBalance;
+  final double? difference;
+
+  const Reconciliation({
+    required this.statement,
+    required this.account,
+    required this.lines,
+    required this.bookOnly,
+    required this.matched,
+    required this.bankOnly,
+    required this.bankOnlyTotal,
+    required this.bookOnlyTotal,
+    required this.bookBalance,
+    this.difference,
+  });
+
+  factory Reconciliation.fromJson(Map<String, dynamic> j) => Reconciliation(
+    statement: BankStatement.fromJson(j['statement'] as Map<String, dynamic>),
+    account: CashAccount.fromJson(j['account'] as Map<String, dynamic>),
+    lines: [
+      for (final l in (j['lines'] as List?) ?? const [])
+        BankLine.fromJson(l as Map<String, dynamic>),
+    ],
+    bookOnly: [
+      for (final m in (j['book_only'] as List?) ?? const [])
+        BookMovement.fromJson(m as Map<String, dynamic>),
+    ],
+    matched: (j['matched'] as num?)?.toInt() ?? 0,
+    bankOnly: (j['bank_only'] as num?)?.toInt() ?? 0,
+    bankOnlyTotal: toDouble(j['bank_only_total']),
+    bookOnlyTotal: toDouble(j['book_only_total']),
+    bookBalance: toDouble(j['book_balance']),
+    difference: j['difference'] == null ? null : toDouble(j['difference']),
+  );
+}
+
+/// What importing a statement did, or would do.
+class StatementImport {
+  final BankStatement? statement;
+  final bool preview;
+  final int lines;
+  final int alreadyImported;
+  final double moneyIn;
+  final double moneyOut;
+  final int matched;
+  final List<String> problems;
+
+  const StatementImport({
+    this.statement,
+    required this.preview,
+    required this.lines,
+    required this.alreadyImported,
+    required this.moneyIn,
+    required this.moneyOut,
+    required this.matched,
+    required this.problems,
+  });
+
+  factory StatementImport.fromJson(Map<String, dynamic> j) => StatementImport(
+    statement: j['statement'] == null
+        ? null
+        : BankStatement.fromJson(j['statement'] as Map<String, dynamic>),
+    preview: j['preview'] == true,
+    lines: (j['lines'] as num?)?.toInt() ?? 0,
+    alreadyImported: (j['already_imported'] as num?)?.toInt() ?? 0,
+    moneyIn: toDouble(j['money_in']),
+    moneyOut: toDouble(j['money_out']),
+    matched: (j['matched'] as num?)?.toInt() ?? 0,
+    problems: [for (final p in (j['problems'] as List?) ?? const []) '$p'],
+  );
 }

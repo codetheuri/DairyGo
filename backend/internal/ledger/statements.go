@@ -99,15 +99,20 @@ func yearStart(day time.Time, startMonth int) time.Time {
 	return time.Date(y, time.Month(startMonth), 1, 0, 0, 0, 0, time.UTC)
 }
 
-// movements is each account's debits less credits between two days.
-func movements(ctx context.Context, db *gorm.DB, saccoID string, from, to time.Time) (map[string]float64, error) {
+// movements is each account's debits less credits between two days. With
+// operating, year-end journals are left out: they only move a closed year's
+// income and expenses to retained surplus, which is not income or spending.
+func movements(ctx context.Context, db *gorm.DB, saccoID string, from, to time.Time, operating ...bool) (map[string]float64, error) {
 	var rows []struct {
 		AccountID string
 		Net       float64
 	}
-	if err := db.WithContext(ctx).Table("journal_lines").Select("account_id, SUM(debit) - SUM(credit) AS net").
-		Where("sacco_id = ? AND journal_date BETWEEN ? AND ?", saccoID, from.Format(dateLayout), to.Format(dateLayout)).
-		Group("account_id").Scan(&rows).Error; err != nil {
+	q := db.WithContext(ctx).Table("journal_lines l").Select("l.account_id, SUM(l.debit) - SUM(l.credit) AS net").
+		Where("l.sacco_id = ? AND l.journal_date BETWEEN ? AND ?", saccoID, from.Format(dateLayout), to.Format(dateLayout))
+	if len(operating) > 0 && operating[0] {
+		q = q.Joins("JOIN journals j ON j.id = l.journal_id").Where("COALESCE(j.source_type, '') <> ?", SrcYearEnd)
+	}
+	if err := q.Group("l.account_id").Scan(&rows).Error; err != nil {
 		return nil, err
 	}
 	out := map[string]float64{}
@@ -171,11 +176,11 @@ func (s *Service) IncomeStatement(ctx context.Context, from, to string) (*Income
 	if err != nil {
 		return nil, err
 	}
-	now, err := movements(ctx, db, saccoID, f, t)
+	now, err := movements(ctx, db, saccoID, f, t, true)
 	if err != nil {
 		return nil, err
 	}
-	before, err := movements(ctx, db, saccoID, pf, pt)
+	before, err := movements(ctx, db, saccoID, pf, pt, true)
 	if err != nil {
 		return nil, err
 	}
@@ -204,9 +209,8 @@ func (s *Service) BalanceSheet(ctx context.Context, date, previous string) (*Bal
 	if err != nil {
 		return nil, err
 	}
-	var month int
-	if err := db.Table("sacco_settings").Select("COALESCE(MAX(financial_year_start_month), 1)").
-		Where("sacco_id = ?", saccoID).Scan(&month).Error; err != nil {
+	month, err := yearStartMonth(ctx, db, saccoID)
+	if err != nil {
 		return nil, err
 	}
 	prev, err := parseDay(previous, yearStart(day, month).AddDate(0, 0, -1))

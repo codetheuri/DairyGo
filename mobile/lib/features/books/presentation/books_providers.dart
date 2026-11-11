@@ -67,6 +67,10 @@ final openingBalancesProvider = FutureProvider.autoDispose<OpeningBalances>(
   (ref) => ref.watch(booksServiceProvider).opening(),
 );
 
+final periodsProvider = FutureProvider.autoDispose<Periods>(
+  (ref) => ref.watch(booksServiceProvider).periods(),
+);
+
 /// Everything that shows the books, refreshed after a change.
 void refreshBooks(WidgetRef ref) {
   ref.invalidate(booksStatusProvider);
@@ -79,4 +83,5 @@ void refreshBooks(WidgetRef ref) {
   ref.invalidate(incomeStatementProvider);
   ref.invalidate(balanceSheetProvider);
   ref.invalidate(openingBalancesProvider);
+  ref.invalidate(periodsProvider);
 }

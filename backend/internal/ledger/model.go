@@ -94,13 +94,18 @@ func (Link) TableName() string { return "ledger_links" }
 
 // Books is a Sacco's books once started.
 type Books struct {
-	SaccoID     string     `gorm:"primaryKey;type:varchar(36)"`
-	StartDate   time.Time  `gorm:"type:date"`
-	NextNumber  int64      ``
-	SyncedAt    *time.Time ``
-	StartedByID *uint      ``
-	CreatedAt   time.Time  ``
-	UpdatedAt   time.Time  ``
+	SaccoID    string     `gorm:"primaryKey;type:varchar(36)"`
+	StartDate  time.Time  `gorm:"type:date"`
+	NextNumber int64      ``
+	SyncedAt   *time.Time ``
+	// ClosedThrough: nothing may be dated on or before it (the end of a
+	// month); YearClosedThrough: the last financial year closed into
+	// retained surplus.
+	ClosedThrough     *time.Time `gorm:"type:date"`
+	YearClosedThrough *time.Time `gorm:"type:date"`
+	StartedByID       *uint      ``
+	CreatedAt         time.Time  ``
+	UpdatedAt         time.Time  ``
 }
 
 // TableName sets the database table name.

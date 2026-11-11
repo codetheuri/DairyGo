@@ -1,0 +1,22 @@
+{
+  "status": 200,
+  "body": {
+    "success": true,
+    "message": "Statements",
+    "data": {
+      "statements": [
+        {
+          "id": "8cc89ecd-bc5b-40e7-850c-85b2e24e870b",
+          "cash_account_id": "bcb1c9e2-c6a9-48b4-96b4-f0844a4c243d",
+          "file_name": "equity-oct.csv",
+          "from_date": "2026-10-06T00:00:00Z",
+          "to_date": "2026-10-27T00:00:00Z",
+          "lines": 5,
+          "closing_balance": 53265,
+          "created_at": "2026-11-11T19:10:27.388573+03:00",
+          "matched": 4
+        }
+      ]
+    }
+  }
+}

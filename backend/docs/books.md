@@ -244,6 +244,40 @@ Records added in phase 4 (migration `00032`; the records themselves are in
   before the start (bills, opening shares, cash accounts' opening balances,
   customers' and farmers' records).
 
+## Phase 5: months, years and the bank
+
+**Closing months** (`ledger_books.closed_through`, `/books/periods`): the
+accountant closes the books through the end of a month that is over. The
+books are brought up to date first and must balance and agree with the
+records, or closing is refused. Afterwards nothing is dated on or before that
+day, so a closed month's statements never change:
+
+- a manual journal there is refused; reversing one is dated on the first open
+  day;
+- staff keep recording as before. A record dated in a closed month that is
+  added, changed or voided later posts its journal (or reversal) on the
+  **first open day**, its memo saying "(for 12 Sep 2026, in a closed month)".
+  The comparison matches a closed month's records to their journals by
+  amounts only, so this never repeats (`matches` in `sync.go`);
+- the start of the books cannot move while any month is closed.
+
+**Reopening** moves the closed date back (any earlier month end, or nothing
+closed) with a reason; every close, reopen and year end is kept in
+`ledger_period_events`, shown under Months and years.
+
+**Year end** (`POST /books/periods/year-end`, the year's last day): years
+close in order. After the same checks, one journal on the year's last day
+(`source_type` `year_end`) moves every income and expense account's balance to
+Retained surplus, and the year's months are closed. The income statement
+leaves year-end journals out, so a closed year's statement still shows the
+year; the trial balance and balance sheet on and after the year's last day
+show the position after closing (income and expenses empty, the surplus in
+Retained surplus). Corrections to a closed year's records land in the next
+year. Reopening a month of a closed year reverses its year-end journal on its
+own date; closing the year again posts a new one.
+
+**Bank reconciliation** is in [finance.md](finance.md#bank-reconciliation).
+
 ## Permissions
 
 `books.read` (admin, accountant) to look; `books.manage` (admin, accountant)
@@ -257,7 +291,8 @@ on More and on the Home). Admins open Books from More. Screens: Books (the
 check, start, bring up to date, move the start), Trial balance, Journals,
 a journal (reverse your own), New journal, Chart of accounts (add, change),
 an account's ledger, Where records post, Opening balances (add, change or
-remove your own), Income statement (a month or a financial year), Balance
+remove your own), Months and years (close, reopen, the year end, history),
+Income statement (says when the period is closed) (a month or a financial year), Balance
 sheet, and Download.
 
 ## Testing
@@ -284,6 +319,14 @@ sheet, and Download.
   typed and imported (console), counting towards the shares target; a refund
   and a transfer, and voiding them; the accountant's opening balances; the
   links; the books balance and agree with the records after each step.
+- `~/.dairygo/localtest/periods.sh` (71 checks, after reset and setup):
+  closing, what may be dated where, a voided and a late record in a closed
+  month posting on the first open day with September's surplus unchanged and
+  no churn on bringing up to date, reopening with a reason, the year end
+  (surplus to retained, the year's statement unchanged, income and expenses
+  empty after, reopening reverses it), then a bank statement: preview,
+  import, matched straight away, imported twice, the leftovers both ways,
+  balances, candidates, matching, unmatching, the cashbook ticks, removing.
 - `~/.dairygo/localtest/statements.sh` (45 checks, after books.sh): the
   income statement against the sales records, the income and expenditure and
   the trial balance; the balance sheet balances on several days and with

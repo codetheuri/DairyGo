@@ -112,6 +112,31 @@ unpaid, or the money held, again. App: the shop icon on Expenses & Money,
 and Suppliers & bills on the accountant's Home: each supplier's bills, money
 taken for them by pay run, and payments.
 
+## Bank reconciliation
+
+For any of the Sacco's accounts (Cashbook → the check icon): import the
+bank's or M-Pesa's statement (`POST /cash-accounts/{id}/statements`, CSV or
+Excel, 5 MB). The headings are found by name: a date ("Date", "Completion
+Time"), money in and out ("Paid In"/"Withdrawn", "Credit"/"Debit") or one
+signed "Amount", and optionally details, a reference ("Receipt No.", "Cheque
+No") and the balance; dates are read day first. The app shows what the file
+holds before importing; a line that cannot be read stops the import. Lines
+already imported (overlapping statements) are left out.
+
+Each statement line is matched to one movement in the account's cashbook
+(`bank_statement_lines.match_key`: source|record id|date). On import, and on
+**Match automatically**, a line with exactly one unmatched movement of the
+same amount within three days is matched (a reference in common decides
+between several). The rest the accountant matches by hand from the movements
+of the same amount within a week, or unmatches. `GET /bank-statements/{id}`
+lists what is left: **in the bank, not in DairyGo** (bank charges, interest,
+an unrecorded deposit: record them, then match) and **in DairyGo, not in the
+bank** within the statement's dates (a cheque not yet cleared, or a mistake),
+with the cashbook balance on the statement's last day against the
+statement's closing balance. Matched cashbook lines are ticked. Removing a
+statement removes its matches only. Permissions: `finance.read` to look,
+`finance.accounts.manage` to import and match.
+
 ## Income and expenditure (`GET /sacco/finance/summary`)
 
 For a period (default this month):
@@ -145,6 +170,9 @@ deductions; `books.read` and `books.manage`
 ## Testing
 
 `go test ./internal/finance/`; `~/.dairygo/localtest/finance.sh` (54 checks),
-`flows.sh` (115 checks: other income, bills, paying over, shares)
+`flows.sh` (115 checks: other income, bills, paying over, shares),
+`periods.sh` (71 checks, the last part bank reconciliation);
+`go test ./internal/finance -run Parse` reads M-Pesa, bank and signed-amount
+statements
 and `accountant.sh` (34 checks: the role, the financial year, accounts on
 every payment).

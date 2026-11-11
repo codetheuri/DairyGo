@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../app/theme/app_colors.dart';
@@ -42,6 +43,14 @@ class _CashbookScreenState extends ConsumerState<CashbookScreen> {
           book.valueOrNull?.account.name ?? 'Cashbook',
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
+        actions: [
+          IconButton(
+            tooltip: 'Reconcile with the bank',
+            icon: const Icon(Icons.fact_check_outlined),
+            onPressed: () =>
+                context.push('/finance/accounts/${widget.accountId}/reconcile'),
+          ),
+        ],
       ),
       body: ReadableWidth(
         child: Column(
@@ -118,11 +127,31 @@ class _CashbookScreenState extends ConsumerState<CashbookScreen> {
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          subtitle: Text(
-                            [
-                              DateFormat('d MMM').format(l.date),
-                              if ((l.reference ?? '').isNotEmpty) l.reference!,
-                            ].join(' · '),
+                          subtitle: Text.rich(
+                            TextSpan(
+                              children: [
+                                if (l.matched)
+                                  const WidgetSpan(
+                                    alignment: PlaceholderAlignment.middle,
+                                    child: Padding(
+                                      padding: EdgeInsets.only(right: 4),
+                                      child: Icon(
+                                        Icons.check_circle_rounded,
+                                        size: 14,
+                                        color: AppColors.success,
+                                        semanticLabel: 'In the bank statement',
+                                      ),
+                                    ),
+                                  ),
+                                TextSpan(
+                                  text: [
+                                    DateFormat('d MMM').format(l.date),
+                                    if ((l.reference ?? '').isNotEmpty)
+                                      l.reference!,
+                                  ].join(' · '),
+                                ),
+                              ],
+                            ),
                             style: const TextStyle(fontSize: 12),
                           ),
                           trailing: Column(

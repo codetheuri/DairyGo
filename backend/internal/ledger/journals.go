@@ -174,6 +174,10 @@ func (s *Service) CreateJournal(ctx context.Context, req *JournalRequest) (*Jour
 		if day.Before(b.StartDate) {
 			return fmt.Errorf("%w: the books start on %s; a journal cannot be dated before that", ErrInvalid, b.StartDate.Format("2 Jan 2006"))
 		}
+		if b.ClosedThrough != nil && !day.After(*b.ClosedThrough) {
+			return fmt.Errorf("%w: the books are closed through %s; date the journal after that or reopen the month",
+				ErrConflict, b.ClosedThrough.Format("2 Jan 2006"))
+		}
 		c, err := loadChart(ctx, tx, saccoID)
 		if err != nil {
 			return err
@@ -267,14 +271,22 @@ func (s *Service) ReverseJournal(ctx context.Context, id string, req *ReverseReq
 		if j.ReversedByID != nil {
 			return fmt.Errorf("%w: J-%d was reversed already", ErrConflict, j.Number)
 		}
-		day, err := parseDay(req.Date, j.JournalDate)
+		first := b.StartDate
+		if b.ClosedThrough != nil && !first.After(*b.ClosedThrough) {
+			first = b.ClosedThrough.AddDate(0, 0, 1)
+		}
+		def := j.JournalDate
+		if def.Before(first) {
+			def = first // a journal in a closed month is reversed on the first open day
+		}
+		day, err := parseDay(req.Date, def)
 		if err != nil {
 			return err
 		}
-		if day.Before(b.StartDate) || day.After(s.today()) {
-			return fmt.Errorf("%w: choose a day from %s to today", ErrInvalid, b.StartDate.Format("2 Jan 2006"))
+		if day.Before(first) || day.After(s.today()) {
+			return fmt.Errorf("%w: choose a day from %s to today", ErrInvalid, first.Format("2 Jan 2006"))
 		}
-		e := &engine{ctx: ctx, db: tx, saccoID: saccoID, actor: actor(ctx)}
+		e := &engine{ctx: ctx, db: tx, saccoID: saccoID, actor: actor(ctx), closed: b.ClosedThrough}
 		r, err := e.reverse(&j, day, reason, actor(ctx))
 		if err != nil {
 			return err

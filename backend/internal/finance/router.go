@@ -106,6 +106,23 @@ func RegisterRoutes(api huma.API, db *gorm.DB, _ *config.Config, log logger.Logg
 	huma.Register(api, guard.Protected(op("void-supplier-payment", http.MethodPost, "/supplier-payments/{id}/void", "Void a payment to a supplier",
 		"The bill is unpaid again, or the money is held again."), PermExpensesManage), h.VoidSupplierPayment)
 
+	huma.Register(api, guard.Protected(op("list-bank-statements", http.MethodGet, "/cash-accounts/{id}/statements", "Bank statements",
+		"Statements imported for the account, newest first, with how many lines are matched."), PermRead), h.Statements)
+	importStatement := guard.Protected(op("import-bank-statement", http.MethodPost, "/cash-accounts/{id}/statements", "Import a bank statement",
+		"A bank or M-Pesa statement (CSV or Excel) for the account: lines already imported are left out, and lines with exactly one movement of the same amount within three days are matched straight away. preview=true only reads the file."), PermAccountsManage)
+	importStatement.MaxBodyBytes = 8 << 20 // a 5 MB file, sent as base64
+	huma.Register(api, importStatement, h.ImportStatement)
+	huma.Register(api, guard.Protected(op("bank-reconciliation", http.MethodGet, "/bank-statements/{id}", "Reconcile a statement",
+		"Its lines with the cashbook movement each is matched to, movements in DairyGo the bank has not shown, and the balances."), PermRead), h.Reconcile)
+	huma.Register(api, guard.Protected(op("delete-bank-statement", http.MethodDelete, "/bank-statements/{id}", "Remove a statement",
+		"Imported by mistake: its lines and matches go; the cashbook is not touched."), PermAccountsManage), h.DeleteStatement)
+	huma.Register(api, guard.Protected(op("auto-match-bank-statement", http.MethodPost, "/bank-statements/{id}/auto-match", "Match automatically",
+		"Matches each unmatched line that has exactly one movement of the same amount within three days (a shared reference decides between several)."), PermAccountsManage), h.AutoMatch)
+	huma.Register(api, guard.Protected(op("bank-line-candidates", http.MethodGet, "/bank-statement-lines/{id}/candidates", "Movements a line may match",
+		"Unmatched cashbook movements of the same amount within a week, nearest first."), PermRead), h.Candidates)
+	huma.Register(api, guard.Protected(op("match-bank-line", http.MethodPost, "/bank-statement-lines/{id}/match", "Match a line", ""), PermAccountsManage), h.Match)
+	huma.Register(api, guard.Protected(op("unmatch-bank-line", http.MethodPost, "/bank-statement-lines/{id}/unmatch", "Unmatch a line", ""), PermAccountsManage), h.Unmatch)
+
 	// Anyone who records money chooses the account it went through, so the
 	// list (names and kinds, no balances) is open to each of them.
 	anyRecorder := op("cash-account-choices", http.MethodGet, "/cash-accounts/choices", "Accounts to choose from",

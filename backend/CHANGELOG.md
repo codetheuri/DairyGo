@@ -9,6 +9,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 
 ### Added
+- **The books, phase 5: months, years and the bank** (migration `00033`, [docs/books.md](docs/books.md), [docs/finance.md](docs/finance.md)):
+  - **close the books month by month** (Books → Months and years): brought up to date and checked first; nothing is dated in a closed month afterwards, so its statements never change. Staff keep recording: a record dated in a closed month that changes later posts its correction on the first open day. **Reopen** with a reason, kept in the history.
+  - **year end**: one journal on the year's last day moves its income and expenses to retained surplus and closes its months; the year's income statement still shows the year. Reopening reverses it.
+  - **bank reconciliation** (Cashbook → Reconcile): import a bank or M-Pesa statement (CSV or Excel), lines matched to the cashbook automatically where certain and by hand otherwise; what is in the bank but not in DairyGo, and the other way round, with both balances. Matched cashbook lines are ticked.
+  - the app can now pick a file (`file_selector`) to import statements.
 - **The books, phase 4: the money flows the books could not see** (migration `00032`, [docs/books.md](docs/books.md), [docs/finance.md](docs/finance.md), [docs/payouts.md](docs/payouts.md)):
   - **other income** (interest, rent, items sold, grants) by income category, into one of the Sacco's accounts; on the income and expenditure and in the cashbook. App: Expenses & Money → Other income.
   - **suppliers and bills**: a bill counts as spending on its date and is paid later, in parts; what is owed shows per supplier and on the income and expenditure. App: Suppliers & bills.

@@ -35,6 +35,10 @@ type Movement struct {
 	RefID       string    `json:"ref_id"`
 	In          float64   `json:"in"`
 	Out         float64   `json:"out"`
+	// MatchKey names the movement for bank reconciliation; Matched: a
+	// bank statement line is matched to it.
+	MatchKey string `json:"match_key,omitempty"`
+	Matched  bool   `json:"matched,omitempty"`
 }
 
 // CashbookLine is a movement with the account balance after it.

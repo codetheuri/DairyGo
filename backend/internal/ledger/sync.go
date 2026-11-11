@@ -49,7 +49,20 @@ type engine struct {
 	locked bool
 	number int64
 	made   int
+
+	// closed: the books are closed through this day. Journals for records
+	// dated then post on the first open day instead (see execute);
+	// allowClosed lets the year-end journal be written on the year's last
+	// day.
+	closed      *time.Time
+	allowClosed bool
 }
+
+// inClosed says a day is in a closed month.
+func (e *engine) inClosed(d time.Time) bool { return e.closed != nil && !d.After(*e.closed) }
+
+// openDay is the first day journals may be dated.
+func (e *engine) openDay() time.Time { return e.closed.AddDate(0, 0, 1) }
 
 // findBooks loads a Sacco's books, or nil when they have not started.
 func findBooks(ctx context.Context, db *gorm.DB, saccoID string) (*Books, error) {
@@ -79,7 +92,7 @@ func newEngine(ctx context.Context, db *gorm.DB, saccoID string, actor *uint) (*
 	if err != nil {
 		return nil, err
 	}
-	return &engine{ctx: ctx, db: db, saccoID: saccoID, start: b.StartDate, chart: c, load: l, actor: actor}, nil
+	return &engine{ctx: ctx, db: db, saccoID: saccoID, start: b.StartDate, chart: c, load: l, actor: actor, closed: b.ClosedThrough}, nil
 }
 
 // Sync brings the journals of the given records up to date, in db's
@@ -222,7 +235,7 @@ func (e *engine) compare(src string, ids []string, recs []record) error {
 
 func (e *engine) reconcile(src, id string, want map[string]posting, have map[string]*Journal) {
 	for key, j := range have {
-		if p, ok := want[key]; ok && matches(j, p) {
+		if p, ok := want[key]; ok && matches(j, p, e.closed) {
 			delete(want, key)
 			continue
 		}
@@ -235,8 +248,12 @@ func (e *engine) reconcile(src, id string, want map[string]posting, have map[str
 
 // matches says a journal already says what the posting says: same day and
 // the same amount for each link (wording and line order do not matter).
-func matches(j *Journal, p posting) bool {
-	if j.JournalDate.Format(dateLayout) != p.date.Format(dateLayout) {
+// A posting dated in a closed month is compared by amounts only: its
+// journal is either there from before the close, or was posted on the
+// first open day, and a closed month cannot be re-dated anyway.
+func matches(j *Journal, p posting, closed *time.Time) bool {
+	inClosed := closed != nil && !p.date.After(*closed)
+	if !inClosed && j.JournalDate.Format(dateLayout) != p.date.Format(dateLayout) {
 		return false
 	}
 	posted := map[string]float64{}
@@ -323,7 +340,11 @@ func srcOrder(src string) int {
 func (e *engine) execute() error {
 	sort.SliceStable(e.reversals, func(i, k int) bool { return e.reversals[i].Number < e.reversals[k].Number })
 	for _, j := range e.reversals {
-		if _, err := e.reverse(j, j.JournalDate, "The record changed or was voided", nil); err != nil {
+		day := j.JournalDate
+		if e.inClosed(day) {
+			day = e.openDay()
+		}
+		if _, err := e.reverse(j, day, "The record changed or was voided", nil); err != nil {
 			return err
 		}
 	}
@@ -373,6 +394,12 @@ func (e *engine) post(pd pending) error {
 		return fmt.Errorf("ledger: %s %s does not balance", pd.srcType, pd.srcID)
 	}
 	j := &Journal{Kind: KindAuto, SourceType: &pd.srcType, SourceID: &pd.srcID, Memo: pd.p.memo, Reference: pd.p.ref, JournalDate: pd.p.date}
+	if e.inClosed(pd.p.date) {
+		// The record is dated in a closed month: the correction goes on the
+		// first open day, so the closed month's figures never change.
+		j.JournalDate = e.openDay()
+		j.Memo += " (for " + pd.p.date.Format("2 Jan 2006") + ", in a closed month)"
+	}
 	if pd.p.key != "" {
 		key := pd.p.key
 		j.SourceKey = &key
@@ -403,6 +430,10 @@ func (e *engine) post(pd pending) error {
 
 // write numbers and stores a journal and its lines.
 func (e *engine) write(j *Journal) error {
+	if e.inClosed(j.JournalDate) && !e.allowClosed {
+		return fmt.Errorf("%w: the books are closed through %s; nothing can be dated %s",
+			ErrConflict, e.closed.Format("2 Jan 2006"), j.JournalDate.Format("2 Jan 2006"))
+	}
 	n, err := e.next()
 	if err != nil {
 		return err

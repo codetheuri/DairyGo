@@ -54,6 +54,7 @@ var clearSteps = []struct{ table, sql string }{
 	// when the accountant starts them (the chart of accounts is kept).
 	{"journals", `DELETE FROM journals WHERE sacco_id = ?`},
 	{"ledger_books", `DELETE FROM ledger_books WHERE sacco_id = ?`},
+	{"ledger_period_events", `DELETE FROM ledger_period_events WHERE sacco_id = ?`},
 	{"customer_payments", `DELETE FROM customer_payments WHERE sacco_id = ?`},
 	{"milk_sales", `DELETE FROM milk_sales WHERE sacco_id = ?`},
 	{"customers", `DELETE FROM customers WHERE sacco_id = ?`},

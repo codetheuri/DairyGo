@@ -173,19 +173,49 @@ func TestMatches(t *testing.T) {
 		{LinkKey: ptr("role:CUSTOMERS"), Credit: 500},
 		{LinkKey: ptr("cash_account:bank"), Debit: 500},
 	}}
-	if !matches(j, p) {
+	if !matches(j, p, nil) {
 		t.Fatal("same amounts and day should match, whatever the line order")
 	}
 	p2 := one(t, paymentRule(paymentRow{ID: "p", PaymentDate: day("2026-10-02"), Customer: "Hotel", Amount: 450, AccountID: ptr("bank")}, ci))
-	if matches(j, p2) {
+	if matches(j, p2, nil) {
 		t.Fatal("a changed amount must not match")
 	}
 	p3 := one(t, paymentRule(paymentRow{ID: "p", PaymentDate: day("2026-10-03"), Customer: "Hotel", Amount: 500, AccountID: ptr("bank")}, ci))
-	if matches(j, p3) {
+	if matches(j, p3, nil) {
 		t.Fatal("a changed day must not match")
 	}
 	p4 := one(t, paymentRule(paymentRow{ID: "p", PaymentDate: day("2026-10-02"), Customer: "Hotel", Amount: 500, AccountID: ptr("petty")}, ci))
-	if matches(j, p4) {
+	if matches(j, p4, nil) {
 		t.Fatal("a changed account must not match")
+	}
+	// In a closed month the day cannot change, so only amounts count: a
+	// journal moved to the first open day still matches its record.
+	closed := day("2026-10-31")
+	moved := &Journal{JournalDate: day("2026-11-01"), Lines: j.Lines}
+	if !matches(moved, p, &closed) {
+		t.Fatal("a closed month's record should match its journal on the first open day")
+	}
+	if matches(moved, p2, &closed) {
+		t.Fatal("a changed amount must not match, even in a closed month")
+	}
+	open := day("2026-09-30")
+	if matches(moved, p, &open) {
+		t.Fatal("in an open month the day must match")
+	}
+}
+
+func TestYearEndRule(t *testing.T) {
+	types := map[string]Type{"sales": Income, "fees": Income, "milk": Expense, "bank": Asset}
+	// Debits less credits on the year's last day: sales 12,000 and fees 500
+	// (credits), milk 9,000 (debit); the bank is not touched.
+	bal := map[string]float64{"sales": -12000, "fees": -500, "milk": 9000, "bank": 7000}
+	p := yearEndRule(day("2026-12-31"), "2026", bal, types)
+	if !balanced(p.lines) {
+		t.Fatalf("year end does not balance: %+v", p.lines)
+	}
+	wantNets(t, nets(p.lines), map[string]float64{"account:sales": 12000, "account:fees": 500, "account:milk": -9000,
+		"role:RETAINED": -3500})
+	if !p.date.Equal(day("2026-12-31")) {
+		t.Fatalf("dated %v", p.date)
 	}
 }

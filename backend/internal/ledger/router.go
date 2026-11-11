@@ -62,6 +62,15 @@ func RegisterRoutes(api huma.API, db *gorm.DB, _ *config.Config, log logger.Logg
 	huma.Register(api, guard.Protected(op("books-set-opening", http.MethodPut, "/opening", "Set an opening balance",
 		"For an account no record keeps (fixed assets, loans): one debit or credit per account, 0 removes it. Opening balances takes the other side."), PermManage), h.SetOpeningLine)
 
+	huma.Register(api, guard.Protected(op("books-periods", http.MethodGet, "/periods", "Months and years",
+		"Each month since the books started (closed or open), each financial year (closed or not, with its surplus), and every close, reopen and year end."), PermRead), h.Periods)
+	huma.Register(api, guard.Protected(op("books-close", http.MethodPost, "/periods/close", "Close months",
+		"Closes the books through the end of a month: brought up to date first, they must balance and agree with the records. Nothing is dated in a closed month afterwards; a record changed there posts its correction on the first open day."), PermManage), h.Close)
+	huma.Register(api, guard.Protected(op("books-reopen", http.MethodPost, "/periods/reopen", "Reopen months",
+		"Moves the closed date back, with a reason kept in the history. A financial year reopened has its year-end journal reversed."), PermManage), h.Reopen)
+	huma.Register(api, guard.Protected(op("books-year-end", http.MethodPost, "/periods/year-end", "Close a financial year",
+		"One journal on the year's last day moves its income and expenses to retained surplus, and the year's months are closed. Years close in order."), PermManage), h.YearEnd)
+
 	huma.Register(api, guard.Protected(op("books-trial-balance", http.MethodGet, "/trial-balance", "Trial balance",
 		"Each account's balance at the end of a day, debits and credits in their columns."), PermRead), h.TrialBalance)
 	huma.Register(api, guard.Protected(op("books-income-statement", http.MethodGet, "/income-statement", "Income statement",

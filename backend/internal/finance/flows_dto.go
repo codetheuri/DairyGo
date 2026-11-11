@@ -133,3 +133,49 @@ type FinPayOverInput struct {
 type FinSupplierPaymentData struct {
 	Payment *SupplierPayment `json:"payment"`
 }
+
+// --- bank reconciliation ---
+
+type FinAccountIDInput struct {
+	ID string `path:"id" doc:"CashAccount UUID"`
+}
+
+type FinImportStatementInput struct {
+	ID   string `path:"id" doc:"CashAccount UUID"`
+	Body StatementRequest
+}
+
+type FinStatementIDInput struct {
+	ID string `path:"id" doc:"BankStatement UUID"`
+}
+
+type FinLineIDInput struct {
+	ID string `path:"id" doc:"Statement line UUID"`
+}
+
+type FinMatchInput struct {
+	ID   string `path:"id" doc:"Statement line UUID"`
+	Body struct {
+		MatchKey string `json:"match_key" doc:"The cashbook movement's match_key"`
+	}
+}
+
+type FinStatementsData struct {
+	Statements []BankStatement `json:"statements"`
+}
+
+type FinReconciliationData struct {
+	Reconciliation *Reconciliation `json:"reconciliation"`
+}
+
+type FinCandidatesData struct {
+	Movements []Movement `json:"movements"`
+}
+
+type FinLineData struct {
+	Line *BankLine `json:"line"`
+}
+
+type FinAutoMatchData struct {
+	Matched int `json:"matched"`
+}

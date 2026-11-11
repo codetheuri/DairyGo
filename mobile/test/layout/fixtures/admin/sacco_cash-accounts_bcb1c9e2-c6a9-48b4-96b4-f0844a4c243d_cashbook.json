@@ -1,0 +1,88 @@
+{
+  "status": 200,
+  "body": {
+    "success": true,
+    "message": "Cashbook",
+    "data": {
+      "cashbook": {
+        "account": {
+          "id": "bcb1c9e2-c6a9-48b4-96b4-f0844a4c243d",
+          "sacco_id": "b1524d35-8ebf-4d28-8852-776c16ff3360",
+          "name": "Bank",
+          "kind": "BANK",
+          "opening_balance": 50000,
+          "opening_date": "2026-09-01T00:00:00Z",
+          "is_active": true,
+          "created_by_id": 2,
+          "created_at": "2026-11-11T19:10:08.780607+03:00",
+          "updated_at": "2026-11-11T19:10:08.775827+03:00",
+          "balance": 46965
+        },
+        "from_date": "2026-10-01",
+        "to_date": "2026-10-31",
+        "opening_balance": 49600,
+        "total_in": 1500,
+        "total_out": 4135,
+        "closing_balance": 46965,
+        "lines": [
+          {
+            "source": "EXPENSE",
+            "date": "2026-10-06T00:00:00Z",
+            "description": "Rent: Kiambu Agrovet",
+            "reference": "CHQ1001",
+            "ref_id": "ff6552f9-5af9-498e-9d3c-f1113577b230",
+            "in": 0,
+            "out": 2500,
+            "match_key": "EXPENSE|ff6552f9-5af9-498e-9d3c-f1113577b230|2026-10-06",
+            "matched": true,
+            "balance": 47100
+          },
+          {
+            "source": "OTHER_INCOME",
+            "date": "2026-10-15T00:00:00Z",
+            "description": "Interest received: Equity Bank",
+            "reference": "INT-OCT2",
+            "ref_id": "aadb4334-feeb-45cb-a79f-ec482d1bc2f4",
+            "in": 1500,
+            "out": 0,
+            "match_key": "OTHER_INCOME|aadb4334-feeb-45cb-a79f-ec482d1bc2f4|2026-10-15",
+            "matched": true,
+            "balance": 48600
+          },
+          {
+            "source": "EXPENSE",
+            "date": "2026-10-20T00:00:00Z",
+            "description": "Transport and fuel: Total",
+            "ref_id": "ee553000-367f-4dc4-a25d-7d05d160894c",
+            "in": 0,
+            "out": 700,
+            "match_key": "EXPENSE|ee553000-367f-4dc4-a25d-7d05d160894c|2026-10-20",
+            "matched": true,
+            "balance": 47900
+          },
+          {
+            "source": "EXPENSE",
+            "date": "2026-10-22T00:00:00Z",
+            "description": "Transport and fuel: Rubis",
+            "ref_id": "b4d62eab-95cb-4b1e-b52a-b8a80f005136",
+            "in": 0,
+            "out": 900,
+            "match_key": "EXPENSE|b4d62eab-95cb-4b1e-b52a-b8a80f005136|2026-10-22",
+            "balance": 47000
+          },
+          {
+            "source": "EXPENSE",
+            "date": "2026-10-25T00:00:00Z",
+            "description": "Bank and M-Pesa charges: Equity Bank",
+            "ref_id": "41eda54b-8eeb-4433-b0d6-8ed39c61883e",
+            "in": 0,
+            "out": 35,
+            "match_key": "EXPENSE|41eda54b-8eeb-4433-b0d6-8ed39c61883e|2026-10-25",
+            "matched": true,
+            "balance": 46965
+          }
+        ]
+      }
+    }
+  }
+}

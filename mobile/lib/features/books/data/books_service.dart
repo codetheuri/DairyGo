@@ -207,4 +207,34 @@ class BooksService {
     );
     return OpeningBalances.fromJson(data['opening'] as Map<String, dynamic>);
   }
+
+  Future<Periods> _periods(
+    Future<Response<dynamic>> Function() call,
+    String failed,
+  ) async {
+    final data = await apiData(call, failed);
+    return Periods.fromJson(data['periods'] as Map<String, dynamic>);
+  }
+
+  Future<Periods> periods() =>
+      _periods(() => _dio.get('$_base/periods'), 'Could not load the months');
+
+  Future<Periods> close(DateTime through) => _periods(
+    () => _dio.post('$_base/periods/close', data: {'through': iso(through)}),
+    'The books could not be closed',
+  );
+
+  /// Reopens back to [through] (null: every month).
+  Future<Periods> reopen(DateTime? through, String reason) => _periods(
+    () => _dio.post(
+      '$_base/periods/reopen',
+      data: {'through': through == null ? '' : iso(through), 'reason': reason},
+    ),
+    'The months could not be reopened',
+  );
+
+  Future<Periods> yearEnd(DateTime end) => _periods(
+    () => _dio.post('$_base/periods/year-end', data: {'year_end': iso(end)}),
+    'The year could not be closed',
+  );
 }

@@ -67,6 +67,10 @@ class BooksStatus {
   final List<BooksControl> controls;
   final double notInAccount;
 
+  /// Nothing may be dated on or before this day.
+  final DateTime? closedThrough;
+  final DateTime? yearClosedThrough;
+
   const BooksStatus({
     required this.started,
     this.startDate,
@@ -76,6 +80,8 @@ class BooksStatus {
     this.agrees = true,
     this.controls = const [],
     this.notInAccount = 0,
+    this.closedThrough,
+    this.yearClosedThrough,
   });
 
   factory BooksStatus.fromJson(Map<String, dynamic> j) => BooksStatus(
@@ -92,6 +98,12 @@ class BooksStatus {
         BooksControl.fromJson(c as Map<String, dynamic>),
     ],
     notInAccount: _d(j['not_in_account']),
+    closedThrough: j['closed_through'] == null
+        ? null
+        : _day(j['closed_through']),
+    yearClosedThrough: j['year_closed_through'] == null
+        ? null
+        : _day(j['year_closed_through']),
   );
 }
 
@@ -607,6 +619,117 @@ class OpeningBalances {
     own: [
       for (final l in (j['own'] as List?) ?? const [])
         OpeningLine.fromJson(l as Map<String, dynamic>),
+    ],
+  );
+}
+
+/// One month of the books.
+class PeriodMonth {
+  final DateTime from;
+  final DateTime to;
+  final bool closed;
+  final bool ended;
+
+  const PeriodMonth(this.from, this.to, this.closed, this.ended);
+
+  factory PeriodMonth.fromJson(Map<String, dynamic> j) => PeriodMonth(
+    _day(j['from']),
+    _day(j['to']),
+    j['closed'] == true,
+    j['ended'] == true,
+  );
+}
+
+/// One financial year of the books.
+class PeriodYear {
+  final DateTime from;
+  final DateTime to;
+  final bool ended;
+  final bool closed;
+  final double surplus;
+
+  const PeriodYear(this.from, this.to, this.ended, this.closed, this.surplus);
+
+  factory PeriodYear.fromJson(Map<String, dynamic> j) => PeriodYear(
+    _day(j['from']),
+    _day(j['to']),
+    j['ended'] == true,
+    j['closed'] == true,
+    _d(j['surplus']),
+  );
+}
+
+/// A close, reopen or year end.
+class PeriodEvent {
+  final String action; // CLOSE, REOPEN, YEAR_END
+  final DateTime? through;
+  final DateTime? previous;
+  final double? amount;
+  final String? reason;
+  final String? by;
+  final DateTime at;
+
+  const PeriodEvent({
+    required this.action,
+    this.through,
+    this.previous,
+    this.amount,
+    this.reason,
+    this.by,
+    required this.at,
+  });
+
+  factory PeriodEvent.fromJson(Map<String, dynamic> j) => PeriodEvent(
+    action: '${j['action'] ?? ''}',
+    through: j['through_date'] == null ? null : _day(j['through_date']),
+    previous: j['previous_date'] == null ? null : _day(j['previous_date']),
+    amount: j['amount'] == null ? null : _d(j['amount']),
+    reason: j['reason'] as String?,
+    by: j['created_by'] as String?,
+    at: DateTime.tryParse('${j['created_at']}')?.toLocal() ?? DateTime(2000),
+  );
+}
+
+/// The books' months and years, and their history.
+class Periods {
+  final DateTime startDate;
+  final DateTime? closedThrough;
+  final DateTime? yearClosedThrough;
+  final int yearStartMonth;
+  final List<PeriodMonth> months;
+  final List<PeriodYear> years;
+  final List<PeriodEvent> history;
+
+  const Periods({
+    required this.startDate,
+    this.closedThrough,
+    this.yearClosedThrough,
+    required this.yearStartMonth,
+    required this.months,
+    required this.years,
+    required this.history,
+  });
+
+  factory Periods.fromJson(Map<String, dynamic> j) => Periods(
+    startDate: _day(j['start_date']),
+    closedThrough: j['closed_through'] == null
+        ? null
+        : _day(j['closed_through']),
+    yearClosedThrough: j['year_closed_through'] == null
+        ? null
+        : _day(j['year_closed_through']),
+    yearStartMonth: (j['year_start_month'] as num?)?.toInt() ?? 1,
+    months: [
+      for (final m in (j['months'] as List?) ?? const [])
+        PeriodMonth.fromJson(m as Map<String, dynamic>),
+    ],
+    years: [
+      for (final y in (j['years'] as List?) ?? const [])
+        PeriodYear.fromJson(y as Map<String, dynamic>),
+    ],
+    history: [
+      for (final e in (j['history'] as List?) ?? const [])
+        PeriodEvent.fromJson(e as Map<String, dynamic>),
     ],
   );
 }

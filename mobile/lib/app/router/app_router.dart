@@ -4,6 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/books/presentation/screens/account_ledger_screen.dart';
 import '../../features/books/presentation/screens/balance_sheet_screen.dart';
 import '../../features/books/presentation/screens/opening_balances_screen.dart';
+import '../../features/books/presentation/screens/periods_screen.dart';
+import '../../features/finance/presentation/screens/reconcile_screen.dart';
+import '../../features/finance/presentation/screens/statement_screen.dart';
 import '../../features/finance/presentation/screens/supplier_screen.dart';
 import '../../features/finance/presentation/screens/suppliers_screen.dart';
 import '../../features/books/presentation/screens/books_screen.dart';
@@ -301,6 +304,20 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/finance/suppliers/:id',
         builder: (context, state) =>
             SupplierScreen(id: state.pathParameters['id'] ?? ''),
+      ),
+      GoRoute(
+        path: '/finance/accounts/:id/reconcile',
+        builder: (context, state) =>
+            ReconcileScreen(accountId: state.pathParameters['id'] ?? ''),
+      ),
+      GoRoute(
+        path: '/finance/statements/:id',
+        builder: (context, state) =>
+            StatementScreen(id: state.pathParameters['id'] ?? ''),
+      ),
+      GoRoute(
+        path: '/books/periods',
+        builder: (context, state) => const PeriodsScreen(),
       ),
       GoRoute(
         path: '/finance/accounts/:id',

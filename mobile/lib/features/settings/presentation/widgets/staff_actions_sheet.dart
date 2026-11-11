@@ -23,6 +23,12 @@ const staffRoles = [
     name: 'Board Member',
     does: 'Sees dashboards and reports; records nothing',
   ),
+  (
+    id: 4,
+    name: 'Accountant',
+    does:
+        'Keeps the books: money, farmer pay and customer payments; records no milk',
+  ),
 ];
 
 /// What an administrator can do with a staff member: give them another role

@@ -56,6 +56,8 @@ class _RegisterStaffDialogState extends ConsumerState<RegisterStaffDialog> {
         roleId = 1;
       } else if (_selectedRole == 'Board Member / Executive') {
         roleId = 3;
+      } else if (_selectedRole == 'Accountant') {
+        roleId = 4;
       }
 
       final request = RegisterRequest(
@@ -181,6 +183,13 @@ class _RegisterStaffDialogState extends ConsumerState<RegisterStaffDialog> {
                     value: 'Board Member / Executive',
                     child: Text(
                       '📊 Board Member / Executive',
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  DropdownMenuItem(
+                    value: 'Accountant',
+                    child: Text(
+                      '🧾 Accountant (books and money)',
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),

@@ -12,7 +12,13 @@ const (
 	RoleSaccoAdmin uint = 1
 	RoleCollector  uint = 2
 	RoleExecutive  uint = 3
+	// RoleAccountant keeps the books (migration 00030): money and farmer pay,
+	// no milk recording.
+	RoleAccountant uint = 4
 )
+
+// SaccoRolesText lists the roles a Sacco may give its staff, for messages.
+const SaccoRolesText = "1 (Sacco Administrator), 2 (Milk Collector), 3 (Board Member / Executive) or 4 (Accountant)"
 
 // SaccoRoleName returns the display name of a seeded Sacco role.
 func SaccoRoleName(roleID uint) string {
@@ -23,6 +29,8 @@ func SaccoRoleName(roleID uint) string {
 		return "Milk Collector"
 	case RoleExecutive:
 		return "Board Member / Executive"
+	case RoleAccountant:
+		return "Accountant"
 	default:
 		return ""
 	}
@@ -30,7 +38,7 @@ func SaccoRoleName(roleID uint) string {
 
 // IsSaccoRole reports whether roleID is one of the roles a Sacco may assign to its own staff.
 func IsSaccoRole(roleID uint) bool {
-	return roleID == RoleSaccoAdmin || roleID == RoleCollector || roleID == RoleExecutive
+	return roleID == RoleSaccoAdmin || roleID == RoleCollector || roleID == RoleExecutive || roleID == RoleAccountant
 }
 
 // User handles core authentication data, credentials, and security state.
@@ -60,6 +68,9 @@ type User struct {
 	DeletedByID *uint          `json:"-"`
 
 	RoleName string `json:"role_name,omitempty" gorm:"-"`
+	// RoleID is the user's role (1–4 for Sacco staff), so the app never has
+	// to guess it from the name.
+	RoleID uint `json:"role_id,omitempty" gorm:"-"`
 	// Permissions the user holds through their role, sent with the profile
 	// (login, refresh, /auth/me) so the app shows only what they may use.
 	Permissions []string `json:"permissions,omitempty" gorm:"-"`

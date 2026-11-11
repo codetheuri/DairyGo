@@ -1960,7 +1960,11 @@ mixin _$RecordPaymentRequestModel {
   String? get paymentDate => throw _privateConstructorUsedError;
   String get method => throw _privateConstructorUsedError;
   String? get reference => throw _privateConstructorUsedError;
-  String? get notes => throw _privateConstructorUsedError;
+  String? get notes =>
+      throw _privateConstructorUsedError; // The Sacco account the money went into; null leaves it to the server's
+  // account for the method.
+  @JsonKey(name: 'cash_account_id', includeIfNull: false)
+  String? get cashAccountId => throw _privateConstructorUsedError;
 
   /// Serializes this RecordPaymentRequestModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -1985,6 +1989,8 @@ abstract class $RecordPaymentRequestModelCopyWith<$Res> {
     String method,
     String? reference,
     String? notes,
+    @JsonKey(name: 'cash_account_id', includeIfNull: false)
+    String? cashAccountId,
   });
 }
 
@@ -2011,6 +2017,7 @@ class _$RecordPaymentRequestModelCopyWithImpl<
     Object? method = null,
     Object? reference = freezed,
     Object? notes = freezed,
+    Object? cashAccountId = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -2034,6 +2041,10 @@ class _$RecordPaymentRequestModelCopyWithImpl<
                 ? _value.notes
                 : notes // ignore: cast_nullable_to_non_nullable
                       as String?,
+            cashAccountId: freezed == cashAccountId
+                ? _value.cashAccountId
+                : cashAccountId // ignore: cast_nullable_to_non_nullable
+                      as String?,
           )
           as $Val,
     );
@@ -2055,6 +2066,8 @@ abstract class _$$RecordPaymentRequestModelImplCopyWith<$Res>
     String method,
     String? reference,
     String? notes,
+    @JsonKey(name: 'cash_account_id', includeIfNull: false)
+    String? cashAccountId,
   });
 }
 
@@ -2081,6 +2094,7 @@ class __$$RecordPaymentRequestModelImplCopyWithImpl<$Res>
     Object? method = null,
     Object? reference = freezed,
     Object? notes = freezed,
+    Object? cashAccountId = freezed,
   }) {
     return _then(
       _$RecordPaymentRequestModelImpl(
@@ -2104,6 +2118,10 @@ class __$$RecordPaymentRequestModelImplCopyWithImpl<$Res>
             ? _value.notes
             : notes // ignore: cast_nullable_to_non_nullable
                   as String?,
+        cashAccountId: freezed == cashAccountId
+            ? _value.cashAccountId
+            : cashAccountId // ignore: cast_nullable_to_non_nullable
+                  as String?,
       ),
     );
   }
@@ -2118,6 +2136,7 @@ class _$RecordPaymentRequestModelImpl implements _RecordPaymentRequestModel {
     this.method = 'CASH',
     this.reference,
     this.notes,
+    @JsonKey(name: 'cash_account_id', includeIfNull: false) this.cashAccountId,
   });
 
   factory _$RecordPaymentRequestModelImpl.fromJson(Map<String, dynamic> json) =>
@@ -2135,10 +2154,15 @@ class _$RecordPaymentRequestModelImpl implements _RecordPaymentRequestModel {
   final String? reference;
   @override
   final String? notes;
+  // The Sacco account the money went into; null leaves it to the server's
+  // account for the method.
+  @override
+  @JsonKey(name: 'cash_account_id', includeIfNull: false)
+  final String? cashAccountId;
 
   @override
   String toString() {
-    return 'RecordPaymentRequestModel(amount: $amount, paymentDate: $paymentDate, method: $method, reference: $reference, notes: $notes)';
+    return 'RecordPaymentRequestModel(amount: $amount, paymentDate: $paymentDate, method: $method, reference: $reference, notes: $notes, cashAccountId: $cashAccountId)';
   }
 
   @override
@@ -2152,13 +2176,22 @@ class _$RecordPaymentRequestModelImpl implements _RecordPaymentRequestModel {
             (identical(other.method, method) || other.method == method) &&
             (identical(other.reference, reference) ||
                 other.reference == reference) &&
-            (identical(other.notes, notes) || other.notes == notes));
+            (identical(other.notes, notes) || other.notes == notes) &&
+            (identical(other.cashAccountId, cashAccountId) ||
+                other.cashAccountId == cashAccountId));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, amount, paymentDate, method, reference, notes);
+  int get hashCode => Object.hash(
+    runtimeType,
+    amount,
+    paymentDate,
+    method,
+    reference,
+    notes,
+    cashAccountId,
+  );
 
   /// Create a copy of RecordPaymentRequestModel
   /// with the given fields replaced by the non-null parameter values.
@@ -2184,6 +2217,8 @@ abstract class _RecordPaymentRequestModel implements RecordPaymentRequestModel {
     final String method,
     final String? reference,
     final String? notes,
+    @JsonKey(name: 'cash_account_id', includeIfNull: false)
+    final String? cashAccountId,
   }) = _$RecordPaymentRequestModelImpl;
 
   factory _RecordPaymentRequestModel.fromJson(Map<String, dynamic> json) =
@@ -2199,7 +2234,11 @@ abstract class _RecordPaymentRequestModel implements RecordPaymentRequestModel {
   @override
   String? get reference;
   @override
-  String? get notes;
+  String? get notes; // The Sacco account the money went into; null leaves it to the server's
+  // account for the method.
+  @override
+  @JsonKey(name: 'cash_account_id', includeIfNull: false)
+  String? get cashAccountId;
 
   /// Create a copy of RecordPaymentRequestModel
   /// with the given fields replaced by the non-null parameter values.

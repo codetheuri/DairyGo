@@ -12,6 +12,14 @@ final cashAccountsProvider = FutureProvider.autoDispose<CashAccounts>(
   (ref) => ref.watch(financeServiceProvider).accounts(),
 );
 
+final accountChoicesProvider = FutureProvider.autoDispose<AccountChoices>(
+  (ref) => ref.watch(financeServiceProvider).accountChoices(),
+);
+
+final financialYearProvider = FutureProvider.autoDispose<FinancialYear>(
+  (ref) => ref.watch(financeServiceProvider).financialYear(),
+);
+
 final expenseCategoriesProvider =
     FutureProvider.autoDispose<List<ExpenseCategory>>(
       (ref) => ref.watch(financeServiceProvider).categories(),

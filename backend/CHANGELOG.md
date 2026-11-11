@@ -9,6 +9,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 
 ### Added
+- **The accountant, phase 1 of the books** (migration `00030`, [docs/finance.md](docs/finance.md)):
+  - role 4 **Accountant**: money, farmer pay (prepares and pays, does not approve), customer payments and reports; no milk recording. Added from the app's staff screen or the console.
+  - the app gives them their own layout: Home (money today and this month), Money, Farmer pay, Customers, More; chosen from permissions (`books.manage` without milk recording).
+  - **every payment names its account**: customer payments, money paid at a sale, advances and farmers' pay go to the account chosen or, when none is, the Sacco's account for that way of paying, so cashbooks match the till and bank. The app shows the account on each form. Payments with no account are counted on the income and expenditure.
+  - **financial year**: the month it starts is a setting (`/sacco/financial-year`), changeable at any time; Expenses & Money shows a month or a financial year, and report downloads offer this and last financial year.
+  - the user profile now carries `role_id`.
 - **A Sacco price from an earlier date now reaches milk already recorded** ([docs/collections-and-pricing.md](docs/collections-and-pricing.md)): unpaid milk from that date is repriced with a history line; paid months and farmers on their own price stay. The app's price dialog checks first and shows how many records and how much money change, and asks why. Before, the new price only applied to new intakes, so a pay run still used the old price. Entering a price already on the schedule reprices without adding a second row.
 - **Merge a farmer registered twice** (console, Sacco → Farmers → Merge farmers…; [docs/platform-console.md](docs/platform-console.md)): the wrong farmer's unpaid milk, open advances, charges and adjustments, and any balance from paid months move to the right farmer with a reason in each record's history; the wrong farmer is made inactive and paid months stay as paid. Check first (preview). DairyGo support only. The console farmer list shows Paid by from the payout method.
 - **Advances and charges forgotten on the day** ([docs/payouts.md](docs/payouts.md)): the app's Advance, Charge and Adjust sheets have a date (default today). An earlier date is allowed back to the first day not yet paid, needs a reason (kept in the history), and shows on the payslip; a month already paid is refused.

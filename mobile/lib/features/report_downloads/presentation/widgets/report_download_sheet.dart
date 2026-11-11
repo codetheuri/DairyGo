@@ -5,7 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../../customers/data/models/customer_models.dart';
+import '../../../finance/presentation/finance_providers.dart';
 import '../../../customers/presentation/widgets/customer_picker_sheet.dart';
 import '../../../members/data/models/member_model.dart';
 import '../../../members/presentation/widgets/farmer_picker_sheet.dart';
@@ -49,6 +51,24 @@ class ReportDownloadSheet extends ConsumerStatefulWidget {
 class _ReportDownloadSheetState extends ConsumerState<ReportDownloadSheet> {
   late final List<ReportPeriod> _presets = ReportPeriod.presets(DateTime.now());
   late ReportPeriod _period = _presets.first;
+
+  /// "This / last financial year", for those who see the Sacco's money or
+  /// books (others may not read the financial year).
+  List<ReportPeriod> _financialYears() {
+    final user = ref.watch(authControllerProvider).valueOrNull?.user;
+    if (!(user?.seesFinance ?? false) && !(user?.seesBooks ?? false)) {
+      return const [];
+    }
+    final fy = ref.watch(financialYearProvider).valueOrNull;
+    if (fy == null) return const [];
+    return ReportPeriod.financialYears((
+      thisFrom: fy.thisFrom,
+      thisTo: fy.thisTo,
+      lastFrom: fy.lastFrom,
+      lastTo: fy.lastTo,
+    ), DateTime.now());
+  }
+
   ReportFormat _format = ReportFormat.pdf;
   String? _status;
   late MemberModel? _farmer = widget.farmer;
@@ -280,7 +300,7 @@ class _ReportDownloadSheetState extends ConsumerState<ReportDownloadSheet> {
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  for (final p in _presets)
+                  for (final p in [..._presets, ..._financialYears()])
                     _chip(
                       p.label,
                       _period.label == p.label,

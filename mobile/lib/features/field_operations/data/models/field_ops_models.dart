@@ -57,6 +57,10 @@ class RecordSaleRequestModel with _$RecordSaleRequestModel {
     @JsonKey(name: 'amount_paid') required double amountPaid,
     @JsonKey(name: 'payment_method') @Default('CASH') String paymentMethod,
     String? notes,
+    // The Sacco account money paid at the sale went into; null leaves it to
+    // the server's account for the method.
+    @JsonKey(name: 'cash_account_id', includeIfNull: false)
+    String? cashAccountId,
   }) = _RecordSaleRequestModel;
 
   factory RecordSaleRequestModel.fromJson(Map<String, dynamic> json) =>

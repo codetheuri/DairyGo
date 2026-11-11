@@ -64,6 +64,7 @@ _$RecordSaleRequestModelImpl _$$RecordSaleRequestModelImplFromJson(
   amountPaid: (json['amount_paid'] as num).toDouble(),
   paymentMethod: json['payment_method'] as String? ?? 'CASH',
   notes: json['notes'] as String?,
+  cashAccountId: json['cash_account_id'] as String?,
 );
 
 Map<String, dynamic> _$$RecordSaleRequestModelImplToJson(
@@ -76,6 +77,7 @@ Map<String, dynamic> _$$RecordSaleRequestModelImplToJson(
   'amount_paid': instance.amountPaid,
   'payment_method': instance.paymentMethod,
   'notes': instance.notes,
+  if (instance.cashAccountId case final value?) 'cash_account_id': value,
 };
 
 _$MilkSpoilageModelImpl _$$MilkSpoilageModelImplFromJson(

@@ -18,6 +18,10 @@ const (
 	PermRead           = "finance.read"
 	PermExpensesManage = "finance.expenses.manage"
 	PermAccountsManage = "finance.accounts.manage"
+	// The books (migration 00030): the financial year now; the ledger,
+	// journals and statements in the next phases.
+	PermBooksRead   = "books.read"
+	PermBooksManage = "books.manage"
 )
 
 // Permissions exported by the finance module.
@@ -25,6 +29,8 @@ var Permissions = []authz.Permission{
 	{Name: PermRead, Description: "Allows viewing expenses, cash accounts, cashbooks and the income and expenditure"},
 	{Name: PermExpensesManage, Description: "Allows recording and voiding expenses"},
 	{Name: PermAccountsManage, Description: "Allows setting up cash accounts and expense categories and moving money between accounts"},
+	{Name: PermBooksRead, Description: "Allows viewing the books: financial year, ledger, journals and statements"},
+	{Name: PermBooksManage, Description: "Allows keeping the books: setting the financial year, journals and closing periods"},
 }
 
 func init() {
@@ -61,6 +67,23 @@ func RegisterRoutes(api huma.API, db *gorm.DB, _ *config.Config, log logger.Logg
 	huma.Register(api, guard.Protected(op("record-account-transfer", http.MethodPost, "/account-transfers", "Move money between accounts",
 		"E.g. top up petty cash from the bank, or bank the day's cash."), PermAccountsManage), h.RecordTransfer)
 	huma.Register(api, guard.Protected(op("void-account-transfer", http.MethodPost, "/account-transfers/{id}/void", "Void a transfer", ""), PermAccountsManage), h.VoidTransfer)
+
+	// Anyone who records money chooses the account it went through, so the
+	// list (names and kinds, no balances) is open to each of them.
+	anyRecorder := op("cash-account-choices", http.MethodGet, "/cash-accounts/choices", "Accounts to choose from",
+		"The accounts in use (no balances) and, for each kind (CASH, MPESA, BANK), the one money paid that way goes to when none is chosen.")
+	anyRecorder.Security = authz.BearerSecurity
+	anyRecorder.Middlewares = huma.Middlewares{guard.RequireAny(PermRead, "customers.payments.manage", "milk.sales.create",
+		"payouts.advances.manage", "payouts.runs.pay")}
+	huma.Register(api, anyRecorder, h.AccountChoices)
+
+	yearRead := op("financial-year", http.MethodGet, "/financial-year", "Financial year",
+		"The month the Sacco's financial year starts, and this and last financial year's dates.")
+	yearRead.Security = authz.BearerSecurity
+	yearRead.Middlewares = huma.Middlewares{guard.RequireAny(PermRead, PermBooksRead, "sacco.settings.read")}
+	huma.Register(api, yearRead, h.FinancialYear)
+	huma.Register(api, guard.Protected(op("set-financial-year", http.MethodPut, "/financial-year", "Change the financial year",
+		"Only groups dates for reports; no record changes."), PermBooksManage), h.SetFinancialYear)
 
 	huma.Register(api, guard.Protected(op("finance-summary", http.MethodGet, "/finance/summary", "Income and expenditure",
 		"For a period: milk sales and purchases, fees and charges kept, expenses by category and the surplus; and now: cash, what customers owe, farmers' pay due, what farmers owe and share capital."), PermRead), h.Summary)

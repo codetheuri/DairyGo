@@ -268,6 +268,11 @@ mixin _$UserEntity {
   String? get saccoId => throw _privateConstructorUsedError;
   @JsonKey(name: 'role_name')
   String get roleName => throw _privateConstructorUsedError;
+
+  /// The role's number (1 administrator, 2 collector, 3 board member,
+  /// 4 accountant); 0 from a server or saved profile without it.
+  @JsonKey(name: 'role_id')
+  int get roleId => throw _privateConstructorUsedError;
   UserProfileEntity? get profile => throw _privateConstructorUsedError;
 
   /// What the user's role may do, as the server lists it with the profile.
@@ -299,6 +304,7 @@ abstract class $UserEntityCopyWith<$Res> {
     @JsonKey(name: 'is_super_user') bool isSuperUser,
     @JsonKey(name: 'sacco_id') String? saccoId,
     @JsonKey(name: 'role_name') String roleName,
+    @JsonKey(name: 'role_id') int roleId,
     UserProfileEntity? profile,
     List<String> permissions,
   });
@@ -328,6 +334,7 @@ class _$UserEntityCopyWithImpl<$Res, $Val extends UserEntity>
     Object? isSuperUser = null,
     Object? saccoId = freezed,
     Object? roleName = null,
+    Object? roleId = null,
     Object? profile = freezed,
     Object? permissions = null,
   }) {
@@ -361,6 +368,10 @@ class _$UserEntityCopyWithImpl<$Res, $Val extends UserEntity>
                 ? _value.roleName
                 : roleName // ignore: cast_nullable_to_non_nullable
                       as String,
+            roleId: null == roleId
+                ? _value.roleId
+                : roleId // ignore: cast_nullable_to_non_nullable
+                      as int,
             profile: freezed == profile
                 ? _value.profile
                 : profile // ignore: cast_nullable_to_non_nullable
@@ -406,6 +417,7 @@ abstract class _$$UserEntityImplCopyWith<$Res>
     @JsonKey(name: 'is_super_user') bool isSuperUser,
     @JsonKey(name: 'sacco_id') String? saccoId,
     @JsonKey(name: 'role_name') String roleName,
+    @JsonKey(name: 'role_id') int roleId,
     UserProfileEntity? profile,
     List<String> permissions,
   });
@@ -435,6 +447,7 @@ class __$$UserEntityImplCopyWithImpl<$Res>
     Object? isSuperUser = null,
     Object? saccoId = freezed,
     Object? roleName = null,
+    Object? roleId = null,
     Object? profile = freezed,
     Object? permissions = null,
   }) {
@@ -468,6 +481,10 @@ class __$$UserEntityImplCopyWithImpl<$Res>
             ? _value.roleName
             : roleName // ignore: cast_nullable_to_non_nullable
                   as String,
+        roleId: null == roleId
+            ? _value.roleId
+            : roleId // ignore: cast_nullable_to_non_nullable
+                  as int,
         profile: freezed == profile
             ? _value.profile
             : profile // ignore: cast_nullable_to_non_nullable
@@ -492,6 +509,7 @@ class _$UserEntityImpl extends _UserEntity {
     @JsonKey(name: 'is_super_user') this.isSuperUser = false,
     @JsonKey(name: 'sacco_id') this.saccoId,
     @JsonKey(name: 'role_name') this.roleName = '',
+    @JsonKey(name: 'role_id') this.roleId = 0,
     this.profile,
     final List<String> permissions = const <String>[],
   }) : _permissions = permissions,
@@ -517,6 +535,12 @@ class _$UserEntityImpl extends _UserEntity {
   @override
   @JsonKey(name: 'role_name')
   final String roleName;
+
+  /// The role's number (1 administrator, 2 collector, 3 board member,
+  /// 4 accountant); 0 from a server or saved profile without it.
+  @override
+  @JsonKey(name: 'role_id')
+  final int roleId;
   @override
   final UserProfileEntity? profile;
 
@@ -536,7 +560,7 @@ class _$UserEntityImpl extends _UserEntity {
 
   @override
   String toString() {
-    return 'UserEntity(id: $id, email: $email, username: $username, phone: $phone, isSuperUser: $isSuperUser, saccoId: $saccoId, roleName: $roleName, profile: $profile, permissions: $permissions)';
+    return 'UserEntity(id: $id, email: $email, username: $username, phone: $phone, isSuperUser: $isSuperUser, saccoId: $saccoId, roleName: $roleName, roleId: $roleId, profile: $profile, permissions: $permissions)';
   }
 
   @override
@@ -554,6 +578,7 @@ class _$UserEntityImpl extends _UserEntity {
             (identical(other.saccoId, saccoId) || other.saccoId == saccoId) &&
             (identical(other.roleName, roleName) ||
                 other.roleName == roleName) &&
+            (identical(other.roleId, roleId) || other.roleId == roleId) &&
             (identical(other.profile, profile) || other.profile == profile) &&
             const DeepCollectionEquality().equals(
               other._permissions,
@@ -572,6 +597,7 @@ class _$UserEntityImpl extends _UserEntity {
     isSuperUser,
     saccoId,
     roleName,
+    roleId,
     profile,
     const DeepCollectionEquality().hash(_permissions),
   );
@@ -599,6 +625,7 @@ abstract class _UserEntity extends UserEntity {
     @JsonKey(name: 'is_super_user') final bool isSuperUser,
     @JsonKey(name: 'sacco_id') final String? saccoId,
     @JsonKey(name: 'role_name') final String roleName,
+    @JsonKey(name: 'role_id') final int roleId,
     final UserProfileEntity? profile,
     final List<String> permissions,
   }) = _$UserEntityImpl;
@@ -624,6 +651,12 @@ abstract class _UserEntity extends UserEntity {
   @override
   @JsonKey(name: 'role_name')
   String get roleName;
+
+  /// The role's number (1 administrator, 2 collector, 3 board member,
+  /// 4 accountant); 0 from a server or saved profile without it.
+  @override
+  @JsonKey(name: 'role_id')
+  int get roleId;
   @override
   UserProfileEntity? get profile;
 

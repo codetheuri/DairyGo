@@ -20,6 +20,37 @@ class FinanceService {
     'to': iso(to),
   };
 
+  /// The accounts to choose from when recording money, with the default for
+  /// each kind. Open to anyone who records money (no balances).
+  Future<AccountChoices> accountChoices() async {
+    final data = await apiData(
+      () => _dio.get('$_base/cash-accounts/choices'),
+      'Could not load the accounts',
+    );
+    return AccountChoices.fromJson(data);
+  }
+
+  Future<FinancialYear> financialYear() async {
+    final data = await apiData(
+      () => _dio.get('$_base/financial-year'),
+      'Could not load the financial year',
+    );
+    return FinancialYear.fromJson(
+      data['financial_year'] as Map<String, dynamic>,
+    );
+  }
+
+  Future<FinancialYear> setFinancialYear(int startMonth) async {
+    final data = await apiData(
+      () =>
+          _dio.put('$_base/financial-year', data: {'start_month': startMonth}),
+      'The financial year could not be changed',
+    );
+    return FinancialYear.fromJson(
+      data['financial_year'] as Map<String, dynamic>,
+    );
+  }
+
   Future<CashAccounts> accounts() async {
     final data = await apiData(
       () => _dio.get('$_base/cash-accounts'),

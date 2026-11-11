@@ -28,8 +28,19 @@ class FinanceScreen extends ConsumerStatefulWidget {
 class _FinanceScreenState extends ConsumerState<FinanceScreen>
     with SingleTickerProviderStateMixin {
   late final _tabs = TabController(length: 3, vsync: this);
-  Month _month = monthOf(DateTime.now());
+  // The period shown: a month, or a financial year (from the Sacco's start
+  // month), stepped back and forth from this anchor day.
+  DateTime _anchor = DateTime.now();
+  bool _byYear = false;
   String? _categoryId;
+
+  Month _periodFor(DateTime day, int startMonth) {
+    if (!_byYear) return monthOf(day);
+    final fy = FinancialYear.of(day, startMonth);
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    return (from: fy.from, to: fy.to.isAfter(today) ? today : fy.to);
+  }
 
   @override
   void dispose() {
@@ -37,18 +48,22 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen>
     super.dispose();
   }
 
-  void _shift(int months) {
-    final next = monthOf(
-      DateTime(_month.from.year, _month.from.month + months, 1),
-    );
-    if (next.from.isAfter(DateTime.now())) return;
-    setState(() => _month = next);
+  void _shift(int step, int startMonth) {
+    final next = _byYear
+        ? DateTime(_anchor.year + step, _anchor.month, 1)
+        : DateTime(_anchor.year, _anchor.month + step, 1);
+    if (_periodFor(next, startMonth).from.isAfter(DateTime.now())) return;
+    setState(() => _anchor = next);
   }
 
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(authControllerProvider).valueOrNull?.user;
-    final isThisMonth = monthOf(DateTime.now()).from == _month.from;
+    final startMonth =
+        ref.watch(financialYearProvider).valueOrNull?.startMonth ?? 1;
+    final period = _periodFor(_anchor, startMonth);
+    final isCurrent =
+        _periodFor(DateTime.now(), startMonth).from == period.from;
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -89,23 +104,56 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen>
               child: Row(
                 children: [
                   IconButton(
-                    tooltip: 'Month before',
-                    onPressed: () => _shift(-1),
+                    tooltip: _byYear ? 'Year before' : 'Month before',
+                    onPressed: () => _shift(-1, startMonth),
                     icon: const Icon(Icons.chevron_left_rounded),
                   ),
+                  // Tapping the period chooses a month or a financial
+                  // year, so the switch takes no extra row on a small phone.
                   Expanded(
-                    child: Text(
-                      DateFormat('MMMM y').format(_month.from),
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 16,
+                    child: PopupMenuButton<bool>(
+                      tooltip: 'Month or financial year',
+                      initialValue: _byYear,
+                      onSelected: (year) => setState(() {
+                        _byYear = year;
+                        _anchor = DateTime.now();
+                      }),
+                      itemBuilder: (_) => const [
+                        PopupMenuItem(value: false, child: Text('Month')),
+                        PopupMenuItem(
+                          value: true,
+                          child: Text('Financial year'),
+                        ),
+                      ],
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Flexible(
+                            child: Text(
+                              _byYear
+                                  ? FinancialYear.label(
+                                      period.from,
+                                      FinancialYear.of(
+                                        period.from,
+                                        startMonth,
+                                      ).to,
+                                    )
+                                  : DateFormat('MMMM y').format(period.from),
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                          const Icon(Icons.arrow_drop_down_rounded),
+                        ],
                       ),
                     ),
                   ),
                   IconButton(
-                    tooltip: 'Month after',
-                    onPressed: isThisMonth ? null : () => _shift(1),
+                    tooltip: _byYear ? 'Year after' : 'Month after',
+                    onPressed: isCurrent ? null : () => _shift(1, startMonth),
                     icon: const Icon(Icons.chevron_right_rounded),
                   ),
                 ],
@@ -116,12 +164,12 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen>
                 controller: _tabs,
                 children: [
                   _ExpensesTab(
-                    month: _month,
+                    month: period,
                     categoryId: _categoryId,
                     onCategory: (id) => setState(() => _categoryId = id),
                   ),
-                  _AccountsTab(month: _month),
-                  _SummaryTab(month: _month),
+                  _AccountsTab(month: period),
+                  _SummaryTab(month: period),
                 ],
               ),
             ),
@@ -221,7 +269,7 @@ class _ExpensesTab extends ConsumerWidget {
               const Padding(
                 padding: EdgeInsets.all(24),
                 child: Text(
-                  'No expenses this month.',
+                  'No expenses in this period.',
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -454,6 +502,7 @@ class _SummaryTab extends ConsumerWidget {
                 ),
               ),
             _heading('Today'),
+            if (s.notInAccount > 0) NotInAccountNote(summary: s),
             _row('Cash in all accounts', s.cash),
             _row('Customers owe the Sacco', s.receivables),
             _row('Farmers owe the Sacco', s.farmersOwe),
@@ -461,6 +510,34 @@ class _SummaryTab extends ConsumerWidget {
             _row('Farmers\' shares', s.shareCapital),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Money in the period that names no account: it is in no cashbook, so the
+/// cash figures leave it out. Shown to those who check the cashbooks.
+class NotInAccountNote extends StatelessWidget {
+  final FinanceSummary summary;
+
+  const NotInAccountNote({super.key, required this.summary});
+
+  @override
+  Widget build(BuildContext context) {
+    final n = summary.notInAccount;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: AppColors.warning.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Text(
+        '$n ${n == 1 ? 'payment' : 'payments'} in this period '
+        '(${kes(summary.notInAccountAmount, cents: false)}) '
+        '${n == 1 ? 'names' : 'name'} no account, so the cashbooks leave '
+        '${n == 1 ? 'it' : 'them'} out. New payments go to an account.',
+        style: const TextStyle(fontSize: 12),
       ),
     );
   }

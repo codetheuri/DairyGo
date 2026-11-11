@@ -375,3 +375,59 @@ func (r *Repository) FarmersOwe(ctx context.Context, saccoID string) (float64, e
 func (r *Repository) ShareCapital(ctx context.Context, saccoID string) (float64, error) {
 	return r.sum(ctx, `SELECT SUM(-amount) FROM member_transactions WHERE sacco_id = ? AND kind = 'DEDUCTION' AND is_savings AND voided_at IS NULL`, saccoID)
 }
+
+// --- financial year ---
+
+// FinancialYearStart is the month the Sacco's financial year starts (1 when
+// the Sacco has no settings row yet).
+func (r *Repository) FinancialYearStart(ctx context.Context, saccoID string) (int, error) {
+	var month sql.NullInt64
+	err := r.db.WithContext(ctx).Raw(`SELECT financial_year_start_month FROM sacco_settings WHERE sacco_id = ?`, saccoID).
+		Scan(&month).Error
+	if !month.Valid || month.Int64 < 1 {
+		return 1, err
+	}
+	return int(month.Int64), err
+}
+
+// SetFinancialYearStart saves the start month with its history line.
+func (r *Repository) SetFinancialYearStart(ctx context.Context, saccoID string, month int, entry audit.Entry) error {
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		res := tx.Table("sacco_settings").Where("sacco_id = ?", saccoID).
+			Updates(map[string]any{"financial_year_start_month": month, "updated_at": time.Now()})
+		if res.Error != nil {
+			return res.Error
+		}
+		if res.RowsAffected == 0 {
+			return fmt.Errorf("%w: the Sacco's settings were not found", ErrNotFound)
+		}
+		return audit.Record(tx, entry)
+	})
+}
+
+// NotInAccount counts money received or paid in a period that names no
+// account (recorded before accounts were chosen everywhere), and its total,
+// so the accountant can see what the cashbooks are missing.
+func (r *Repository) NotInAccount(ctx context.Context, saccoID string, from, to time.Time) (int, float64, error) {
+	var row struct {
+		N     int
+		Total sql.NullFloat64
+	}
+	err := r.db.WithContext(ctx).Raw(`SELECT COUNT(*) AS n, SUM(amount) AS total FROM (
+		SELECT amount FROM customer_payments
+		 WHERE sacco_id = @sacco AND cash_account_id IS NULL AND voided_at IS NULL AND payment_date BETWEEN @from AND @to
+		UNION ALL
+		SELECT amount_paid FROM milk_sales
+		 WHERE sacco_id = @sacco AND cash_account_id IS NULL AND voided_at IS NULL AND deleted_at IS NULL
+		   AND amount_paid > 0 AND sale_date BETWEEN @from AND @to
+		UNION ALL
+		SELECT -amount FROM member_transactions
+		 WHERE sacco_id = @sacco AND cash_account_id IS NULL AND kind = 'ADVANCE' AND voided_at IS NULL AND entry_date BETWEEN @from AND @to
+		UNION ALL
+		SELECT net FROM pay_run_lines
+		 WHERE sacco_id = @sacco AND cash_account_id IS NULL AND paid_at IS NOT NULL AND net > 0
+		   AND CAST(paid_at AS DATE) BETWEEN @from AND @to) x`,
+		sql.Named("sacco", saccoID), sql.Named("from", from.Format(dateLayout)), sql.Named("to", to.Format(dateLayout))).
+		Scan(&row).Error
+	return row.N, round2(row.Total.Float64), err
+}

@@ -82,8 +82,7 @@ func (s *Service) AddStaff(ctx context.Context, saccoID string, req *AddStaffReq
 		return nil, err
 	}
 	if !auth.IsSaccoRole(req.RoleID) {
-		return nil, fmt.Errorf("role_id must be %d (Sacco Administrator), %d (Milk Collector) or %d (Board Member / Executive)",
-			auth.RoleSaccoAdmin, auth.RoleCollector, auth.RoleExecutive)
+		return nil, fmt.Errorf("role_id must be %s", auth.SaccoRolesText)
 	}
 	roleID := req.RoleID
 	return s.users.Register(ctx, &auth.RegisterRequest{

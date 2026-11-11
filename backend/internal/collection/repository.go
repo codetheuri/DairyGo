@@ -565,7 +565,8 @@ func (r *Repository) PayrollClosedThrough(ctx context.Context, saccoID string) (
 	return row.PayrollClosedThrough, err
 }
 
-// CheckCashAccount checks an account belongs to the Sacco and is in use.
-func (r *Repository) CheckCashAccount(ctx context.Context, saccoID, id string) error {
-	return finance.ActiveAccount(ctx, r.db, saccoID, id)
+// AccountFor is the account the money went through: the one chosen, or the
+// Sacco's account for that way of paying (see finance.AccountFor).
+func (r *Repository) AccountFor(ctx context.Context, saccoID, given, method string) (*string, error) {
+	return finance.AccountFor(ctx, r.db, saccoID, given, method)
 }

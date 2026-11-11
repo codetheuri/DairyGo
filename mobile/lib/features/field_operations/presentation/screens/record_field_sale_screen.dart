@@ -7,6 +7,7 @@ import '../../../../core/widgets/app_text_field.dart';
 import '../../../../core/widgets/loading_overlay.dart';
 import '../../../../core/widgets/primary_button.dart';
 import '../../../customers/data/models/customer_models.dart';
+import '../../../finance/presentation/widgets/money_account_field.dart';
 import '../../../customers/presentation/widgets/customer_picker_sheet.dart';
 import '../../data/models/field_ops_models.dart';
 import '../controllers/field_ops_controller.dart';
@@ -41,6 +42,7 @@ class _RecordFieldSaleScreenState extends ConsumerState<RecordFieldSaleScreen> {
   String? _customerError;
   _Settlement _settlement = _Settlement.full;
   String _paymentMethod = 'CASH';
+  String? _accountId;
   double _total = 0.0;
 
   @override
@@ -115,6 +117,7 @@ class _RecordFieldSaleScreenState extends ConsumerState<RecordFieldSaleScreen> {
       paymentMethod: _settlement == _Settlement.credit
           ? 'CREDIT'
           : _paymentMethod,
+      cashAccountId: _settlement == _Settlement.credit ? null : _accountId,
       notes: _notesController.text.trim().isNotEmpty
           ? _notesController.text.trim()
           : null,
@@ -416,6 +419,11 @@ class _RecordFieldSaleScreenState extends ConsumerState<RecordFieldSaleScreen> {
                         ],
                         onChanged: (val) =>
                             setState(() => _paymentMethod = val ?? 'CASH'),
+                      ),
+                    if (_settlement != _Settlement.credit)
+                      MoneyAccountField(
+                        method: _paymentMethod,
+                        onChanged: (v) => _accountId = v,
                       ),
                     if (onCredit > 0 && _total > 0) ...[
                       const SizedBox(height: 10),

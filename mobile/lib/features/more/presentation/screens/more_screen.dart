@@ -21,6 +21,9 @@ class MoreScreen extends ConsumerWidget {
     AppSection.reports: 'Farmer payouts, Sacco ledger and collector audit',
     AppSection.intake: 'Milk intake records',
     AppSection.sales: 'Sales and spoilage records',
+    AppSection.farmers: 'Farmers, their accounts and payslips',
+    AppSection.money: 'Expenses, petty cash, bank and M-Pesa',
+    AppSection.pay: 'Pay runs, advances and deductions',
   };
 
   Future<void> _confirmLogout(BuildContext context, WidgetRef ref) async {
@@ -94,7 +97,8 @@ class MoreScreen extends ConsumerWidget {
                     onTap: () => shell?.goBranch(section.branch),
                   ),
                 if (nav.overflow.isNotEmpty) const Divider(),
-                if (user?.seesPayRuns ?? false)
+                if ((user?.seesPayRuns ?? false) &&
+                    !nav.bar.contains(AppSection.pay))
                   ListTile(
                     leading: const Icon(
                       Icons.payments_outlined,
@@ -107,7 +111,8 @@ class MoreScreen extends ConsumerWidget {
                     trailing: const Icon(Icons.chevron_right_rounded),
                     onTap: () => context.push(AppRoutes.payouts),
                   ),
-                if (user?.seesFinance ?? false)
+                if ((user?.seesFinance ?? false) &&
+                    !nav.bar.contains(AppSection.money))
                   ListTile(
                     leading: const Icon(
                       Icons.account_balance_wallet_outlined,

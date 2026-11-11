@@ -59,15 +59,19 @@ func (r *Repository) attachRoleName(ctx context.Context, user *User) {
 		user.RoleName = "Platform Administrator"
 		return
 	}
-	var roleName string
+	var role struct {
+		ID   uint
+		Name string
+	}
 	r.db.WithContext(ctx).
 		Table("roles").
-		Select("roles.name").
+		Select("roles.id, roles.name").
 		Joins("JOIN user_roles ON user_roles.role_id = roles.id").
 		Where("user_roles.user_id = ?", user.ID).
-		Scan(&roleName)
-	if roleName != "" {
-		user.RoleName = roleName
+		Order("roles.id").Limit(1).
+		Scan(&role)
+	if role.Name != "" {
+		user.RoleName, user.RoleID = role.Name, role.ID
 	} else {
 		user.RoleName = "Milk Collector"
 	}

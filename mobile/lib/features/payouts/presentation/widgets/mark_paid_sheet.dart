@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/network/api_call.dart';
 import '../../../../core/utils/money.dart';
-import '../../../finance/presentation/finance_providers.dart';
+import '../../../finance/presentation/widgets/money_account_field.dart';
 import '../payout_providers.dart';
 
 /// Records how farmers were paid: one farmer ([lineId]) or everyone still to
@@ -97,8 +97,6 @@ class _MarkPaidSheetState extends ConsumerState<MarkPaidSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final accounts =
-        ref.watch(cashAccountsProvider).valueOrNull?.active ?? const [];
     return Padding(
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
@@ -153,31 +151,12 @@ class _MarkPaidSheetState extends ConsumerState<MarkPaidSheet> {
                     : null,
               ),
             ),
-            if (accounts.isNotEmpty) ...[
-              const SizedBox(height: 14),
-              DropdownButtonFormField<String?>(
-                initialValue: _accountId,
-                isExpanded: true,
-                decoration: const InputDecoration(
-                  labelText: 'Paid from (optional)',
-                ),
-                items: [
-                  const DropdownMenuItem(
-                    value: null,
-                    child: Text('Not recorded'),
-                  ),
-                  for (final a in accounts)
-                    DropdownMenuItem(
-                      value: a.id,
-                      child: Text(
-                        '${a.name} (${a.kindLabel})',
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                ],
-                onChanged: _busy ? null : (v) => setState(() => _accountId = v),
-              ),
-            ],
+            MoneyAccountField(
+              method: _method,
+              label: 'Paid from',
+              enabled: !_busy,
+              onChanged: (v) => _accountId = v,
+            ),
             if (_error != null) ...[
               const SizedBox(height: 12),
               Text(_error!, style: const TextStyle(color: AppColors.error)),

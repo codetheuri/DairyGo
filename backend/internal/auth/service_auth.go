@@ -94,8 +94,7 @@ func resolveRegistrationSacco(ctx context.Context, req *RegisterRequest) (*strin
 		return nil, fmt.Errorf("you can only register staff in your own sacco")
 	}
 	if req.RoleID == nil || !IsSaccoRole(*req.RoleID) {
-		return nil, fmt.Errorf("role_id must be %d (Sacco Administrator), %d (Milk Collector) or %d (Board Member / Executive)",
-			RoleSaccoAdmin, RoleCollector, RoleExecutive)
+		return nil, fmt.Errorf("role_id must be %s", SaccoRolesText)
 	}
 	return &callerSacco, nil
 }

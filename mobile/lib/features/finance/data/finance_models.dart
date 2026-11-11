@@ -229,6 +229,11 @@ class FinanceSummary {
   final double farmersOwe;
   final double shareCapital;
 
+  /// Payments in or out in the period that name no account, so are in no
+  /// cashbook (recorded before every payment named its account).
+  final int notInAccount;
+  final double notInAccountAmount;
+
   const FinanceSummary({
     required this.milkSales,
     required this.milkPurchases,
@@ -244,6 +249,8 @@ class FinanceSummary {
     required this.farmerPayDue,
     required this.farmersOwe,
     required this.shareCapital,
+    this.notInAccount = 0,
+    this.notInAccountAmount = 0,
   });
 
   factory FinanceSummary.fromJson(Map<String, dynamic> j) => FinanceSummary(
@@ -261,9 +268,108 @@ class FinanceSummary {
     farmerPayDue: toDouble(j['farmer_pay_due']),
     farmersOwe: toDouble(j['farmers_owe']),
     shareCapital: toDouble(j['share_capital']),
+    notInAccount: (j['not_in_account'] as num?)?.toInt() ?? 0,
+    notInAccountAmount: toDouble(j['not_in_account_amount']),
   );
 
   double get income =>
       milkSales + fees.fold(0.0, (s, f) => s + f.amount) + farmerCharges;
   double get spending => milkPurchases + expensesTotal;
+}
+
+/// An account someone recording money may choose (no balance).
+class AccountChoice {
+  final String id;
+  final String name;
+  final String kind;
+
+  const AccountChoice({
+    required this.id,
+    required this.name,
+    required this.kind,
+  });
+
+  factory AccountChoice.fromJson(Map<String, dynamic> j) => AccountChoice(
+    id: j['id'] as String,
+    name: j['name'] as String? ?? '',
+    kind: j['kind'] as String? ?? 'CASH',
+  );
+
+  String get kindLabel => switch (kind) {
+    'BANK' => 'Bank',
+    'MPESA' => 'M-Pesa',
+    _ => 'Cash',
+  };
+}
+
+/// The accounts to choose from and, for each kind, the one money paid that
+/// way goes to when none is chosen. The server applies the same default, so
+/// leaving it as shown and choosing it give the same result.
+class AccountChoices {
+  final List<AccountChoice> accounts;
+  final Map<String, String> defaults;
+
+  const AccountChoices(this.accounts, this.defaults);
+
+  factory AccountChoices.fromJson(Map<String, dynamic> j) => AccountChoices(
+    [
+      for (final a in (j['accounts'] as List?) ?? const [])
+        AccountChoice.fromJson(a as Map<String, dynamic>),
+    ],
+    {
+      for (final e in ((j['defaults'] as Map?) ?? const {}).entries)
+        e.key as String: e.value as String,
+    },
+  );
+
+  /// The kind of account money paid by [method] goes through.
+  static String kindFor(String method) => switch (method.toUpperCase()) {
+    'MPESA' => 'MPESA',
+    'BANK' || 'BANK_TRANSFER' || 'CHEQUE' => 'BANK',
+    _ => 'CASH',
+  };
+
+  String? defaultFor(String method) => defaults[kindFor(method)];
+}
+
+/// The Sacco's financial year and this and last year's dates.
+class FinancialYear {
+  final int startMonth;
+  final DateTime thisFrom;
+  final DateTime thisTo;
+  final DateTime lastFrom;
+  final DateTime lastTo;
+
+  const FinancialYear({
+    required this.startMonth,
+    required this.thisFrom,
+    required this.thisTo,
+    required this.lastFrom,
+    required this.lastTo,
+  });
+
+  factory FinancialYear.fromJson(Map<String, dynamic> j) => FinancialYear(
+    startMonth: (j['start_month'] as num?)?.toInt() ?? 1,
+    thisFrom: DateTime.parse(j['this_from'] as String),
+    thisTo: DateTime.parse(j['this_to'] as String),
+    lastFrom: DateTime.parse(j['last_from'] as String),
+    lastTo: DateTime.parse(j['last_to'] as String),
+  );
+
+  /// The financial year [day] falls in.
+  static ({DateTime from, DateTime to}) of(DateTime day, int startMonth) {
+    final year = day.month < startMonth ? day.year - 1 : day.year;
+    final from = DateTime(year, startMonth, 1);
+    return (from: from, to: DateTime(year + 1, startMonth, 0));
+  }
+
+  /// "2026" for a calendar year, else "Jul 2026 – Jun 2027".
+  static String label(DateTime from, DateTime to) {
+    const m = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', //
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    ];
+    if (from.month == 1) return 'Financial year ${from.year}';
+    return '${m[from.month - 1]} ${from.year} – ${m[to.month - 1]} ${to.year}';
+  }
 }

@@ -55,6 +55,9 @@ abstract class AppRoutes {
   static const String payouts = '/payouts';
   static const String deductions = '/payouts/deductions';
   static const String finance = '/finance';
+  // The accountant's tabs show the same screens as /finance and /payouts.
+  static const String money = '/money';
+  static const String pay = '/pay';
 }
 
 /// The router is created once. Sign-in changes reach it through
@@ -163,7 +166,25 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
-          // Branch 6: More (settings, staff, account)
+          // Branch 6: Money (the accountant's tab; others use /finance)
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.money,
+                builder: (context, state) => const FinanceScreen(),
+              ),
+            ],
+          ),
+          // Branch 7: Farmer pay (the accountant's tab; others use /payouts)
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.pay,
+                builder: (context, state) => const PayRunsScreen(),
+              ),
+            ],
+          ),
+          // Branch 8: More (settings, staff, account)
           StatefulShellBranch(
             routes: [
               GoRoute(

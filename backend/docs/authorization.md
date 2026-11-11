@@ -103,8 +103,9 @@ A user counts as a Platform Super User only when `is_super_user = true` **and** 
 | `1` | Sacco Administrator | Pricing, staff, farmers (incl. edit/status), verify collections, reconciliation, reports, settings, SMS |
 | `2` | Milk Collector | Record intake, sales and spoilage; register farmers; own dashboard and own reconciliation |
 | `3` | Board Member / Executive | Read-only dashboards, reports, reconciliation and settings |
+| `4` | Accountant | The Sacco's money and books, farmer pay (prepares and pays, not approves), customer payments, reports; no milk recording |
 
-Grants live in migrations `00007` and `00008`. Use the constants `auth.RoleSaccoAdmin`, `auth.RoleCollector` and `auth.RoleExecutive` rather than bare numbers.
+Grants live in migrations `00007`, `00008` and `00030`. Use the constants `auth.RoleSaccoAdmin`, `auth.RoleCollector`, `auth.RoleExecutive` and `auth.RoleAccountant` rather than bare numbers.
 
 ---
 
@@ -125,8 +126,8 @@ Tusk provides endpoints to manage security roles and permission assignments:
 
 ## DairyGo: what a role may do is data, not code
 
-The three Sacco roles (1 Sacco Administrator, 2 Milk Collector, 3 Board Member /
-Executive) are rows in `roles`; what each may do is rows in `role_permissions`.
+The four Sacco roles (1 Sacco Administrator, 2 Milk Collector, 3 Board Member /
+Executive, 4 Accountant) are rows in `roles`; what each may do is rows in `role_permissions`.
 Neither the API nor the mobile app decides anything from a role's *name*.
 
 **Changing it needs no code and no deploy.** A platform operator uses the

@@ -1,7 +1,8 @@
 # Staff Management
 
-A Sacco's staff are user accounts with one of three roles: `1` Sacco
-Administrator, `2` Milk Collector, `3` Board Member / Executive.
+A Sacco's staff are user accounts with one of four roles: `1` Sacco
+Administrator, `2` Milk Collector, `3` Board Member / Executive, `4`
+Accountant.
 
 | Action | Sacco administrator (app) | Platform operator (console) |
 | :--- | :--- | :--- |
@@ -10,7 +11,7 @@ Administrator, `2` Milk Collector, `3` Board Member / Executive.
 | Change role | `PUT /api/v1/auth/users/{user_id}/role` (`users.update`) | `PUT /api/v1/admin/users/{id}/role` |
 | Remove | `DELETE /api/v1/auth/users/{user_id}` (`users.delete`) | `DELETE /api/v1/admin/users/{id}` |
 
-Role change takes `{"role_id": 1|2|3, "reason": "optional"}`; removal takes an
+Role change takes `{"role_id": 1|2|3|4, "reason": "optional"}`; removal takes an
 optional `?reason=`. The console endpoints run the same service
 (`auth.Service.ChangeStaffRole` / `RemoveStaff`) in the chosen Sacco's context,
 so the rules below are the same for both.
@@ -24,7 +25,7 @@ so the rules below are the same for both.
   locks themselves out by mistake.
 - **A Sacco keeps an administrator** (`400`). Its only active administrator
   cannot be demoted or removed; make someone else an administrator first.
-- Only roles 1, 2 and 3 can be assigned. `users.update` and `users.delete` are
+- Only roles 1, 2, 3 and 4 can be assigned. `users.update` and `users.delete` are
   granted to role 1 only. Do not grant Sacco roles `roles.*` or
   `users.roles.manage`: those endpoints are not limited to one Sacco.
 

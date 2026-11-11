@@ -413,19 +413,16 @@ func (s *Service) PayLines(ctx context.Context, runID string, req *PayRequest) (
 		}
 		paidAt = d
 	}
-	var account *string
-	if req.CashAccountID != "" {
-		account = &req.CashAccountID
-	}
 	err := s.repo.Transaction(ctx, func(tx *Repository) error {
 		run, err := tx.FindRun(ctx, runID)
 		if err != nil {
 			return err
 		}
-		if account != nil {
-			if err := tx.CheckCashAccount(ctx, run.SaccoID, *account); err != nil {
-				return fmt.Errorf("%w: %v", ErrInvalid, err)
-			}
+		// Pay leaves the account chosen, or the Sacco's account for the way
+		// farmers are paid.
+		account, err := tx.AccountFor(ctx, run.SaccoID, req.CashAccountID, string(method))
+		if err != nil {
+			return fmt.Errorf("%w: %v", ErrInvalid, err)
 		}
 		if run.Status != RunApproved {
 			return fmt.Errorf("%w: farmers are paid once the pay run is approved (it is %s)", ErrLocked, strings.ToLower(string(run.Status)))

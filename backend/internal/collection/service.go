@@ -482,11 +482,16 @@ func (s *Service) RecordSale(ctx context.Context, req *RecordSaleRequest) (*Milk
 		Notes:          req.Notes,
 		LateEntry:      late,
 	}
-	if req.CashAccountID != nil && *req.CashAccountID != "" && paid > 0 {
-		if err := s.repo.CheckCashAccount(ctx, saccoID, *req.CashAccountID); err != nil {
+	// Money paid at the sale goes into the account chosen, or the Sacco's
+	// account for this way of paying.
+	if paid > 0 {
+		given := ""
+		if req.CashAccountID != nil {
+			given = *req.CashAccountID
+		}
+		if sale.CashAccountID, err = s.repo.AccountFor(ctx, saccoID, given, method); err != nil {
 			return nil, err
 		}
-		sale.CashAccountID = req.CashAccountID
 	}
 
 	entry := audit.Entry{
@@ -565,6 +570,13 @@ func (s *Service) UpdateSale(ctx context.Context, id string, req *UpdateSaleRequ
 		return nil, err
 	}
 	sale.AmountPaid, sale.PaymentStatus, sale.PaymentMethod = paid, status, method
+	// Money now paid on a sale that had none goes into the account for the
+	// way it was paid; a sale that already names an account keeps it.
+	if sale.AmountPaid > 0 && sale.CashAccountID == nil {
+		if sale.CashAccountID, err = s.repo.AccountFor(ctx, sale.SaccoID, "", method); err != nil {
+			return nil, err
+		}
+	}
 
 	entry := audit.Entry{
 		SaccoID: sale.SaccoID, EntityType: auditEntitySale, EntityID: sale.ID,

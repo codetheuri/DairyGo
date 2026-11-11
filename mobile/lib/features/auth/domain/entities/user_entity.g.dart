@@ -33,6 +33,7 @@ _$UserEntityImpl _$$UserEntityImplFromJson(Map<String, dynamic> json) =>
       isSuperUser: json['is_super_user'] as bool? ?? false,
       saccoId: json['sacco_id'] as String?,
       roleName: json['role_name'] as String? ?? '',
+      roleId: (json['role_id'] as num?)?.toInt() ?? 0,
       profile: json['profile'] == null
           ? null
           : UserProfileEntity.fromJson(json['profile'] as Map<String, dynamic>),
@@ -52,6 +53,7 @@ Map<String, dynamic> _$$UserEntityImplToJson(_$UserEntityImpl instance) =>
       'is_super_user': instance.isSuperUser,
       'sacco_id': instance.saccoId,
       'role_name': instance.roleName,
+      'role_id': instance.roleId,
       'profile': instance.profile,
       'permissions': instance.permissions,
     };

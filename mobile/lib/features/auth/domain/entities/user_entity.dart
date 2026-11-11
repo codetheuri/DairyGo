@@ -28,6 +28,10 @@ class UserEntity with _$UserEntity {
     @JsonKey(name: 'is_super_user') @Default(false) bool isSuperUser,
     @JsonKey(name: 'sacco_id') String? saccoId,
     @JsonKey(name: 'role_name') @Default('') String roleName,
+
+    /// The role's number (1 administrator, 2 collector, 3 board member,
+    /// 4 accountant); 0 from a server or saved profile without it.
+    @JsonKey(name: 'role_id') @Default(0) int roleId,
     UserProfileEntity? profile,
 
     /// What the user's role may do, as the server lists it with the profile.
@@ -58,8 +62,10 @@ class UserEntity with _$UserEntity {
   }
 
   /// The Sacco role as the server numbers it: 1 administrator, 2 collector,
-  /// 3 board member.
+  /// 3 board member, 4 accountant. Older profiles without the number fall
+  /// back to the role's name.
   int get saccoRoleId {
+    if (roleId > 0) return roleId;
     if (isSaccoAdmin) return 1;
     if (isExecutive) return 3;
     return 2;
@@ -100,6 +106,7 @@ class UserEntity with _$UserEntity {
   bool get canManageTransfers =>
       can('milk.transfers.manage', whenUnknown: isSaccoAdmin);
 
+  bool get canReadFarmers => can('members.read', whenUnknown: true);
   bool get canRegisterFarmers => can('members.create', whenUnknown: _records);
   bool get canEditFarmers => can('members.update', whenUnknown: isSaccoAdmin);
 
@@ -143,6 +150,16 @@ class UserEntity with _$UserEntity {
   bool get canManageAccounts =>
       can('finance.accounts.manage', whenUnknown: false);
   bool get canSetPrice => can('milk.prices.manage', whenUnknown: isSaccoAdmin);
+
+  // The books (migration 00030): the financial year now; the ledger,
+  // journals and statements in the next phases.
+  bool get seesBooks => can('books.read', whenUnknown: false);
+  bool get canManageBooks => can('books.manage', whenUnknown: false);
+
+  /// Keeps the books and records no milk (the accountant): gets the money
+  /// layout, without intake or sales. Decided by permissions, not the role's
+  /// name, so a role given these permissions in the console gets it too.
+  bool get usesBooksLayout => !canRecordMilk && canManageBooks;
   bool get seesPrices => can('milk.prices.read', whenUnknown: true);
 
   String get displayRole {

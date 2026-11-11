@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/widgets/app_text_field.dart';
+import '../../../finance/presentation/widgets/money_account_field.dart';
 import '../../data/models/customer_models.dart';
 import '../controllers/customer_controller.dart';
 
@@ -29,6 +30,7 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
   final _amountController = TextEditingController();
   final _referenceController = TextEditingController();
   String _method = 'MPESA';
+  String? _accountId;
   String? _error;
 
   @override
@@ -47,6 +49,7 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
           RecordPaymentRequestModel(
             amount: double.parse(_amountController.text.trim()),
             method: _method,
+            cashAccountId: _accountId,
             reference: _referenceController.text.trim().isEmpty
                 ? null
                 : _referenceController.text.trim(),
@@ -121,6 +124,10 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
                   DropdownMenuItem(value: 'CHEQUE', child: Text('Cheque')),
                 ],
                 onChanged: (v) => setState(() => _method = v ?? 'CASH'),
+              ),
+              MoneyAccountField(
+                method: _method,
+                onChanged: (v) => _accountId = v,
               ),
               const SizedBox(height: 12),
               AppTextField(

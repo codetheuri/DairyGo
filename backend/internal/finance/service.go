@@ -478,6 +478,11 @@ type FinanceSummary struct {
 	FarmerPayDue float64 `json:"farmer_pay_due" doc:"Approved farmers' pay not yet sent"`
 	FarmersOwe   float64 `json:"farmers_owe" doc:"Advances, charges and arrears farmers owe now"`
 	ShareCapital float64 `json:"share_capital" doc:"All shares taken from farmers to date"`
+
+	// Money in the period that names no account, so is missing from the
+	// cashbooks (recorded before every payment named its account).
+	NotInAccount       int     `json:"not_in_account" doc:"Payments in or out in the period that name no account"`
+	NotInAccountAmount float64 `json:"not_in_account_amount"`
 }
 
 // Summary works out the income and expenditure for a period (default this
@@ -503,6 +508,10 @@ func (s *Service) Summary(ctx context.Context, from, to string) (*FinanceSummary
 		func() (e error) { out.FarmerPayDue, e = s.repo.FarmerPayDue(ctx, saccoID); return },
 		func() (e error) { out.FarmersOwe, e = s.repo.FarmersOwe(ctx, saccoID); return },
 		func() (e error) { out.ShareCapital, e = s.repo.ShareCapital(ctx, saccoID); return },
+		func() (e error) {
+			out.NotInAccount, out.NotInAccountAmount, e = s.repo.NotInAccount(ctx, saccoID, start, end)
+			return
+		},
 	}
 	for _, step := range steps {
 		if err := step(); err != nil {

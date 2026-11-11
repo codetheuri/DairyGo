@@ -165,6 +165,7 @@ _$RecordPaymentRequestModelImpl _$$RecordPaymentRequestModelImplFromJson(
   method: json['method'] as String? ?? 'CASH',
   reference: json['reference'] as String?,
   notes: json['notes'] as String?,
+  cashAccountId: json['cash_account_id'] as String?,
 );
 
 Map<String, dynamic> _$$RecordPaymentRequestModelImplToJson(
@@ -175,4 +176,5 @@ Map<String, dynamic> _$$RecordPaymentRequestModelImplToJson(
   'method': instance.method,
   'reference': instance.reference,
   'notes': instance.notes,
+  if (instance.cashAccountId case final value?) 'cash_account_id': value,
 };

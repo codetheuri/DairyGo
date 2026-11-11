@@ -171,6 +171,39 @@ func (h *Handler) Summary(ctx context.Context, in *FinSummaryInput) (*FinSummary
 	return out, nil
 }
 
+func (h *Handler) AccountChoices(ctx context.Context, _ *struct{}) (*CashChoicesOutput, error) {
+	accounts, defaults, err := h.service.AccountChoices(ctx)
+	if err != nil {
+		return nil, h.toHTTPError(err)
+	}
+	out := &CashChoicesOutput{}
+	out.Body.Success, out.Body.Message = true, "Accounts"
+	out.Body.Data.Accounts, out.Body.Data.Defaults = accounts, defaults
+	return out, nil
+}
+
+func (h *Handler) FinancialYear(ctx context.Context, _ *struct{}) (*FinYearOutput, error) {
+	fy, err := h.service.FinancialYear(ctx)
+	if err != nil {
+		return nil, h.toHTTPError(err)
+	}
+	out := &FinYearOutput{}
+	out.Body.Success, out.Body.Message = true, "Financial year"
+	out.Body.Data.FinancialYear = fy
+	return out, nil
+}
+
+func (h *Handler) SetFinancialYear(ctx context.Context, in *FinSetYearInput) (*FinYearOutput, error) {
+	fy, err := h.service.SetFinancialYear(ctx, in.Body.StartMonth)
+	if err != nil {
+		return nil, h.toHTTPError(err)
+	}
+	out := &FinYearOutput{}
+	out.Body.Success, out.Body.Message = true, "Financial year changed"
+	out.Body.Data.FinancialYear = fy
+	return out, nil
+}
+
 // toHTTPError maps domain errors to status codes with plain sentences.
 func (h *Handler) toHTTPError(err error) error {
 	switch {

@@ -38,15 +38,14 @@ func (s *Service) staffForChange(ctx context.Context, userID uint, keepsAdmin bo
 // Sacco role. It replaces the role they had and applies to their next request.
 func (s *Service) ChangeStaffRole(ctx context.Context, userID, roleID uint, reason *string) (*User, error) {
 	if !IsSaccoRole(roleID) {
-		return nil, fmt.Errorf("role_id must be %d (Sacco Administrator), %d (Milk Collector) or %d (Board Member / Executive)",
-			RoleSaccoAdmin, RoleCollector, RoleExecutive)
+		return nil, fmt.Errorf("role_id must be %s", SaccoRolesText)
 	}
 	target, err := s.staffForChange(ctx, userID, roleID == RoleSaccoAdmin)
 	if err != nil {
 		return nil, err
 	}
 	if target.RoleID == roleID {
-		return nil, fmt.Errorf("%s is already a %s", target.Username, SaccoRoleName(roleID))
+		return nil, fmt.Errorf("%s already has the %s role", target.Username, SaccoRoleName(roleID))
 	}
 
 	entry := audit.Entry{

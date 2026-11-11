@@ -608,7 +608,7 @@ const PERMISSION_AREAS = [
   ['milk.collections', 'Milk intake'], ['milk.sales', 'Sales'], ['milk.transfers', 'Transfers'],
   ['milk.spoilage', 'Spoilage'], ['milk.reconciliation', 'Daily balance'], ['milk.prices', 'Milk price'],
   ['members', 'Farmers'], ['customers', 'Customers'], ['dashboard', 'Dashboards'], ['reports', 'Reports'],
-  ['payouts', 'Farmer pay'], ['finance', 'Expenses and money'],
+  ['payouts', 'Farmer pay'], ['finance', 'Expenses and money'], ['books', 'Books'],
   ['users', 'Staff'], ['sacco', 'Sacco settings'], ['notifications', 'SMS'],
 ];
 // Never given to Sacco roles: they reach across Saccos (the API refuses too).
@@ -617,7 +617,7 @@ const isPlatformOnly = (name) => name === 'platform.manage' || name === 'users.r
 
 async function rolesPage() {
   const [{ roles }, { permissions }] = await Promise.all([api('GET', '/auth/roles'), api('GET', '/auth/permissions')]);
-  const saccoRoles = roles.filter((r) => r.id >= 1 && r.id <= 3).sort((a, b) => a.id - b.id);
+  const saccoRoles = roles.filter((r) => r.id >= 1 && r.id <= 4).sort((a, b) => a.id - b.id);
   const held = new Map(saccoRoles.map((r) => [r.id, new Set(r.permissions || [])]));
   const usable = permissions.filter((p) => !isPlatformOnly(p.name)).sort((a, b) => a.name.localeCompare(b.name));
 
@@ -669,7 +669,7 @@ async function rolesPage() {
 
 // ---------- sacco tabs ----------
 
-const ROLE_OPTIONS = [['1', 'Sacco Administrator'], ['2', 'Milk Collector'], ['3', 'Board Member / Executive']];
+const ROLE_OPTIONS = [['1', 'Sacco Administrator'], ['2', 'Milk Collector'], ['3', 'Board Member / Executive'], ['4', 'Accountant']];
 
 async function staffTab(sacco) {
   const { users } = await api('GET', `/admin/saccos/${sacco.id}/users`);

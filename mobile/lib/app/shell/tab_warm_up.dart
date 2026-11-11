@@ -5,7 +5,9 @@ import '../../features/auth/presentation/controllers/auth_controller.dart';
 import '../../features/collection/presentation/controllers/collection_controller.dart';
 import '../../features/customers/presentation/controllers/customer_controller.dart';
 import '../../features/field_operations/presentation/controllers/field_ops_controller.dart';
+import '../../features/finance/presentation/finance_providers.dart';
 import '../../features/members/presentation/controllers/member_controller.dart';
+import '../../features/payouts/presentation/payout_providers.dart';
 import '../../features/reports/presentation/controllers/report_controller.dart';
 import '../../features/transfers/presentation/transfer_controller.dart';
 import 'app_destinations.dart';
@@ -50,6 +52,8 @@ class _TabWarmUpState extends ConsumerState<TabWarmUp> {
           ref.read(customerBalancesProvider.future),
         ],
         AppSection.reports => [ref.read(farmerPayoutReportProvider.future)],
+        AppSection.money => [ref.read(cashAccountsProvider.future)],
+        AppSection.pay => [ref.read(payRunsProvider.future)],
         _ => const <Future<Object?>>[],
       };
       // Errors show when the tab is opened; here they are not needed.

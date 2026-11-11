@@ -8,6 +8,7 @@ import '../../../../app/router/app_router.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
+import '../../../finance/presentation/screens/money_home_screen.dart';
 import '../controllers/dashboard_controller.dart';
 import '../widgets/collector_dashboard_view.dart';
 import '../widgets/executive_dashboard_view.dart';
@@ -40,6 +41,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
   Widget build(BuildContext context) {
     final authState = ref.watch(authControllerProvider);
     final user = authState.valueOrNull?.user;
+    // The accountant's home is the Sacco's money, not milk.
+    if (user?.usesBooksLayout ?? false) return const MoneyHomeScreen();
     final isExecutive = user?.seesExecutiveDashboard ?? false;
 
     final collectorAsync = ref.watch(collectorDashboardProvider(null));

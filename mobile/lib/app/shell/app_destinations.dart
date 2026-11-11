@@ -17,6 +17,19 @@ enum AppSection {
     Icons.handshake_rounded,
     shortLabel: 'Buyers',
   ),
+  // The accountant's tabs (usesBooksLayout): the Sacco's money, and farmer
+  // pay. Other roles reach both from More.
+  money(
+    'Money',
+    Icons.account_balance_wallet_outlined,
+    Icons.account_balance_wallet_rounded,
+  ),
+  pay(
+    'Farmer pay',
+    Icons.payments_outlined,
+    Icons.payments_rounded,
+    shortLabel: 'Pay',
+  ),
   more('More', Icons.menu_rounded, Icons.menu_open_rounded);
 
   /// Short, one-word labels so a phone's bottom bar never wraps.
@@ -54,6 +67,24 @@ class RoleNavigation {
   factory RoleNavigation.of(UserEntity? user) {
     final records = user?.canRecordMilk ?? true;
     final reports = user?.seesReports ?? false;
+
+    if (user?.usesBooksLayout ?? false) {
+      // Those who keep the books (the accountant): money first, no milk
+      // entries. Farmers and reports, when they may see them, are on More.
+      return RoleNavigation(
+        bar: const [
+          AppSection.home,
+          AppSection.money,
+          AppSection.pay,
+          AppSection.customers,
+          AppSection.more,
+        ],
+        overflow: [
+          if (user?.canReadFarmers ?? false) AppSection.farmers,
+          if (reports) AppSection.reports,
+        ],
+      );
+    }
 
     if (!records && reports) {
       // Those who oversee rather than record (board members): reports and

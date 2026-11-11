@@ -27,6 +27,53 @@ from farmers' pay are not cash movements; they just reduce what is paid out.
 `account_transfers` move money between accounts (a petty cash top-up from
 the bank, banking cash).
 
+### Every payment names its account
+
+Money staff record names the account it went through, so the cashbooks are
+complete. When the person recording does not choose one (an older app, a quick
+sale), the server uses the Sacco's account for that way of paying
+(`finance.AccountFor`): cash to its cash account, M-Pesa to its M-Pesa account,
+bank transfers and cheques to its bank. With two accounts of a kind, the one
+opened first is used. This covers customer payments, money paid at a sale
+(including money paid later by editing the sale), advances and farmers' pay. A
+Sacco with no account of that kind records the money with none rather than
+refusing it; the income and expenditure counts those payments
+(`not_in_account`, `not_in_account_amount`) so the accountant sees what the
+cashbooks leave out.
+
+`GET /sacco/cash-accounts/choices` lists the accounts in use (names and kinds,
+no balances) and the default for each kind. It is open to anyone who records
+money (`finance.read`, `customers.payments.manage`, `milk.sales.create`,
+`payouts.advances.manage` or `payouts.runs.pay`). The app's picker shows the
+default for the way of paying and sends an account only when another is
+picked.
+
+## Financial year
+
+`sacco_settings.financial_year_start_month` (1 = January, migration `00030`).
+`GET /sacco/financial-year` (`finance.read`, `books.read` or
+`sacco.settings.read`) gives the start month and this and last financial
+year's dates; `PUT /sacco/financial-year` (`books.manage`) changes it, with a
+history line. It only groups dates: the app offers "Financial year" on Expenses
+& Money and "This / last financial year" when downloading reports. No record
+changes.
+
+## The accountant
+
+Role 4, **Accountant** (migration `00030`): `books.read`, `books.manage`, all
+`finance.*`, farmer pay (`payouts.read`, `payouts.runs.manage`,
+`payouts.runs.pay`, advances, charges; **not** `payouts.runs.approve`, so the
+person who prepares a pay run is not the one who approves it), customers and
+their payments, payout and ledger reports, `members.read`, `milk.prices.read`
+and `sacco.settings.read`. No milk recording. Sacco admins also get
+`books.read` and `books.manage`. The role's permissions stay editable in the
+console like any role.
+
+The app gives anyone who keeps the books and records no milk (`books.manage`
+without `milk.collections.create`) the money layout: Home (the money position
+today and this month), Money, Farmer pay, Customers, More. It is chosen from
+permissions, never the role's name.
+
 ## Expenses
 
 `expenses`: date, category, account, amount, payee, reference, details.
@@ -57,9 +104,12 @@ Reports in the download catalog: **Income and Expenditure**, **Expenses**,
 
 ## Permissions
 
-`finance.read` (admin, board), `finance.expenses.manage` and
-`finance.accounts.manage` (admin).
+`finance.read` (admin, board, accountant), `finance.expenses.manage` and
+`finance.accounts.manage` (admin, accountant); `books.read` and `books.manage`
+(admin, accountant).
 
 ## Testing
 
-`go test ./internal/finance/`; `~/.dairygo/localtest/finance.sh` (54 checks).
+`go test ./internal/finance/`; `~/.dairygo/localtest/finance.sh` (54 checks)
+and `accountant.sh` (34 checks: the role, the financial year, accounts on
+every payment).

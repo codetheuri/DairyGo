@@ -11,6 +11,7 @@ import '../../../../core/widgets/status_pill.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../../collection/data/models/milk_collection_model.dart';
 import '../../../collection/presentation/controllers/collection_controller.dart';
+import '../../../finance/presentation/widgets/financial_year_card.dart';
 import '../../data/models/settings_models.dart';
 import '../controllers/settings_controller.dart';
 import '../widgets/change_password_dialog.dart';
@@ -519,6 +520,13 @@ class SettingsScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 24),
+
+                // The financial year, for those who see the money or books.
+                if ((user?.seesBooks ?? false) ||
+                    (user?.seesFinance ?? false)) ...[
+                  const FinancialYearCard(),
+                  const SizedBox(height: 12),
+                ],
 
                 // Sacco rules (admins): milk balance tolerance and when
                 // farmers become inactive.

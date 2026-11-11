@@ -6,7 +6,7 @@ import 'package:intl/intl.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/network/api_call.dart';
 import '../../../../core/utils/money.dart';
-import '../../../finance/presentation/finance_providers.dart';
+import '../../../finance/presentation/widgets/money_account_field.dart';
 import '../../data/payout_models.dart';
 import '../payout_providers.dart';
 
@@ -172,9 +172,6 @@ class _AccountEntrySheetState extends ConsumerState<AccountEntrySheet> {
   Widget build(BuildContext context) {
     final kind = widget.kind;
     final info = _info;
-    final accounts = kind == EntryKind.advance
-        ? (ref.watch(cashAccountsProvider).valueOrNull?.active ?? const [])
-        : const [];
     return Padding(
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
@@ -350,28 +347,12 @@ class _AccountEntrySheetState extends ConsumerState<AccountEntrySheet> {
                   labelText: 'Reference (optional)',
                 ),
               ),
-              if (accounts.isNotEmpty) ...[
-                const SizedBox(height: 10),
-                DropdownButtonFormField<String?>(
-                  initialValue: _accountId,
-                  isExpanded: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Paid from (optional)',
-                  ),
-                  items: [
-                    const DropdownMenuItem(
-                      value: null,
-                      child: Text('Not recorded'),
-                    ),
-                    for (final a in accounts)
-                      DropdownMenuItem(
-                        value: a.id,
-                        child: Text(a.name, overflow: TextOverflow.ellipsis),
-                      ),
-                  ],
-                  onChanged: (v) => setState(() => _accountId = v),
-                ),
-              ],
+              MoneyAccountField(
+                method: _method,
+                label: 'Paid from',
+                enabled: !_busy,
+                onChanged: (v) => _accountId = v,
+              ),
             ],
             if (_error != null) ...[
               const SizedBox(height: 12),

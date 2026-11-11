@@ -19,7 +19,7 @@ type RegisterRequest struct {
 	PasswordConfirm string  `json:"password_confirmation" minLength:"4" doc:"Must match password"`
 	FirstName       string  `json:"first_name,omitempty" doc:"First name"`
 	LastName        string  `json:"last_name,omitempty" doc:"Last name"`
-	RoleID          *uint   `json:"role_id,omitempty" doc:"Optional security role ID to assign to the new user (1=Admin, 2=Collector, 3=Executive)"`
+	RoleID          *uint   `json:"role_id,omitempty" doc:"Optional security role ID to assign to the new user (1=Admin, 2=Collector, 3=Executive, 4=Accountant)"`
 	SaccoID         *string `json:"sacco_id,omitempty" doc:"Optional tenant Sacco ID"`
 }
 

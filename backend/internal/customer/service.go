@@ -295,11 +295,14 @@ func (s *Service) RecordPayment(ctx context.Context, customerID string, req *Rec
 		why := strings.TrimSpace(*req.LateReason)
 		p.LateReason = &why
 	}
-	if req.CashAccountID != nil && *req.CashAccountID != "" {
-		if err := s.repo.CheckCashAccount(ctx, c.SaccoID, *req.CashAccountID); err != nil {
-			return nil, err
-		}
-		p.CashAccountID = req.CashAccountID
+	// The account the money went into: the one chosen, or the Sacco's
+	// account for this way of paying, so every payment is in a cashbook.
+	given := ""
+	if req.CashAccountID != nil {
+		given = *req.CashAccountID
+	}
+	if p.CashAccountID, err = s.repo.AccountFor(ctx, c.SaccoID, given, string(method)); err != nil {
+		return nil, err
 	}
 
 	entry := audit.Entry{

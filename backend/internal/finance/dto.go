@@ -175,3 +175,26 @@ type FinSummaryData struct {
 type FinSummaryOutput struct {
 	Body response.Data[FinSummaryData]
 }
+
+type CashChoicesData struct {
+	Accounts []AccountChoice   `json:"accounts"`
+	Defaults map[string]string `json:"defaults" doc:"Account id for each kind (CASH, MPESA, BANK) used when none is chosen"`
+}
+
+type CashChoicesOutput struct {
+	Body response.Data[CashChoicesData]
+}
+
+type FinYearData struct {
+	FinancialYear *FinancialYear `json:"financial_year"`
+}
+
+type FinYearOutput struct {
+	Body response.Data[FinYearData]
+}
+
+type FinSetYearInput struct {
+	Body struct {
+		StartMonth int `json:"start_month" minimum:"1" maximum:"12" doc:"1 = January … 12 = December"`
+	}
+}

@@ -75,6 +75,24 @@ class ReportPeriod {
     ];
   }
 
+  /// This and last financial year (this one up to today), from the Sacco's
+  /// financial year.
+  static List<ReportPeriod> financialYears(
+    ({DateTime thisFrom, DateTime thisTo, DateTime lastFrom, DateTime lastTo})
+    fy,
+    DateTime now,
+  ) {
+    final today = _day(now);
+    return [
+      ReportPeriod(
+        'This financial year',
+        fy.thisFrom,
+        fy.thisTo.isAfter(today) ? today : fy.thisTo,
+      ),
+      ReportPeriod('Last financial year', fy.lastFrom, fy.lastTo),
+    ];
+  }
+
   /// YYYY-MM-DD, as the server takes dates.
   static String iso(DateTime d) =>
       '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';

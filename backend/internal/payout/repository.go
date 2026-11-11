@@ -566,11 +566,6 @@ func (r *Repository) MarkLinePaid(ctx context.Context, l *PayRunLine) error {
 		Updates(map[string]any{"method": l.PaidMethod, "reference": l.PaidReference, "cash_account_id": l.CashAccountID, "updated_at": time.Now()}).Error
 }
 
-// CheckCashAccount checks an account belongs to the Sacco and is in use.
-func (r *Repository) CheckCashAccount(ctx context.Context, saccoID, id string) error {
-	return finance.ActiveAccount(ctx, r.db, saccoID, id)
-}
-
 // PaidTotals counts a run's paid lines.
 func (r *Repository) PaidTotals(ctx context.Context, runID string) (count int, total float64, unpaid int, err error) {
 	var row struct {
@@ -587,4 +582,10 @@ func (r *Repository) PaidTotals(ctx context.Context, runID string) (count int, t
 // RecordAudit writes an audit entry in this repository's transaction.
 func (r *Repository) RecordAudit(ctx context.Context, e audit.Entry) error {
 	return audit.Record(r.db.WithContext(ctx), e)
+}
+
+// AccountFor is the account the money went through: the one chosen, or the
+// Sacco's account for that way of paying (see finance.AccountFor).
+func (r *Repository) AccountFor(ctx context.Context, saccoID, given, method string) (*string, error) {
+	return finance.AccountFor(ctx, r.db, saccoID, given, method)
 }

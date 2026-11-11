@@ -305,11 +305,6 @@ func (r *Repository) nameRecorders(ctx context.Context, events []LedgerEvent) {
 	}
 }
 
-// CheckCashAccount checks an account belongs to the Sacco and is in use.
-func (r *Repository) CheckCashAccount(ctx context.Context, saccoID, id string) error {
-	return finance.ActiveAccount(ctx, r.db, saccoID, id)
-}
-
 // monthStart is the first day of t's month, the start of "this month".
 func monthStart(t time.Time) string {
 	return time.Date(t.Year(), t.Month(), 1, 0, 0, 0, 0, t.Location()).Format(dateLayout)
@@ -356,4 +351,10 @@ func (r *Repository) nameVoiders(ctx context.Context, saccoID string, events []L
 			events[i].VoidedBy = names[events[i].ReferenceID]
 		}
 	}
+}
+
+// AccountFor is the account the money went through: the one chosen, or the
+// Sacco's account for that way of paying (see finance.AccountFor).
+func (r *Repository) AccountFor(ctx context.Context, saccoID, given, method string) (*string, error) {
+	return finance.AccountFor(ctx, r.db, saccoID, given, method)
 }

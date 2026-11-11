@@ -103,7 +103,7 @@ class _DeductionCard extends StatelessWidget {
             Text(
               [
                 d.appliesTo == 'ALL' ? 'Every farmer' : 'Chosen farmers',
-                if (d.isSavings) 'savings (shares)',
+                d.whereItGoes,
               ].join(' · '),
               style: const TextStyle(fontSize: 12),
             ),

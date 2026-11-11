@@ -1,0 +1,76 @@
+{
+  "status": 200,
+  "body": {
+    "success": true,
+    "message": "Supplier",
+    "data": {
+      "supplier": {
+        "id": "c540585e-5e80-424f-9dcc-cdba6517bfd2",
+        "sacco_id": "5d5281fd-1856-4d8b-a66b-70e0a97f14a0",
+        "name": "Kiambu Agrovet",
+        "is_active": true,
+        "created_by_id": 7,
+        "created_at": "2026-11-11T17:56:32.892857+03:00",
+        "updated_at": "2026-11-11T17:56:32.891983+03:00",
+        "bills_owed": 0,
+        "held": 0,
+        "is_payee": false
+      },
+      "bills": [
+        {
+          "id": "2ee66bd0-a330-47c8-bae5-5253b022a148",
+          "sacco_id": "5d5281fd-1856-4d8b-a66b-70e0a97f14a0",
+          "supplier_id": "c540585e-5e80-424f-9dcc-cdba6517bfd2",
+          "category_id": "e12bb2ec-b4b8-4052-80f3-3315b72cc84d",
+          "bill_date": "2026-10-20T00:00:00Z",
+          "due_date": "2026-11-20T00:00:00Z",
+          "amount": 6000,
+          "reference": "INV-77",
+          "description": "Cooler pump",
+          "recorded_by_id": 7,
+          "created_at": "2026-11-11T17:56:43.969319+03:00",
+          "updated_at": "2026-11-11T17:56:43.966188+03:00",
+          "supplier_name": "Kiambu Agrovet",
+          "category_name": "Repairs and maintenance",
+          "paid": 6000,
+          "unpaid": 0
+        }
+      ],
+      "payments": [
+        {
+          "id": "7ece1ba1-f21a-48ee-9760-9b1ca8c7b279",
+          "sacco_id": "5d5281fd-1856-4d8b-a66b-70e0a97f14a0",
+          "supplier_id": "c540585e-5e80-424f-9dcc-cdba6517bfd2",
+          "kind": "BILL",
+          "bill_id": "2ee66bd0-a330-47c8-bae5-5253b022a148",
+          "cash_account_id": "bf43e0f1-e058-4839-a43d-fa97cd49d154",
+          "payment_date": "2026-10-28T00:00:00Z",
+          "amount": 6000,
+          "recorded_by_id": 7,
+          "created_at": "2026-11-11T17:56:45.508485+03:00",
+          "updated_at": "2026-11-11T17:56:45.508485+03:00",
+          "account_name": "Bank"
+        },
+        {
+          "id": "d4b69fa9-1d83-41b2-9a60-f8f196404089",
+          "sacco_id": "5d5281fd-1856-4d8b-a66b-70e0a97f14a0",
+          "supplier_id": "c540585e-5e80-424f-9dcc-cdba6517bfd2",
+          "kind": "BILL",
+          "bill_id": "2ee66bd0-a330-47c8-bae5-5253b022a148",
+          "cash_account_id": "bf43e0f1-e058-4839-a43d-fa97cd49d154",
+          "payment_date": "2026-10-25T00:00:00Z",
+          "amount": 2500,
+          "reference": "CHQ1",
+          "recorded_by_id": 7,
+          "voided_at": "2026-11-11T17:56:45.34401+03:00",
+          "void_reason": "Cheque bounced",
+          "created_at": "2026-11-11T17:56:44.954661+03:00",
+          "updated_at": "2026-11-11T17:56:45.344617+03:00",
+          "account_name": "Bank"
+        }
+      ],
+      "taken": [],
+      "deductions": []
+    }
+  }
+}

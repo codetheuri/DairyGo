@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/books/presentation/screens/account_ledger_screen.dart';
 import '../../features/books/presentation/screens/balance_sheet_screen.dart';
+import '../../features/books/presentation/screens/opening_balances_screen.dart';
+import '../../features/finance/presentation/screens/supplier_screen.dart';
+import '../../features/finance/presentation/screens/suppliers_screen.dart';
 import '../../features/books/presentation/screens/books_screen.dart';
 import '../../features/books/presentation/screens/chart_screen.dart';
 import '../../features/books/presentation/screens/income_statement_screen.dart';
@@ -285,6 +288,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/books/links',
         builder: (context, state) => const LinksScreen(),
+      ),
+      GoRoute(
+        path: '/books/opening',
+        builder: (context, state) => const OpeningBalancesScreen(),
+      ),
+      GoRoute(
+        path: '/finance/suppliers',
+        builder: (context, state) => const SuppliersScreen(),
+      ),
+      GoRoute(
+        path: '/finance/suppliers/:id',
+        builder: (context, state) =>
+            SupplierScreen(id: state.pathParameters['id'] ?? ''),
       ),
       GoRoute(
         path: '/finance/accounts/:id',

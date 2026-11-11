@@ -17,10 +17,13 @@ func deductions(ctx context.Context, s *Service, in *input) error {
 	sum := document.Table{Title: "By deduction",
 		Columns: []document.Column{col("Deduction", txt, 2.5), col("Kind", txt, 1.2), col("Farmers", cnt, 1), col("Amount", money, 1.5)},
 		Empty:   "Nothing was taken from farmers' pay in this period."}
-	total, savings := 0.0, 0.0
+	total, savings, held := 0.0, 0.0, 0.0
 	for _, d := range totals {
 		kind := "Income"
-		if d.IsSavings {
+		switch {
+		case d.Payee != nil:
+			kind, held = "For "+*d.Payee, held+d.Amount
+		case d.IsSavings:
 			kind, savings = "Savings", savings+d.Amount
 		}
 		sum.Rows = append(sum.Rows, []any{d.Name, kind, d.Farmers, d.Amount})
@@ -36,8 +39,12 @@ func deductions(ctx context.Context, s *Service, in *input) error {
 		each.Rows = append(each.Rows, []any{f.MembershipNumber, f.FarmerName, f.Name, f.Amount})
 	}
 	in.doc.Figures = []document.Figure{{Label: "Taken from farmers", Value: kes(total)}, {Label: "Of which savings", Value: kes(savings)}}
+	if held != 0 {
+		in.doc.Figures = append(in.doc.Figures, document.Figure{Label: "Held for others", Value: kes(held)})
+	}
 	in.doc.Tables = []document.Table{sum, each}
-	in.doc.Notes = []string{"Deductions are dated on the last day of the pay run that took them. Savings (shares) belong to the farmers; the rest is the Sacco's income."}
+	in.doc.Notes = []string{"Deductions are dated on the last day of the pay run that took them. Savings (shares) belong to the farmers; " +
+		"money taken for a supplier (\"For …\") is owed to them until paid over; the rest is the Sacco's income."}
 	return nil
 }
 
@@ -84,7 +91,10 @@ func incomeExpenditure(ctx context.Context, s *Service, in *input) error {
 	if sum.FarmerCharges != 0 {
 		income.Rows = append(income.Rows, []any{"Charges to farmers (feeds, services)", sum.FarmerCharges})
 	}
-	totalIn := sum.MilkSales + sum.FeesTotal + sum.FarmerCharges
+	for _, o := range sum.OtherIncome {
+		income.Rows = append(income.Rows, []any{o.Name, o.Amount})
+	}
+	totalIn := sum.MilkSales + sum.FeesTotal + sum.FarmerCharges + sum.OtherTotal
 	income.Totals = []any{"Total income", totalIn}
 
 	spend := document.Table{Title: "Expenditure", Columns: two}
@@ -103,14 +113,19 @@ func incomeExpenditure(ctx context.Context, s *Service, in *input) error {
 		{"Customers owe the Sacco", sum.Receivables},
 		{"Farmers owe the Sacco (advances, charges, arrears)", sum.FarmersOwe},
 		{"Farmers' pay approved, not yet sent", sum.FarmerPayDue},
-		{"Farmers' shares (all time)", sum.ShareCapital},
+		{"Farmers' shares", sum.ShareCapital},
+		{"Bills not yet paid", sum.OwedBills},
+		{"Taken for suppliers, not yet paid over", sum.HeldToPay},
 	}}
 	in.doc.Figures = []document.Figure{{Label: "Income", Value: kes(totalIn)}, {Label: "Expenditure", Value: kes(sum.MilkPurchases + sum.ExpensesTotal)}, {Label: label, Value: kes(sum.Surplus)}}
 	in.doc.Tables = []document.Table{income, spend, position}
 	for _, sh := range sum.SharesRaised {
 		in.doc.Notes = append(in.doc.Notes, fmt.Sprintf("%s raised in the period: %s (savings, not income).", sh.Name, kes(sh.Amount)))
 	}
-	in.doc.Notes = append(in.doc.Notes, "Advances are not income or expenditure: they are recovered from farmers' pay.")
+	for _, h := range sum.HeldForOthers {
+		in.doc.Notes = append(in.doc.Notes, fmt.Sprintf("%s taken in the period: %s (owed to them, not income).", h.Name, kes(h.Amount)))
+	}
+	in.doc.Notes = append(in.doc.Notes, "Advances are not income or expenditure: they are recovered from farmers' pay. Bills count as expenditure on their date, paid or not.")
 	return nil
 }
 
@@ -181,5 +196,30 @@ func cashbooks(ctx context.Context, s *Service, in *input) error {
 		in.doc.Tables = []document.Table{{Columns: []document.Column{col("", txt, 1)}, Empty: "No accounts yet. Add petty cash, bank and M-Pesa accounts in Expenses."}}
 	}
 	in.doc.Figures = figures
+	return nil
+}
+
+func suppliersOwed(ctx context.Context, s *Service, in *input) error {
+	list, err := s.finance.Suppliers(ctx)
+	if err != nil {
+		return err
+	}
+	t := document.Table{
+		Columns: []document.Column{col("Supplier", txt, 2.4), col("Phone", txt, 1.2), col("Bills not yet paid", money, 1.4),
+			col("Still to pay over", money, 1.4), col("Total owed", money, 1.4)},
+		Empty: "Nothing is owed to any supplier.",
+	}
+	for _, sp := range list.Suppliers {
+		if sp.BillsOwed == 0 && sp.Held == 0 {
+			continue
+		}
+		t.Rows = append(t.Rows, []any{sp.Name, deref(sp.Phone), sp.BillsOwed, sp.Held, sp.BillsOwed + sp.Held})
+	}
+	if len(t.Rows) > 0 {
+		t.Totals = []any{fmt.Sprintf("%d suppliers", len(t.Rows)), nil, list.BillsOwed, list.Held, list.BillsOwed + list.Held}
+	}
+	in.doc.Figures = []document.Figure{{Label: "Bills not yet paid", Value: kes(list.BillsOwed)}, {Label: "Still to pay over", Value: kes(list.Held)}}
+	in.doc.Tables = []document.Table{t}
+	in.doc.Notes = []string{"\"Still to pay over\" is money deductions took from farmers' pay for the supplier (an insurer, a union) that the Sacco holds until it pays it over."}
 	return nil
 }

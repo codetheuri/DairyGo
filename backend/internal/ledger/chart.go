@@ -2,6 +2,7 @@ package ledger
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"strconv"
 	"strings"
@@ -25,6 +26,8 @@ const (
 	RoleCharges       Role = "CHARGES"        // charges to farmers (feeds, services)
 	RoleMilkPurchases Role = "MILK_PURCHASES" // milk bought from farmers
 	RoleAdjustments   Role = "ADJUSTMENTS"    // corrections to farmers' accounts
+	RoleSuppliers     Role = "SUPPLIERS"      // bills not yet paid
+	RoleShareCapital  Role = "SHARE_CAPITAL"  // members' shares
 )
 
 // seed is an account every chart starts with.
@@ -37,21 +40,21 @@ type seed struct {
 }
 
 // seedChart is a new chart: one account per role, and a few plain ones the
-// accountant is likely to need. Accounts for each cash account, expense
-// category and deduction are added beside them (see linkSpecs).
+// accountant is likely to need. Accounts for each cash account, expense and
+// income category, deduction and payee are added beside them (see spec).
 var seedChart = []seed{
 	{"1099", "Money not in an account", Asset, RoleNoAccount, "Payments recorded without naming the cash, bank or M-Pesa account"},
 	{"1200", "Customers", Asset, RoleCustomers, "What customers owe: milk sold on credit less their payments"},
 	{"1300", "Farmers' accounts", Asset, RoleFarmers, "What farmers owe the Sacco: advances and charges not yet taken from pay"},
 	{"1500", "Fixed assets", Asset, "", "Buildings, coolers, motorbikes and other things the Sacco owns"},
 	{"2000", "Farmers' pay due", Liability, RolePayDue, "Farmers' pay approved and not yet sent"},
-	{"2100", "Suppliers", Liability, "", "What the Sacco owes suppliers"},
-	{"2200", "Loans", Liability, "", "Money the Sacco has borrowed"},
+	{"2100", "Suppliers", Liability, RoleSuppliers, "Bills not yet paid"},
+	{"2500", "Loans", Liability, "", "Money the Sacco has borrowed"},
+	{"3000", "Share capital", Equity, RoleShareCapital, "Members' shares: savings taken from pay, opening shares, less refunds"},
 	{"3200", "Retained surplus", Equity, RoleRetained, "Surplus kept from earlier periods"},
 	{"3900", "Opening balances", Equity, RoleOpening, "The other side of the accounts' opening balances"},
 	{"4000", "Milk sales", Income, RoleMilkSales, "Milk sold to customers"},
 	{"4200", "Charges to farmers", Income, RoleCharges, "Feeds, AI, vet services and items charged to farmers"},
-	{"4300", "Other income", Income, "", ""},
 	{"5000", "Milk bought from farmers", Expense, RoleMilkPurchases, "Farmers' milk, from approved pay runs"},
 	{"5100", "Adjustments to farmers' accounts", Expense, RoleAdjustments, "Corrections that change what farmers are owed"},
 }
@@ -65,11 +68,18 @@ func seedFor(r Role) (seed, bool) {
 	return seed{}, false
 }
 
-// Link keys name what a record posts for.
-func roleKey(r Role) string         { return "role:" + string(r) }
-func cashKey(id string) string      { return "cash_account:" + id }
-func categoryKey(id string) string  { return "expense_category:" + id }
-func deductionKey(id string) string { return "deduction_type:" + id }
+// Link keys name what a record posts for. A deduction posts by where its
+// money goes: deduction_type (the Sacco's income), savings (the farmers'
+// shares) or payee (owed to a supplier). "account:<id>" is an account itself
+// (the accountant's opening balances), never a link.
+func roleKey(r Role) string              { return "role:" + string(r) }
+func cashKey(id string) string           { return "cash_account:" + id }
+func categoryKey(id string) string       { return "expense_category:" + id }
+func incomeCategoryKey(id string) string { return "income_category:" + id }
+func deductionKey(id string) string      { return "deduction_type:" + id }
+func savingsKey(id string) string        { return "savings:" + id }
+func payeeKey(id string) string          { return "payee:" + id }
+func accountKey(id string) string        { return "account:" + id }
 func splitKey(k string) (kind, id string) {
 	kind, id, _ = strings.Cut(k, ":")
 	return kind, id
@@ -80,6 +90,7 @@ func splitKey(k string) (kind, id string) {
 var keptRoles = map[Role]string{
 	RoleCustomers: "Customers' balances", RoleFarmers: "Farmers' accounts",
 	RolePayDue: "Approved farmers' pay not yet sent", RoleNoAccount: "Payments recorded without an account",
+	RoleSuppliers: "Bills not yet paid",
 }
 
 // allowedTypes are the account types a link may point to.
@@ -90,8 +101,14 @@ func allowedTypes(key string) []Type {
 		return []Type{Asset}
 	case "expense_category":
 		return []Type{Expense, Asset}
+	case "income_category":
+		return []Type{Income}
 	case "deduction_type":
-		return []Type{Income, Equity, Liability}
+		return []Type{Income}
+	case "savings":
+		return []Type{Equity, Liability}
+	case "payee":
+		return []Type{Liability}
 	case "role":
 		if s, ok := seedFor(Role(id)); ok {
 			return []Type{s.Type}
@@ -171,6 +188,24 @@ func (c *chart) account(key string) (*LedgerAccount, error) {
 			return a, nil
 		}
 	}
+	kind, id := splitKey(key)
+	switch kind {
+	case "account":
+		if a, ok := c.accounts[id]; ok {
+			return a, nil
+		}
+		return nil, fmt.Errorf("ledger: account %s not found", id)
+	case "savings":
+		// Every savings deduction starts in Share capital.
+		if err := c.exists("deduction_types", id); err != nil {
+			return nil, err
+		}
+		a, err := c.account(roleKey(RoleShareCapital))
+		if err != nil {
+			return nil, err
+		}
+		return a, c.link(key, a.ID)
+	}
 	code, name, t, desc, err := c.spec(key)
 	if err != nil {
 		return nil, err
@@ -211,19 +246,25 @@ func (c *chart) spec(key string) (code, name string, t Type, desc string, err er
 			return "", "", "", "", fmt.Errorf("ledger: expense category %s: %w", id, err)
 		}
 		return c.nextCode(6001), row.Name, Expense, "", nil
-	case "deduction_type":
-		var row struct {
-			Name      string
-			IsSavings bool
+	case "income_category":
+		var row struct{ Name string }
+		if err := db.Table("income_categories").Select("name").Where("id = ? AND sacco_id = ?", id, c.saccoID).Take(&row).Error; err != nil {
+			return "", "", "", "", fmt.Errorf("ledger: income category %s: %w", id, err)
 		}
+		return c.nextCode(4301), row.Name, Income, "", nil
+	case "deduction_type":
+		var row struct{ Name string }
 		// Deleted deductions stay in pay runs, so they are read too.
-		if err := db.Table("deduction_types").Select("name, is_savings").Where("id = ? AND sacco_id = ?", id, c.saccoID).Take(&row).Error; err != nil {
+		if err := db.Table("deduction_types").Select("name").Where("id = ? AND sacco_id = ?", id, c.saccoID).Take(&row).Error; err != nil {
 			return "", "", "", "", fmt.Errorf("ledger: deduction %s: %w", id, err)
 		}
-		if row.IsSavings {
-			return c.nextCode(3001), row.Name, Equity, "Taken from farmers' pay; the farmers' own", nil
-		}
 		return c.nextCode(4101), row.Name, Income, "Taken from farmers' pay", nil
+	case "payee":
+		var row struct{ Name string }
+		if err := db.Table("suppliers").Select("name").Where("id = ? AND sacco_id = ?", id, c.saccoID).Take(&row).Error; err != nil {
+			return "", "", "", "", fmt.Errorf("ledger: supplier %s: %w", id, err)
+		}
+		return c.nextCode(2201), "Owed to " + row.Name, Liability, "Taken from farmers' pay for them, not yet paid over", nil
 	}
 	return "", "", "", "", fmt.Errorf("ledger: unknown link %q", key)
 }
@@ -245,24 +286,32 @@ func (c *chart) seedAll() error {
 		}
 	}
 	db := c.db.WithContext(c.ctx)
-	lists := []struct {
-		sql string
-		key func(string) string
-	}{
-		{"SELECT id FROM cash_accounts WHERE sacco_id = ? ORDER BY created_at, name", cashKey},
-		{"SELECT id FROM expense_categories WHERE sacco_id = ? ORDER BY created_at, name", categoryKey},
-		{"SELECT id FROM deduction_types WHERE sacco_id = ? AND deleted_at IS NULL ORDER BY priority, name", deductionKey},
+	var keys []string
+	if err := db.Raw(`SELECT 'cash_account:' || id FROM (SELECT id FROM cash_accounts WHERE sacco_id = @s ORDER BY created_at, name) a
+		UNION ALL SELECT 'expense_category:' || id FROM (SELECT id FROM expense_categories WHERE sacco_id = @s ORDER BY created_at, name) e
+		UNION ALL SELECT 'income_category:' || id FROM (SELECT id FROM income_categories WHERE sacco_id = @s ORDER BY created_at, name) i
+		UNION ALL SELECT k FROM (SELECT CASE goes_to WHEN 'SAVINGS' THEN 'savings:' || id WHEN 'PAYEE' THEN 'payee:' || payee_id
+				ELSE 'deduction_type:' || id END AS k
+			FROM deduction_types WHERE sacco_id = @s AND deleted_at IS NULL ORDER BY priority, name) d`,
+		sql.Named("s", c.saccoID)).Scan(&keys).Error; err != nil {
+		return err
 	}
-	for _, l := range lists {
-		var ids []string
-		if err := db.Raw(l.sql, c.saccoID).Scan(&ids).Error; err != nil {
+	for _, k := range keys {
+		if _, err := c.account(k); err != nil {
 			return err
 		}
-		for _, id := range ids {
-			if _, err := c.account(l.key(id)); err != nil {
-				return err
-			}
-		}
+	}
+	return nil
+}
+
+// exists checks a record of the Sacco is in a table (deleted ones too).
+func (c *chart) exists(table, id string) error {
+	var n int64
+	if err := c.db.WithContext(c.ctx).Table(table).Where("id = ? AND sacco_id = ?", id, c.saccoID).Count(&n).Error; err != nil {
+		return err
+	}
+	if n == 0 {
+		return fmt.Errorf("ledger: %s %s not found", table, id)
 	}
 	return nil
 }
@@ -277,6 +326,9 @@ func (c *chart) kept(accountID string) string {
 		kind, rest := splitKey(key)
 		if kind == "cash_account" {
 			return "A cash account's cashbook"
+		}
+		if kind == "payee" {
+			return "Money held for a supplier"
 		}
 		if kind == "role" {
 			if what, ok := keptRoles[Role(rest)]; ok {

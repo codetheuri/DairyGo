@@ -139,4 +139,92 @@ class FinanceService {
     );
     return FinanceSummary.fromJson(data['summary'] as Map<String, dynamic>);
   }
+
+  // --- other income ---
+
+  Future<List<ExpenseCategory>> incomeCategories() async {
+    final data = await apiData(
+      () => _dio.get('$_base/income-categories'),
+      'Could not load the income categories',
+    );
+    return [
+      for (final c in (data['categories'] as List?) ?? const [])
+        ExpenseCategory.fromJson(c as Map<String, dynamic>),
+    ];
+  }
+
+  Future<IncomeList> otherIncome(DateTime from, DateTime to) async {
+    final data = await apiData(
+      () => _dio.get('$_base/other-income', queryParameters: _period(from, to)),
+      'Could not load the other income',
+    );
+    return IncomeList.fromJson(data);
+  }
+
+  Future<void> recordIncome(Map<String, dynamic> body) => apiData(
+    () => _dio.post('$_base/other-income', data: body),
+    'The income could not be saved',
+  );
+
+  Future<void> voidIncome(String id, String reason) => apiData(
+    () => _dio.post('$_base/other-income/$id/void', data: {'reason': reason}),
+    'The income could not be voided',
+  );
+
+  // --- suppliers, bills and paying over ---
+
+  Future<SupplierList> suppliers() async {
+    final data = await apiData(
+      () => _dio.get('$_base/suppliers'),
+      'Could not load the suppliers',
+    );
+    return SupplierList.fromJson(data);
+  }
+
+  Future<SupplierDetail> supplier(String id) async {
+    final data = await apiData(
+      () => _dio.get('$_base/suppliers/$id'),
+      'Could not load the supplier',
+    );
+    return SupplierDetail.fromJson(data);
+  }
+
+  /// Creates (id null) or changes a supplier; returns it.
+  Future<Supplier> saveSupplier(String? id, Map<String, dynamic> body) async {
+    final data = await apiData(
+      () => id == null
+          ? _dio.post('$_base/suppliers', data: body)
+          : _dio.put('$_base/suppliers/$id', data: body),
+      'The supplier could not be saved',
+    );
+    return Supplier.fromJson(data['supplier'] as Map<String, dynamic>);
+  }
+
+  Future<void> recordBill(Map<String, dynamic> body) => apiData(
+    () => _dio.post('$_base/bills', data: body),
+    'The bill could not be saved',
+  );
+
+  Future<void> voidBill(String id, String reason) => apiData(
+    () => _dio.post('$_base/bills/$id/void', data: {'reason': reason}),
+    'The bill could not be voided',
+  );
+
+  Future<void> payBill(String id, Map<String, dynamic> body) => apiData(
+    () => _dio.post('$_base/bills/$id/pay', data: body),
+    'The payment could not be saved',
+  );
+
+  Future<void> payOver(String supplierId, Map<String, dynamic> body) => apiData(
+    () => _dio.post('$_base/suppliers/$supplierId/pay-over', data: body),
+    'The payment could not be saved',
+  );
+
+  Future<void> voidSupplierPayment(String id, String reason) => apiData(
+    () => _dio.post(
+      '$_base/supplier-payments/$id/void',
+      data: {'reason': reason},
+    ),
+    'The payment could not be voided',
+  );
 }

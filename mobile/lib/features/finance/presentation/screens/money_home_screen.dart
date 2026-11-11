@@ -87,6 +87,26 @@ class MoneyHomeScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
                   if (user?.seesBooks ?? false) const _BooksTile(),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(
+                      Icons.storefront_outlined,
+                      color: AppColors.primary,
+                    ),
+                    title: const Text('Suppliers & bills'),
+                    subtitle: Text(
+                      s.owedBills == 0 && s.heldToPayOver == 0
+                          ? 'Bills to pay and money to pay over'
+                          : [
+                              if (s.owedBills != 0)
+                                'Bills ${kes(s.owedBills, cents: false)}',
+                              if (s.heldToPayOver != 0)
+                                'to pay over ${kes(s.heldToPayOver, cents: false)}',
+                            ].join(' · '),
+                    ),
+                    trailing: const Icon(Icons.chevron_right_rounded),
+                    onTap: () => context.push('/finance/suppliers'),
+                  ),
                   if (user?.seesCustomerBalances ?? false)
                     ListTile(
                       contentPadding: EdgeInsets.zero,

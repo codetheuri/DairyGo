@@ -53,6 +53,15 @@ const (
 	AppliesEnrolled AppliesTo = "ENROLLED" // only farmers added to it
 )
 
+// GoesTo is where a deduction's money goes.
+type GoesTo string
+
+const (
+	GoesIncome  GoesTo = "INCOME"  // the Sacco keeps it (fees, subscriptions)
+	GoesSavings GoesTo = "SAVINGS" // the farmer's own shares or savings
+	GoesPayee   GoesTo = "PAYEE"   // owed to a supplier (an insurer, a union), paid over later
+)
+
 // Tier is one band of a TIERED deduction: amounts up to UpTo pay Fee. The
 // last band may leave UpTo empty to cover everything above.
 type Tier struct {
@@ -101,6 +110,9 @@ type DeductionType struct {
 	AppliesTo   AppliesTo      `json:"applies_to"`
 	Priority    int            `json:"priority"`
 	IsSavings   bool           `json:"is_savings"`
+	GoesTo      GoesTo         `json:"goes_to" gorm:"default:INCOME" doc:"INCOME, SAVINGS or PAYEE"`
+	PayeeID     *string        `json:"payee_id,omitempty" gorm:"type:varchar(36)" doc:"PAYEE: the supplier the money is owed to"`
+	PayeeName   string         `json:"payee_name,omitempty" gorm:"->;-:migration"`
 	IsActive    bool           `json:"is_active"`
 	CreatedByID *uint          `json:"created_by_id,omitempty"`
 	CreatedAt   time.Time      `json:"created_at"`
@@ -163,6 +175,9 @@ type Transaction struct {
 	Description     string    `json:"description"`
 	DeductionTypeID *string   `json:"deduction_type_id,omitempty" gorm:"type:varchar(36)"`
 	IsSavings       bool      `json:"is_savings"`
+	// PayeeID is the supplier a deduction's money is owed to, as the
+	// deduction said when it was taken.
+	PayeeID *string `json:"payee_id,omitempty" gorm:"type:varchar(36)"`
 	// PayRunID is the run that settled this entry; nil while an advance,
 	// charge or adjustment waits for the next run.
 	PayRunID  *string    `json:"pay_run_id,omitempty" gorm:"type:varchar(36)"`
@@ -278,7 +293,7 @@ func Examples(saccoID string) []DeductionType {
 	list := []DeductionType{
 		{Name: "Registration fee", Description: desc("Paid once when a farmer joins"), Method: MethodFixed, Frequency: FreqOncePerMember, Priority: 10},
 		{Name: "Annual subscription", Description: desc("Paid once a year"), Method: MethodFixed, Frequency: FreqOncePerYear, Priority: 20},
-		{Name: "Shares", Description: desc("Share capital, taken each pay run until the target is reached"), Method: MethodFixed, Frequency: FreqUntilTarget, Priority: 30, IsSavings: true},
+		{Name: "Shares", Description: desc("Share capital, taken each pay run until the target is reached"), Method: MethodFixed, Frequency: FreqUntilTarget, Priority: 30, IsSavings: true, GoesTo: GoesSavings},
 		{Name: "Transaction cost", Description: desc("M-Pesa or bank charge for sending the pay"), Method: MethodTiered, Base: BaseNet, Frequency: FreqEveryRun, Priority: 100},
 	}
 	for i := range list {

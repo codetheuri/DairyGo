@@ -58,6 +58,31 @@ func RegisterRoutes(api huma.API, db *gorm.DB, cfg *config.Config, log logger.Lo
 		Description: "Statement with a running balance (what the Sacco owes the farmer; negative = the farmer owes), plus the balance now, share balance and advances to recover.",
 	}, PermRead), handler.Account)
 	huma.Register(api, guard.Protected(huma.Operation{
+		OperationID: "farmer-shares", Method: http.MethodGet, Path: "/api/v1/sacco/members/{member_id}/shares",
+		Summary: "A farmer's shares", Tags: []string{tag},
+		Description: "Share balance by savings deduction, and every line: savings taken in pay runs, opening shares, refunds and transfers.",
+	}, PermRead), handler.Shares)
+	huma.Register(api, guard.Protected(huma.Operation{
+		OperationID: "record-opening-shares", Method: http.MethodPost, Path: "/api/v1/sacco/members/{member_id}/shares/opening",
+		Summary: "Record opening shares", Tags: []string{tag},
+		Description: "Shares the farmer held before DairyGo. They count towards the savings deduction's target.",
+	}, PermSharesManage), handler.OpeningShares)
+	huma.Register(api, guard.Protected(huma.Operation{
+		OperationID: "refund-shares", Method: http.MethodPost, Path: "/api/v1/sacco/members/{member_id}/shares/refund",
+		Summary: "Refund shares", Tags: []string{tag},
+		Description: "Pays shares back to a member who leaves, all or part, from one of the Sacco's accounts.",
+	}, PermSharesManage), handler.RefundShares)
+	huma.Register(api, guard.Protected(huma.Operation{
+		OperationID: "transfer-shares", Method: http.MethodPost, Path: "/api/v1/sacco/members/{member_id}/shares/transfer",
+		Summary: "Move shares to another member", Tags: []string{tag},
+		Description: "E.g. a member who leaves passes their shares to a relative. No money moves.",
+	}, PermSharesManage), handler.TransferShares)
+	huma.Register(api, guard.Protected(huma.Operation{
+		OperationID: "void-share-entry", Method: http.MethodPost, Path: "/api/v1/sacco/share-entries/{id}/void",
+		Summary: "Void a share entry", Tags: []string{tag},
+		Description: "Recorded in error; both sides of a transfer go together. Refused if the shares were refunded or passed on since.",
+	}, PermSharesManage), handler.VoidShareEntry)
+	huma.Register(api, guard.Protected(huma.Operation{
 		OperationID: "farmer-advance-info", Method: http.MethodGet, Path: "/api/v1/sacco/members/{member_id}/advance",
 		Summary: "Before giving an advance", Tags: []string{tag},
 		Description: "Milk delivered since the last pay run, advances already taken, and how much more the farmer may take on the date (default today).",

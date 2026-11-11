@@ -2,6 +2,7 @@ package payout
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"time"
@@ -69,8 +70,37 @@ func (r *Repository) ListTypes(ctx context.Context, activeOnly bool) ([]Deductio
 	if activeOnly {
 		q = q.Where("is_active = ?", true)
 	}
-	err := q.Order("priority, name").Find(&out).Error
-	return out, err
+	if err := q.Order("priority, name").Find(&out).Error; err != nil {
+		return nil, err
+	}
+	return out, r.fillPayees(ctx, out)
+}
+
+// fillPayees names the supplier each PAYEE deduction's money goes to.
+func (r *Repository) fillPayees(ctx context.Context, types []DeductionType) error {
+	var ids []string
+	for _, t := range types {
+		if t.PayeeID != nil {
+			ids = append(ids, *t.PayeeID)
+		}
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	var rows []struct{ ID, Name string }
+	if err := r.db.WithContext(ctx).Table("suppliers").Select("id, name").Where("id IN ?", ids).Scan(&rows).Error; err != nil {
+		return err
+	}
+	names := map[string]string{}
+	for _, row := range rows {
+		names[row.ID] = row.Name
+	}
+	for i := range types {
+		if types[i].PayeeID != nil {
+			types[i].PayeeName = names[*types[i].PayeeID]
+		}
+	}
+	return nil
 }
 
 // FindType loads a deduction type of the caller's Sacco.
@@ -79,7 +109,22 @@ func (r *Repository) FindType(ctx context.Context, id string) (*DeductionType, e
 	if err := r.db.WithContext(ctx).Scopes(query.TenantScope(ctx)).Where("id = ?", id).First(&t).Error; err != nil {
 		return nil, notFound(err, "deduction")
 	}
-	return &t, nil
+	list := []DeductionType{t}
+	if err := r.fillPayees(ctx, list); err != nil {
+		return nil, err
+	}
+	return &list[0], nil
+}
+
+// Supplier is the name of one of a Sacco's suppliers and whether it is in
+// use; found false when it is not the Sacco's.
+func (r *Repository) Supplier(ctx context.Context, saccoID, id string) (name string, active, found bool, err error) {
+	var row struct {
+		Name     string
+		IsActive bool
+	}
+	res := r.db.WithContext(ctx).Table("suppliers").Select("name, is_active").Where("sacco_id = ? AND id = ?", saccoID, id).Scan(&row)
+	return row.Name, row.IsActive, res.RowsAffected > 0, res.Error
 }
 
 // TypeNameTaken reports whether another deduction type of the Sacco has this name.
@@ -266,8 +311,11 @@ func (r *Repository) Balance(ctx context.Context, saccoID, memberID string, befo
 	if before != nil {
 		q = q.Where("entry_date < ?", before.Format(dateLayout))
 	}
-	err = q.Scan(&row).Error
-	return row.Balance, row.Shares, err
+	if err = q.Scan(&row).Error; err != nil {
+		return 0, 0, err
+	}
+	other, err := r.ShareEntriesTotal(ctx, r.db, saccoID, memberID)
+	return row.Balance, row.Shares + other, err
 }
 
 // Transactions lists a farmer's entries over a period, voided ones included,
@@ -352,13 +400,19 @@ type takenRow struct {
 	LastDate        string
 }
 
-// takenSoFar is how much each farmer paid towards each deduction type, and when last.
+// takenSoFar is how much each farmer paid towards each deduction type, and
+// when last. Shares moved outside pay runs (opening shares, refunds,
+// transfers) count towards their savings deduction, so a farmer who brought
+// shares from before DairyGo stops at the target as if DairyGo had taken them.
 func (r *Repository) takenSoFar(ctx context.Context, saccoID string) ([]takenRow, error) {
 	var rows []takenRow
-	err := r.db.WithContext(ctx).Model(&Transaction{}).
-		Select("member_id, deduction_type_id, SUM(-amount) AS total, MAX(entry_date) AS last_date").
-		Where("sacco_id = ? AND voided_at IS NULL AND kind = ? AND deduction_type_id IS NOT NULL", saccoID, KindDeduction).
-		Group("member_id, deduction_type_id").Scan(&rows).Error
+	err := r.db.WithContext(ctx).Raw(`SELECT member_id, deduction_type_id, SUM(total) AS total, MAX(last_date) AS last_date FROM (
+			SELECT member_id, deduction_type_id, -amount AS total, entry_date AS last_date FROM member_transactions
+			 WHERE sacco_id = @s AND voided_at IS NULL AND kind = 'DEDUCTION' AND deduction_type_id IS NOT NULL
+			UNION ALL
+			SELECT member_id, deduction_type_id, amount, entry_date FROM share_entries
+			 WHERE sacco_id = @s AND voided_at IS NULL AND deduction_type_id IS NOT NULL) x
+		GROUP BY member_id, deduction_type_id`, sql.Named("s", saccoID)).Scan(&rows).Error
 	return rows, err
 }
 

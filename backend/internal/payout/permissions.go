@@ -11,6 +11,7 @@ const (
 	PermRunsManage       = "payouts.runs.manage"
 	PermRunsApprove      = "payouts.runs.approve"
 	PermRunsPay          = "payouts.runs.pay"
+	PermSharesManage     = "payouts.shares.manage"
 )
 
 // Permissions exported by the payout module.
@@ -22,6 +23,7 @@ var Permissions = []authz.Permission{
 	{Name: PermRunsManage, Description: "Allows preparing and cancelling pay runs"},
 	{Name: PermRunsApprove, Description: "Allows approving pay runs, which closes the period"},
 	{Name: PermRunsPay, Description: "Allows marking farmers as paid"},
+	{Name: PermSharesManage, Description: "Allows recording opening shares, refunding shares to members who leave and moving shares between members"},
 }
 
 func init() {

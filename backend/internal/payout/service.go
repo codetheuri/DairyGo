@@ -121,6 +121,11 @@ func validateType(t *DeductionType) error {
 	if err := validateTiers(t.Tiers); err != nil {
 		return err
 	}
+	switch t.GoesTo {
+	case GoesIncome, GoesSavings, GoesPayee:
+	default:
+		return fmt.Errorf("%w: the money goes to INCOME, SAVINGS or a PAYEE", ErrInvalid)
+	}
 	if !t.IsActive {
 		return nil
 	}
@@ -181,6 +186,23 @@ func (s *Service) SaveType(ctx context.Context, id string, req *DeductionTypeReq
 	req.apply(t)
 	if err := validateType(t); err != nil {
 		return nil, err
+	}
+	t.PayeeName = ""
+	if t.GoesTo == GoesPayee {
+		if t.PayeeID == nil {
+			return nil, fmt.Errorf("%w: choose who the money is owed to (a supplier)", ErrInvalid)
+		}
+		name, active, found, err := s.repo.Supplier(ctx, saccoID, *t.PayeeID)
+		if err != nil {
+			return nil, err
+		}
+		if !found {
+			return nil, fmt.Errorf("%w: choose one of the Sacco's suppliers", ErrInvalid)
+		}
+		if !active && (before == nil || before.PayeeID == nil || *before.PayeeID != *t.PayeeID) {
+			return nil, fmt.Errorf("%w: %s is switched off", ErrInvalid, name)
+		}
+		t.PayeeName = name
 	}
 	if taken, err := s.repo.TypeNameTaken(ctx, saccoID, t.Name, t.ID); err != nil {
 		return nil, err

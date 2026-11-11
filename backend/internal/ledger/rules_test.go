@@ -152,7 +152,7 @@ func TestOpeningRule(t *testing.T) {
 		one(t, expenseRule(expenseRow{ID: "e", ExpenseDate: day("2026-09-06"), CategoryID: "fuel", Amount: 150, AccountID: ptr("bank")}, ci)),
 		one(t, cashAccountRule(cashAccountRow{ID: "bank", Name: "Bank", OpeningBalance: 2000, OpeningDate: day("2026-01-01")})),
 	}
-	p, err := openingRule(day("2026-10-01"), before, func(link string) (Type, error) { return types[link], nil })
+	p, err := openingRule(day("2026-10-01"), before, nil, func(link string) (Type, error) { return types[link], nil })
 	if err != nil {
 		t.Fatal(err)
 	}

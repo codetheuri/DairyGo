@@ -18,9 +18,18 @@ import (
 //	Charge               Dr Farmers' accounts                              Cr Charges to farmers
 //	Adjustment (+)       Dr Adjustments                                    Cr Farmers' accounts
 //	Pay run approved     Dr Milk bought                                    Cr Farmers' accounts
-//	                     Dr Farmers' accounts (deductions)                 Cr each deduction's account
+//	                     Dr Farmers' accounts (deductions)                 Cr where each deduction's money goes:
+//	                                                                          its income account, its savings
+//	                                                                          (Share capital) or Owed to <supplier>
 //	                     Dr Farmers' accounts (net pay)                    Cr Farmers' pay due
 //	Farmers' pay sent    Dr Farmers' pay due                               Cr cash
+//	Other income         Dr cash                                           Cr the category's account
+//	Bill                 Dr the expense category's account                 Cr Suppliers
+//	Bill paid            Dr Suppliers                                      Cr cash
+//	Paid over            Dr Owed to <supplier>                             Cr cash
+//	Opening shares       Dr Opening balances                               Cr the savings' account
+//	Shares refunded      Dr the savings' account                           Cr cash
+//	Shares transferred   (nothing: both members' shares are in the same account)
 //	Cash account opened  Dr the cash account                               Cr Opening balances
 //
 // "Cash" is the account the money went through. With none named it is
@@ -37,6 +46,10 @@ const (
 	SrcFarmerEntry = "farmer_entry"
 	SrcPayRun      = "pay_run"
 	SrcCashAccount = "cash_account"
+	SrcIncome      = "other_income"
+	SrcBill        = "bill"
+	SrcSupplierPay = "supplier_payment"
+	SrcShareEntry  = "share_entry"
 	SrcBooks       = "books" // the opening journal
 )
 
@@ -44,6 +57,7 @@ const (
 var SourceLabels = map[string]string{
 	SrcSale: "Milk sale", SrcPayment: "Customer payment", SrcExpense: "Expense", SrcTransfer: "Money moved between accounts",
 	SrcFarmerEntry: "Farmer's account", SrcPayRun: "Farmers' pay", SrcCashAccount: "Account opening balance", SrcBooks: "Opening balances",
+	SrcIncome: "Other income", SrcBill: "Bill", SrcSupplierPay: "Payment to a supplier", SrcShareEntry: "Shares",
 }
 
 // pline is a line of a posting: positive amounts are debits, negative
@@ -251,9 +265,29 @@ func entryRule(r entryRow, ci cashInfo) record {
 }
 
 type runDeduction struct {
-	TypeID *string
-	Name   string
-	Amount float64 // taken from farmers (positive)
+	TypeID  *string
+	Name    string
+	Savings bool
+	PayeeID *string // taken for a supplier
+	Amount  float64 // taken from farmers (positive)
+}
+
+// link is the account a deduction's money goes to: owed to a supplier, the
+// savings' account, or the deduction's income account (charges when the
+// deduction is unknown).
+func (d runDeduction) link() string {
+	switch {
+	case d.PayeeID != nil && *d.PayeeID != "":
+		return payeeKey(*d.PayeeID)
+	case d.TypeID == nil || *d.TypeID == "":
+		if d.Savings {
+			return roleKey(RoleShareCapital)
+		}
+		return roleKey(RoleCharges)
+	case d.Savings:
+		return savingsKey(*d.TypeID)
+	}
+	return deductionKey(*d.TypeID)
 }
 
 type runPaid struct {
@@ -282,12 +316,8 @@ func runRule(r runRow, ci cashInfo) record {
 	p.dr(roleKey(RoleMilkPurchases), r.Milk, "Milk")
 	p.cr(farmers, r.Milk, "Milk")
 	for _, d := range r.Deductions {
-		link := roleKey(RoleCharges)
-		if d.TypeID != nil && *d.TypeID != "" {
-			link = deductionKey(*d.TypeID)
-		}
 		p.dr(farmers, d.Amount, d.Name)
-		p.cr(link, d.Amount, d.Name)
+		p.cr(d.link(), d.Amount, d.Name)
 	}
 	p.dr(farmers, r.Net, "Net pay")
 	p.cr(roleKey(RolePayDue), r.Net, "Net pay")
@@ -305,6 +335,121 @@ func runRule(r runRow, ci cashInfo) record {
 		q.cr(ci.cash(paid.AccountID, paid.PaidDate), paid.Amount, "")
 		rec.postings = append(rec.postings, q)
 	}
+	return rec
+}
+
+type incomeRow struct {
+	ID         string
+	IncomeDate time.Time
+	CategoryID string
+	Category   string
+	Payer      string
+	Amount     float64
+	AccountID  *string
+	Reference  *string
+	Voided     bool
+}
+
+func incomeRule(r incomeRow, ci cashInfo) record {
+	rec := record{id: r.ID, date: r.IncomeDate}
+	if r.Voided {
+		return rec
+	}
+	p := posting{date: r.IncomeDate, memo: r.Category + ": " + r.Payer, ref: r.Reference}
+	p.dr(ci.cash(r.AccountID, r.IncomeDate), r.Amount, "")
+	p.cr(incomeCategoryKey(r.CategoryID), r.Amount, "")
+	rec.postings = append(rec.postings, p)
+	return rec
+}
+
+type billRow struct {
+	ID         string
+	BillDate   time.Time
+	CategoryID string
+	Category   string
+	Supplier   string
+	Amount     float64
+	Reference  *string
+	Voided     bool
+}
+
+func billRule(r billRow) record {
+	rec := record{id: r.ID, date: r.BillDate}
+	if r.Voided {
+		return rec
+	}
+	p := posting{date: r.BillDate, memo: "Bill from " + r.Supplier + ": " + r.Category, ref: r.Reference}
+	p.dr(categoryKey(r.CategoryID), r.Amount, "")
+	p.cr(roleKey(RoleSuppliers), r.Amount, r.Supplier)
+	rec.postings = append(rec.postings, p)
+	return rec
+}
+
+type supplierPayRow struct {
+	ID          string
+	PaymentDate time.Time
+	Kind        string // BILL or PAY_OVER
+	SupplierID  string
+	Supplier    string
+	Amount      float64
+	AccountID   *string
+	Reference   *string
+	Voided      bool
+}
+
+func supplierPayRule(r supplierPayRow, ci cashInfo) record {
+	rec := record{id: r.ID, date: r.PaymentDate}
+	if r.Voided {
+		return rec
+	}
+	p := posting{date: r.PaymentDate, ref: r.Reference}
+	if r.Kind == "PAY_OVER" {
+		p.memo = "Paid over to " + r.Supplier
+		p.dr(payeeKey(r.SupplierID), r.Amount, "")
+	} else {
+		p.memo = "Bill paid: " + r.Supplier
+		p.dr(roleKey(RoleSuppliers), r.Amount, r.Supplier)
+	}
+	p.cr(ci.cash(r.AccountID, r.PaymentDate), r.Amount, "")
+	rec.postings = append(rec.postings, p)
+	return rec
+}
+
+type shareRow struct {
+	ID        string
+	EntryDate time.Time
+	Kind      string
+	TypeID    *string
+	Farmer    string
+	Amount    float64 // signed: positive adds to the shares
+	AccountID *string
+	Reference *string
+	Voided    bool
+}
+
+func shareRule(r shareRow, ci cashInfo) record {
+	rec := record{id: r.ID, date: r.EntryDate}
+	if r.Voided {
+		return rec
+	}
+	shares := roleKey(RoleShareCapital)
+	if r.TypeID != nil && *r.TypeID != "" {
+		shares = savingsKey(*r.TypeID)
+	}
+	p := posting{date: r.EntryDate, ref: r.Reference}
+	switch r.Kind {
+	case "OPENING":
+		p.memo = "Opening shares: " + r.Farmer
+		p.dr(roleKey(RoleOpening), r.Amount, "")
+		p.cr(shares, r.Amount, "")
+	case "REFUND":
+		p.memo = "Shares refunded to " + r.Farmer
+		p.dr(shares, -r.Amount, "")
+		p.cr(ci.cash(r.AccountID, r.EntryDate), -r.Amount, "")
+	default:
+		return rec // a transfer moves shares between members, not accounts
+	}
+	rec.postings = append(rec.postings, p)
 	return rec
 }
 
@@ -330,9 +475,20 @@ func cashAccountRule(r cashAccountRow) record {
 // journal on the start date. Income and expenses before then are the
 // surplus already made, so they go to Retained surplus; typeOf gives each
 // link's account type.
-func openingRule(start time.Time, before []posting, typeOf func(link string) (Type, error)) (posting, error) {
+//
+// extra are the accountant's own opening balances (fixed assets, loans);
+// Opening balances takes their other side.
+func openingRule(start time.Time, before []posting, extra []pline, typeOf func(link string) (Type, error)) (posting, error) {
 	sum := map[string]float64{}
 	retained := roleKey(RoleRetained)
+	if len(extra) > 0 {
+		own := posting{}
+		for _, l := range extra {
+			own.dr(l.link, l.amount, "")
+			own.cr(roleKey(RoleOpening), l.amount, "")
+		}
+		before = append(before, own)
+	}
 	for _, p := range before {
 		for _, l := range p.lines {
 			t, err := typeOf(l.link)

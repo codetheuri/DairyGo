@@ -54,3 +54,33 @@ final financeSummaryProvider = FutureProvider.autoDispose
     .family<FinanceSummary, Month>(
       (ref, m) => ref.watch(financeServiceProvider).summary(m.from, m.to),
     );
+
+final incomeCategoriesProvider =
+    FutureProvider.autoDispose<List<ExpenseCategory>>(
+      (ref) => ref.watch(financeServiceProvider).incomeCategories(),
+    );
+
+final otherIncomeProvider = FutureProvider.autoDispose
+    .family<IncomeList, Month>(
+      (ref, m) => ref.watch(financeServiceProvider).otherIncome(m.from, m.to),
+    );
+
+final suppliersProvider = FutureProvider.autoDispose<SupplierList>(
+  (ref) => ref.watch(financeServiceProvider).suppliers(),
+);
+
+final supplierProvider = FutureProvider.autoDispose
+    .family<SupplierDetail, String>(
+      (ref, id) => ref.watch(financeServiceProvider).supplier(id),
+    );
+
+/// After money moves: everything that shows it.
+void refreshMoney(WidgetRef ref) {
+  ref.invalidate(cashAccountsProvider);
+  ref.invalidate(cashbookProvider);
+  ref.invalidate(financeSummaryProvider);
+  ref.invalidate(expensesProvider);
+  ref.invalidate(otherIncomeProvider);
+  ref.invalidate(suppliersProvider);
+  ref.invalidate(supplierProvider);
+}

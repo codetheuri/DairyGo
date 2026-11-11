@@ -194,14 +194,21 @@ func linkedTo(c *chart, accountID string) string {
 	return ""
 }
 
-// keptByRole says a role kept from records (customers, farmers, pay due,
-// money not in an account) posts to the account.
-func keptByRole(c *chart, accountID string) bool {
+// keptByOther says an account is kept by a role, or by records of another
+// kind than kind.
+func keptByOther(c *chart, accountID, kind string) bool {
 	for key, id := range c.links {
-		if kind, rest := splitKey(key); id == accountID && kind == "role" {
+		if id != accountID {
+			continue
+		}
+		k, rest := splitKey(key)
+		if k == "role" {
 			if _, ok := keptRoles[Role(rest)]; ok {
 				return true
 			}
+		}
+		if (k == "cash_account" || k == "payee") && k != kind {
+			return true
 		}
 	}
 	return false
@@ -252,8 +259,12 @@ func linkName(c *chart, key string) string {
 		db.Table("cash_accounts").Select("name").Where("id = ?", id).Scan(&name)
 	case "expense_category":
 		db.Table("expense_categories").Select("name").Where("id = ?", id).Scan(&name)
-	case "deduction_type":
+	case "income_category":
+		db.Table("income_categories").Select("name").Where("id = ?", id).Scan(&name)
+	case "deduction_type", "savings":
 		db.Table("deduction_types").Select("name").Where("id = ?", id).Scan(&name)
+	case "payee":
+		db.Table("suppliers").Select("name").Where("id = ?", id).Scan(&name)
 	}
 	if name == "" {
 		return key
@@ -265,7 +276,8 @@ var roleDetail = map[Role]string{
 	RoleCustomers: "Milk sold on credit, less customers' payments", RoleFarmers: "Advances, charges and adjustments; milk and deductions from pay runs",
 	RolePayDue: "Net pay when a pay run is approved, until it is sent", RoleNoAccount: "Money recorded without naming an account",
 	RoleMilkSales: "Every milk sale", RoleMilkPurchases: "Farmers' milk when a pay run is approved", RoleCharges: "Charges to farmers",
-	RoleAdjustments: "Adjustments to farmers' accounts", RoleOpening: "Cash accounts' opening balances", RoleRetained: "Income less expenses before the books started",
+	RoleAdjustments: "Adjustments to farmers' accounts", RoleOpening: "Opening balances: cash accounts, shares and the accountant's own", RoleRetained: "Income less expenses before the books started",
+	RoleSuppliers: "Bills, until they are paid", RoleShareCapital: "Opening shares and refunds; savings deductions start here too",
 }
 
 // Links lists where each kind of record posts: every cash account, expense
@@ -303,8 +315,15 @@ func (s *Service) Links(ctx context.Context) ([]LinkRow, error) {
 				FROM cash_accounts WHERE sacco_id = ? ORDER BY created_at, name`, cashKey},
 			{"EXPENSE_CATEGORIES", `SELECT id, name, CASE WHEN is_active THEN '' ELSE 'Switched off' END AS detail
 				FROM expense_categories WHERE sacco_id = ? ORDER BY name`, categoryKey},
-			{"DEDUCTIONS", `SELECT id, name, CASE WHEN is_savings THEN 'Savings (the farmers'' own)' ELSE 'Kept by the Sacco' END AS detail
-				FROM deduction_types WHERE sacco_id = ? AND deleted_at IS NULL ORDER BY priority, name`, deductionKey},
+			{"INCOME_CATEGORIES", `SELECT id, name, CASE WHEN is_active THEN '' ELSE 'Switched off' END AS detail
+				FROM income_categories WHERE sacco_id = ? ORDER BY name`, incomeCategoryKey},
+			{"DEDUCTIONS", `SELECT id, name, 'Kept by the Sacco' AS detail
+				FROM deduction_types WHERE sacco_id = ? AND deleted_at IS NULL AND goes_to = 'INCOME' ORDER BY priority, name`, deductionKey},
+			{"DEDUCTIONS", `SELECT id, name, 'Savings (the farmers'' own)' AS detail
+				FROM deduction_types WHERE sacco_id = ? AND deleted_at IS NULL AND goes_to = 'SAVINGS' ORDER BY priority, name`, savingsKey},
+			{"PAYEES", `SELECT s.id, s.name, 'Taken from farmers'' pay: ' || STRING_AGG(t.name, ', ' ORDER BY t.priority, t.name) AS detail
+				FROM suppliers s JOIN deduction_types t ON t.payee_id = s.id AND t.deleted_at IS NULL
+				WHERE s.sacco_id = ? GROUP BY s.id, s.name ORDER BY s.name`, payeeKey},
 		}
 		row := func(group, key, name, detail string) error {
 			a, err := c.account(key)
@@ -388,8 +407,10 @@ func (s *Service) SetLink(ctx context.Context, req *SetLinkRequest) ([]LinkRow, 
 		}
 		// An account kept from records takes only those records, or the
 		// check against them would fail; cash accounts may share one.
+		// Cash accounts may share an account with each other, and payees
+		// with each other, since the check sums them by account.
 		kind, _ := splitKey(key)
-		if what := c.kept(a.ID); what != "" && (kind != "cash_account" || keptByRole(c, a.ID)) {
+		if what := c.kept(a.ID); what != "" && ((kind != "cash_account" && kind != "payee") || keptByOther(c, a.ID, kind)) {
 			return fmt.Errorf("%w: %s follows %s; choose another account", ErrConflict, a.Name, strings.ToLower(what[:1])+what[1:])
 		}
 		if err := c.link(key, a.ID); err != nil {

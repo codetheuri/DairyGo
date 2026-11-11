@@ -177,4 +177,34 @@ class BooksService {
     );
     return AccountLedger.fromJson(data['ledger'] as Map<String, dynamic>);
   }
+
+  Future<OpeningBalances> opening() async {
+    final data = await apiData(
+      () => _dio.get('$_base/opening'),
+      'Could not load the opening balances',
+    );
+    return OpeningBalances.fromJson(data['opening'] as Map<String, dynamic>);
+  }
+
+  /// Sets one account's opening balance; 0 removes it.
+  Future<OpeningBalances> setOpening(
+    String accountId, {
+    double debit = 0,
+    double credit = 0,
+    String? memo,
+  }) async {
+    final data = await apiData(
+      () => _dio.put(
+        '$_base/opening',
+        data: {
+          'account_id': accountId,
+          'debit': debit,
+          'credit': credit,
+          'memo': ?memo,
+        },
+      ),
+      'The opening balance could not be saved',
+    );
+    return OpeningBalances.fromJson(data['opening'] as Map<String, dynamic>);
+  }
 }

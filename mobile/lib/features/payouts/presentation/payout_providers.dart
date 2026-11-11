@@ -50,3 +50,8 @@ String periodLabel(DateTime from, DateTime to) {
 }
 
 String shortDate(DateTime d) => DateFormat('d MMM y').format(d);
+
+final farmerSharesProvider = FutureProvider.autoDispose
+    .family<FarmerShares, String>(
+      (ref, memberId) => ref.watch(payoutServiceProvider).shares(memberId),
+    );

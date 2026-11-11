@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
@@ -468,16 +469,21 @@ type FinanceSummary struct {
 	Fees          []NamedAmount `json:"fees" doc:"Deductions kept as income (registration, subscriptions, transaction costs…)"`
 	FeesTotal     float64       `json:"fees_total"`
 	FarmerCharges float64       `json:"farmer_charges" doc:"Charged to farmers (feeds, services)"`
-	Expenses      []NamedAmount `json:"expenses" doc:"By category"`
+	OtherIncome   []NamedAmount `json:"other_income" doc:"Money received besides milk sales, by category"`
+	OtherTotal    float64       `json:"other_income_total"`
+	Expenses      []NamedAmount `json:"expenses" doc:"By category: expenses paid, and bills dated in the period"`
 	ExpensesTotal float64       `json:"expenses_total"`
-	Surplus       float64       `json:"surplus" doc:"Gross margin + fees + charges − expenses; negative is a deficit"`
+	Surplus       float64       `json:"surplus" doc:"Gross margin + fees + charges + other income − expenses; negative is a deficit"`
 	SharesRaised  []NamedAmount `json:"shares_raised" doc:"Savings taken from farmers in the period (not income)"`
+	HeldForOthers []NamedAmount `json:"held_for_others" doc:"Deductions taken for suppliers in the period, to pay over (not income)"`
 
 	Cash         float64 `json:"cash" doc:"Money in all accounts now"`
 	Receivables  float64 `json:"receivables" doc:"What customers owe now"`
 	FarmerPayDue float64 `json:"farmer_pay_due" doc:"Approved farmers' pay not yet sent"`
 	FarmersOwe   float64 `json:"farmers_owe" doc:"Advances, charges and arrears farmers owe now"`
-	ShareCapital float64 `json:"share_capital" doc:"All shares taken from farmers to date"`
+	ShareCapital float64 `json:"share_capital" doc:"Members' shares now"`
+	OwedBills    float64 `json:"owed_bills" doc:"Bills not yet paid"`
+	HeldToPay    float64 `json:"held_to_pay_over" doc:"Money taken for suppliers, not yet paid over"`
 
 	// Money in the period that names no account, so is missing from the
 	// cashbooks (recorded before every payment named its account).
@@ -500,9 +506,19 @@ func (s *Service) Summary(ctx context.Context, from, to string) (*FinanceSummary
 	steps := []func() error{
 		func() (e error) { out.MilkSales, e = s.repo.MilkSales(ctx, saccoID, start, end); return },
 		func() (e error) { out.MilkPurchases, e = s.repo.MilkPurchases(ctx, saccoID, start, end); return },
-		func() (e error) { out.Fees, out.SharesRaised, e = s.repo.Deductions(ctx, saccoID, start, end); return },
+		func() (e error) {
+			out.Fees, out.SharesRaised, out.HeldForOthers, e = s.repo.Deductions(ctx, saccoID, start, end)
+			return
+		},
 		func() (e error) { out.FarmerCharges, e = s.repo.FarmerCharges(ctx, saccoID, start, end); return },
+		func() (e error) { out.OtherIncome, e = s.repo.OtherIncomeByCategory(ctx, saccoID, start, end); return },
 		func() (e error) { out.Expenses, e = s.repo.ExpensesByCategory(ctx, saccoID, start, end); return },
+		func() error {
+			bills, err := s.repo.BillsByCategory(ctx, saccoID, start, end)
+			out.Expenses = mergeAmounts(out.Expenses, bills)
+			return err
+		},
+		func() (e error) { out.OwedBills, out.HeldToPay, e = s.repo.SuppliersOwed(ctx, saccoID); return },
 		func() (e error) { _, out.Cash, e = s.Accounts(ctx); return },
 		func() (e error) { out.Receivables, e = s.repo.Receivables(ctx, saccoID); return },
 		func() (e error) { out.FarmerPayDue, e = s.repo.FarmerPayDue(ctx, saccoID); return },
@@ -524,11 +540,33 @@ func (s *Service) Summary(ctx context.Context, from, to string) (*FinanceSummary
 	for _, e := range out.Expenses {
 		out.ExpensesTotal += e.Amount
 	}
+	for _, i := range out.OtherIncome {
+		out.OtherTotal += i.Amount
+	}
+	out.OtherTotal = round2(out.OtherTotal)
 	out.MilkSales, out.MilkPurchases = round2(out.MilkSales), round2(out.MilkPurchases)
 	out.GrossMargin = round2(out.MilkSales - out.MilkPurchases)
 	out.FeesTotal, out.ExpensesTotal, out.FarmerCharges = round2(out.FeesTotal), round2(out.ExpensesTotal), round2(out.FarmerCharges)
-	out.Surplus = round2(out.GrossMargin + out.FeesTotal + out.FarmerCharges - out.ExpensesTotal)
+	out.Surplus = round2(out.GrossMargin + out.FeesTotal + out.FarmerCharges + out.OtherTotal - out.ExpensesTotal)
 	out.Receivables, out.FarmerPayDue = round2(out.Receivables), round2(out.FarmerPayDue)
 	out.FarmersOwe, out.ShareCapital = round2(out.FarmersOwe), round2(out.ShareCapital)
 	return out, nil
+}
+
+// mergeAmounts adds b's amounts to a's by name, largest first.
+func mergeAmounts(a, b []NamedAmount) []NamedAmount {
+	idx := map[string]int{}
+	out := make([]NamedAmount, 0, len(a)+len(b))
+	for _, list := range [][]NamedAmount{a, b} {
+		for _, n := range list {
+			if i, ok := idx[n.Name]; ok {
+				out[i].Amount = round2(out[i].Amount + n.Amount)
+				continue
+			}
+			idx[n.Name] = len(out)
+			out = append(out, NamedAmount{n.Name, round2(n.Amount)})
+		}
+	}
+	sort.SliceStable(out, func(i, k int) bool { return out[i].Amount > out[k].Amount })
+	return out
 }

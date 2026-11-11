@@ -1,0 +1,48 @@
+{
+  "status": 200,
+  "body": {
+    "success": true,
+    "message": "Shares",
+    "data": {
+      "shares": {
+        "member_id": "cbaa46c2-6cd8-4401-aab3-b3b2c9315152",
+        "balance": 5000,
+        "by_savings": [
+          {
+            "deduction_type_id": "b58ea224-428b-4fa2-9ae2-5dd03987a87e",
+            "name": "Shares",
+            "balance": 5000
+          }
+        ],
+        "lines": [
+          {
+            "id": "d56b8797-0c15-4efe-b50c-b3200b20bd81",
+            "date": "2026-11-11T00:00:00Z",
+            "kind": "TRANSFER_OUT",
+            "savings": "Shares",
+            "description": "To Ann Njeri: To her daughter",
+            "amount": -4000,
+            "voided_at": "2026-11-11T17:56:49.403721+03:00",
+            "void_reason": "Family changed their mind"
+          },
+          {
+            "id": "b229c646-d2ef-45d9-88f0-52936dca93b4",
+            "date": "2026-10-31T00:00:00Z",
+            "kind": "DEDUCTION",
+            "savings": "Shares",
+            "description": "Shares",
+            "amount": 200
+          },
+          {
+            "id": "b118bbf0-f5db-4f7f-ad21-885e48feb3f2",
+            "date": "2026-09-30T00:00:00Z",
+            "kind": "OPENING",
+            "savings": "Shares",
+            "description": "Shares held before DairyGo: From the old register",
+            "amount": 4800
+          }
+        ]
+      }
+    }
+  }
+}

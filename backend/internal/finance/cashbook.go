@@ -17,6 +17,10 @@ const (
 	SrcExpense         Source = "EXPENSE"
 	SrcAdvance         Source = "ADVANCE"
 	SrcFarmerPay       Source = "FARMER_PAY"
+	SrcOtherIncome     Source = "OTHER_INCOME"
+	SrcBillPayment     Source = "BILL_PAYMENT"
+	SrcPayOver         Source = "PAY_OVER"
+	SrcShareRefund     Source = "SHARE_REFUND"
 )
 
 // Movement is money in or out of an account, as read from wherever it was

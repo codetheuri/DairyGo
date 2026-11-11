@@ -142,6 +142,7 @@ class UserEntity with _$UserEntity {
   bool get canPreparePayRuns => can('payouts.runs.manage', whenUnknown: false);
   bool get canApprovePayRuns => can('payouts.runs.approve', whenUnknown: false);
   bool get canPayFarmers => can('payouts.runs.pay', whenUnknown: false);
+  bool get canManageShares => can('payouts.shares.manage', whenUnknown: false);
 
   // The Sacco's own money: accounts, expenses, income and expenditure.
   bool get seesFinance => can('finance.read', whenUnknown: false);

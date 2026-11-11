@@ -4,6 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/network/api_call.dart';
+import '../../../finance/data/finance_models.dart';
+import '../../../finance/presentation/finance_providers.dart';
+import '../../../finance/presentation/widgets/money_flow_sheets.dart';
 import '../../data/payout_models.dart';
 import '../payout_providers.dart';
 
@@ -51,7 +54,8 @@ class _DeductionFormSheetState extends ConsumerState<DeductionFormSheet> {
   late String _base = d?.base ?? 'GROSS';
   late String _frequency = d?.frequency ?? 'EVERY_RUN';
   late String _appliesTo = d?.appliesTo ?? 'ALL';
-  late bool _savings = d?.isSavings ?? false;
+  late String _goesTo = d?.goesTo ?? 'INCOME';
+  late String? _payeeId = d?.payeeId;
   late bool _active = d?.isActive ?? true;
   final List<_Band> _bands = [];
   bool _busy = false;
@@ -84,6 +88,10 @@ class _DeductionFormSheetState extends ConsumerState<DeductionFormSheet> {
   }
 
   Future<void> _save() async {
+    if (_goesTo == 'PAYEE' && _payeeId == null) {
+      setState(() => _error = 'Choose who the money is paid over to.');
+      return;
+    }
     final tiers = <Map<String, dynamic>>[];
     if (_method == 'TIERED') {
       for (final b in _bands) {
@@ -109,7 +117,8 @@ class _DeductionFormSheetState extends ConsumerState<DeductionFormSheet> {
           'target_amount': double.tryParse(_target.text.trim()) ?? 0,
         'applies_to': _appliesTo,
         'priority': int.tryParse(_priority.text.trim()) ?? 50,
-        'is_savings': _savings,
+        'goes_to': _goesTo,
+        if (_goesTo == 'PAYEE') 'payee_id': _payeeId,
         'is_active': _active,
       });
       ref.invalidate(deductionTypesProvider);
@@ -305,16 +314,41 @@ class _DeductionFormSheetState extends ConsumerState<DeductionFormSheet> {
                   ),
                 ),
               ),
-            const SizedBox(height: 8),
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              value: _savings,
-              onChanged: _busy ? null : (v) => setState(() => _savings = v),
-              title: const Text('Savings (like shares)'),
-              subtitle: const Text(
-                'Belongs to the farmer. Taken only from what is left, never as a debt.',
+            _label('Where does the money go?'),
+            _choices(
+              const [
+                ('INCOME', 'The Sacco keeps it'),
+                ('SAVINGS', 'Farmer\'s savings'),
+                ('PAYEE', 'Paid over to someone'),
+              ],
+              _goesTo,
+              (v) => _goesTo = v,
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Text(
+                switch (_goesTo) {
+                  'SAVINGS' =>
+                    'Like shares: belongs to the farmer. Taken only from what is left, never as a debt.',
+                  'PAYEE' =>
+                    'Held for a supplier (an insurer, a union) until the Sacco pays it over. Not the Sacco\'s income.',
+                  _ => 'The Sacco\'s income, like a fee or subscription.',
+                },
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppColors.textSecondary,
+                ),
               ),
             ),
+            if (_goesTo == 'PAYEE') ...[
+              const SizedBox(height: 10),
+              _PayeePicker(
+                value: _payeeId,
+                enabled: !_busy,
+                onChanged: (v) => setState(() => _payeeId = v),
+              ),
+            ],
+            const SizedBox(height: 8),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
               value: _active,
@@ -348,6 +382,60 @@ class _DeductionFormSheetState extends ConsumerState<DeductionFormSheet> {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// The supplier a deduction's money is paid over to, with a way to add one.
+class _PayeePicker extends ConsumerWidget {
+  final String? value;
+  final bool enabled;
+  final ValueChanged<String?> onChanged;
+
+  const _PayeePicker({
+    required this.value,
+    required this.enabled,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final suppliers =
+        ref.watch(suppliersProvider).valueOrNull?.suppliers ??
+        const <Supplier>[];
+    final shown = [
+      for (final s in suppliers)
+        if (s.isActive || s.id == value) s,
+    ];
+    return Row(
+      children: [
+        Expanded(
+          child: DropdownButtonFormField<String>(
+            key: ValueKey(value),
+            initialValue: shown.any((s) => s.id == value) ? value : null,
+            isExpanded: true,
+            decoration: const InputDecoration(labelText: 'Paid over to'),
+            items: [
+              for (final s in shown)
+                DropdownMenuItem(
+                  value: s.id,
+                  child: Text(s.name, overflow: TextOverflow.ellipsis),
+                ),
+            ],
+            onChanged: enabled ? onChanged : null,
+          ),
+        ),
+        IconButton(
+          tooltip: 'Add a supplier',
+          onPressed: !enabled
+              ? null
+              : () async {
+                  final s = await SupplierFormSheet.show(context);
+                  if (s != null) onChanged(s.id);
+                },
+          icon: const Icon(Icons.person_add_alt_rounded),
+        ),
+      ],
     );
   }
 }

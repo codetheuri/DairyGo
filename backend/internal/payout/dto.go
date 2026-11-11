@@ -21,7 +21,9 @@ type DeductionTypeRequest struct {
 	Target      *float64 `json:"target_amount,omitempty" minimum:"0" doc:"UNTIL_TARGET: stop once a farmer has paid this much"`
 	AppliesTo   *string  `json:"applies_to,omitempty" enum:"ALL,ENROLLED" doc:"Every farmer, or only farmers added to it"`
 	Priority    *int     `json:"priority,omitempty" doc:"Lower is taken first"`
-	IsSavings   *bool    `json:"is_savings,omitempty" doc:"Builds the farmer's share balance; taken only from what is left, never as arrears"`
+	IsSavings   *bool    `json:"is_savings,omitempty" doc:"Builds the farmer's share balance; taken only from what is left, never as arrears. Older apps send this; newer ones send goes_to"`
+	GoesTo      *string  `json:"goes_to,omitempty" enum:"INCOME,SAVINGS,PAYEE" doc:"Where the money goes: the Sacco's INCOME, the farmer's SAVINGS (shares), or owed to a PAYEE (a supplier) and paid over"`
+	PayeeID     *string  `json:"payee_id,omitempty" doc:"PAYEE: the supplier the money is owed to"`
 	IsActive    *bool    `json:"is_active,omitempty" doc:"Switched off deductions are not taken"`
 }
 
@@ -56,9 +58,25 @@ func (r *DeductionTypeRequest) apply(t *DeductionType) {
 	if r.Priority != nil {
 		t.Priority = *r.Priority
 	}
-	if r.IsSavings != nil {
-		t.IsSavings = *r.IsSavings
+	switch {
+	case r.GoesTo != nil:
+		t.GoesTo = GoesTo(strings.ToUpper(*r.GoesTo))
+	case r.IsSavings != nil && *r.IsSavings:
+		t.GoesTo = GoesSavings
+	case r.IsSavings != nil && t.GoesTo == GoesSavings:
+		// An older app switched savings off: the money is the Sacco's.
+		t.GoesTo = GoesIncome
 	}
+	if r.PayeeID != nil {
+		t.PayeeID = trimOrNil(*r.PayeeID)
+	}
+	if t.GoesTo == "" {
+		t.GoesTo = GoesIncome
+	}
+	if t.GoesTo != GoesPayee {
+		t.PayeeID = nil
+	}
+	t.IsSavings = t.GoesTo == GoesSavings
 	if r.IsActive != nil {
 		t.IsActive = *r.IsActive
 	}

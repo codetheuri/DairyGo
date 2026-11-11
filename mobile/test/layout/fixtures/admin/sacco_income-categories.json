@@ -1,0 +1,51 @@
+{
+  "status": 200,
+  "body": {
+    "success": true,
+    "message": "Income categories",
+    "data": {
+      "categories": [
+        {
+          "id": "bbbbc0d0-731c-4bd4-a383-83734f01699f",
+          "sacco_id": "5d5281fd-1856-4d8b-a66b-70e0a97f14a0",
+          "name": "Grants and donations",
+          "is_active": true,
+          "created_at": "2026-11-11T17:56:24.975181+03:00",
+          "updated_at": "2026-11-11T17:56:24.975181+03:00"
+        },
+        {
+          "id": "3db49850-60be-4505-90a4-e69960ccec1b",
+          "sacco_id": "5d5281fd-1856-4d8b-a66b-70e0a97f14a0",
+          "name": "Interest received",
+          "is_active": true,
+          "created_at": "2026-11-11T17:56:24.975181+03:00",
+          "updated_at": "2026-11-11T17:56:24.975181+03:00"
+        },
+        {
+          "id": "93be654a-9c9b-44b5-bfcf-3e69a238e320",
+          "sacco_id": "5d5281fd-1856-4d8b-a66b-70e0a97f14a0",
+          "name": "Other income",
+          "is_active": true,
+          "created_at": "2026-11-11T17:56:24.975181+03:00",
+          "updated_at": "2026-11-11T17:56:24.975181+03:00"
+        },
+        {
+          "id": "54b3e48b-efdc-4186-a299-d85198dbb256",
+          "sacco_id": "5d5281fd-1856-4d8b-a66b-70e0a97f14a0",
+          "name": "Rent received",
+          "is_active": true,
+          "created_at": "2026-11-11T17:56:24.975181+03:00",
+          "updated_at": "2026-11-11T17:56:24.975181+03:00"
+        },
+        {
+          "id": "8933c0a3-4c20-4b11-b182-6a4b73de6749",
+          "sacco_id": "5d5281fd-1856-4d8b-a66b-70e0a97f14a0",
+          "name": "Sale of items",
+          "is_active": true,
+          "created_at": "2026-11-11T17:56:24.975181+03:00",
+          "updated_at": "2026-11-11T17:56:24.975181+03:00"
+        }
+      ]
+    }
+  }
+}

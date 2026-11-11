@@ -1,0 +1,67 @@
+{
+  "status": 200,
+  "body": {
+    "success": true,
+    "message": "Supplier",
+    "data": {
+      "supplier": {
+        "id": "f275d3c7-5fd1-4e4b-a6e3-e45c70a86eb8",
+        "sacco_id": "5d5281fd-1856-4d8b-a66b-70e0a97f14a0",
+        "name": "CIC Insurance",
+        "phone": "0722000000",
+        "notes": "Paybill 600100",
+        "is_active": true,
+        "created_by_id": 7,
+        "created_at": "2026-11-11T17:56:32.742846+03:00",
+        "updated_at": "2026-11-11T17:56:32.741108+03:00",
+        "bills_owed": 0,
+        "held": 0,
+        "is_payee": true
+      },
+      "bills": [],
+      "payments": [
+        {
+          "id": "5a65e08a-aa7b-4709-97e4-c308e09f4c26",
+          "sacco_id": "5d5281fd-1856-4d8b-a66b-70e0a97f14a0",
+          "supplier_id": "f275d3c7-5fd1-4e4b-a6e3-e45c70a86eb8",
+          "kind": "PAY_OVER",
+          "cash_account_id": "bf43e0f1-e058-4839-a43d-fa97cd49d154",
+          "payment_date": "2026-11-05T00:00:00Z",
+          "amount": 300,
+          "recorded_by_id": 7,
+          "created_at": "2026-11-11T17:56:39.224564+03:00",
+          "updated_at": "2026-11-11T17:56:39.224564+03:00",
+          "account_name": "Bank"
+        },
+        {
+          "id": "409581ea-6db4-446f-b1b0-8155c2154437",
+          "sacco_id": "5d5281fd-1856-4d8b-a66b-70e0a97f14a0",
+          "supplier_id": "f275d3c7-5fd1-4e4b-a6e3-e45c70a86eb8",
+          "kind": "PAY_OVER",
+          "cash_account_id": "bf43e0f1-e058-4839-a43d-fa97cd49d154",
+          "payment_date": "2026-11-05T00:00:00Z",
+          "amount": 300,
+          "reference": "CIC-NOV",
+          "recorded_by_id": 7,
+          "voided_at": "2026-11-11T17:56:39.055104+03:00",
+          "void_reason": "Wrong account",
+          "created_at": "2026-11-11T17:56:38.549447+03:00",
+          "updated_at": "2026-11-11T17:56:39.056354+03:00",
+          "account_name": "Bank"
+        }
+      ],
+      "taken": [
+        {
+          "pay_run_id": "86cf53d5-a6f4-4982-a627-e20d3f70085b",
+          "date": "2026-10-31T00:00:00Z",
+          "name": "Insurance",
+          "farmers": 3,
+          "amount": 300
+        }
+      ],
+      "deductions": [
+        "Insurance"
+      ]
+    }
+  }
+}

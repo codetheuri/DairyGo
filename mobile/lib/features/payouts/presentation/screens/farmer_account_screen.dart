@@ -14,6 +14,7 @@ import '../../data/payout_models.dart';
 import '../payout_providers.dart';
 import '../widgets/account_entry_sheet.dart';
 import '../widgets/farmer_deduction_sheet.dart';
+import '../widgets/shares_section.dart';
 
 /// A farmer's account: what the Sacco owes them (or they owe), their shares,
 /// advances to recover, their deductions and the statement.
@@ -62,6 +63,7 @@ class FarmerAccountScreen extends ConsumerWidget {
           data: (a) => RefreshIndicator(
             onRefresh: () {
               ref.invalidate(farmerDeductionsProvider(memberId));
+              ref.invalidate(farmerSharesProvider(memberId));
               return ref.refresh(farmerAccountProvider(memberId).future);
             },
             child: ListView(
@@ -109,6 +111,12 @@ class FarmerAccountScreen extends ConsumerWidget {
                 _Deductions(
                   memberId: memberId,
                   canChange: user?.canManageDeductions ?? false,
+                ),
+                const SizedBox(height: 20),
+                SharesSection(
+                  memberId: memberId,
+                  farmer: name,
+                  canManage: user?.canManageShares ?? false,
                 ),
                 const SizedBox(height: 20),
                 const Text(

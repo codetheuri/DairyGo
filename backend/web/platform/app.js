@@ -186,6 +186,7 @@ function openForm({ title, intro, fields, submitLabel = 'Save', danger = false, 
       input = h('textarea', { name: f.name, required: f.required, rows: 3, placeholder: f.placeholder || '', value: f.value || '' });
     } else {
       input = h('input', { name: f.name, type: f.type || 'text', required: f.required, placeholder: f.placeholder || '', value: f.value || '', autocomplete: 'off' });
+      if (f.accept) input.accept = f.accept;
       if (f.minlength) input.minLength = f.minlength;
       if (f.max) input.max = f.max;
       if (f.step) input.step = f.step;
@@ -202,7 +203,7 @@ function openForm({ title, intro, fields, submitLabel = 'Save', danger = false, 
       error.hidden = true;
       submit.disabled = true;
       const values = {};
-      Object.entries(inputs).forEach(([k, el]) => { values[k] = el.value.trim(); });
+      Object.entries(inputs).forEach(([k, el]) => { values[k] = el.type === 'file' ? el.files[0] : el.value.trim(); });
       try {
         await onSubmit(values);
         dialog.close();
@@ -912,9 +913,53 @@ async function farmersTab(sacco) {
     },
   });
 
+  // Shares farmers held before DairyGo, from the Sacco's spreadsheet: check
+  // the file, then import. Farmers who already have opening shares are left
+  // alone, so the same file can be run again after fixing unknown numbers.
+  const readFile = (file) => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error('Could not read the file'));
+    reader.readAsDataURL(file);
+  });
+  const importShares = () => openForm({
+    title: 'Import opening shares',
+    intro: 'The shares each farmer held before DairyGo, from an Excel or CSV file with a membership number column (e.g. "Member No") '
+      + 'and a shares column (e.g. "Shares"). They count towards the Shares deduction\'s target and go into the books as opening balances. '
+      + 'You see what would be imported before anything is saved.',
+    submitLabel: 'Check the file',
+    fields: [
+      { name: 'file', label: 'Spreadsheet (.xlsx or .csv)', type: 'file', accept: '.xlsx,.csv', required: true, full: true },
+      { name: 'date', label: 'Held on (usually the day before the books start)', type: 'date', required: true, max: new Date().toISOString().slice(0, 10) },
+      { name: 'deduction_type_id', label: 'Savings deduction (only if the Sacco has more than one)', placeholder: 'e.g. Shares' },
+    ],
+    onSubmit: async (v) => {
+      if (!v.file) throw new Error('Choose the spreadsheet');
+      if (v.file.size > 5 * 1024 * 1024) throw new Error('The file must be under 5 MB');
+      const body = { file: await readFile(v.file), date: v.date, deduction_type_id: v.deduction_type_id || undefined };
+      const p = await api('POST', `/admin/saccos/${sacco.id}/shares/import`, { ...body, preview: true });
+      if (p.problems.length) throw new Error(`Fix the file first: ${p.problems.slice(0, 5).join('; ')}${p.problems.length > 5 ? ` (and ${p.problems.length - 5} more)` : ''}`);
+      const notes = [`${plural(p.added, 'farmer')}, ${fmt.kes(p.total)} in ${p.savings}`];
+      if (p.unknown.length) notes.push(`not found (left out): ${p.unknown.slice(0, 10).join(', ')}${p.unknown.length > 10 ? '…' : ''}`);
+      if (p.already_there.length) notes.push(`already have opening shares (left alone): ${p.already_there.length}`);
+      setTimeout(() => openForm({
+        title: p.added ? `Import shares for ${plural(p.added, 'farmer')}?` : 'Nothing to import',
+        intro: notes.join('; ') + '.',
+        submitLabel: p.added ? 'Import shares' : 'Close',
+        fields: [],
+        onSubmit: async () => {
+          if (!p.added) return;
+          const r = await api('POST', `/admin/saccos/${sacco.id}/shares/import`, body);
+          toast(`Opening shares recorded for ${plural(r.added, 'farmer')} (${fmt.kes(r.total)})`);
+        },
+      }), 0);
+    },
+  });
+
   return h('div', {},
     h('div', { class: 'page-head' }, h('div', { class: 'filters' }, search, status),
       h('div', { class: 'actions' },
+        h('button', { text: 'Import opening shares…', onclick: importShares }),
         h('button', { text: 'Merge farmers…', onclick: mergeFarmers }),
         h('button', { class: 'primary', text: 'Register farmer', onclick: addFarmer }))),
     holder);

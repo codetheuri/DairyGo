@@ -2,6 +2,7 @@ package export
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"time"
@@ -274,6 +275,7 @@ func deref(s *string) string {
 type DeductionTotal struct {
 	Name      string
 	IsSavings bool
+	Payee     *string // the supplier it was taken for
 	Farmers   int
 	Amount    float64
 }
@@ -289,11 +291,12 @@ type FarmerDeduction struct {
 // Deductions totals pay-run deductions in a period, by deduction and by farmer.
 func (r *Repository) Deductions(ctx context.Context, saccoID string, from, to time.Time) ([]DeductionTotal, []FarmerDeduction, error) {
 	var totals []DeductionTotal
-	err := r.db.WithContext(ctx).Raw(`SELECT COALESCE(d.name, t.description) AS name, t.is_savings,
+	err := r.db.WithContext(ctx).Raw(`SELECT COALESCE(d.name, t.description) AS name, t.is_savings, s.name AS payee,
 			COUNT(DISTINCT t.member_id) AS farmers, SUM(-t.amount) AS amount
 		FROM member_transactions t LEFT JOIN deduction_types d ON d.id = t.deduction_type_id
+		LEFT JOIN suppliers s ON s.id = t.payee_id
 		WHERE t.sacco_id = ? AND t.kind = 'DEDUCTION' AND t.voided_at IS NULL AND t.entry_date BETWEEN ? AND ?
-		GROUP BY COALESCE(d.name, t.description), t.is_savings ORDER BY 4 DESC`,
+		GROUP BY COALESCE(d.name, t.description), t.is_savings, s.name ORDER BY 5 DESC`,
 		saccoID, from.Format(dateLayout), to.Format(dateLayout)).Scan(&totals).Error
 	if err != nil {
 		return nil, nil, err
@@ -321,16 +324,20 @@ type FarmerBalance struct {
 }
 
 // FarmerBalances lists farmers whose account is not zero or who hold shares.
+// Shares are the savings taken in pay runs plus shares moved outside them.
 func (r *Repository) FarmerBalances(ctx context.Context, saccoID string) ([]FarmerBalance, error) {
 	var out []FarmerBalance
 	err := r.db.WithContext(ctx).Raw(`SELECT m.membership_number, m.first_name || ' ' || m.last_name AS farmer_name, m.phone,
-			SUM(t.amount) AS balance,
-			SUM(CASE WHEN t.kind = 'ADVANCE' AND t.pay_run_id IS NULL THEN -t.amount ELSE 0 END) AS open_advances,
-			SUM(CASE WHEN t.is_savings THEN -t.amount ELSE 0 END) AS shares
-		FROM member_transactions t JOIN members m ON m.id = t.member_id
-		WHERE t.sacco_id = ? AND t.voided_at IS NULL
-		GROUP BY m.id, m.membership_number, m.first_name, m.last_name, m.phone
-		HAVING SUM(t.amount) <> 0 OR SUM(CASE WHEN t.is_savings THEN -t.amount ELSE 0 END) <> 0
-		ORDER BY SUM(t.amount), m.membership_number`, saccoID).Scan(&out).Error
+			COALESCE(a.balance, 0) AS balance, COALESCE(a.open_advances, 0) AS open_advances,
+			COALESCE(a.shares, 0) + COALESCE(e.shares, 0) AS shares
+		FROM members m
+		LEFT JOIN (SELECT member_id, SUM(amount) AS balance,
+				SUM(CASE WHEN kind = 'ADVANCE' AND pay_run_id IS NULL THEN -amount ELSE 0 END) AS open_advances,
+				SUM(CASE WHEN is_savings THEN -amount ELSE 0 END) AS shares
+			FROM member_transactions WHERE sacco_id = @s AND voided_at IS NULL GROUP BY member_id) a ON a.member_id = m.id
+		LEFT JOIN (SELECT member_id, SUM(amount) AS shares FROM share_entries
+			WHERE sacco_id = @s AND voided_at IS NULL GROUP BY member_id) e ON e.member_id = m.id
+		WHERE m.sacco_id = @s AND (COALESCE(a.balance, 0) <> 0 OR COALESCE(a.shares, 0) + COALESCE(e.shares, 0) <> 0)
+		ORDER BY COALESCE(a.balance, 0), m.membership_number`, sql.Named("s", saccoID)).Scan(&out).Error
 	return out, err
 }

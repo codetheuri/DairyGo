@@ -23,9 +23,16 @@ records don't cover, and decides which account each kind of record posts to.
 | Charge (feeds, AI…) | Farmers' accounts | Charges to farmers |
 | Adjustment in the farmer's favour | Adjustments to farmers' accounts | Farmers' accounts |
 | Pay run approved | Milk bought from farmers | Farmers' accounts |
-| | Farmers' accounts (each deduction) | the deduction's account |
+| | Farmers' accounts (each deduction) | where its money goes: its income account, Share capital (savings), or Owed to *supplier* |
 | | Farmers' accounts (net pay) | Farmers' pay due |
 | Farmers' pay sent (one journal per batch marked paid) | Farmers' pay due | cash |
+| Other income | cash | the income category's account |
+| Bill | the expense category's account | Suppliers |
+| Bill paid (each payment) | Suppliers | cash |
+| Money held for a supplier paid over | Owed to *supplier* | cash |
+| Opening shares | Opening balances | the savings' account (Share capital) |
+| Shares refunded | the savings' account | cash |
+| Shares passed to another member | nothing: both members' shares are in the same account | |
 | Cash account opened | the cash account | Opening balances |
 
 "Cash" is the account the money went through (phase 1 makes every payment
@@ -97,30 +104,33 @@ and an account is never deleted.
 | 1300 | Farmers' accounts | Asset | yes |
 | 1500 | Fixed assets | Asset | |
 | 2000 | Farmers' pay due | Liability | yes |
-| 2100 | Suppliers | Liability | |
-| 2200 | Loans | Liability | |
-| 3001… | one per savings deduction (shares) | Equity | |
+| 2100 | Suppliers | Liability | yes: bills not yet paid |
+| 2201… | Owed to *supplier*, one per supplier a deduction pays over to | Liability | yes: money held, not yet paid over |
+| 2500 | Loans | Liability | |
+| 3000 | Share capital (every savings deduction starts here) | Equity | |
 | 3200 | Retained surplus | Equity | |
 | 3900 | Opening balances | Equity | |
 | 4000 | Milk sales | Income | |
-| 4101… | one per other deduction (fees) | Income | |
+| 4101… | one per deduction the Sacco keeps (fees) | Income | |
 | 4200 | Charges to farmers | Income | |
-| 4300 | Other income | Income | |
+| 4301… | one per income category (other income) | Income | |
 | 5000 | Milk bought from farmers | Expense | |
 | 5100 | Adjustments to farmers' accounts | Expense | |
 | 6001… | one per expense category | Expense | |
 
-A new cash account, category or deduction gets its own account the first
-time it is needed.
+A new cash account, category, deduction or payee gets its own account the
+first time it is needed.
 
 ### Where records post (`/books/links`)
 
 What a record posts to is data (`ledger_links`, keys like
-`cash_account:<id>`, `expense_category:<id>`, `deduction_type:<id>`,
-`role:CUSTOMERS`). The accountant points one at another account of an allowed
-kind: cash accounts at assets; expense categories at expenses or assets (a
-cooler bought is an asset); deductions at income, equity or liability (money
-held for someone else). A change applies **from now on**; entries already
+`cash_account:<id>`, `expense_category:<id>`, `income_category:<id>`,
+`deduction_type:<id>` (a deduction the Sacco keeps), `savings:<id>` (a savings
+deduction), `payee:<supplier id>`, `role:CUSTOMERS`). The accountant points one
+at another account of an allowed kind: cash accounts at assets; expense
+categories at expenses or assets (a cooler bought is an asset); income
+categories and kept deductions at income; savings at equity or liability;
+payees at liabilities (payees may share one, like cash accounts). A change applies **from now on**; entries already
 posted stay where they are (journal lines remember their link, so the
 comparison is not upset). Moving an old balance is a manual journal.
 
@@ -206,6 +216,34 @@ accounting software imports: one row per debit or credit, plain dates
 day; older apps ignore both and keep PDF and Excel. Before the books start,
 these downloads say to start them.
 
+## Phase 4: the money flows the books could not see
+
+Records added in phase 4 (migration `00032`; the records themselves are in
+[finance.md](finance.md) and [payouts.md](payouts.md)):
+
+- **Other income** posts like an expense the other way round.
+- **Bills**: spending on the bill's date (accrual), owed to Suppliers until
+  paid; each payment (in parts if need be) is its own journal. Suppliers is
+  kept from records: the check compares it with the bills not yet paid.
+- **Where a deduction's money goes** (`deduction_types.goes_to`): `INCOME`
+  (the Sacco's), `SAVINGS` (the farmer's shares) or `PAYEE` (owed to a
+  supplier, with `payee_id`). Each deduction taken in a pay run keeps its
+  payee in `member_transactions.payee_id`, so changing the deduction later
+  never moves money already taken: the pay run's journal is worked out from
+  what each deduction said when it was taken. Money held posts to **Owed to
+  *supplier*** (2201…), kept from records: the check compares it with what
+  pay runs took for them less what was paid over.
+- **Shares** moved outside pay runs (`share_entries`): opening shares (Dr
+  Opening balances), refunds (from a cash account) and transfers between
+  members (no journal).
+- **The accountant's opening balances** (`ledger_opening_lines`, `GET/PUT
+  /books/opening`): one debit or credit per balance sheet account no record
+  keeps (fixed assets, loans, money owed from before DairyGo). They go into
+  the opening journal, with Opening balances taking the other side. Accounts
+  kept from records are refused: their opening comes from the records dated
+  before the start (bills, opening shares, cash accounts' opening balances,
+  customers' and farmers' records).
+
 ## Permissions
 
 `books.read` (admin, accountant) to look; `books.manage` (admin, accountant)
@@ -218,8 +256,9 @@ The accountant's bar is Home · Money · Pay · **Books** · More (Customers is
 on More and on the Home). Admins open Books from More. Screens: Books (the
 check, start, bring up to date, move the start), Trial balance, Journals,
 a journal (reverse your own), New journal, Chart of accounts (add, change),
-an account's ledger, Where records post, Income statement (a month or a
-financial year), Balance sheet, and Download.
+an account's ledger, Where records post, Opening balances (add, change or
+remove your own), Income statement (a month or a financial year), Balance
+sheet, and Download.
 
 ## Testing
 
@@ -237,6 +276,14 @@ financial year), Balance sheet, and Download.
   the books started first, then checks the books agree with the records and
   nothing was missed (done for payouts, finance, custprices, saccoprice,
   merge, late, reassign, lateadvance, paymethod and accountant).
+- `~/.dairygo/localtest/flows.sh` (115 checks, after reset and setup): phase
+  4. A deduction for an insurer lands as owed, not income, and paying it over
+  clears it; changing the deduction afterwards moves nothing; other income;
+  a bill paid in parts, overpaying refused, a payment voided; the income
+  statement equals the income and expenditure for October; opening shares
+  typed and imported (console), counting towards the shares target; a refund
+  and a transfer, and voiding them; the accountant's opening balances; the
+  links; the books balance and agree with the records after each step.
 - `~/.dairygo/localtest/statements.sh` (45 checks, after books.sh): the
   income statement against the sales records, the income and expenditure and
   the trial balance; the balance sheet balances on several days and with

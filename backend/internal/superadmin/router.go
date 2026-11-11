@@ -34,6 +34,7 @@ func RegisterRoutes(api huma.API, db *gorm.DB, cfg *config.Config, log logger.Lo
 	mh := &MoneyHandler{
 		payouts: payout.NewService(payout.NewRepository(db), nil),
 		finance: finance.NewService(finance.NewRepository(db)),
+		db:      db,
 	}
 	lh := &LateHandler{
 		milk:      collection.NewService(collection.NewRepository(db), sms.NewService(cfg, db, log), authz.NewEvaluator(db)),
@@ -96,6 +97,11 @@ func RegisterRoutes(api huma.API, db *gorm.DB, cfg *config.Config, log logger.Lo
 
 	huma.Register(api, op("platform-merge-farmers", http.MethodPost, "/api/v1/admin/saccos/{id}/farmers/merge",
 		"Merge a farmer registered twice", "Moves the wrong farmer's milk not yet paid, open advances, charges and adjustments, and any balance left from paid months to the right farmer, then makes the wrong farmer inactive. Paid months stay as paid. Needs a reason, kept in each record's history; preview=true only says what would move."), mh.MergeFarmers)
+
+	importShares := op("platform-import-shares", http.MethodPost, "/api/v1/admin/saccos/{id}/shares/import",
+		"Import opening shares", "Shares each farmer held before DairyGo, from an Excel or CSV file with a membership number column and a shares column. Farmers who already have opening shares are left alone, so a file can be run again; preview=true only checks the file.")
+	importShares.MaxBodyBytes = 8 << 20 // a 5 MB file, sent as base64
+	huma.Register(api, importShares, mh.ImportShares)
 
 	huma.Register(api, op("platform-audit-logs", http.MethodGet, "/api/v1/admin/audit-logs",
 		"Audit trail", "Who changed what across all Saccos, newest first."), h.AuditLogs)

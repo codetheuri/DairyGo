@@ -284,12 +284,28 @@ func (s *Service) ApproveRun(ctx context.Context, id string, expectedNet *float6
 				ErrConflict, run.TotalNet)
 		}
 
+		// Each deduction keeps where its money went as the deduction says
+		// now, so changing the deduction later never moves money taken.
+		types, err := tx.ListTypes(ctx, false)
+		if err != nil {
+			return err
+		}
+		payee := map[string]*string{}
+		for _, t := range types {
+			if t.GoesTo == GoesPayee {
+				payee[t.ID] = t.PayeeID
+			}
+		}
 		entries := make([]Transaction, 0, len(lines)*3)
 		label := periodLabel(run)
 		add := func(l PayRunLine, kind Kind, amount float64, desc string, typeID *string, savings bool) {
-			entries = append(entries, Transaction{ID: uuid.New().String(), SaccoID: run.SaccoID, MemberID: l.MemberID,
+			t := Transaction{ID: uuid.New().String(), SaccoID: run.SaccoID, MemberID: l.MemberID,
 				Kind: kind, EntryDate: run.ToDate, Amount: round2(amount), Description: desc,
-				DeductionTypeID: typeID, IsSavings: savings, PayRunID: &run.ID, RecordedByID: actorPtr(ctx)})
+				DeductionTypeID: typeID, IsSavings: savings, PayRunID: &run.ID, RecordedByID: actorPtr(ctx)}
+			if typeID != nil && !savings {
+				t.PayeeID = payee[*typeID]
+			}
+			entries = append(entries, t)
 		}
 		for _, l := range lines {
 			if l.Gross != 0 {

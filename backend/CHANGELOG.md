@@ -9,6 +9,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 
 ### Added
+- **The books, phase 4: the money flows the books could not see** (migration `00032`, [docs/books.md](docs/books.md), [docs/finance.md](docs/finance.md), [docs/payouts.md](docs/payouts.md)):
+  - **other income** (interest, rent, items sold, grants) by income category, into one of the Sacco's accounts; on the income and expenditure and in the cashbook. App: Expenses & Money → Other income.
+  - **suppliers and bills**: a bill counts as spending on its date and is paid later, in parts; what is owed shows per supplier and on the income and expenditure. App: Suppliers & bills.
+  - **where a deduction's money goes**: the Sacco's income, the farmer's savings, or **paid over to a supplier** (an insurer, a union). Money taken for a supplier is owed to them (not income) until paid over; each deduction remembers where it went when taken.
+  - **shares**: opening shares (typed in the app, or imported from a spreadsheet in the console), refunds to members who leave, transfers between members; opening shares count towards the shares target. Permission `payouts.shares.manage` (admin, accountant).
+  - **opening balances** for what no record holds (fixed assets, loans), in the books' opening journal (Books → Opening balances).
+  - in the books: Share capital (3000) for every savings deduction, Suppliers (2100) and Owed to *supplier* (2201…) kept from records and checked; Loans moved to 2500; income categories at 4301….
 - **The books, phase 3: statements and files for other software** ([docs/books.md](docs/books.md)):
   - **income statement** for any period beside the one before (`/sacco/books/income-statement`), and **balance sheet** on any day beside the end of the last financial year (`/sacco/books/balance-sheet`); in the app (Books → Income statement / Balance sheet, a month or a financial year).
   - new downloads: Income Statement, Balance Sheet, Trial Balance, General Ledger, Journals and Chart of Accounts. The trial balance, ledger, journals and chart also come as **CSV** to import into the Sacco's own accounting software (`format=csv`; each report lists its `formats`).

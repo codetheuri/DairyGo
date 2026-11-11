@@ -18,6 +18,12 @@ class DeductionType {
   final String appliesTo; // ALL, ENROLLED
   final int priority;
   final bool isSavings;
+
+  /// Where the money goes: INCOME (the Sacco's), SAVINGS (the farmer's
+  /// shares) or PAYEE (owed to a supplier, paid over).
+  final String goesTo;
+  final String? payeeId;
+  final String? payeeName;
   final bool isActive;
 
   const DeductionType({
@@ -33,8 +39,11 @@ class DeductionType {
     required this.appliesTo,
     required this.priority,
     required this.isSavings,
+    String? goesTo,
+    this.payeeId,
+    this.payeeName,
     required this.isActive,
-  });
+  }) : goesTo = goesTo ?? (isSavings ? 'SAVINGS' : 'INCOME');
 
   factory DeductionType.fromJson(Map<String, dynamic> j) => DeductionType(
     id: j['id'] as String,
@@ -52,8 +61,18 @@ class DeductionType {
     appliesTo: j['applies_to'] as String? ?? 'ALL',
     priority: (j['priority'] as num?)?.toInt() ?? 50,
     isSavings: j['is_savings'] as bool? ?? false,
+    goesTo: j['goes_to'] as String?,
+    payeeId: j['payee_id'] as String?,
+    payeeName: j['payee_name'] as String?,
     isActive: j['is_active'] as bool? ?? false,
   );
+
+  /// "The Sacco's income", "Savings (shares)", "Paid over to CIC".
+  String get whereItGoes => switch (goesTo) {
+    'SAVINGS' => 'savings (shares)',
+    'PAYEE' => 'paid over to ${payeeName ?? 'a supplier'}',
+    _ => 'kept by the Sacco',
+  };
 
   /// "KES 500", "2% of milk", "KES 1.50 a litre", "By amount sent".
   String get howMuch => switch (method) {
@@ -492,4 +511,91 @@ class PayRunList {
       nextTo: _date(next['to_date']) ?? DateTime.now(),
     );
   }
+}
+
+/// One line of a farmer's shares: savings taken in a pay run (DEDUCTION),
+/// or shares moved outside one (OPENING, REFUND, TRANSFER_IN, TRANSFER_OUT).
+class ShareLine {
+  final String id;
+  final DateTime date;
+  final String kind;
+  final String savings;
+  final String description;
+  final double amount;
+  final String? reference;
+  final bool voided;
+
+  const ShareLine({
+    required this.id,
+    required this.date,
+    required this.kind,
+    required this.savings,
+    required this.description,
+    required this.amount,
+    this.reference,
+    required this.voided,
+  });
+
+  factory ShareLine.fromJson(Map<String, dynamic> j) => ShareLine(
+    id: j['id'] as String? ?? '',
+    date: _date(j['date']) ?? DateTime(2000),
+    kind: j['kind'] as String? ?? 'DEDUCTION',
+    savings: j['savings'] as String? ?? 'Shares',
+    description: j['description'] as String? ?? '',
+    amount: toDouble(j['amount']),
+    reference: j['reference'] as String?,
+    voided: j['voided_at'] != null,
+  );
+
+  /// Opening shares, refunds and transfers can be voided; pay run savings
+  /// go with their pay run.
+  bool get voidable => kind != 'DEDUCTION' && !voided;
+
+  String get kindLabel => switch (kind) {
+    'OPENING' => 'Opening shares',
+    'REFUND' => 'Refund',
+    'TRANSFER_IN' => 'Received',
+    'TRANSFER_OUT' => 'Passed on',
+    _ => 'From pay',
+  };
+}
+
+/// A farmer's shares in one savings deduction.
+class ShareBucket {
+  final String? deductionTypeId;
+  final String name;
+  final double balance;
+
+  const ShareBucket(this.deductionTypeId, this.name, this.balance);
+
+  factory ShareBucket.fromJson(Map<String, dynamic> j) => ShareBucket(
+    j['deduction_type_id'] as String?,
+    j['name'] as String? ?? 'Shares',
+    toDouble(j['balance']),
+  );
+}
+
+/// A farmer's shares: the balance, by savings, and every line (newest first).
+class FarmerShares {
+  final double balance;
+  final List<ShareBucket> buckets;
+  final List<ShareLine> lines;
+
+  const FarmerShares({
+    required this.balance,
+    required this.buckets,
+    required this.lines,
+  });
+
+  factory FarmerShares.fromJson(Map<String, dynamic> j) => FarmerShares(
+    balance: toDouble(j['balance']),
+    buckets: [
+      for (final b in (j['by_savings'] as List?) ?? const [])
+        ShareBucket.fromJson(b as Map<String, dynamic>),
+    ],
+    lines: [
+      for (final l in (j['lines'] as List?) ?? const [])
+        ShareLine.fromJson(l as Map<String, dynamic>),
+    ],
+  );
 }

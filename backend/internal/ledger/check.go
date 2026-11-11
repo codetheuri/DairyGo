@@ -112,6 +112,35 @@ func (s *Service) check(ctx context.Context, db *gorm.DB, saccoID string) (*chec
 	add("Farmers' accounts", c.links[roleKey(RoleFarmers)], farmers)
 	add("Farmers' pay due", c.links[roleKey(RolePayDue)], payDue)
 
+	// Suppliers: bills not yet paid; and money held for each supplier from
+	// deductions, summed by the account it is held in.
+	fin := finance.NewRepository(db)
+	held, err := fin.SupplierBalances(ctx, saccoID)
+	if err != nil {
+		return nil, err
+	}
+	bills := 0.0
+	heldBy := map[string]float64{}
+	var heldOrder []string
+	for supplierID, b := range held {
+		bills += b.BillsOwed
+		id, ok := c.links[payeeKey(supplierID)]
+		if !ok {
+			continue
+		}
+		if _, seen := heldBy[id]; !seen {
+			heldOrder = append(heldOrder, id)
+		}
+		heldBy[id] += b.Held
+	}
+	if _, ok := c.links[roleKey(RoleSuppliers)]; ok || bills != 0 {
+		add("Suppliers", c.links[roleKey(RoleSuppliers)], bills)
+	}
+	sort.SliceStable(heldOrder, func(i, k int) bool { return c.accounts[heldOrder[i]].Code < c.accounts[heldOrder[k]].Code })
+	for _, id := range heldOrder {
+		add(c.accounts[id].Name, id, heldBy[id])
+	}
+
 	// Cash accounts: each cashbook's balance now, summed by the ledger
 	// account they post to.
 	var cash []struct {
@@ -122,7 +151,7 @@ func (s *Service) check(ctx context.Context, db *gorm.DB, saccoID string) (*chec
 		Order("created_at, name").Scan(&cash).Error; err != nil {
 		return nil, err
 	}
-	moved, err := finance.NewRepository(db).Balances(ctx, saccoID)
+	moved, err := fin.Balances(ctx, saccoID)
 	if err != nil {
 		return nil, err
 	}

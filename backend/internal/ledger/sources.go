@@ -33,6 +33,10 @@ var loaders = []struct {
 	{SrcTransfer, loadTransfers},
 	{SrcFarmerEntry, loadEntries},
 	{SrcPayRun, loadRuns},
+	{SrcIncome, loadIncome},
+	{SrcBill, loadBills},
+	{SrcSupplierPay, loadSupplierPayments},
+	{SrcShareEntry, loadShareEntries},
 }
 
 func loaderFor(src string) loadFn {
@@ -195,17 +199,19 @@ func loadRuns(l *loader, ids []string) ([]record, error) {
 	}
 
 	var entries []struct {
-		RunID  string
-		Kind   string
-		TypeID *string
-		Name   string
-		Amount float64
+		RunID     string
+		Kind      string
+		TypeID    *string
+		IsSavings bool
+		PayeeID   *string
+		Name      string
+		Amount    float64
 	}
-	if err := db.Raw(`SELECT m.pay_run_id AS run_id, m.kind, m.deduction_type_id AS type_id,
+	if err := db.Raw(`SELECT m.pay_run_id AS run_id, m.kind, m.deduction_type_id AS type_id, m.is_savings, m.payee_id,
 			MAX(COALESCE(t.name, m.description)) AS name, SUM(m.amount) AS amount
 		FROM member_transactions m LEFT JOIN deduction_types t ON t.id = m.deduction_type_id
 		WHERE m.sacco_id = ? AND m.pay_run_id IN ? AND m.kind IN ('MILK', 'DEDUCTION', 'PAYOUT') AND m.voided_at IS NULL
-		GROUP BY m.pay_run_id, m.kind, m.deduction_type_id
+		GROUP BY m.pay_run_id, m.kind, m.deduction_type_id, m.is_savings, m.payee_id
 		ORDER BY MAX(COALESCE(t.priority, 0)), MAX(COALESCE(t.name, m.description))`, l.saccoID, runIDs).Scan(&entries).Error; err != nil {
 		return nil, err
 	}
@@ -215,7 +221,7 @@ func loadRuns(l *loader, ids []string) ([]record, error) {
 		case "MILK":
 			r.Milk += e.Amount
 		case "DEDUCTION":
-			r.Deductions = append(r.Deductions, runDeduction{TypeID: e.TypeID, Name: e.Name, Amount: -e.Amount})
+			r.Deductions = append(r.Deductions, runDeduction{TypeID: e.TypeID, Name: e.Name, Savings: e.IsSavings, PayeeID: e.PayeeID, Amount: -e.Amount})
 		case "PAYOUT":
 			r.Net += -e.Amount
 		}
@@ -263,6 +269,80 @@ func loadCashAccounts(l *loader, ids []string) ([]record, error) {
 	out := make([]record, len(rows))
 	for i, r := range rows {
 		out[i] = cashAccountRule(r)
+	}
+	return out, nil
+}
+
+func loadIncome(l *loader, ids []string) ([]record, error) {
+	var rows []incomeRow
+	q := l.db.WithContext(l.ctx).Table("other_income i").
+		Select(`i.id, i.income_date, i.category_id, COALESCE(c.name, 'Other income') AS category, i.payer, i.amount,
+			i.cash_account_id AS account_id, i.reference, (i.voided_at IS NOT NULL) AS voided`).
+		Joins("LEFT JOIN income_categories c ON c.id = i.category_id").
+		Where("i.sacco_id = ?", l.saccoID)
+	q = l.scope(q, "i.id", "i.voided_at IS NULL", "i.income_date", ids)
+	if err := q.Order("i.income_date, i.created_at").Scan(&rows).Error; err != nil {
+		return nil, err
+	}
+	out := make([]record, len(rows))
+	for i, r := range rows {
+		out[i] = incomeRule(r, l.cash)
+	}
+	return out, nil
+}
+
+func loadBills(l *loader, ids []string) ([]record, error) {
+	var rows []billRow
+	q := l.db.WithContext(l.ctx).Table("bills b").
+		Select(`b.id, b.bill_date, b.category_id, COALESCE(c.name, 'Expense') AS category, COALESCE(s.name, 'a supplier') AS supplier,
+			b.amount, b.reference, (b.voided_at IS NOT NULL) AS voided`).
+		Joins("LEFT JOIN expense_categories c ON c.id = b.category_id").
+		Joins("LEFT JOIN suppliers s ON s.id = b.supplier_id").
+		Where("b.sacco_id = ?", l.saccoID)
+	q = l.scope(q, "b.id", "b.voided_at IS NULL", "b.bill_date", ids)
+	if err := q.Order("b.bill_date, b.created_at").Scan(&rows).Error; err != nil {
+		return nil, err
+	}
+	out := make([]record, len(rows))
+	for i, r := range rows {
+		out[i] = billRule(r)
+	}
+	return out, nil
+}
+
+func loadSupplierPayments(l *loader, ids []string) ([]record, error) {
+	var rows []supplierPayRow
+	q := l.db.WithContext(l.ctx).Table("supplier_payments p").
+		Select(`p.id, p.payment_date, p.kind, p.supplier_id, COALESCE(s.name, 'a supplier') AS supplier, p.amount,
+			p.cash_account_id AS account_id, p.reference, (p.voided_at IS NOT NULL) AS voided`).
+		Joins("LEFT JOIN suppliers s ON s.id = p.supplier_id").
+		Where("p.sacco_id = ?", l.saccoID)
+	q = l.scope(q, "p.id", "p.voided_at IS NULL", "p.payment_date", ids)
+	if err := q.Order("p.payment_date, p.created_at").Scan(&rows).Error; err != nil {
+		return nil, err
+	}
+	out := make([]record, len(rows))
+	for i, r := range rows {
+		out[i] = supplierPayRule(r, l.cash)
+	}
+	return out, nil
+}
+
+func loadShareEntries(l *loader, ids []string) ([]record, error) {
+	var rows []shareRow
+	q := l.db.WithContext(l.ctx).Table("share_entries e").
+		Select(`e.id, e.entry_date, e.kind, e.deduction_type_id AS type_id,
+			COALESCE(mb.first_name || ' ' || mb.last_name, 'a member') AS farmer, e.amount,
+			e.cash_account_id AS account_id, e.reference, (e.voided_at IS NOT NULL) AS voided`).
+		Joins("LEFT JOIN members mb ON mb.id = e.member_id").
+		Where("e.sacco_id = ?", l.saccoID)
+	q = l.scope(q, "e.id", "e.voided_at IS NULL", "e.entry_date", ids)
+	if err := q.Order("e.entry_date, e.created_at").Scan(&rows).Error; err != nil {
+		return nil, err
+	}
+	out := make([]record, len(rows))
+	for i, r := range rows {
+		out[i] = shareRule(r, l.cash)
 	}
 	return out, nil
 }

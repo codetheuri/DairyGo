@@ -104,6 +104,10 @@ func Sync(ctx context.Context, db *gorm.DB, saccoID string, sources []Source) er
 		_, err := e.all()
 		return err
 	}
+	// The accountant's opening balances changed.
+	if _, ok := byType[SrcBooks]; ok {
+		e.openingStale = true
+	}
 	for src, ids := range byType {
 		load := loaderFor(src)
 		if load == nil {
@@ -276,7 +280,15 @@ func (e *engine) syncOpening() error {
 			}
 		}
 	}
-	p, err := openingRule(e.start, before, func(link string) (Type, error) {
+	var own []OpeningLine
+	if err := e.db.WithContext(e.ctx).Where("sacco_id = ?", e.saccoID).Order("created_at").Find(&own).Error; err != nil {
+		return err
+	}
+	extra := make([]pline, len(own))
+	for i, o := range own {
+		extra[i] = pline{link: accountKey(o.AccountID), amount: round2(o.Debit - o.Credit)}
+	}
+	p, err := openingRule(e.start, before, extra, func(link string) (Type, error) {
 		a, err := e.chart.account(link)
 		if err != nil {
 			return "", err

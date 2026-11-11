@@ -176,7 +176,9 @@ class BooksLink {
 const linkGroupNames = {
   'CASH_ACCOUNTS': 'Cash, bank and M-Pesa accounts',
   'EXPENSE_CATEGORIES': 'Expense categories',
+  'INCOME_CATEGORIES': 'Other income categories',
   'DEDUCTIONS': 'Deductions from farmers\' pay',
+  'PAYEES': 'Money taken for suppliers (paid over)',
   'RECORDS': 'Customers, farmers and milk',
 };
 
@@ -546,5 +548,65 @@ class BalanceSheet {
     liabilitiesAndEquity: _d(j['liabilities_and_equity']),
     previousLiabilitiesAndEquity: _d(j['previous_liabilities_and_equity']),
     balanced: j['balanced'] != false,
+  );
+}
+
+/// One of the accountant's own opening balances (an account no record
+/// keeps: fixed assets, loans).
+class OpeningLine {
+  final String id;
+  final String accountId;
+  final String accountCode;
+  final String accountName;
+  final String accountType;
+  final double debit;
+  final double credit;
+  final String? memo;
+
+  const OpeningLine({
+    required this.id,
+    required this.accountId,
+    required this.accountCode,
+    required this.accountName,
+    required this.accountType,
+    required this.debit,
+    required this.credit,
+    this.memo,
+  });
+
+  factory OpeningLine.fromJson(Map<String, dynamic> j) => OpeningLine(
+    id: '${j['id'] ?? ''}',
+    accountId: '${j['account_id'] ?? ''}',
+    accountCode: '${j['account_code'] ?? ''}',
+    accountName: '${j['account_name'] ?? ''}',
+    accountType: '${j['account_type'] ?? ''}',
+    debit: _d(j['debit']),
+    credit: _d(j['credit']),
+    memo: j['memo'] as String?,
+  );
+}
+
+/// The opening journal on the books' start date, and the accountant's own
+/// lines in it.
+class OpeningBalances {
+  final DateTime startDate;
+  final Journal? journal;
+  final List<OpeningLine> own;
+
+  const OpeningBalances({
+    required this.startDate,
+    this.journal,
+    this.own = const [],
+  });
+
+  factory OpeningBalances.fromJson(Map<String, dynamic> j) => OpeningBalances(
+    startDate: _day(j['start_date']),
+    journal: j['journal'] == null
+        ? null
+        : Journal.fromJson(j['journal'] as Map<String, dynamic>),
+    own: [
+      for (final l in (j['own'] as List?) ?? const [])
+        OpeningLine.fromJson(l as Map<String, dynamic>),
+    ],
   );
 }

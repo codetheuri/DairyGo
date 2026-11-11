@@ -2,6 +2,7 @@ package superadmin
 
 import (
 	"context"
+	"gorm.io/gorm"
 
 	"github.com/danielgtaylor/huma/v2"
 
@@ -15,6 +16,7 @@ import (
 type MoneyHandler struct {
 	payouts *payout.Service
 	finance *finance.Service
+	db      *gorm.DB
 }
 
 type SaccoMoneyInput struct {

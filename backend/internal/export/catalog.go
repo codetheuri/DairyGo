@@ -106,6 +106,11 @@ var catalog = []Report{
 		permission:  finance.PermRead, build: incomeExpenditure,
 	},
 	{
+		Key: "suppliers-owed", Title: "Owed to Suppliers",
+		Description: "Each supplier's bills not yet paid, and the money taken from farmers' pay for them still to pay over.",
+		AsAt:        true, permission: finance.PermRead, build: suppliersOwed,
+	},
+	{
 		Key: "expenses", Title: "Expenses",
 		Description: "Every expense in the period with category, payee, account and reference, and totals by category.",
 		permission:  finance.PermRead, landscape: true, build: expenses,

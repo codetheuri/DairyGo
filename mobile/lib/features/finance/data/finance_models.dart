@@ -150,6 +150,256 @@ class ExpenseList {
   );
 }
 
+/// Money the Sacco received besides milk sales (interest, rent, items sold).
+class OtherIncome {
+  final String id;
+  final DateTime date;
+  final double amount;
+  final String payer;
+  final String category;
+  final String account;
+  final String? reference;
+  final String? description;
+  final bool voided;
+
+  const OtherIncome({
+    required this.id,
+    required this.date,
+    required this.amount,
+    required this.payer,
+    required this.category,
+    required this.account,
+    this.reference,
+    this.description,
+    required this.voided,
+  });
+
+  factory OtherIncome.fromJson(Map<String, dynamic> j) => OtherIncome(
+    id: j['id'] as String,
+    date: _date(j['income_date']) ?? DateTime(2000),
+    amount: toDouble(j['amount']),
+    payer: j['payer'] as String? ?? '',
+    category: j['category_name'] as String? ?? '',
+    account: j['account_name'] as String? ?? '',
+    reference: j['reference'] as String?,
+    description: j['description'] as String?,
+    voided: j['voided_at'] != null,
+  );
+}
+
+/// Other income over a period with totals.
+class IncomeList {
+  final List<OtherIncome> items;
+  final double total;
+  final List<NamedAmount> byCategory;
+
+  const IncomeList({
+    required this.items,
+    required this.total,
+    required this.byCategory,
+  });
+
+  factory IncomeList.fromJson(Map<String, dynamic> j) => IncomeList(
+    items: [
+      for (final e in (j['items'] as List?) ?? const [])
+        OtherIncome.fromJson(e as Map<String, dynamic>),
+    ],
+    total: toDouble(j['total']),
+    byCategory: NamedAmount.list(j['by_category']),
+  );
+}
+
+/// Someone the Sacco pays: for bills, and money taken from farmers' pay for
+/// them (an insurer, a union), held until it is paid over.
+class Supplier {
+  final String id;
+  final String name;
+  final String? phone;
+  final String? notes;
+  final bool isActive;
+  final double billsOwed;
+  final double held;
+  final bool isPayee;
+
+  const Supplier({
+    required this.id,
+    required this.name,
+    this.phone,
+    this.notes,
+    required this.isActive,
+    required this.billsOwed,
+    required this.held,
+    required this.isPayee,
+  });
+
+  factory Supplier.fromJson(Map<String, dynamic> j) => Supplier(
+    id: j['id'] as String,
+    name: j['name'] as String? ?? '',
+    phone: j['phone'] as String?,
+    notes: j['notes'] as String?,
+    isActive: j['is_active'] as bool? ?? true,
+    billsOwed: toDouble(j['bills_owed']),
+    held: toDouble(j['held']),
+    isPayee: j['is_payee'] as bool? ?? false,
+  );
+}
+
+/// The suppliers with what is owed to them.
+class SupplierList {
+  final List<Supplier> suppliers;
+  final double billsOwed;
+  final double held;
+
+  const SupplierList(this.suppliers, this.billsOwed, this.held);
+
+  factory SupplierList.fromJson(Map<String, dynamic> j) => SupplierList(
+    [
+      for (final s in (j['suppliers'] as List?) ?? const [])
+        Supplier.fromJson(s as Map<String, dynamic>),
+    ],
+    toDouble(j['bills_owed']),
+    toDouble(j['held']),
+  );
+
+  List<Supplier> get active => [
+    for (final s in suppliers)
+      if (s.isActive) s,
+  ];
+}
+
+/// Something bought from a supplier, paid later (in parts if need be).
+class Bill {
+  final String id;
+  final String supplierId;
+  final String supplier;
+  final String category;
+  final DateTime date;
+  final DateTime? dueDate;
+  final double amount;
+  final double paid;
+  final double unpaid;
+  final String? reference;
+  final String? description;
+  final bool voided;
+
+  const Bill({
+    required this.id,
+    required this.supplierId,
+    required this.supplier,
+    required this.category,
+    required this.date,
+    this.dueDate,
+    required this.amount,
+    required this.paid,
+    required this.unpaid,
+    this.reference,
+    this.description,
+    required this.voided,
+  });
+
+  factory Bill.fromJson(Map<String, dynamic> j) => Bill(
+    id: j['id'] as String,
+    supplierId: j['supplier_id'] as String? ?? '',
+    supplier: j['supplier_name'] as String? ?? '',
+    category: j['category_name'] as String? ?? '',
+    date: _date(j['bill_date']) ?? DateTime(2000),
+    dueDate: _date(j['due_date']),
+    amount: toDouble(j['amount']),
+    paid: toDouble(j['paid']),
+    unpaid: toDouble(j['unpaid']),
+    reference: j['reference'] as String?,
+    description: j['description'] as String?,
+    voided: j['voided_at'] != null,
+  );
+}
+
+/// A payment to a supplier: for a bill, or money held paid over.
+class SupplierPayment {
+  final String id;
+  final String kind; // BILL or PAY_OVER
+  final String? billId;
+  final DateTime date;
+  final double amount;
+  final String account;
+  final String? reference;
+  final bool voided;
+
+  const SupplierPayment({
+    required this.id,
+    required this.kind,
+    this.billId,
+    required this.date,
+    required this.amount,
+    required this.account,
+    this.reference,
+    required this.voided,
+  });
+
+  factory SupplierPayment.fromJson(Map<String, dynamic> j) => SupplierPayment(
+    id: j['id'] as String,
+    kind: j['kind'] as String? ?? 'BILL',
+    billId: j['bill_id'] as String?,
+    date: _date(j['payment_date']) ?? DateTime(2000),
+    amount: toDouble(j['amount']),
+    account: j['account_name'] as String? ?? '',
+    reference: j['reference'] as String?,
+    voided: j['voided_at'] != null,
+  );
+}
+
+/// What one pay run took from farmers for a supplier.
+class HeldLine {
+  final DateTime date;
+  final String name;
+  final int farmers;
+  final double amount;
+
+  const HeldLine(this.date, this.name, this.farmers, this.amount);
+
+  factory HeldLine.fromJson(Map<String, dynamic> j) => HeldLine(
+    _date(j['date']) ?? DateTime(2000),
+    j['name'] as String? ?? '',
+    (j['farmers'] as num?)?.toInt() ?? 0,
+    toDouble(j['amount']),
+  );
+}
+
+/// A supplier with their bills, payments and what was held for them.
+class SupplierDetail {
+  final Supplier supplier;
+  final List<Bill> bills;
+  final List<SupplierPayment> payments;
+  final List<HeldLine> taken;
+  final List<String> deductions;
+
+  const SupplierDetail({
+    required this.supplier,
+    required this.bills,
+    required this.payments,
+    required this.taken,
+    required this.deductions,
+  });
+
+  factory SupplierDetail.fromJson(Map<String, dynamic> j) => SupplierDetail(
+    supplier: Supplier.fromJson(j['supplier'] as Map<String, dynamic>),
+    bills: [
+      for (final b in (j['bills'] as List?) ?? const [])
+        Bill.fromJson(b as Map<String, dynamic>),
+    ],
+    payments: [
+      for (final p in (j['payments'] as List?) ?? const [])
+        SupplierPayment.fromJson(p as Map<String, dynamic>),
+    ],
+    taken: [
+      for (final t in (j['taken'] as List?) ?? const [])
+        HeldLine.fromJson(t as Map<String, dynamic>),
+    ],
+    deductions: [
+      for (final d in (j['deductions'] as List?) ?? const []) d as String,
+    ],
+  );
+}
+
 /// One movement in an account's cashbook.
 class CashbookLine {
   final String source;
@@ -223,11 +473,18 @@ class FinanceSummary {
   final double expensesTotal;
   final double surplus;
   final List<NamedAmount> sharesRaised;
+  final List<NamedAmount> otherIncome;
+  final double otherIncomeTotal;
+
+  /// Deductions taken for suppliers in the period: owed to them, not income.
+  final List<NamedAmount> heldForOthers;
   final double cash;
   final double receivables;
   final double farmerPayDue;
   final double farmersOwe;
   final double shareCapital;
+  final double owedBills;
+  final double heldToPayOver;
 
   /// Payments in or out in the period that name no account, so are in no
   /// cashbook (recorded before every payment named its account).
@@ -244,11 +501,16 @@ class FinanceSummary {
     required this.expensesTotal,
     required this.surplus,
     required this.sharesRaised,
+    this.otherIncome = const [],
+    this.otherIncomeTotal = 0,
+    this.heldForOthers = const [],
     required this.cash,
     required this.receivables,
     required this.farmerPayDue,
     required this.farmersOwe,
     required this.shareCapital,
+    this.owedBills = 0,
+    this.heldToPayOver = 0,
     this.notInAccount = 0,
     this.notInAccountAmount = 0,
   });
@@ -263,17 +525,25 @@ class FinanceSummary {
     expensesTotal: toDouble(j['expenses_total']),
     surplus: toDouble(j['surplus']),
     sharesRaised: NamedAmount.list(j['shares_raised']),
+    otherIncome: NamedAmount.list(j['other_income']),
+    otherIncomeTotal: toDouble(j['other_income_total']),
+    heldForOthers: NamedAmount.list(j['held_for_others']),
     cash: toDouble(j['cash']),
     receivables: toDouble(j['receivables']),
     farmerPayDue: toDouble(j['farmer_pay_due']),
     farmersOwe: toDouble(j['farmers_owe']),
     shareCapital: toDouble(j['share_capital']),
+    owedBills: toDouble(j['owed_bills']),
+    heldToPayOver: toDouble(j['held_to_pay_over']),
     notInAccount: (j['not_in_account'] as num?)?.toInt() ?? 0,
     notInAccountAmount: toDouble(j['not_in_account_amount']),
   );
 
   double get income =>
-      milkSales + fees.fold(0.0, (s, f) => s + f.amount) + farmerCharges;
+      milkSales +
+      fees.fold(0.0, (s, f) => s + f.amount) +
+      farmerCharges +
+      otherIncomeTotal;
   double get spending => milkPurchases + expensesTotal;
 }
 

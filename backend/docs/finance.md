@@ -85,33 +85,66 @@ fuel, rent, electricity and water, repairs, stationery, bank and M-Pesa
 charges, meetings and AGM, and other. Salaries are recorded as expenses;
 there is no PAYE/NSSF calculation.
 
+## Other income
+
+`other_income` (`/sacco/other-income`): money received besides milk sales,
+into one of the Sacco's accounts, under an `income_categories` category
+(every Sacco starts with interest received, rent received, sale of items,
+grants and donations, and other income). Recorded and voided like an
+expense; in the cashbook as money in. App: Expenses & Money → Other income.
+
+## Suppliers and bills
+
+`suppliers` (`/sacco/suppliers`) are who the Sacco pays, for two reasons:
+
+- **bills** (`/sacco/bills`): bought now, paid later. A bill counts as
+  spending on its date, under an expense category; `POST /bills/{id}/pay`
+  pays it in full or in parts (never more than is unpaid, never before the
+  bill's date). A bill with payments cannot be voided until they are.
+- **money held for them**: a deduction whose money goes to a supplier
+  (`goes_to: PAYEE`, see [payouts.md](payouts.md)) holds what each pay run
+  takes until `POST /suppliers/{id}/pay-over` pays it (never more than is
+  held).
+
+Payments (`supplier_payments`, kind `BILL` or `PAY_OVER`) come from one of
+the Sacco's accounts and show in its cashbook; voiding one makes the bill
+unpaid, or the money held, again. App: the shop icon on Expenses & Money,
+and Suppliers & bills on the accountant's Home: each supplier's bills, money
+taken for them by pay run, and payments.
+
 ## Income and expenditure (`GET /sacco/finance/summary`)
 
 For a period (default this month):
 
 ```
-income   = milk sales + fees kept from farmers' pay + charges to farmers
-spending = milk bought from farmers + expenses
+income   = milk sales + fees kept from farmers' pay + charges to farmers + other income
+spending = milk bought from farmers + expenses + bills dated in the period
 surplus  = income − spending (negative = deficit)
 ```
 
-Shares raised are listed apart: they are the farmers' savings, not income.
+Shares raised are listed apart: they are the farmers' savings, not income;
+so is money taken for suppliers (`held_for_others`): it is owed to them.
 Advances are neither. Where the Sacco stands now: cash in all accounts,
 what customers owe (only those who owe; one in credit does not hide
-others), farmers' pay approved but not sent, what farmers owe, share
-capital.
+others), farmers' pay approved but not sent, what farmers owe, members'
+shares (savings taken plus opening shares, less refunds), bills not yet paid
+and money to pay over.
 
 Reports in the download catalog: **Income and Expenditure**, **Expenses**,
 **Cashbooks** (a sheet per account in Excel).
 
 ## Permissions
 
-`finance.read` (admin, board, accountant), `finance.expenses.manage` and
-`finance.accounts.manage` (admin, accountant); `books.read` and `books.manage`
+`finance.read` (admin, board, accountant), `finance.expenses.manage`
+(expenses, other income, bills, payments to suppliers) and
+`finance.accounts.manage` (accounts, expense and income categories) (admin,
+accountant); suppliers may also be listed and added by whoever sets up
+deductions; `books.read` and `books.manage`
 (admin, accountant).
 
 ## Testing
 
-`go test ./internal/finance/`; `~/.dairygo/localtest/finance.sh` (54 checks)
+`go test ./internal/finance/`; `~/.dairygo/localtest/finance.sh` (54 checks),
+`flows.sh` (115 checks: other income, bills, paying over, shares)
 and `accountant.sh` (34 checks: the role, the financial year, accounts on
 every payment).

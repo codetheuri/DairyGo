@@ -42,6 +42,9 @@ func (r *Repository) Create(ctx context.Context, s *Sacco, adminUser *auth.User,
 		if err := tx.Create(finance.Categories(s.ID)).Error; err != nil {
 			return fmt.Errorf("failed to add expense categories: %w", err)
 		}
+		if err := tx.Create(finance.IncomeCategories(s.ID)).Error; err != nil {
+			return fmt.Errorf("failed to add income categories: %w", err)
+		}
 
 		adminUser.SaccoID = &s.ID
 		if err := tx.Create(adminUser).Error; err != nil {

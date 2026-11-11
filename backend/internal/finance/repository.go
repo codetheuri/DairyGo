@@ -203,6 +203,21 @@ SELECT e.cash_account_id, 'EXPENSE', e.expense_date, e.created_at,
   FROM expenses e JOIN expense_categories c ON c.id = e.category_id
  WHERE e.sacco_id = @sacco AND e.voided_at IS NULL
 UNION ALL
+SELECT i.cash_account_id, 'OTHER_INCOME', i.income_date, i.created_at,
+       c.name || ': ' || i.payer, i.reference, i.id, i.amount, 0
+  FROM other_income i JOIN income_categories c ON c.id = i.category_id
+ WHERE i.sacco_id = @sacco AND i.voided_at IS NULL
+UNION ALL
+SELECT p.cash_account_id, CASE p.kind WHEN 'BILL' THEN 'BILL_PAYMENT' ELSE 'PAY_OVER' END, p.payment_date, p.created_at,
+       CASE p.kind WHEN 'BILL' THEN 'Bill paid: ' ELSE 'Paid over to ' END || s.name, p.reference, p.id, 0, p.amount
+  FROM supplier_payments p JOIN suppliers s ON s.id = p.supplier_id
+ WHERE p.sacco_id = @sacco AND p.voided_at IS NULL
+UNION ALL
+SELECT e.cash_account_id, 'SHARE_REFUND', e.entry_date, e.created_at,
+       'Shares refunded to ' || mb.first_name || ' ' || mb.last_name, e.reference, e.id, 0, -e.amount
+  FROM share_entries e JOIN members mb ON mb.id = e.member_id
+ WHERE e.sacco_id = @sacco AND e.kind = 'REFUND' AND e.cash_account_id IS NOT NULL AND e.voided_at IS NULL
+UNION ALL
 SELECT m.cash_account_id, 'ADVANCE', m.entry_date, m.created_at,
        'Advance to ' || mb.first_name || ' ' || mb.last_name, m.reference, m.id, 0, -m.amount
   FROM member_transactions m JOIN members mb ON mb.id = m.member_id
@@ -302,27 +317,34 @@ func (r *Repository) MilkPurchases(ctx context.Context, saccoID string, from, to
 }
 
 // Deductions totals what pay runs took from farmers in a period, by
-// deduction, split into income (fees) and savings (shares).
-func (r *Repository) Deductions(ctx context.Context, saccoID string, from, to time.Time) (income, savings []NamedAmount, err error) {
+// deduction, split by where the money went: the Sacco's income (fees), the
+// farmers' savings (shares), or held for a supplier to pay over (named
+// "<deduction> for <supplier>").
+func (r *Repository) Deductions(ctx context.Context, saccoID string, from, to time.Time) (income, savings, held []NamedAmount, err error) {
 	var rows []struct {
 		Name      string
 		IsSavings bool
+		Payee     *string
 		Amount    float64
 	}
-	err = r.db.WithContext(ctx).Raw(`SELECT COALESCE(t.name, m.description) AS name, m.is_savings, SUM(-m.amount) AS amount
+	err = r.db.WithContext(ctx).Raw(`SELECT COALESCE(t.name, m.description) AS name, m.is_savings, s.name AS payee, SUM(-m.amount) AS amount
 		FROM member_transactions m LEFT JOIN deduction_types t ON t.id = m.deduction_type_id
+		LEFT JOIN suppliers s ON s.id = m.payee_id
 		WHERE m.sacco_id = ? AND m.kind = 'DEDUCTION' AND m.voided_at IS NULL AND m.entry_date BETWEEN ? AND ?
-		GROUP BY COALESCE(t.name, m.description), m.is_savings ORDER BY 3 DESC`,
+		GROUP BY COALESCE(t.name, m.description), m.is_savings, s.name ORDER BY 4 DESC`,
 		saccoID, from.Format(dateLayout), to.Format(dateLayout)).Scan(&rows).Error
-	income, savings = []NamedAmount{}, []NamedAmount{}
+	income, savings, held = []NamedAmount{}, []NamedAmount{}, []NamedAmount{}
 	for _, row := range rows {
-		if row.IsSavings {
+		switch {
+		case row.Payee != nil:
+			held = append(held, NamedAmount{row.Name + " for " + *row.Payee, round2(row.Amount)})
+		case row.IsSavings:
 			savings = append(savings, NamedAmount{row.Name, round2(row.Amount)})
-		} else {
+		default:
 			income = append(income, NamedAmount{row.Name, round2(row.Amount)})
 		}
 	}
-	return income, savings, err
+	return income, savings, held, err
 }
 
 // FarmerCharges is what farmers were charged (feeds, services) in a period.
@@ -371,9 +393,12 @@ func (r *Repository) FarmersOwe(ctx context.Context, saccoID string) (float64, e
 		WHERE sacco_id = ? AND voided_at IS NULL GROUP BY member_id) x WHERE b < 0`, saccoID)
 }
 
-// ShareCapital is all savings (shares) taken from farmers to date.
+// ShareCapital is members' shares now: savings taken in pay runs, and
+// shares moved outside them (opening shares, refunds).
 func (r *Repository) ShareCapital(ctx context.Context, saccoID string) (float64, error) {
-	return r.sum(ctx, `SELECT SUM(-amount) FROM member_transactions WHERE sacco_id = ? AND kind = 'DEDUCTION' AND is_savings AND voided_at IS NULL`, saccoID)
+	return r.sum(ctx, `SELECT
+		(SELECT COALESCE(SUM(-amount), 0) FROM member_transactions WHERE sacco_id = @s AND kind = 'DEDUCTION' AND is_savings AND voided_at IS NULL)
+	  + (SELECT COALESCE(SUM(amount), 0) FROM share_entries WHERE sacco_id = @s AND voided_at IS NULL)`, sql.Named("s", saccoID))
 }
 
 // --- financial year ---

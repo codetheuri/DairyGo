@@ -123,6 +123,30 @@ class PayoutService {
 
   // --- pay runs ---
 
+  Future<FarmerShares> shares(String memberId) async {
+    final data = await apiData(
+      () => _dio.get('$_base/members/$memberId/shares'),
+      'Could not load the shares',
+    );
+    return FarmerShares.fromJson(data['shares'] as Map<String, dynamic>);
+  }
+
+  /// Records opening shares, a refund or a transfer ([action] is opening,
+  /// refund or transfer).
+  Future<void> recordShares(
+    String memberId,
+    String action,
+    Map<String, dynamic> body,
+  ) => apiData(
+    () => _dio.post('$_base/members/$memberId/shares/$action', data: body),
+    'The shares could not be saved',
+  );
+
+  Future<void> voidShareEntry(String id, String reason) => apiData(
+    () => _dio.post('$_base/share-entries/$id/void', data: {'reason': reason}),
+    'The share entry could not be voided',
+  );
+
   Future<PayRunList> payRuns() async {
     final data = await apiData(
       () => _dio.get('$_base/pay-runs'),

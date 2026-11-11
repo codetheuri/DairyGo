@@ -1,0 +1,52 @@
+{
+  "status": 200,
+  "body": {
+    "success": true,
+    "message": "Opening balances",
+    "data": {
+      "opening": {
+        "start_date": "2026-08-01T00:00:00Z",
+        "journal": {
+          "id": "4f46b66d-77be-45e9-a666-1456dbe3246d",
+          "number": 23,
+          "date": "2026-08-01T00:00:00Z",
+          "kind": "AUTO",
+          "source_type": "books",
+          "source_id": "opening",
+          "memo": "Balances on 1 Aug 2026 from everything recorded before the books started",
+          "total": 250000,
+          "created_at": "2026-11-11T17:56:52.164511+03:00",
+          "lines": [
+            {
+              "account_id": "f1c558cb-b057-4abf-9b6d-43c3d0c91100",
+              "debit": 250000,
+              "credit": 0,
+              "account_code": "1500",
+              "account_name": "Fixed assets"
+            },
+            {
+              "account_id": "a03d2f54-c43a-4b86-b47a-9f40130202e0",
+              "debit": 0,
+              "credit": 250000,
+              "account_code": "3900",
+              "account_name": "Opening balances"
+            }
+          ]
+        },
+        "own": [
+          {
+            "id": "e400e7e7-2c52-4439-b1d9-7af0f42db80c",
+            "account_id": "f1c558cb-b057-4abf-9b6d-43c3d0c91100",
+            "debit": 250000,
+            "credit": 0,
+            "memo": "Cooler and building, at cost",
+            "updated_at": "2026-11-11T17:56:51.648822+03:00",
+            "account_code": "1500",
+            "account_name": "Fixed assets",
+            "account_type": "ASSET"
+          }
+        ]
+      }
+    }
+  }
+}

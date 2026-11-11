@@ -8,12 +8,12 @@ import '../../data/finance_models.dart';
 import '../../data/finance_service.dart';
 import '../finance_providers.dart';
 
-final _money = [FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))];
-const _moneyKeyboard = TextInputType.numberWithOptions(decimal: true);
+final moneyInput = [FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))];
+const moneyKeyboard = TextInputType.numberWithOptions(decimal: true);
 
 /// The parts every finance form shares: a title, the fields, an error and a
 /// save button, above the keyboard.
-class _Form extends StatelessWidget {
+class FinanceForm extends StatelessWidget {
   final String title;
   final String? subtitle;
   final List<Widget> children;
@@ -22,7 +22,8 @@ class _Form extends StatelessWidget {
   final String action;
   final VoidCallback onSave;
 
-  const _Form({
+  const FinanceForm({
+    super.key,
     required this.title,
     this.subtitle,
     required this.children,
@@ -63,7 +64,7 @@ class _Form extends StatelessWidget {
   );
 }
 
-Future<T?> _sheet<T>(BuildContext context, Widget child) =>
+Future<T?> showFinanceSheet<T>(BuildContext context, Widget child) =>
     showModalBottomSheet<T>(
       context: context,
       isScrollControlled: true,
@@ -77,7 +78,7 @@ class ExpenseFormSheet extends ConsumerStatefulWidget {
   const ExpenseFormSheet({super.key});
 
   static Future<void> show(BuildContext context) =>
-      _sheet(context, const ExpenseFormSheet());
+      showFinanceSheet(context, const ExpenseFormSheet());
 
   @override
   ConsumerState<ExpenseFormSheet> createState() => _ExpenseFormSheetState();
@@ -153,7 +154,7 @@ class _ExpenseFormSheetState extends ConsumerState<ExpenseFormSheet> {
     final accounts =
         ref.watch(cashAccountsProvider).valueOrNull?.active ??
         const <CashAccount>[];
-    return _Form(
+    return FinanceForm(
       title: 'Record an expense',
       busy: _busy,
       error: _error,
@@ -194,8 +195,8 @@ class _ExpenseFormSheetState extends ConsumerState<ExpenseFormSheet> {
           ),
         TextField(
           controller: _amount,
-          keyboardType: _moneyKeyboard,
-          inputFormatters: _money,
+          keyboardType: moneyKeyboard,
+          inputFormatters: moneyInput,
           decoration: const InputDecoration(labelText: 'Amount (KES)'),
         ),
         TextField(
@@ -240,7 +241,7 @@ class AccountFormSheet extends ConsumerStatefulWidget {
   const AccountFormSheet({super.key});
 
   static Future<void> show(BuildContext context) =>
-      _sheet(context, const AccountFormSheet());
+      showFinanceSheet(context, const AccountFormSheet());
 
   @override
   ConsumerState<AccountFormSheet> createState() => _AccountFormSheetState();
@@ -285,7 +286,7 @@ class _AccountFormSheetState extends ConsumerState<AccountFormSheet> {
   }
 
   @override
-  Widget build(BuildContext context) => _Form(
+  Widget build(BuildContext context) => FinanceForm(
     title: 'Add an account',
     subtitle: 'Where the Sacco keeps money.',
     busy: _busy,
@@ -332,8 +333,8 @@ class _AccountFormSheetState extends ConsumerState<AccountFormSheet> {
         ),
       TextField(
         controller: _opening,
-        keyboardType: _moneyKeyboard,
-        inputFormatters: _money,
+        keyboardType: moneyKeyboard,
+        inputFormatters: moneyInput,
         decoration: const InputDecoration(labelText: 'Money in it today (KES)'),
       ),
     ],
@@ -347,7 +348,7 @@ class TransferSheet extends ConsumerStatefulWidget {
   const TransferSheet({super.key, required this.accounts});
 
   static Future<void> show(BuildContext context, List<CashAccount> accounts) =>
-      _sheet(context, TransferSheet(accounts: accounts));
+      showFinanceSheet(context, TransferSheet(accounts: accounts));
 
   @override
   ConsumerState<TransferSheet> createState() => _TransferSheetState();
@@ -415,7 +416,7 @@ class _TransferSheetState extends ConsumerState<TransferSheet> {
   );
 
   @override
-  Widget build(BuildContext context) => _Form(
+  Widget build(BuildContext context) => FinanceForm(
     title: 'Move money',
     subtitle: 'For example, top up petty cash from the bank.',
     busy: _busy,
@@ -427,8 +428,8 @@ class _TransferSheetState extends ConsumerState<TransferSheet> {
       _pick('To', _to, (v) => setState(() => _to = v)),
       TextField(
         controller: _amount,
-        keyboardType: _moneyKeyboard,
-        inputFormatters: _money,
+        keyboardType: moneyKeyboard,
+        inputFormatters: moneyInput,
         decoration: const InputDecoration(labelText: 'Amount (KES)'),
       ),
       TextField(

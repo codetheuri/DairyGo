@@ -408,6 +408,14 @@ class _Started extends StatelessWidget {
               ),
               const Divider(height: 1),
               _Tile(
+                icon: Icons.flag_outlined,
+                title: 'Opening balances',
+                subtitle:
+                    'On the start date: from the records, and fixed assets or loans you add',
+                path: '/books/opening',
+              ),
+              const Divider(height: 1),
+              _Tile(
                 icon: Icons.alt_route_rounded,
                 title: 'Where records post',
                 subtitle: 'The account each kind of record uses',

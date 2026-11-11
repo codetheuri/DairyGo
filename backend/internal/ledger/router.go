@@ -57,6 +57,11 @@ func RegisterRoutes(api huma.API, db *gorm.DB, _ *config.Config, log logger.Logg
 	huma.Register(api, guard.Protected(op("books-reverse-journal", http.MethodPost, "/journals/{id}/reverse", "Reverse a journal",
 		"Only the accountant's own; a record's journal is reversed by voiding or correcting the record."), PermManage), h.ReverseJournal)
 
+	huma.Register(api, guard.Protected(op("books-opening", http.MethodGet, "/opening", "Opening balances",
+		"The opening journal on the start date (from every record before it, and the accountant's own balances) and the accountant's own lines."), PermRead), h.OpeningBalances)
+	huma.Register(api, guard.Protected(op("books-set-opening", http.MethodPut, "/opening", "Set an opening balance",
+		"For an account no record keeps (fixed assets, loans): one debit or credit per account, 0 removes it. Opening balances takes the other side."), PermManage), h.SetOpeningLine)
+
 	huma.Register(api, guard.Protected(op("books-trial-balance", http.MethodGet, "/trial-balance", "Trial balance",
 		"Each account's balance at the end of a day, debits and credits in their columns."), PermRead), h.TrialBalance)
 	huma.Register(api, guard.Protected(op("books-income-statement", http.MethodGet, "/income-statement", "Income statement",

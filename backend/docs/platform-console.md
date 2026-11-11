@@ -86,6 +86,21 @@ worked out again, though approval does that anyway. The wrong farmer's own
 buying price and deduction settings are not moved; the preview says when
 they had a price.
 
+## Importing opening shares
+
+The shares each farmer held before DairyGo, from the Sacco's spreadsheet.
+**Sacco → Farmers → Import opening shares…** (`POST
+/admin/saccos/{id}/shares/import`, `payout/shares_import.go`) takes an Excel
+(.xlsx) or CSV file with a membership number column ("Member No",
+"Membership number", "No.") and a shares column ("Shares", "Amount",
+"Balance"), and the day they were held (usually the day before the books
+start). It checks the file first and says how many farmers and how much,
+which numbers are unknown and who already has opening shares; nothing is
+imported while the file has a problem (an unreadable amount, a number twice).
+Farmers who already have opening shares are left alone, so the file can be
+run again after fixing unknown numbers. With more than one savings
+deduction, name the one they count towards. Platform operators only.
+
 ## Account enforcement
 
 - **Suspending or deactivating a Sacco** signs out all of its staff at once. Every

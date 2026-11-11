@@ -43,13 +43,35 @@ Deductions). A new kind of deduction is a new row, never new code.
 | `frequency` | `EVERY_RUN` · `ONCE_PER_MEMBER` · `ONCE_PER_YEAR` · `UNTIL_TARGET` (`target_amount`) |
 | `applies_to` | `ALL` farmers (unless exempted) or `ENROLLED` farmers only |
 | `priority` | order of taking, lowest first |
-| `is_savings` | builds the farmer's share balance |
+| `goes_to` | where the money goes: `INCOME` (the Sacco keeps it), `SAVINGS` (the farmer's shares; taken only from what is left, never as arrears) or `PAYEE` (owed to a supplier, `payee_id`, until paid over; see [finance.md](finance.md)) |
+| `is_savings` | `goes_to = SAVINGS`; older apps still send it |
 
 `member_deductions` gives one farmer their own amount or target (a loan),
 adds them to an `ENROLLED` deduction, or exempts them (`is_active = false`).
 
 Every Sacco starts with four switched-off examples to complete: registration
 fee, annual subscription, shares, transaction cost.
+
+Approving a pay run writes each deduction with the supplier it was taken for
+(`member_transactions.payee_id`), as the deduction said then: changing where
+a deduction's money goes applies to the next pay run, never to money taken.
+
+## Shares
+
+A farmer's shares are the savings deductions taken from their pay plus
+`share_entries`, shares moved outside pay runs, kept per savings deduction:
+
+- **opening shares** (`POST /members/{id}/shares/opening`): held before
+  DairyGo. They count towards the savings deduction's target, so a farmer who
+  brought 4,800 of a 5,000 target pays 200 more. Many at once from a
+  spreadsheet in the console (see [platform-console.md](platform-console.md)).
+- **refund** (`/shares/refund`): paid back from one of the Sacco's accounts,
+  no more than the farmer has; in the cashbook.
+- **transfer** (`/shares/transfer`): to another member; no money moves.
+- **void** (`POST /share-entries/{id}/void`): both sides of a transfer go
+  together; refused when the shares were refunded or passed on since.
+
+`GET /members/{id}/shares` lists every line. App: Farmer → Account → Shares.
 
 ## Working out pay (`payout.Compute`)
 
@@ -161,6 +183,7 @@ the milk delivered (KES 3,000) less what they owe (KES 1,000)".
 | `payouts.read` | admin, board |
 | `payouts.deductions.manage`, `payouts.advances.manage`, `payouts.charges.manage`, `payouts.runs.manage`, `payouts.runs.pay` | admin |
 | `payouts.runs.approve` | admin, board |
+| `payouts.shares.manage` (opening shares, refunds, transfers) | admin, accountant (migration `00032`) |
 
 ## Testing
 

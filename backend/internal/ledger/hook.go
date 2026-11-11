@@ -19,6 +19,11 @@ var entitySources = map[string]string{
 	"member_transaction": SrcFarmerEntry,
 	"pay_run":            SrcPayRun,
 	"cash_account":       SrcCashAccount,
+	"other_income":       SrcIncome,
+	"bill":               SrcBill,
+	"supplier_payment":   SrcSupplierPay,
+	"share_entry":        SrcShareEntry,
+	"ledger_opening":     SrcBooks,
 }
 
 // Install makes the books follow every money record from now on. Called

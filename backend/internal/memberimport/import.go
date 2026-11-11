@@ -60,6 +60,7 @@ var clearSteps = []struct{ table, sql string }{
 	{"milk_spoilage", `DELETE FROM milk_spoilage WHERE sacco_id = ?`},
 	{"milk_transfers", `DELETE FROM milk_transfers WHERE sacco_id = ?`},
 	{"milk_collections", `DELETE FROM milk_collections WHERE sacco_id = ?`},
+	{"share_entries", `DELETE FROM share_entries WHERE sacco_id = ?`},
 	{"members", `DELETE FROM members WHERE sacco_id = ?`},
 	{"audit_logs", `DELETE FROM audit_logs WHERE sacco_id = ? AND entity_type NOT IN ('user', 'role', 'sacco')`},
 	{"sms_logs", `DELETE FROM sms_logs WHERE sacco_id = ?`},

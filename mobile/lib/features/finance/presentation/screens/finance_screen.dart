@@ -15,6 +15,7 @@ import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../data/finance_models.dart';
 import '../finance_providers.dart';
 import '../widgets/finance_sheets.dart';
+import '../widgets/money_flow_sheets.dart';
 
 /// The Sacco's own money: expenses, accounts (petty cash, bank, M-Pesa) and
 /// the income and expenditure, month by month.
@@ -27,7 +28,10 @@ class FinanceScreen extends ConsumerStatefulWidget {
 
 class _FinanceScreenState extends ConsumerState<FinanceScreen>
     with SingleTickerProviderStateMixin {
-  late final _tabs = TabController(length: 3, vsync: this);
+  late final TabController _tabs = TabController(length: 4, vsync: this)
+    ..addListener(() {
+      if (!_tabs.indexIsChanging) setState(() {});
+    });
   // The period shown: a month, or a financial year (from the Sacco's start
   // month), stepped back and forth from this anchor day.
   DateTime _anchor = DateTime.now();
@@ -70,6 +74,13 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen>
           'Expenses & Money',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
+        actions: [
+          IconButton(
+            tooltip: 'Suppliers & bills',
+            icon: const Icon(Icons.storefront_outlined),
+            onPressed: () => context.push('/finance/suppliers'),
+          ),
+        ],
         bottom: TabBar(
           controller: _tabs,
           indicatorColor: AppColors.primary,
@@ -81,6 +92,7 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen>
           ),
           tabs: const [
             FittedTab(icon: Icons.receipt_long_rounded, label: 'Expenses'),
+            FittedTab(icon: Icons.savings_outlined, label: 'Other income'),
             FittedTab(
               icon: Icons.account_balance_wallet_outlined,
               label: 'Accounts',
@@ -89,13 +101,19 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen>
           ],
         ),
       ),
-      floatingActionButton: (user?.canRecordExpenses ?? false)
+      floatingActionButton: !(user?.canRecordExpenses ?? false)
+          ? null
+          : _tabs.index == 1
           ? FloatingActionButton.extended(
+              onPressed: () => IncomeFormSheet.show(context),
+              icon: const Icon(Icons.add_rounded),
+              label: const Text('Income'),
+            )
+          : FloatingActionButton.extended(
               onPressed: () => ExpenseFormSheet.show(context),
               icon: const Icon(Icons.add_rounded),
               label: const Text('Expense'),
-            )
-          : null,
+            ),
       body: ReadableWidth(
         child: Column(
           children: [
@@ -168,6 +186,7 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen>
                     categoryId: _categoryId,
                     onCategory: (id) => setState(() => _categoryId = id),
                   ),
+                  _IncomeTab(month: period),
                   _AccountsTab(month: period),
                   _SummaryTab(month: period),
                 ],
@@ -301,6 +320,124 @@ class _ExpensesTab extends ConsumerWidget {
                 ),
               ),
             if (l.expenses.isNotEmpty && canVoid)
+              const Padding(
+                padding: EdgeInsets.only(top: 8),
+                child: Text(
+                  'Recorded by mistake? Hold it to void.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _IncomeTab extends ConsumerWidget {
+  final Month month;
+
+  const _IncomeTab({required this.month});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final list = ref.watch(otherIncomeProvider(month));
+    final canVoid =
+        ref
+            .watch(authControllerProvider)
+            .valueOrNull
+            ?.user
+            ?.canRecordExpenses ??
+        false;
+    return RefreshIndicator(
+      onRefresh: () => ref.refresh(otherIncomeProvider(month).future),
+      child: list.when(
+        loading: () => const ListSkeleton(rows: 5),
+        error: (e, _) => ErrorView(
+          message: errorText(e),
+          onRetry: () => ref.invalidate(otherIncomeProvider(month)),
+        ),
+        data: (l) => ListView(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+          children: [
+            FigureGrid(
+              figures: [
+                Figure(
+                  'Received',
+                  kes(l.total, cents: false),
+                  color: AppColors.success,
+                ),
+                Figure('Payments', '${l.items.length}'),
+              ],
+            ),
+            if (l.byCategory.length > 1) ...[
+              const SizedBox(height: 12),
+              for (final c in l.byCategory)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 3),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(c.name, overflow: TextOverflow.ellipsis),
+                      ),
+                      Text(
+                        kes(c.amount, cents: false),
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+            const SizedBox(height: 12),
+            if (l.items.isEmpty)
+              const Padding(
+                padding: EdgeInsets.all(24),
+                child: Text(
+                  'No other income in this period. Record interest, rent, items sold or a grant here; '
+                  'milk sales are recorded as sales.',
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            for (final i in l.items)
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                onLongPress: canVoid
+                    ? () => voidWithReason(
+                        context,
+                        ref,
+                        title: 'Void this income?',
+                        detail: '${i.payer}: ${kes(i.amount)}',
+                        run: (r) => ref
+                            .read(financeServiceProvider)
+                            .voidIncome(i.id, r),
+                      )
+                    : null,
+                title: Text(
+                  i.payer,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                subtitle: Text(
+                  [
+                    DateFormat('d MMM').format(i.date),
+                    i.category,
+                    i.account,
+                    if ((i.reference ?? '').isNotEmpty) i.reference!,
+                  ].join(' · '),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 12),
+                ),
+                trailing: Text(
+                  kes(i.amount, cents: false),
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+              ),
+            if (l.items.isNotEmpty && canVoid)
               const Padding(
                 padding: EdgeInsets.only(top: 8),
                 child: Text(
@@ -483,6 +620,7 @@ class _SummaryTab extends ConsumerWidget {
             for (final f in s.fees) _row(f.name, f.amount),
             if (s.farmerCharges != 0)
               _row('Charges to farmers', s.farmerCharges),
+            for (final o in s.otherIncome) _row(o.name, o.amount),
             _heading('Spending'),
             _row('Milk bought from farmers', s.milkPurchases),
             for (final e in s.expenses) _row(e.name, e.amount),
@@ -501,6 +639,14 @@ class _SummaryTab extends ConsumerWidget {
                   color: AppColors.textSecondary,
                 ),
               ),
+            for (final h in s.heldForOthers)
+              Text(
+                '${h.name}: ${kes(h.amount, cents: false)} taken (owed to them, not income)',
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppColors.textSecondary,
+                ),
+              ),
             _heading('Today'),
             if (s.notInAccount > 0) NotInAccountNote(summary: s),
             _row('Cash in all accounts', s.cash),
@@ -508,6 +654,9 @@ class _SummaryTab extends ConsumerWidget {
             _row('Farmers owe the Sacco', s.farmersOwe),
             _row('Farmers\' pay still to send', s.farmerPayDue),
             _row('Farmers\' shares', s.shareCapital),
+            if (s.owedBills != 0) _row('Bills not yet paid', s.owedBills),
+            if (s.heldToPayOver != 0)
+              _row('Taken for suppliers, to pay over', s.heldToPayOver),
           ],
         ),
       ),

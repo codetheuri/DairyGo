@@ -58,12 +58,17 @@ Future<void> _tap(WidgetTester tester, Finder finder) async {
 
 /// Scrolls the last list on screen (or the one in [inside]) until [f] is
 /// built: lists build only the rows in view.
-Future<void> _scrollTo(WidgetTester tester, Finder f, {Finder? inside}) async {
+Future<void> _scrollTo(
+  WidgetTester tester,
+  Finder f, {
+  Finder? inside,
+  bool up = false,
+}) async {
   final list = find.descendant(
     of: inside ?? find.byType(ListView).last,
     matching: find.byType(Scrollable),
   );
-  await tester.scrollUntilVisible(f, 150, scrollable: list.first);
+  await tester.scrollUntilVisible(f, up ? -150 : 150, scrollable: list.first);
   await _settle(tester);
 }
 
@@ -410,6 +415,98 @@ void main() {
         expect(sent['key'], startsWith('expense_category:'));
         expect(links.errors, isEmpty, reason: links.errors.join('\n'));
         await links.close();
+      } finally {
+        await app.close();
+      }
+    });
+  }
+
+  for (final (size, scale) in _sizes) {
+    final name = '${size.width.toInt()}dp @${scale}x';
+
+    testWidgets('the statements $name', (tester) async {
+      _screen(tester, size, scale);
+      final app = await _open(tester, '/books');
+      try {
+        await _settle(tester);
+        await _tap(tester, find.text('Income statement'));
+        expect(find.text('Total income'), findsOneWidget);
+        expect(find.text('Deficit'), findsOneWidget);
+        expect(
+          find.textContaining('Sep 2026: '),
+          findsWidgets,
+          reason: 'the month before beside it',
+        );
+        expect(app.errors, isEmpty, reason: app.errors.join('\n'));
+        await _tap(tester, find.byTooltip('Month or financial year'));
+        await _tap(tester, find.text('Financial year').last);
+        expect(
+          find.text('Financial year ${DateTime.now().year}'),
+          findsOneWidget,
+        );
+        await _scrollTo(tester, find.text('Income less expenses'));
+        expect(app.errors, isEmpty, reason: app.errors.join('\n'));
+        await _tap(tester, find.byTooltip('Back'));
+
+        await _scrollTo(tester, find.text('Balance sheet'));
+        await _tap(tester, find.text('Balance sheet'));
+        expect(find.text('Total assets'), findsOneWidget);
+        await _scrollTo(
+          tester,
+          find.text('Assets equal liabilities plus equity'),
+        );
+        expect(
+          find.text('Assets equal liabilities plus equity'),
+          findsOneWidget,
+        );
+        expect(find.text('Surplus this financial year'), findsOneWidget);
+        expect(app.errors, isEmpty, reason: app.errors.join('\n'));
+      } finally {
+        await app.close();
+      }
+    });
+
+    testWidgets('the books\' downloads offer CSV and a day $name', (
+      tester,
+    ) async {
+      _screen(tester, size, scale);
+      final app = await _open(
+        tester,
+        '/report-downloads',
+        replaced: {'sacco_exports': _fixture('books_exports_catalog')},
+      );
+      try {
+        await _settle(tester);
+        await _scrollTo(tester, find.text('Journals'));
+        await _tap(tester, find.text('Journals'));
+        final sheet = find.byType(BottomSheet);
+        await _scrollTo(
+          tester,
+          find.text('CSV (other software)'),
+          inside: sheet,
+        );
+        expect(find.text('Excel (accounts)'), findsOneWidget);
+        expect(find.text('PDF (print, share)'), findsOneWidget);
+        expect(
+          find.text('Download Excel'),
+          findsOneWidget,
+          reason: 'Excel first for journals',
+        );
+        await _tap(tester, find.text('CSV (other software)'));
+        expect(find.text('Download CSV'), findsOneWidget);
+        expect(app.errors, isEmpty, reason: app.errors.join('\n'));
+        Navigator.of(tester.element(find.text('Download CSV'))).pop();
+        await _settle(tester);
+
+        await _scrollTo(tester, find.text('Balance Sheet'), up: true);
+        await _tap(tester, find.text('Balance Sheet'));
+        expect(find.textContaining('Balances at the end of'), findsOneWidget);
+        expect(
+          find.text('CSV (other software)'),
+          findsNothing,
+          reason: 'statements: PDF or Excel',
+        );
+        expect(app.errors, isEmpty, reason: app.errors.join('\n'));
       } finally {
         await app.close();
       }

@@ -69,7 +69,7 @@ class _ReportDownloadSheetState extends ConsumerState<ReportDownloadSheet> {
     ), DateTime.now());
   }
 
-  ReportFormat _format = ReportFormat.pdf;
+  late ReportFormat _format = widget.report.formats.first;
   String? _status;
   late MemberModel? _farmer = widget.farmer;
   late CustomerModel? _customer = widget.customer;
@@ -315,7 +315,9 @@ class _ReportDownloadSheetState extends ConsumerState<ReportDownloadSheet> {
               ),
               const SizedBox(height: 8),
               Text(
-                _period.dates,
+                _report.atEnd
+                    ? 'Balances at the end of ${_period.dates.split(' – ').last}'
+                    : _period.dates,
                 style: const TextStyle(
                   color: AppColors.textSecondary,
                   fontSize: 13,
@@ -349,11 +351,13 @@ class _ReportDownloadSheetState extends ConsumerState<ReportDownloadSheet> {
               spacing: 8,
               runSpacing: 8,
               children: [
-                for (final f in ReportFormat.values)
+                for (final f in _report.formats)
                   _chip(
-                    f == ReportFormat.pdf
-                        ? 'PDF (print, share)'
-                        : 'Excel (accounts)',
+                    switch (f) {
+                      ReportFormat.pdf => 'PDF (print, share)',
+                      ReportFormat.excel => 'Excel (accounts)',
+                      ReportFormat.csv => 'CSV (other software)',
+                    },
                     _format == f,
                     busy ? null : () => setState(() => _format = f),
                   ),

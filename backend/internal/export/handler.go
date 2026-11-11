@@ -48,7 +48,7 @@ func (h *Handler) Catalog(ctx context.Context, _ *struct{}) (*CatalogOutput, err
 
 type ExportInput struct {
 	Report      string `path:"report" doc:"Report key from GET /sacco/exports, e.g. farmer-payouts"`
-	Format      string `query:"format" enum:"pdf,xlsx" default:"pdf" doc:"pdf or xlsx (Excel)"`
+	Format      string `query:"format" enum:"pdf,xlsx,csv" default:"pdf" doc:"pdf, xlsx (Excel) or csv (the books' files, for other software)"`
 	From        string `query:"from" doc:"First day, YYYY-MM-DD (default: the 1st of this month)"`
 	To          string `query:"to" doc:"Last day, YYYY-MM-DD (default: today)"`
 	MemberID    string `query:"member_id" doc:"The farmer, for farmer-statement"`

@@ -1,0 +1,60 @@
+{
+  "status": 200,
+  "body": {
+    "success": true,
+    "message": "Income statement",
+    "data": {
+      "income_statement": {
+        "from_date": "2026-10-01",
+        "to_date": "2026-10-31",
+        "previous_from": "2026-09-01",
+        "previous_to": "2026-09-30",
+        "books_start_date": "2026-09-15",
+        "income": {
+          "title": "Income",
+          "lines": [
+            {
+              "account_id": "49e388e1-489e-4fd2-bed7-38da2eaa26ac",
+              "code": "4000",
+              "name": "Milk sales",
+              "amount": 60,
+              "previous": 0
+            },
+            {
+              "account_id": "7b84052e-be4b-496f-9c79-12e0facdbd12",
+              "code": "4101",
+              "name": "Registration fee",
+              "amount": 0,
+              "previous": 600
+            }
+          ],
+          "total": 60,
+          "previous_total": 600
+        },
+        "expenses": {
+          "title": "Expenses",
+          "lines": [
+            {
+              "account_id": "5151be62-4db5-4267-8f88-e949313a20ba",
+              "code": "5000",
+              "name": "Milk bought from farmers",
+              "amount": 2000,
+              "previous": 11000
+            },
+            {
+              "account_id": "3ab4bc6c-6a78-43e5-b839-f2da28f1170b",
+              "code": "6005",
+              "name": "Petty cash spending",
+              "amount": 0,
+              "previous": 200
+            }
+          ],
+          "total": 2000,
+          "previous_total": 11200
+        },
+        "surplus": -1940,
+        "previous_surplus": -10600
+      }
+    }
+  }
+}

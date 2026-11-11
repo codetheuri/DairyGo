@@ -1,0 +1,98 @@
+{
+  "status": 200,
+  "body": {
+    "success": true,
+    "message": "Balance sheet",
+    "data": {
+      "balance_sheet": {
+        "date": "2026-11-11",
+        "previous_date": "2025-12-31",
+        "books_start_date": "2026-09-15",
+        "assets": {
+          "title": "Assets",
+          "lines": [
+            {
+              "account_id": "134cf233-3a9a-40b8-976e-4d570428507f",
+              "code": "1001",
+              "name": "Equity Bank",
+              "amount": 6250,
+              "previous": 0
+            },
+            {
+              "account_id": "efa506b4-1ef7-460f-b11a-e2ba2ce259e3",
+              "code": "1002",
+              "name": "Petty cash",
+              "amount": 3100,
+              "previous": 0
+            },
+            {
+              "account_id": "e5721cd5-6de3-4049-83f4-9d2f2c0d6c92",
+              "code": "1003",
+              "name": "M-Pesa",
+              "amount": -8560,
+              "previous": 0
+            },
+            {
+              "account_id": "f2275fbb-aef3-4cb5-8b4f-891ce336690f",
+              "code": "1200",
+              "name": "Customers",
+              "amount": -540,
+              "previous": 0
+            },
+            {
+              "account_id": "3b25dba2-505a-4d91-a8d0-1b2fae88956b",
+              "code": "1300",
+              "name": "Farmers' accounts",
+              "amount": 300,
+              "previous": 0
+            }
+          ],
+          "total": 550,
+          "previous_total": 0
+        },
+        "liabilities": {
+          "title": "Liabilities",
+          "lines": [],
+          "total": 0,
+          "previous_total": 0
+        },
+        "equity": {
+          "title": "Equity",
+          "lines": [
+            {
+              "account_id": "9ce2fc53-761a-49ea-b667-60891d0ee8d8",
+              "code": "3001",
+              "name": "Shares",
+              "amount": 1500,
+              "previous": 0
+            },
+            {
+              "account_id": "9d91827e-2771-4dd2-8890-4e436de4042b",
+              "code": "3200",
+              "name": "Retained surplus",
+              "amount": 600,
+              "previous": 0
+            },
+            {
+              "account_id": "75b5951b-6092-4dd4-b38d-c76de4a5554b",
+              "code": "3900",
+              "name": "Opening balances",
+              "amount": 10400,
+              "previous": 0
+            },
+            {
+              "name": "Surplus this financial year",
+              "amount": -11950,
+              "previous": 0
+            }
+          ],
+          "total": 550,
+          "previous_total": 0
+        },
+        "liabilities_and_equity": 550,
+        "previous_liabilities_and_equity": 0,
+        "balanced": true
+      }
+    }
+  }
+}

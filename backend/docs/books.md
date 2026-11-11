@@ -163,7 +163,48 @@ voiding or correcting the record.
   first; search by number (`J-12`) or words in the memo or reference.
 - `GET /books/accounts`: the chart with each balance now.
 
-Statements (income statement, balance sheet) and exports are phase 3.
+## Statements (phase 3)
+
+Worked out from the journals alone, so they always agree with the trial
+balance (`statements.go`).
+
+- `GET /books/income-statement?from=&to=`: each income and expense account's
+  movement in the period, totals and the surplus (negative: deficit),
+  beside the period of the same length before it: whole months when the
+  period starts on the 1st (a month, a quarter, a financial year), else the
+  same number of days.
+- `GET /books/balance-sheet?date=&previous=`: assets, liabilities and equity
+  at the end of the day, beside another day (default the end of the last
+  financial year), and whether assets equal liabilities plus equity. Until
+  years are closed (phase 5), income and expenses stay in their accounts, so
+  equity shows two lines for them: **Surplus this financial year** and
+  **Surplus of earlier years (not yet closed)** since the books started.
+  What was made before the start is already in Retained surplus.
+
+The income statement's surplus equals the income and expenditure
+(`/finance/summary`) for a month whose pay run is approved; they differ when
+it isn't, because the books count milk bought when its pay run is approved,
+and the income and expenditure counts it day by day.
+
+## Downloads (phase 3)
+
+On the report downloads list (`/sacco/exports`, `books.read`):
+
+| Report | Period | Formats |
+| :--- | :--- | :--- |
+| Income Statement | a period, beside the one before | PDF, Excel |
+| Balance Sheet | at the end of the period, beside its start | PDF, Excel |
+| Trial Balance | at the end of the period | PDF, Excel, CSV |
+| General Ledger | every account's entries, opening and closing | PDF, Excel, CSV |
+| Journals | every journal line: date, journal, source, memo, reference, account code and name, debit, credit, line note | Excel, CSV, PDF |
+| Chart of Accounts | today | PDF, Excel, CSV |
+
+The CSV and Excel journal and ledger files are what the Sacco's own
+accounting software imports: one row per debit or credit, plain dates
+(2026-10-31) and amounts (1460.00) in CSV. The catalog lists each report's
+`formats` (none listed: PDF and Excel) and `at_end` for reports that show a
+day; older apps ignore both and keep PDF and Excel. Before the books start,
+these downloads say to start them.
 
 ## Permissions
 
@@ -177,7 +218,8 @@ The accountant's bar is Home · Money · Pay · **Books** · More (Customers is
 on More and on the Home). Admins open Books from More. Screens: Books (the
 check, start, bring up to date, move the start), Trial balance, Journals,
 a journal (reverse your own), New journal, Chart of accounts (add, change),
-an account's ledger, Where records post.
+an account's ledger, Where records post, Income statement (a month or a
+financial year), Balance sheet, and Download.
 
 ## Testing
 
@@ -195,5 +237,11 @@ an account's ledger, Where records post.
   the books started first, then checks the books agree with the records and
   nothing was missed (done for payouts, finance, custprices, saccoprice,
   merge, late, reassign, lateadvance, paymethod and accountant).
+- `~/.dairygo/localtest/statements.sh` (45 checks, after books.sh): the
+  income statement against the sales records, the income and expenditure and
+  the trial balance; the balance sheet balances on several days and with
+  another financial year; every download in each format, CSV columns,
+  journals CSV has every line and balances, the general ledger's bank
+  closing equals the cashbook; refusals.
 - `flutter test test/layout/books_test.dart`: every books screen at 320 dp
   with 2× text and at 412 dp, and what each action sends.

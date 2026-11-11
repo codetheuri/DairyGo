@@ -143,6 +143,30 @@ class BooksService {
     return TrialBalance.fromJson(data['trial_balance'] as Map<String, dynamic>);
   }
 
+  Future<IncomeStatement> incomeStatement(DateTime from, DateTime to) async {
+    final data = await apiData(
+      () => _dio.get(
+        '$_base/income-statement',
+        queryParameters: {'from': iso(from), 'to': iso(to)},
+      ),
+      'Could not load the income statement',
+    );
+    return IncomeStatement.fromJson(
+      data['income_statement'] as Map<String, dynamic>,
+    );
+  }
+
+  Future<BalanceSheet> balanceSheet(DateTime date) async {
+    final data = await apiData(
+      () => _dio.get(
+        '$_base/balance-sheet',
+        queryParameters: {'date': iso(date)},
+      ),
+      'Could not load the balance sheet',
+    );
+    return BalanceSheet.fromJson(data['balance_sheet'] as Map<String, dynamic>);
+  }
+
   Future<AccountLedger> ledger(String id, DateTime from, DateTime to) async {
     final data = await apiData(
       () => _dio.get(

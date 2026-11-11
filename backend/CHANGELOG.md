@@ -9,6 +9,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 
 ### Added
+- **The books, phase 3: statements and files for other software** ([docs/books.md](docs/books.md)):
+  - **income statement** for any period beside the one before (`/sacco/books/income-statement`), and **balance sheet** on any day beside the end of the last financial year (`/sacco/books/balance-sheet`); in the app (Books → Income statement / Balance sheet, a month or a financial year).
+  - new downloads: Income Statement, Balance Sheet, Trial Balance, General Ledger, Journals and Chart of Accounts. The trial balance, ledger, journals and chart also come as **CSV** to import into the Sacco's own accounting software (`format=csv`; each report lists its `formats`).
 - **The books, phase 2: a double-entry ledger** (`internal/ledger`, migration `00031`, [docs/books.md](docs/books.md)):
   - every sale, customer payment, expense, transfer, advance, charge, adjustment, pay run and payment of farmers' pay posts a balanced journal by itself, in the same transaction (through an audit hook, so console tools and batches are covered too); a changed or voided record gets a reversal and a new journal, never an edit.
   - the accountant starts the books from a day; everything before it becomes one opening journal (income and expenses before then go to retained surplus).

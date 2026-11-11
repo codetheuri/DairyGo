@@ -116,3 +116,29 @@ type AccountLedgerData struct {
 type AccountLedgerOutput struct {
 	Body response.Data[AccountLedgerData]
 }
+
+type IncomeStatementInput struct {
+	From string `query:"from" doc:"YYYY-MM-DD (default the 1st of this month)"`
+	To   string `query:"to" doc:"YYYY-MM-DD (default today)"`
+}
+
+type IncomeStatementData struct {
+	Statement *IncomeStatement `json:"income_statement"`
+}
+
+type IncomeStatementOutput struct {
+	Body response.Data[IncomeStatementData]
+}
+
+type BalanceSheetInput struct {
+	Date     string `query:"date" doc:"YYYY-MM-DD (default today): the position at the end of the day"`
+	Previous string `query:"previous" doc:"YYYY-MM-DD to compare with (default the end of the last financial year)"`
+}
+
+type BalanceSheetData struct {
+	Sheet *BalanceSheet `json:"balance_sheet"`
+}
+
+type BalanceSheetOutput struct {
+	Body response.Data[BalanceSheetData]
+}

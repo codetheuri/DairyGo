@@ -166,6 +166,28 @@ func (h *Handler) AccountLedger(ctx context.Context, in *AccountLedgerInput) (*A
 	return out, nil
 }
 
+func (h *Handler) IncomeStatement(ctx context.Context, in *IncomeStatementInput) (*IncomeStatementOutput, error) {
+	st, err := h.service.IncomeStatement(ctx, in.From, in.To)
+	if err != nil {
+		return nil, h.toHTTPError(err)
+	}
+	out := &IncomeStatementOutput{}
+	out.Body.Success, out.Body.Message = true, "Income statement"
+	out.Body.Data.Statement = st
+	return out, nil
+}
+
+func (h *Handler) BalanceSheet(ctx context.Context, in *BalanceSheetInput) (*BalanceSheetOutput, error) {
+	bs, err := h.service.BalanceSheet(ctx, in.Date, in.Previous)
+	if err != nil {
+		return nil, h.toHTTPError(err)
+	}
+	out := &BalanceSheetOutput{}
+	out.Body.Success, out.Body.Message = true, "Balance sheet"
+	out.Body.Data.Sheet = bs
+	return out, nil
+}
+
 // toHTTPError maps domain errors to status codes with plain sentences.
 func (h *Handler) toHTTPError(err error) error {
 	switch {

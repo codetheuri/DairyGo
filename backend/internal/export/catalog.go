@@ -10,6 +10,7 @@ import (
 	"github.com/codetheuri/tusk/internal/collection"
 	"github.com/codetheuri/tusk/internal/customer"
 	"github.com/codetheuri/tusk/internal/finance"
+	"github.com/codetheuri/tusk/internal/ledger"
 	"github.com/codetheuri/tusk/internal/payout"
 	"github.com/codetheuri/tusk/internal/report"
 )
@@ -36,6 +37,11 @@ type Report struct {
 	CollectorFilter bool `json:"collector_filter,omitempty"`
 	// StatusFilter: can be limited to farmers of one status.
 	StatusFilter bool `json:"status_filter,omitempty"`
+	// AtEnd reports show balances on one day: the last day of the period
+	// chosen (the balance sheet, the trial balance).
+	AtEnd bool `json:"at_end,omitempty"`
+	// Formats the report comes in; empty means pdf and xlsx.
+	Formats []Format `json:"formats,omitempty"`
 
 	permission string
 	landscape  bool
@@ -109,11 +115,79 @@ var catalog = []Report{
 		Description: "Money in and out of each account (petty cash, bank, M-Pesa) with running balances.",
 		permission:  finance.PermRead, landscape: true, build: cashbooks,
 	},
+	// The books (phase 3, see docs/books.md): statements, and files for the
+	// Sacco's own accounting software.
+	{
+		Key: "income-statement", Title: "Income Statement",
+		Description: "Income less expenses from the books for the period, beside the period before it.",
+		permission:  ledger.PermRead, build: incomeStatement,
+	},
+	{
+		Key: "balance-sheet", Title: "Balance Sheet",
+		Description: "What the Sacco owns and owes at the end of the period, beside its start.",
+		AtEnd:       true, permission: ledger.PermRead, build: balanceSheet,
+	},
+	{
+		Key: "trial-balance", Title: "Trial Balance",
+		Description: "Every account's balance at the end of the period, debits and credits in their columns.",
+		AtEnd:       true, Formats: []Format{PDF, XLSX, CSV}, permission: ledger.PermRead, build: trialBalance,
+	},
+	{
+		Key: "general-ledger", Title: "General Ledger",
+		Description: "Every account's entries in the period with opening and closing balances.",
+		Formats:     []Format{PDF, XLSX, CSV}, permission: ledger.PermRead, landscape: true, build: generalLedger,
+	},
+	{
+		Key: "journals", Title: "Journals",
+		Description: "Every journal line in the period (date, journal, account code, debit, credit, memo): to import into other accounting software.",
+		Formats:     []Format{XLSX, CSV, PDF}, permission: ledger.PermRead, landscape: true, build: journals,
+	},
+	{
+		Key: "chart-of-accounts", Title: "Chart of Accounts",
+		Description: "Every account with its code, kind and balance today.",
+		AsAt:        true, Formats: []Format{PDF, XLSX, CSV}, permission: ledger.PermRead, build: chartOfAccounts,
+	},
 	{
 		Key: "farmer-register", Title: "Farmer Register",
 		Description: "All farmers with contacts, payout details, next of kin and status.",
 		AsAt:        true, StatusFilter: true, permission: report.PermReportsPayoutRead, landscape: true, build: farmerRegister,
 	},
+}
+
+var defaultFormats = []Format{PDF, XLSX}
+
+// FormatsOffered is what the report comes in.
+func (r Report) FormatsOffered() []Format {
+	if len(r.Formats) == 0 {
+		return defaultFormats
+	}
+	return r.Formats
+}
+
+func (r Report) offers(f Format) bool {
+	for _, x := range r.FormatsOffered() {
+		if x == f {
+			return true
+		}
+	}
+	return false
+}
+
+func (r Report) formatList() string {
+	names := map[Format]string{PDF: "PDF", XLSX: "Excel", CSV: "CSV"}
+	out := ""
+	list := r.FormatsOffered()
+	for i, f := range list {
+		switch {
+		case i == 0:
+		case i == len(list)-1:
+			out += " or "
+		default:
+			out += ", "
+		}
+		out += names[f]
+	}
+	return out
 }
 
 func findReport(key string) (Report, bool) {

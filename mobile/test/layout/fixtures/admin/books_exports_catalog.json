@@ -1,0 +1,126 @@
+{
+  "status": 200,
+  "body": {
+    "success": true,
+    "message": "Reports you can download",
+    "data": {
+      "reports": [
+        {
+          "key": "farmer-payouts",
+          "title": "Farmers' Milk Value",
+          "description": "Each farmer's milk and its value for any dates, before deductions. Not for paying: pay from the pay run's Bank or M-Pesa list."
+        },
+        {
+          "key": "farmer-statement",
+          "title": "Farmer Statement",
+          "description": "Every delivery by one farmer, with price and amount. To give to the farmer.",
+          "needs": "farmer"
+        },
+        {
+          "key": "customer-statement",
+          "title": "Customer Statement",
+          "description": "One customer's sales and payments with the running balance. To send to the customer.",
+          "needs": "customer"
+        },
+        {
+          "key": "customers-owing",
+          "title": "Customers Owing",
+          "description": "Every customer who owes the Sacco money, largest first.",
+          "as_at": true
+        },
+        {
+          "key": "sacco-summary",
+          "title": "Sacco Summary",
+          "description": "Day by day: milk in and out, cost of milk, sales revenue and margin, with totals."
+        },
+        {
+          "key": "deductions",
+          "title": "Deductions",
+          "description": "What pay runs took from farmers in the period: totals for each deduction (shares, fees, transaction cost…) and each farmer's."
+        },
+        {
+          "key": "farmer-balances",
+          "title": "Farmer Balances",
+          "description": "Farmers who owe the Sacco (advances, charges, arrears) or are owed, with their shares.",
+          "as_at": true
+        },
+        {
+          "key": "income-expenditure",
+          "title": "Income and Expenditure",
+          "description": "Milk sales and purchases, fees and charges, expenses by category and the surplus; with cash, debts and shares now."
+        },
+        {
+          "key": "expenses",
+          "title": "Expenses",
+          "description": "Every expense in the period with category, payee, account and reference, and totals by category."
+        },
+        {
+          "key": "cashbooks",
+          "title": "Cashbooks",
+          "description": "Money in and out of each account (petty cash, bank, M-Pesa) with running balances."
+        },
+        {
+          "key": "income-statement",
+          "title": "Income Statement",
+          "description": "Income less expenses from the books for the period, beside the period before it."
+        },
+        {
+          "key": "balance-sheet",
+          "title": "Balance Sheet",
+          "description": "What the Sacco owns and owes at the end of the period, beside its start.",
+          "at_end": true
+        },
+        {
+          "key": "trial-balance",
+          "title": "Trial Balance",
+          "description": "Every account's balance at the end of the period, debits and credits in their columns.",
+          "at_end": true,
+          "formats": [
+            "pdf",
+            "xlsx",
+            "csv"
+          ]
+        },
+        {
+          "key": "general-ledger",
+          "title": "General Ledger",
+          "description": "Every account's entries in the period with opening and closing balances.",
+          "formats": [
+            "pdf",
+            "xlsx",
+            "csv"
+          ]
+        },
+        {
+          "key": "journals",
+          "title": "Journals",
+          "description": "Every journal line in the period (date, journal, account code, debit, credit, memo): to import into other accounting software.",
+          "formats": [
+            "xlsx",
+            "csv",
+            "pdf"
+          ]
+        },
+        {
+          "key": "chart-of-accounts",
+          "title": "Chart of Accounts",
+          "description": "Every account with its code, kind and balance today.",
+          "as_at": true,
+          "formats": [
+            "pdf",
+            "xlsx",
+            "csv"
+          ]
+        },
+        {
+          "key": "farmer-register",
+          "title": "Farmer Register",
+          "description": "All farmers with contacts, payout details, next of kin and status.",
+          "as_at": true,
+          "status_filter": true
+        }
+      ],
+      "max_days": 366
+    }
+  }
+}

@@ -59,4 +59,8 @@ func RegisterRoutes(api huma.API, db *gorm.DB, _ *config.Config, log logger.Logg
 
 	huma.Register(api, guard.Protected(op("books-trial-balance", http.MethodGet, "/trial-balance", "Trial balance",
 		"Each account's balance at the end of a day, debits and credits in their columns."), PermRead), h.TrialBalance)
+	huma.Register(api, guard.Protected(op("books-income-statement", http.MethodGet, "/income-statement", "Income statement",
+		"Income less expenses over a period, with the period of the same length before it."), PermRead), h.IncomeStatement)
+	huma.Register(api, guard.Protected(op("books-balance-sheet", http.MethodGet, "/balance-sheet", "Balance sheet",
+		"What the Sacco owns and owes at the end of a day, beside another day (default the end of the last financial year)."), PermRead), h.BalanceSheet)
 }

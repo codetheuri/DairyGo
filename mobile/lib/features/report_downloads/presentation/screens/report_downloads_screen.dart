@@ -25,6 +25,12 @@ class ReportDownloadsScreen extends ConsumerWidget {
     'milk-balance': Icons.balance_rounded,
     'sacco-summary': Icons.insights_rounded,
     'farmer-register': Icons.groups_outlined,
+    'income-statement': Icons.trending_up_rounded,
+    'balance-sheet': Icons.account_balance_outlined,
+    'trial-balance': Icons.balance_rounded,
+    'general-ledger': Icons.menu_book_outlined,
+    'journals': Icons.receipt_long_rounded,
+    'chart-of-accounts': Icons.account_tree_outlined,
   };
 
   Future<void> _deleteAll(

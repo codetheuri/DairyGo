@@ -18,6 +18,14 @@ slow connections. Making a report takes 5–250 ms.
 | `milk-balance` | Per collector: collected, received, sold, transferred, spoiled, unaccounted | `reports.collector.read` | period, `collector_id` |
 | `sacco-summary` | Day by day litres, cost of milk, sales and margin, with totals | `reports.reconciliation.read` | period |
 | `farmer-register` | Farmers with contacts, payout details, next of kin | `reports.payout.read` | `status` |
+| `income-statement` | The books: income less expenses, beside the period before | `books.read` | period |
+| `balance-sheet` | The books: assets, liabilities and equity at the end of the period, beside its start | `books.read` | period (its last day) |
+| `trial-balance` | The books: every account's balance at the end of the period (also CSV) | `books.read` | period (its last day) |
+| `general-ledger` | The books: every account's entries with opening and closing (also CSV) | `books.read` | period |
+| `journals` | The books: every journal line, for other accounting software (Excel, CSV, PDF) | `books.read` | period |
+| `chart-of-accounts` | The books: accounts with code, kind and balance (also CSV) | `books.read` | as at today |
+
+The books' reports are described in [books.md](books.md).
 
 - **Permissions:** each report uses the permission that already guards its
   data, so changing a role in the console changes which reports it can
@@ -30,7 +38,7 @@ slow connections. Making a report takes 5–250 ms.
 
 ```
 GET /api/v1/sacco/exports                     the reports the caller may download
-GET /api/v1/sacco/exports/{key}?format=pdf|xlsx&from=YYYY-MM-DD&to=YYYY-MM-DD[&member_id=…]
+GET /api/v1/sacco/exports/{key}?format=pdf|xlsx|csv&from=YYYY-MM-DD&to=YYYY-MM-DD[&member_id=…]
 ```
 
 - **Period:**
@@ -58,6 +66,12 @@ GET /api/v1/sacco/exports/{key}?format=pdf|xlsx&from=YYYY-MM-DD&to=YYYY-MM-DD[&m
   - amounts and litres stored as numbers (they add up), membership numbers
     and phones as text (so "002" and "0712…" keep their leading zeros, which
     CSV would lose in Excel).
+
+- **CSV**, only for reports whose catalog entry lists it in `formats` (the
+  books' trial balance, general ledger, journals and chart): one table, a
+  header row, plain values (2026-10-31, 1460.00), for importing into other
+  software. A report with no `formats` comes as PDF and Excel. `at_end`
+  marks a report that shows balances at the end of the period chosen.
 
 The look is defined once in `pkg/document` (`pdf.go`, `xlsx.go`). Reports
 only fill in a `document.Document` (`internal/export/builders.go`).

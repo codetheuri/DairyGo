@@ -72,6 +72,9 @@ type Document struct {
 	Tables  []Table
 	// Notes are short explanations printed after the tables.
 	Notes []string
+	// Flat is the one table a CSV file holds, for importing into other
+	// software; nil means the first table.
+	Flat *Table
 	// Landscape for wide tables.
 	Landscape   bool
 	GeneratedBy string

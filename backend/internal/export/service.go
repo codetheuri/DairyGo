@@ -9,6 +9,7 @@ import (
 
 	"github.com/codetheuri/tusk/internal/customer"
 	"github.com/codetheuri/tusk/internal/finance"
+	"github.com/codetheuri/tusk/internal/ledger"
 	"github.com/codetheuri/tusk/internal/middleware"
 	"github.com/codetheuri/tusk/internal/report"
 	"github.com/codetheuri/tusk/pkg/authz"
@@ -32,12 +33,18 @@ type Format string
 const (
 	PDF  Format = "pdf"
 	XLSX Format = "xlsx"
+	// CSV is plain values for importing into other accounting software;
+	// only reports that list it offer it.
+	CSV Format = "csv"
 )
 
 // ContentType is the MIME type of the format.
 func (f Format) ContentType() string {
-	if f == XLSX {
+	switch f {
+	case XLSX:
 		return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+	case CSV:
+		return "text/csv; charset=utf-8"
 	}
 	return "application/pdf"
 }
@@ -67,13 +74,14 @@ type Service struct {
 	reports   *report.Service
 	customers *customer.Service
 	finance   *finance.Service
+	books     *ledger.Service
 	authz     *authz.Evaluator
 	now       func() time.Time
 }
 
 // NewService creates the export service.
-func NewService(repo *Repository, reports *report.Service, customers *customer.Service, fin *finance.Service, evaluator *authz.Evaluator) *Service {
-	return &Service{repo: repo, reports: reports, customers: customers, finance: fin, authz: evaluator, now: time.Now}
+func NewService(repo *Repository, reports *report.Service, customers *customer.Service, fin *finance.Service, books *ledger.Service, evaluator *authz.Evaluator) *Service {
+	return &Service{repo: repo, reports: reports, customers: customers, finance: fin, books: books, authz: evaluator, now: time.Now}
 }
 
 // Catalog lists the reports the caller may download.
@@ -119,8 +127,8 @@ func (s *Service) Build(ctx context.Context, req Request) (*File, error) {
 	if !s.allowed(ctx, rep.permission) {
 		return nil, fmt.Errorf("%w: you may not download the %s report", ErrForbidden, rep.Title)
 	}
-	if req.Format != PDF && req.Format != XLSX {
-		return nil, fmt.Errorf("%w: format must be pdf or xlsx", ErrInvalid)
+	if !rep.offers(req.Format) {
+		return nil, fmt.Errorf("%w: the %s report comes as %s", ErrInvalid, rep.Title, rep.formatList())
 	}
 	saccoID, ok := middleware.GetSaccoID(ctx)
 	if !ok || saccoID == "" {
@@ -157,6 +165,9 @@ func (s *Service) Build(ctx context.Context, req Request) (*File, error) {
 	if rep.AsAt {
 		in.doc.Period = "As at " + to.Format("Mon 2 Jan 2006")
 	}
+	if rep.AtEnd {
+		in.doc.Period = "At the end of " + to.Format("Mon 2 Jan 2006")
+	}
 	// Someone who sees only their own records gets only their own rows.
 	if !middleware.SeesAllRecords(ctx) && !middleware.IsSuperUser(ctx) {
 		in.collectorID = userID
@@ -166,9 +177,12 @@ func (s *Service) Build(ctx context.Context, req Request) (*File, error) {
 	}
 
 	var data []byte
-	if req.Format == XLSX {
+	switch req.Format {
+	case XLSX:
 		data, err = document.XLSX(in.doc)
-	} else {
+	case CSV:
+		data, err = document.CSV(in.doc)
+	default:
 		data, err = document.PDF(in.doc)
 	}
 	if err != nil {
@@ -216,7 +230,7 @@ func fileName(rep Report, in *input, f Format) string {
 	if in.doc.Subject != "" {
 		parts = append(parts, slug(strings.SplitN(in.doc.Subject, "·", 2)[0]))
 	}
-	if rep.AsAt {
+	if rep.AsAt || rep.AtEnd {
 		parts = append(parts, in.to.Format(dateLayout))
 	} else {
 		parts = append(parts, in.from.Format(dateLayout), "to", in.to.Format(dateLayout))

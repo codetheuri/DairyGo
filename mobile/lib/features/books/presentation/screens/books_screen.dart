@@ -373,6 +373,20 @@ class _Started extends StatelessWidget {
           child: Column(
             children: [
               _Tile(
+                icon: Icons.trending_up_rounded,
+                title: 'Income statement',
+                subtitle: 'Income less expenses for a month or a year',
+                path: '/books/income-statement',
+              ),
+              const Divider(height: 1),
+              _Tile(
+                icon: Icons.account_balance_outlined,
+                title: 'Balance sheet',
+                subtitle: 'What the Sacco owns and owes',
+                path: '/books/balance-sheet',
+              ),
+              const Divider(height: 1),
+              _Tile(
                 icon: Icons.balance_rounded,
                 title: 'Trial balance',
                 subtitle: 'Every account\'s balance on a day',
@@ -398,6 +412,14 @@ class _Started extends StatelessWidget {
                 title: 'Where records post',
                 subtitle: 'The account each kind of record uses',
                 path: '/books/links',
+              ),
+              const Divider(height: 1),
+              _Tile(
+                icon: Icons.download_rounded,
+                title: 'Download',
+                subtitle:
+                    'Statements as PDF or Excel; journals and ledgers as Excel or CSV for other software',
+                path: '/report-downloads',
               ),
             ],
           ),

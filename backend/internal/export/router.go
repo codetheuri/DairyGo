@@ -9,6 +9,7 @@ import (
 	"github.com/codetheuri/tusk/config"
 	"github.com/codetheuri/tusk/internal/customer"
 	"github.com/codetheuri/tusk/internal/finance"
+	"github.com/codetheuri/tusk/internal/ledger"
 	"github.com/codetheuri/tusk/internal/report"
 	"github.com/codetheuri/tusk/pkg/authz"
 	"github.com/codetheuri/tusk/pkg/logger"
@@ -23,6 +24,7 @@ func RegisterRoutes(api huma.API, db *gorm.DB, cfg *config.Config, log logger.Lo
 		report.NewService(report.NewRepository(db)),
 		customer.NewService(customer.NewRepository(db), evaluator),
 		finance.NewService(finance.NewRepository(db)),
+		ledger.NewService(db),
 		evaluator,
 	)
 	h := NewHandler(service, log)
@@ -43,13 +45,14 @@ func RegisterRoutes(api huma.API, db *gorm.DB, cfg *config.Config, log logger.Lo
 		Method:      http.MethodGet,
 		Path:        "/api/v1/sacco/exports/{report}",
 		Summary:     "Download a report",
-		Description: "Builds the report on the server and returns it as a PDF or Excel file. Periods are at most a year.",
+		Description: "Builds the report on the server and returns it as a PDF or Excel file (CSV for the books' files). Periods are at most a year.",
 		Tags:        tags,
 		Responses: map[string]*huma.Response{"200": {
 			Description: "The report file",
 			Content: map[string]*huma.MediaType{
 				"application/pdf": {},
 				"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {},
+				"text/csv": {},
 			},
 		}},
 	}, ""), h.Export)

@@ -14,6 +14,14 @@ class ReportSpec {
   /// Can be limited to farmers of one status (the farmer register).
   final bool statusFilter;
 
+  /// Balances on one day: the last day of the period chosen (the balance
+  /// sheet, the trial balance).
+  final bool atEnd;
+
+  /// The formats it comes in (PDF and Excel unless the server lists others,
+  /// such as CSV for the books' files).
+  final List<ReportFormat> formats;
+
   const ReportSpec({
     required this.key,
     required this.title,
@@ -21,6 +29,8 @@ class ReportSpec {
     this.needs,
     this.asAt = false,
     this.statusFilter = false,
+    this.atEnd = false,
+    this.formats = const [ReportFormat.pdf, ReportFormat.excel],
   });
 
   factory ReportSpec.fromJson(Map<String, dynamic> json) => ReportSpec(
@@ -32,7 +42,18 @@ class ReportSpec {
         : json['needs'] as String,
     asAt: json['as_at'] as bool? ?? false,
     statusFilter: json['status_filter'] as bool? ?? false,
+    atEnd: json['at_end'] as bool? ?? false,
+    formats: _formats(json['formats']),
   );
+
+  static List<ReportFormat> _formats(Object? list) {
+    final out = [
+      for (final f in (list as List?) ?? const [])
+        for (final known in ReportFormat.values)
+          if (known.query == f) known,
+    ];
+    return out.isEmpty ? const [ReportFormat.pdf, ReportFormat.excel] : out;
+  }
 
   bool get needsFarmer => needs == 'farmer';
   bool get needsCustomer => needs == 'customer';
@@ -41,7 +62,9 @@ class ReportSpec {
 /// A file format a report comes in.
 enum ReportFormat {
   pdf('PDF', 'pdf'),
-  excel('Excel', 'xlsx');
+  excel('Excel', 'xlsx'),
+  // Plain values for importing into other accounting software.
+  csv('CSV', 'csv');
 
   final String label;
   final String query;

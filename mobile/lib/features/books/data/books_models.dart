@@ -421,3 +421,130 @@ class AccountLedger {
     ],
   );
 }
+
+/// One account on a statement, in its usual direction, with the earlier
+/// period's amount.
+class StatementLine {
+  final String? accountId;
+  final String code;
+  final String name;
+  final double amount;
+  final double previous;
+
+  const StatementLine({
+    this.accountId,
+    required this.code,
+    required this.name,
+    required this.amount,
+    required this.previous,
+  });
+
+  String get label => code.isEmpty ? name : '$code  $name';
+
+  factory StatementLine.fromJson(Map<String, dynamic> j) => StatementLine(
+    accountId: (j['account_id'] as String?)?.isEmpty ?? true
+        ? null
+        : j['account_id'] as String,
+    code: '${j['code'] ?? ''}',
+    name: '${j['name'] ?? ''}',
+    amount: _d(j['amount']),
+    previous: _d(j['previous']),
+  );
+}
+
+class StatementSection {
+  final String title;
+  final List<StatementLine> lines;
+  final double total;
+  final double previousTotal;
+
+  const StatementSection(
+    this.title,
+    this.lines,
+    this.total,
+    this.previousTotal,
+  );
+
+  factory StatementSection.fromJson(Map<String, dynamic> j) => StatementSection(
+    '${j['title'] ?? ''}',
+    [
+      for (final l in (j['lines'] as List?) ?? const [])
+        StatementLine.fromJson(l as Map<String, dynamic>),
+    ],
+    _d(j['total']),
+    _d(j['previous_total']),
+  );
+}
+
+/// Income less expenses over a period, beside the period before.
+class IncomeStatement {
+  final DateTime from;
+  final DateTime to;
+  final DateTime previousFrom;
+  final DateTime previousTo;
+  final DateTime startDate;
+  final StatementSection income;
+  final StatementSection expenses;
+  final double surplus;
+  final double previousSurplus;
+
+  const IncomeStatement({
+    required this.from,
+    required this.to,
+    required this.previousFrom,
+    required this.previousTo,
+    required this.startDate,
+    required this.income,
+    required this.expenses,
+    required this.surplus,
+    required this.previousSurplus,
+  });
+
+  factory IncomeStatement.fromJson(Map<String, dynamic> j) => IncomeStatement(
+    from: _day(j['from_date']),
+    to: _day(j['to_date']),
+    previousFrom: _day(j['previous_from']),
+    previousTo: _day(j['previous_to']),
+    startDate: _day(j['books_start_date']),
+    income: StatementSection.fromJson(j['income'] as Map<String, dynamic>),
+    expenses: StatementSection.fromJson(j['expenses'] as Map<String, dynamic>),
+    surplus: _d(j['surplus']),
+    previousSurplus: _d(j['previous_surplus']),
+  );
+}
+
+/// What the Sacco owns and owes on a day, beside another day.
+class BalanceSheet {
+  final DateTime date;
+  final DateTime previousDate;
+  final StatementSection assets;
+  final StatementSection liabilities;
+  final StatementSection equity;
+  final double liabilitiesAndEquity;
+  final double previousLiabilitiesAndEquity;
+  final bool balanced;
+
+  const BalanceSheet({
+    required this.date,
+    required this.previousDate,
+    required this.assets,
+    required this.liabilities,
+    required this.equity,
+    required this.liabilitiesAndEquity,
+    required this.previousLiabilitiesAndEquity,
+    required this.balanced,
+  });
+
+  factory BalanceSheet.fromJson(Map<String, dynamic> j) => BalanceSheet(
+    date: _day(j['date']),
+    previousDate: _day(j['previous_date']),
+    assets: StatementSection.fromJson(j['assets'] as Map<String, dynamic>),
+    liabilities: StatementSection.fromJson(
+      j['liabilities'] as Map<String, dynamic>,
+    ),
+    equity: StatementSection.fromJson(j['equity'] as Map<String, dynamic>),
+    liabilitiesAndEquity: _d(j['liabilities_and_equity']),
+    previousLiabilitiesAndEquity: _d(j['previous_liabilities_and_equity']),
+    balanced: j['balanced'] != false,
+  );
+}

@@ -37,6 +37,16 @@ final accountLedgerProvider = FutureProvider.autoDispose
           .ledger(q.accountId, q.month.from, q.month.to),
     );
 
+final incomeStatementProvider = FutureProvider.autoDispose
+    .family<IncomeStatement, Month>(
+      (ref, m) => ref.watch(booksServiceProvider).incomeStatement(m.from, m.to),
+    );
+
+final balanceSheetProvider = FutureProvider.autoDispose
+    .family<BalanceSheet, DateTime>(
+      (ref, day) => ref.watch(booksServiceProvider).balanceSheet(day),
+    );
+
 /// What the journal list shows.
 typedef JournalQuery = ({Month month, String? kind, String search, int page});
 
@@ -62,4 +72,6 @@ void refreshBooks(WidgetRef ref) {
   ref.invalidate(trialBalanceProvider);
   ref.invalidate(accountLedgerProvider);
   ref.invalidate(journalProvider);
+  ref.invalidate(incomeStatementProvider);
+  ref.invalidate(balanceSheetProvider);
 }

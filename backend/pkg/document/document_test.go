@@ -118,3 +118,27 @@ func TestSheetName(t *testing.T) {
 		t.Errorf("long = %q", got)
 	}
 }
+
+func TestCSV(t *testing.T) {
+	d := &Document{Title: "Journals", Tables: []Table{{
+		Columns: []Column{{Title: "Date", Kind: Date}, {Title: "Memo"}, {Title: "Debit", Kind: Money}, {Title: "Lines", Kind: Count}},
+		Rows: [][]any{
+			{time.Date(2026, 10, 31, 0, 0, 0, 0, time.UTC), "Milk sale: Hotel, 10 L", 1460.5, 2},
+			{time.Date(2026, 11, 1, 0, 0, 0, 0, time.UTC), `Said "hello", twice`, nil, 3},
+		},
+		Totals: []any{"Total", nil, 1460.5, 5},
+	}}}
+	got, err := CSV(d)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := "Date,Memo,Debit,Lines\n2026-10-31,\"Milk sale: Hotel, 10 L\",1460.50,2\n2026-11-01,\"Said \"\"hello\"\", twice\",,3\n"
+	if string(got) != want {
+		t.Fatalf("csv:\n%s\nwant:\n%s", got, want)
+	}
+	// The flat table wins over the first.
+	d.Flat = &Table{Columns: []Column{{Title: "Only"}}, Rows: [][]any{{"x"}}}
+	if got, _ := CSV(d); string(got) != "Only\nx\n" {
+		t.Fatalf("flat: %q", got)
+	}
+}

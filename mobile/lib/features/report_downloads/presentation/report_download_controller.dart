@@ -42,9 +42,9 @@ class ReportFiles {
     return switch (result.type) {
       ResultType.done => null,
       ResultType.noAppToOpen =>
-        file.path.endsWith('.xlsx')
-            ? 'No app on this phone opens Excel files. Share it instead, or install Google Sheets or Excel.'
-            : 'No app on this phone opens PDF files. Share it instead.',
+        file.path.endsWith('.pdf')
+            ? 'No app on this phone opens PDF files. Share it instead.'
+            : 'No app on this phone opens spreadsheets. Share it instead, or install Google Sheets or Excel.',
       _ => 'The report could not be opened: ${result.message}',
     };
   }
@@ -62,6 +62,8 @@ class ReportFiles {
         'path': file.path,
         'mime': file.path.endsWith('.xlsx')
             ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            : file.path.endsWith('.csv')
+            ? 'text/csv'
             : 'application/pdf',
       });
     } on MissingPluginException {

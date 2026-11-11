@@ -27,6 +27,7 @@ import (
 	"github.com/codetheuri/tusk/internal/finance"
 	"github.com/codetheuri/tusk/internal/idempotency"
 	"github.com/codetheuri/tusk/internal/jobs"
+	"github.com/codetheuri/tusk/internal/ledger"
 	"github.com/codetheuri/tusk/internal/member"
 	"github.com/codetheuri/tusk/internal/middleware"
 	"github.com/codetheuri/tusk/internal/notification"
@@ -244,6 +245,10 @@ func New(cfg *config.Config, log logger.Logger) (*App, error) {
 	// Register Domain Module Routes
 	runner := newJobRunner(db, log, platformRepo, idempotencyStore, authRepo)
 	registerModules(api, r, db, cfg, log, runner)
+	// The books follow every money record from its audit entry (see
+	// ledger.Install). Installed here, not in registerModules, so route
+	// tests on a bare database never post.
+	ledger.Install(log)
 
 	return &App{
 		cfg:    cfg,
@@ -321,6 +326,7 @@ func registerModules(api huma.API, r chi.Router, db *gorm.DB, cfg *config.Config
 	customer.RegisterRoutes(api, db, cfg, log)
 	payout.RegisterRoutes(api, db, cfg, log)
 	finance.RegisterRoutes(api, db, cfg, log)
+	ledger.RegisterRoutes(api, db, cfg, log)
 	report.RegisterRoutes(api, db, cfg, log)
 	export.RegisterRoutes(api, db, cfg, log)
 	dashboard.RegisterRoutes(api, db, cfg, log)

@@ -30,6 +30,9 @@ enum AppSection {
     Icons.payments_rounded,
     shortLabel: 'Pay',
   ),
+  // The books (ledger): a tab for the accountant; on More for others who
+  // see them (Sacco admins).
+  books('Books', Icons.menu_book_outlined, Icons.menu_book_rounded),
   more('More', Icons.menu_rounded, Icons.menu_open_rounded);
 
   /// Short, one-word labels so a phone's bottom bar never wraps.
@@ -70,16 +73,18 @@ class RoleNavigation {
 
     if (user?.usesBooksLayout ?? false) {
       // Those who keep the books (the accountant): money first, no milk
-      // entries. Farmers and reports, when they may see them, are on More.
+      // entries. Customers, and farmers and reports when they may see them,
+      // are on More.
       return RoleNavigation(
         bar: const [
           AppSection.home,
           AppSection.money,
           AppSection.pay,
-          AppSection.customers,
+          AppSection.books,
           AppSection.more,
         ],
         overflow: [
+          AppSection.customers,
           if (user?.canReadFarmers ?? false) AppSection.farmers,
           if (reports) AppSection.reports,
         ],

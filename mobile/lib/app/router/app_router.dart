@@ -1,6 +1,14 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../features/books/presentation/screens/account_ledger_screen.dart';
+import '../../features/books/presentation/screens/books_screen.dart';
+import '../../features/books/presentation/screens/chart_screen.dart';
+import '../../features/books/presentation/screens/journal_screen.dart';
+import '../../features/books/presentation/screens/journals_screen.dart';
+import '../../features/books/presentation/screens/links_screen.dart';
+import '../../features/books/presentation/screens/new_journal_screen.dart';
+import '../../features/books/presentation/screens/trial_balance_screen.dart';
 import '../../features/finance/presentation/screens/cashbook_screen.dart';
 import '../../features/finance/presentation/screens/finance_screen.dart';
 import '../../features/payouts/presentation/screens/deductions_screen.dart';
@@ -58,6 +66,9 @@ abstract class AppRoutes {
   // The accountant's tabs show the same screens as /finance and /payouts.
   static const String money = '/money';
   static const String pay = '/pay';
+  // The books: the accountant's tab, and the same screen pushed for others.
+  static const String ledger = '/ledger';
+  static const String books = '/books';
 }
 
 /// The router is created once. Sign-in changes reach it through
@@ -184,7 +195,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
-          // Branch 8: More (settings, staff, account)
+          // Branch 8: Books (the accountant's tab; others use /books)
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.ledger,
+                builder: (context, state) => const BooksScreen(),
+              ),
+            ],
+          ),
+          // Branch 9: More (settings, staff, account)
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -221,6 +241,40 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.finance,
         builder: (context, state) => const FinanceScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.books,
+        builder: (context, state) => const BooksScreen(),
+      ),
+      GoRoute(
+        path: '/books/trial-balance',
+        builder: (context, state) => const TrialBalanceScreen(),
+      ),
+      GoRoute(
+        path: '/books/journals',
+        builder: (context, state) => const JournalsScreen(),
+      ),
+      GoRoute(
+        path: '/books/journals/new',
+        builder: (context, state) => const NewJournalScreen(),
+      ),
+      GoRoute(
+        path: '/books/journals/:id',
+        builder: (context, state) =>
+            JournalScreen(journalId: state.pathParameters['id'] ?? ''),
+      ),
+      GoRoute(
+        path: '/books/accounts',
+        builder: (context, state) => const ChartScreen(),
+      ),
+      GoRoute(
+        path: '/books/accounts/:id',
+        builder: (context, state) =>
+            AccountLedgerScreen(accountId: state.pathParameters['id'] ?? ''),
+      ),
+      GoRoute(
+        path: '/books/links',
+        builder: (context, state) => const LinksScreen(),
       ),
       GoRoute(
         path: '/finance/accounts/:id',

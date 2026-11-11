@@ -27,6 +27,8 @@
           "updated_at": "2026-09-28T09:01:17.762591+03:00"
         },
         "permissions": [
+          "books.manage",
+          "books.read",
           "customers.create",
           "customers.payments.manage",
           "customers.read",

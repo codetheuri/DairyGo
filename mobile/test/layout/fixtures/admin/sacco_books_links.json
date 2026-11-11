@@ -1,0 +1,343 @@
+{
+  "status": 200,
+  "body": {
+    "success": true,
+    "message": "Where records post",
+    "data": {
+      "links": [
+        {
+          "key": "cash_account:8587ad18-b9bc-4642-9ae1-162a5258dc0c",
+          "group": "CASH_ACCOUNTS",
+          "name": "Bank",
+          "detail": "Bank",
+          "account_id": "698cd204-1b85-490d-8c37-302935f76c97",
+          "account_code": "1001",
+          "account_name": "Equity Bank",
+          "allowed_types": [
+            "ASSET"
+          ]
+        },
+        {
+          "key": "cash_account:6e9576c5-2f18-4116-b024-57e9cd249f2a",
+          "group": "CASH_ACCOUNTS",
+          "name": "Petty cash",
+          "detail": "Cash",
+          "account_id": "fc02cf6f-132d-4a1b-9a83-1263ea6a874c",
+          "account_code": "1002",
+          "account_name": "Petty cash",
+          "allowed_types": [
+            "ASSET"
+          ]
+        },
+        {
+          "key": "cash_account:b1e54750-b7e0-41de-80e1-3fe7770cb395",
+          "group": "CASH_ACCOUNTS",
+          "name": "M-Pesa",
+          "detail": "M-Pesa",
+          "account_id": "e9984dd8-49f2-42f0-94b1-d9ebc3859fce",
+          "account_code": "1003",
+          "account_name": "M-Pesa",
+          "allowed_types": [
+            "ASSET"
+          ]
+        },
+        {
+          "key": "expense_category:2cf742cb-43fd-4faf-a2b8-8f8d7748a8e1",
+          "group": "EXPENSE_CATEGORIES",
+          "name": "Bank and M-Pesa charges",
+          "account_id": "c7ca3b51-bee0-4d58-991b-89d56cf3e100",
+          "account_code": "6001",
+          "account_name": "Bank and M-Pesa charges",
+          "allowed_types": [
+            "EXPENSE",
+            "ASSET"
+          ]
+        },
+        {
+          "key": "expense_category:9ab8cad4-26d2-4589-95ad-b780d75f0da2",
+          "group": "EXPENSE_CATEGORIES",
+          "name": "Electricity and water",
+          "account_id": "6097d8bc-bfc5-4d02-9b8d-01f9eeb6e90a",
+          "account_code": "6002",
+          "account_name": "Electricity and water",
+          "allowed_types": [
+            "EXPENSE",
+            "ASSET"
+          ]
+        },
+        {
+          "key": "expense_category:521da622-64e0-4a46-9d5e-b8f34210d79a",
+          "group": "EXPENSE_CATEGORIES",
+          "name": "Meetings and AGM",
+          "account_id": "be677ff8-83c1-48b5-8520-1a58bb5d4e20",
+          "account_code": "6003",
+          "account_name": "Meetings and AGM",
+          "allowed_types": [
+            "EXPENSE",
+            "ASSET"
+          ]
+        },
+        {
+          "key": "expense_category:7dfa80c4-f73f-4b3c-8447-72e883b640be",
+          "group": "EXPENSE_CATEGORIES",
+          "name": "Other",
+          "account_id": "329a350a-6fa4-477b-af50-2bf5712ff24b",
+          "account_code": "6004",
+          "account_name": "Other",
+          "allowed_types": [
+            "EXPENSE",
+            "ASSET"
+          ]
+        },
+        {
+          "key": "expense_category:13e9b6ef-6d70-455a-9b4f-dd728b131b36",
+          "group": "EXPENSE_CATEGORIES",
+          "name": "Petty cash spending",
+          "account_id": "283f0b3f-6421-4c6d-9964-4e04896bb6c8",
+          "account_code": "6005",
+          "account_name": "Petty cash spending",
+          "allowed_types": [
+            "EXPENSE",
+            "ASSET"
+          ]
+        },
+        {
+          "key": "expense_category:62b8b92c-1536-40f3-b145-2d2b438c125f",
+          "group": "EXPENSE_CATEGORIES",
+          "name": "Rent",
+          "account_id": "d44218c2-a83c-4c41-bdb3-f7f5a08091d6",
+          "account_code": "6006",
+          "account_name": "Rent",
+          "allowed_types": [
+            "EXPENSE",
+            "ASSET"
+          ]
+        },
+        {
+          "key": "expense_category:a305a51f-5ac3-435c-aedf-bf151285b7b3",
+          "group": "EXPENSE_CATEGORIES",
+          "name": "Repairs and maintenance",
+          "account_id": "a8e7763c-599d-48fc-9872-e40c6f7f4da5",
+          "account_code": "6007",
+          "account_name": "Repairs and maintenance",
+          "allowed_types": [
+            "EXPENSE",
+            "ASSET"
+          ]
+        },
+        {
+          "key": "expense_category:7a90be09-9bb9-4cd6-94f8-1a18bd986585",
+          "group": "EXPENSE_CATEGORIES",
+          "name": "Salaries and wages",
+          "account_id": "eae9d61b-219c-44f6-8197-992c930521ee",
+          "account_code": "6008",
+          "account_name": "Salaries and wages",
+          "allowed_types": [
+            "EXPENSE",
+            "ASSET"
+          ]
+        },
+        {
+          "key": "expense_category:97362714-8954-45b0-811a-330992544661",
+          "group": "EXPENSE_CATEGORIES",
+          "name": "Stationery and printing",
+          "account_id": "ef5764c9-f347-4955-993a-3770c65e9464",
+          "account_code": "6009",
+          "account_name": "Stationery and printing",
+          "allowed_types": [
+            "EXPENSE",
+            "ASSET"
+          ]
+        },
+        {
+          "key": "expense_category:d8331497-8e77-479b-b1c9-f9dff4691454",
+          "group": "EXPENSE_CATEGORIES",
+          "name": "Transport and fuel",
+          "account_id": "3a95b6dd-5023-4b63-9eb3-c6062930383f",
+          "account_code": "6100",
+          "account_name": "Fuel",
+          "allowed_types": [
+            "EXPENSE",
+            "ASSET"
+          ]
+        },
+        {
+          "key": "deduction_type:f3cbba09-2488-4404-afe7-9609db6c149a",
+          "group": "DEDUCTIONS",
+          "name": "Registration fee",
+          "detail": "Kept by the Sacco",
+          "account_id": "cc00a326-3e3c-413d-8f7a-fb7978793794",
+          "account_code": "4101",
+          "account_name": "Registration fee",
+          "allowed_types": [
+            "INCOME",
+            "EQUITY",
+            "LIABILITY"
+          ]
+        },
+        {
+          "key": "deduction_type:99d27776-476e-4f0a-818b-617c5e057106",
+          "group": "DEDUCTIONS",
+          "name": "Annual subscription",
+          "detail": "Kept by the Sacco",
+          "account_id": "5623f468-376f-4dec-b357-c002e80a1ec5",
+          "account_code": "4102",
+          "account_name": "Annual subscription",
+          "allowed_types": [
+            "INCOME",
+            "EQUITY",
+            "LIABILITY"
+          ]
+        },
+        {
+          "key": "deduction_type:c49f0b54-3b98-4f01-a4c7-b582e7d8734e",
+          "group": "DEDUCTIONS",
+          "name": "Shares",
+          "detail": "Savings (the farmers' own)",
+          "account_id": "1176a19b-0336-49f5-93ad-4115616bb3ea",
+          "account_code": "3001",
+          "account_name": "Shares",
+          "allowed_types": [
+            "INCOME",
+            "EQUITY",
+            "LIABILITY"
+          ]
+        },
+        {
+          "key": "deduction_type:449039be-af71-48be-8237-658c48796cfa",
+          "group": "DEDUCTIONS",
+          "name": "Transaction cost",
+          "detail": "Kept by the Sacco",
+          "account_id": "d4250292-8699-45aa-9159-95fd069a4514",
+          "account_code": "4103",
+          "account_name": "Transaction cost",
+          "allowed_types": [
+            "INCOME",
+            "EQUITY",
+            "LIABILITY"
+          ]
+        },
+        {
+          "key": "role:NO_ACCOUNT",
+          "group": "RECORDS",
+          "name": "Money not in an account",
+          "detail": "Money recorded without naming an account",
+          "account_id": "961d1f57-3aca-4c9b-a8f9-2fb0ad637ad8",
+          "account_code": "1099",
+          "account_name": "Money not in an account",
+          "allowed_types": [
+            "ASSET"
+          ]
+        },
+        {
+          "key": "role:CUSTOMERS",
+          "group": "RECORDS",
+          "name": "Customers",
+          "detail": "Milk sold on credit, less customers' payments",
+          "account_id": "ba65f764-c404-457d-b32f-5b8dc4915644",
+          "account_code": "1200",
+          "account_name": "Customers",
+          "allowed_types": [
+            "ASSET"
+          ]
+        },
+        {
+          "key": "role:FARMERS",
+          "group": "RECORDS",
+          "name": "Farmers' accounts",
+          "detail": "Advances, charges and adjustments; milk and deductions from pay runs",
+          "account_id": "5a0a72da-ba57-485a-9870-24f6cb51cdec",
+          "account_code": "1300",
+          "account_name": "Farmers' accounts",
+          "allowed_types": [
+            "ASSET"
+          ]
+        },
+        {
+          "key": "role:PAY_DUE",
+          "group": "RECORDS",
+          "name": "Farmers' pay due",
+          "detail": "Net pay when a pay run is approved, until it is sent",
+          "account_id": "4b6ef133-ca3a-4253-a1b1-4fb3715a6bd3",
+          "account_code": "2000",
+          "account_name": "Farmers' pay due",
+          "allowed_types": [
+            "LIABILITY"
+          ]
+        },
+        {
+          "key": "role:RETAINED",
+          "group": "RECORDS",
+          "name": "Retained surplus",
+          "detail": "Income less expenses before the books started",
+          "account_id": "182dfe7b-4b1a-4abe-b302-d2b6e03f7f63",
+          "account_code": "3200",
+          "account_name": "Retained surplus",
+          "allowed_types": [
+            "EQUITY"
+          ]
+        },
+        {
+          "key": "role:OPENING",
+          "group": "RECORDS",
+          "name": "Opening balances",
+          "detail": "Cash accounts' opening balances",
+          "account_id": "fddb3044-8db5-4c27-b932-55ea0b1e4eb4",
+          "account_code": "3900",
+          "account_name": "Opening balances",
+          "allowed_types": [
+            "EQUITY"
+          ]
+        },
+        {
+          "key": "role:MILK_SALES",
+          "group": "RECORDS",
+          "name": "Milk sales",
+          "detail": "Every milk sale",
+          "account_id": "06312b7a-a88d-46a2-93e5-d6ad74a2c188",
+          "account_code": "4000",
+          "account_name": "Milk sales",
+          "allowed_types": [
+            "INCOME"
+          ]
+        },
+        {
+          "key": "role:CHARGES",
+          "group": "RECORDS",
+          "name": "Charges to farmers",
+          "detail": "Charges to farmers",
+          "account_id": "78286659-aa63-462f-a771-9572488d66e8",
+          "account_code": "4200",
+          "account_name": "Charges to farmers",
+          "allowed_types": [
+            "INCOME"
+          ]
+        },
+        {
+          "key": "role:MILK_PURCHASES",
+          "group": "RECORDS",
+          "name": "Milk bought from farmers",
+          "detail": "Farmers' milk when a pay run is approved",
+          "account_id": "10d2f1fe-50fc-4d9d-aa57-e690d63e8f4a",
+          "account_code": "5000",
+          "account_name": "Milk bought from farmers",
+          "allowed_types": [
+            "EXPENSE"
+          ]
+        },
+        {
+          "key": "role:ADJUSTMENTS",
+          "group": "RECORDS",
+          "name": "Adjustments to farmers' accounts",
+          "detail": "Adjustments to farmers' accounts",
+          "account_id": "66a26660-7f7f-4847-b578-9e9f3afd65c6",
+          "account_code": "5100",
+          "account_name": "Adjustments to farmers' accounts",
+          "allowed_types": [
+            "EXPENSE"
+          ]
+        }
+      ]
+    }
+  }
+}

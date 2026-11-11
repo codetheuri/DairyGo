@@ -1,0 +1,146 @@
+{
+  "status": 200,
+  "body": {
+    "success": true,
+    "message": "Trial balance",
+    "data": {
+      "trial_balance": {
+        "date": "2026-11-11",
+        "start_date": "2026-09-15",
+        "rows": [
+          {
+            "account_id": "698cd204-1b85-490d-8c37-302935f76c97",
+            "code": "1001",
+            "name": "Equity Bank",
+            "type": "ASSET",
+            "debit": 6250,
+            "credit": 0
+          },
+          {
+            "account_id": "fc02cf6f-132d-4a1b-9a83-1263ea6a874c",
+            "code": "1002",
+            "name": "Petty cash",
+            "type": "ASSET",
+            "debit": 3700,
+            "credit": 0
+          },
+          {
+            "account_id": "e9984dd8-49f2-42f0-94b1-d9ebc3859fce",
+            "code": "1003",
+            "name": "M-Pesa",
+            "type": "ASSET",
+            "debit": 0,
+            "credit": 8560
+          },
+          {
+            "account_id": "ba65f764-c404-457d-b32f-5b8dc4915644",
+            "code": "1200",
+            "name": "Customers",
+            "type": "ASSET",
+            "debit": 0,
+            "credit": 540
+          },
+          {
+            "account_id": "5a0a72da-ba57-485a-9870-24f6cb51cdec",
+            "code": "1300",
+            "name": "Farmers' accounts",
+            "type": "ASSET",
+            "debit": 300,
+            "credit": 0
+          },
+          {
+            "account_id": "76666e6e-000a-499a-b557-20ff64e43bb0",
+            "code": "1500",
+            "name": "Fixed assets",
+            "type": "ASSET",
+            "debit": 5000,
+            "credit": 0
+          },
+          {
+            "account_id": "c5b2d58c-75f5-4f93-a376-5881161205a5",
+            "code": "2200",
+            "name": "Loans",
+            "type": "LIABILITY",
+            "debit": 0,
+            "credit": 5000
+          },
+          {
+            "account_id": "1176a19b-0336-49f5-93ad-4115616bb3ea",
+            "code": "3001",
+            "name": "Shares",
+            "type": "EQUITY",
+            "debit": 0,
+            "credit": 1500
+          },
+          {
+            "account_id": "182dfe7b-4b1a-4abe-b302-d2b6e03f7f63",
+            "code": "3200",
+            "name": "Retained surplus",
+            "type": "EQUITY",
+            "debit": 0,
+            "credit": 600
+          },
+          {
+            "account_id": "fddb3044-8db5-4c27-b932-55ea0b1e4eb4",
+            "code": "3900",
+            "name": "Opening balances",
+            "type": "EQUITY",
+            "debit": 0,
+            "credit": 11000
+          },
+          {
+            "account_id": "06312b7a-a88d-46a2-93e5-d6ad74a2c188",
+            "code": "4000",
+            "name": "Milk sales",
+            "type": "INCOME",
+            "debit": 0,
+            "credit": 900
+          },
+          {
+            "account_id": "cc00a326-3e3c-413d-8f7a-fb7978793794",
+            "code": "4101",
+            "name": "Registration fee",
+            "type": "INCOME",
+            "debit": 0,
+            "credit": 600
+          },
+          {
+            "account_id": "78286659-aa63-462f-a771-9572488d66e8",
+            "code": "4200",
+            "name": "Charges to farmers",
+            "type": "INCOME",
+            "debit": 0,
+            "credit": 150
+          },
+          {
+            "account_id": "10d2f1fe-50fc-4d9d-aa57-e690d63e8f4a",
+            "code": "5000",
+            "name": "Milk bought from farmers",
+            "type": "EXPENSE",
+            "debit": 13000,
+            "credit": 0
+          },
+          {
+            "account_id": "283f0b3f-6421-4c6d-9964-4e04896bb6c8",
+            "code": "6005",
+            "name": "Petty cash spending",
+            "type": "EXPENSE",
+            "debit": 200,
+            "credit": 0
+          },
+          {
+            "account_id": "3a95b6dd-5023-4b63-9eb3-c6062930383f",
+            "code": "6100",
+            "name": "Fuel",
+            "type": "EXPENSE",
+            "debit": 400,
+            "credit": 0
+          }
+        ],
+        "total_debit": 28850,
+        "total_credit": 28850,
+        "balanced": true
+      }
+    }
+  }
+}

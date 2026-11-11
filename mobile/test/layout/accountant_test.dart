@@ -1,5 +1,5 @@
 // The accountant (role 4, books.manage, records no milk): their own layout,
-// Home · Money · Pay · Customers · More, with the money home and no milk
+// Home · Money · Pay · Books · More, with the money home and no milk
 // entries; admins keep theirs. The money screen shows a month or a financial
 // year. Money recorded names its account: the account for the way of paying
 // is shown and left to the server unless another is picked. On the smallest

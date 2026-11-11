@@ -10,6 +10,7 @@ import (
 	"github.com/codetheuri/tusk/internal/auth"
 	"github.com/codetheuri/tusk/internal/idempotency"
 	"github.com/codetheuri/tusk/internal/jobs"
+	"github.com/codetheuri/tusk/internal/ledger"
 	"github.com/codetheuri/tusk/internal/member"
 	"github.com/codetheuri/tusk/internal/superadmin"
 	"github.com/codetheuri/tusk/pkg/logger"
@@ -73,6 +74,17 @@ func newJobRunner(db *gorm.DB, log logger.Logger, platform *superadmin.Repositor
 			}
 			s, err := sessions.PurgeRefreshTokens(ctx, time.Now().Add(-keepEndedSessions))
 			return fmt.Sprintf("%d saved retries and %d ended sessions deleted", k, s), err
+		},
+	})
+
+	runner.Add(jobs.Job{
+		Name:        "check-books",
+		Title:       "Check the books",
+		Description: "Compares every record with each Sacco's books and posts any journal that is missing (a record saved while posting failed).",
+		Every:       day,
+		Run: func(ctx context.Context) (string, error) {
+			saccos, made, err := ledger.SyncEverySacco(ctx, db)
+			return fmt.Sprintf("%d Saccos' books checked, %d journals posted", saccos, made), err
 		},
 	})
 

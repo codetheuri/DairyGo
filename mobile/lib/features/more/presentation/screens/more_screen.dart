@@ -24,6 +24,7 @@ class MoreScreen extends ConsumerWidget {
     AppSection.farmers: 'Farmers, their accounts and payslips',
     AppSection.money: 'Expenses, petty cash, bank and M-Pesa',
     AppSection.pay: 'Pay runs, advances and deductions',
+    AppSection.books: 'Journals, trial balance and chart of accounts',
   };
 
   Future<void> _confirmLogout(BuildContext context, WidgetRef ref) async {
@@ -124,6 +125,20 @@ class MoreScreen extends ConsumerWidget {
                     ),
                     trailing: const Icon(Icons.chevron_right_rounded),
                     onTap: () => context.push(AppRoutes.finance),
+                  ),
+                if ((user?.seesBooks ?? false) &&
+                    !nav.bar.contains(AppSection.books))
+                  ListTile(
+                    leading: const Icon(
+                      Icons.menu_book_outlined,
+                      color: AppColors.primary,
+                    ),
+                    title: const Text('Books'),
+                    subtitle: const Text(
+                      'Journals, trial balance and chart of accounts',
+                    ),
+                    trailing: const Icon(Icons.chevron_right_rounded),
+                    onTap: () => context.push(AppRoutes.books),
                   ),
                 ListTile(
                   leading: const Icon(

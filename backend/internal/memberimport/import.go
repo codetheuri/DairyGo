@@ -50,6 +50,10 @@ type Count struct {
 // roles, the Sacco's settings and milk prices are kept, and so is the audit
 // trail of staff, role and Sacco changes.
 var clearSteps = []struct{ table, sql string }{
+	// The books go with the records they were posted from; they start again
+	// when the accountant starts them (the chart of accounts is kept).
+	{"journals", `DELETE FROM journals WHERE sacco_id = ?`},
+	{"ledger_books", `DELETE FROM ledger_books WHERE sacco_id = ?`},
 	{"customer_payments", `DELETE FROM customer_payments WHERE sacco_id = ?`},
 	{"milk_sales", `DELETE FROM milk_sales WHERE sacco_id = ?`},
 	{"customers", `DELETE FROM customers WHERE sacco_id = ?`},

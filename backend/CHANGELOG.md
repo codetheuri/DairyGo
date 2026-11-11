@@ -9,6 +9,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 
 ### Added
+- **The books, phase 2: a double-entry ledger** (`internal/ledger`, migration `00031`, [docs/books.md](docs/books.md)):
+  - every sale, customer payment, expense, transfer, advance, charge, adjustment, pay run and payment of farmers' pay posts a balanced journal by itself, in the same transaction (through an audit hook, so console tools and batches are covered too); a changed or voided record gets a reversal and a new journal, never an edit.
+  - the accountant starts the books from a day; everything before it becomes one opening journal (income and expenses before then go to retained surplus).
+  - a chart of accounts made for each Sacco (an account per cash account, expense category and deduction), editable; **where records post** is data the accountant changes, from now on.
+  - manual journals (balanced, not on accounts kept from records) and reversing them; trial balance on any day; each account's ledger; journal list with search.
+  - **the check**: customers, farmers' accounts, pay due and every cash account must equal their records; shown on Books and the accountant's Home. **Bring up to date** and the nightly **check-books** job post anything missing.
+  - app: a **Books** tab for the accountant (Customers moves to More and the Home); Books on More for admins.
 - **The accountant, phase 1 of the books** (migration `00030`, [docs/finance.md](docs/finance.md)):
   - role 4 **Accountant**: money, farmer pay (prepares and pays, does not approve), customer payments and reports; no milk recording. Added from the app's staff screen or the console.
   - the app gives them their own layout: Home (money today and this month), Money, Farmer pay, Customers, More; chosen from permissions (`books.manage` without milk recording).

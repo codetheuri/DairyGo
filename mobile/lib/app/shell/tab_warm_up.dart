@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../features/auth/presentation/controllers/auth_controller.dart';
+import '../../features/books/presentation/books_providers.dart';
 import '../../features/collection/presentation/controllers/collection_controller.dart';
 import '../../features/customers/presentation/controllers/customer_controller.dart';
 import '../../features/field_operations/presentation/controllers/field_ops_controller.dart';
@@ -54,6 +55,7 @@ class _TabWarmUpState extends ConsumerState<TabWarmUp> {
         AppSection.reports => [ref.read(farmerPayoutReportProvider.future)],
         AppSection.money => [ref.read(cashAccountsProvider.future)],
         AppSection.pay => [ref.read(payRunsProvider.future)],
+        AppSection.books => [ref.read(booksStatusProvider.future)],
         _ => const <Future<Object?>>[],
       };
       // Errors show when the tab is opened; here they are not needed.

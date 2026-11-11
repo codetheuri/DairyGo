@@ -71,8 +71,10 @@ console like any role.
 
 The app gives anyone who keeps the books and records no milk (`books.manage`
 without `milk.collections.create`) the money layout: Home (the money position
-today and this month), Money, Farmer pay, Customers, More. It is chosen from
-permissions, never the role's name.
+today and this month, whether the books agree with the records, customers),
+Money, Farmer pay, Books, More. It is chosen from permissions, never the
+role's name. The books themselves (ledger, journals, trial balance) are in
+[books.md](books.md).
 
 ## Expenses
 

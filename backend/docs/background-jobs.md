@@ -11,6 +11,7 @@ in `internal/jobs`, and the list of jobs is in `internal/app/jobs.go`.
 | `mark-idle-farmers` | day | Active farmers with no milk for their Sacco's period become inactive ([farmer-status.md](farmer-status.md)) |
 | `clean-old-logs` | day | Deletes failed-request logs older than 30 days and job runs older than 90 days |
 | `clean-retries-and-sessions` | day | Deletes saved request replies older than 2 days and sessions that ended over 7 days ago |
+| `check-books` | day | Compares every record with each Sacco's books and posts any journal that is missing ([books.md](books.md)) |
 
 ## Seeing them
 

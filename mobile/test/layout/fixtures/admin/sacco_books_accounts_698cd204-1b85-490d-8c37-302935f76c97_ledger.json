@@ -1,0 +1,61 @@
+{
+  "status": 200,
+  "body": {
+    "success": true,
+    "message": "Account ledger",
+    "data": {
+      "ledger": {
+        "account": {
+          "id": "698cd204-1b85-490d-8c37-302935f76c97",
+          "code": "1001",
+          "name": "Equity Bank",
+          "type": "ASSET",
+          "is_active": true,
+          "created_at": "2026-11-11T15:38:46.253666+03:00",
+          "updated_at": "2026-11-11T15:38:54.961508+03:00",
+          "balance": 0,
+          "used": false,
+          "kept_from_records": false
+        },
+        "from_date": "2026-10-01",
+        "to_date": "2026-11-30",
+        "opening_balance": 10000,
+        "total_debit": 0,
+        "total_credit": 3750,
+        "closing_balance": 6250,
+        "lines": [
+          {
+            "journal_id": "aa59bc6d-c138-420d-ad66-67921e2f240f",
+            "number": 36,
+            "date": "2026-11-11T00:00:00Z",
+            "memo": "Transport and fuel: Total",
+            "kind": "AUTO",
+            "debit": 0,
+            "credit": 400,
+            "balance": 9600
+          },
+          {
+            "journal_id": "8839a345-affd-49d3-a0f4-8ad782467a85",
+            "number": 37,
+            "date": "2026-11-11T00:00:00Z",
+            "memo": "Moved from Bank to Petty cash",
+            "kind": "AUTO",
+            "debit": 0,
+            "credit": 2000,
+            "balance": 7600
+          },
+          {
+            "journal_id": "b591d0bc-43a1-452c-9020-1e7af89cf460",
+            "number": 40,
+            "date": "2026-11-11T00:00:00Z",
+            "memo": "Farmers' pay Oct 2026 sent (1 farmer)",
+            "kind": "AUTO",
+            "debit": 0,
+            "credit": 1350,
+            "balance": 6250
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "status": 200,
+  "body": {
+    "success": true,
+    "message": "Journal",
+    "data": {
+      "journal": {
+        "id": "974fc46a-7007-4513-a684-4524b3c8542d",
+        "number": 19,
+        "date": "2026-10-15T00:00:00Z",
+        "kind": "MANUAL",
+        "memo": "Cooler bought on a loan",
+        "total": 5000,
+        "created_by_id": 7,
+        "created_at": "2026-11-11T15:38:56.846869+03:00",
+        "lines": [
+          {
+            "account_id": "76666e6e-000a-499a-b557-20ff64e43bb0",
+            "debit": 5000,
+            "credit": 0,
+            "account_code": "1500",
+            "account_name": "Fixed assets"
+          },
+          {
+            "account_id": "c5b2d58c-75f5-4f93-a376-5881161205a5",
+            "debit": 0,
+            "credit": 5000,
+            "account_code": "2200",
+            "account_name": "Loans"
+          }
+        ],
+        "created_by": "esther"
+      }
+    }
+  }
+}

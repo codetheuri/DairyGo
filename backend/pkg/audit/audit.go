@@ -4,6 +4,11 @@
 // Entries are written with the same *gorm.DB transaction as the change they
 // describe, so a change and its audit entry are committed or rolled back
 // together.
+//
+// Other packages can act on a change in the same transaction by adding a
+// hook (OnRecord): the books post a journal for each money record this way,
+// so every path that records money is covered without calling the books
+// itself.
 package audit
 
 import (
@@ -63,6 +68,25 @@ func (Log) TableName() string {
 // batchSize bounds one insert in RecordAll.
 const batchSize = 500
 
+// Hook runs after entries are stored, in the same transaction. An error
+// rolls the change back.
+type Hook func(tx *gorm.DB, entries []Entry) error
+
+var hooks []Hook
+
+// OnRecord adds a hook run after every Record and RecordAll. Hooks are added
+// once at start-up, before any request is served.
+func OnRecord(h Hook) { hooks = append(hooks, h) }
+
+func runHooks(tx *gorm.DB, entries []Entry) error {
+	for _, h := range hooks {
+		if err := h(tx, entries); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // Record stores an entry using tx, which should be the transaction that
 // performs the audited change.
 func Record(tx *gorm.DB, e Entry) error {
@@ -73,7 +97,7 @@ func Record(tx *gorm.DB, e Entry) error {
 	if err := tx.Omit("ActorName").Create(&log).Error; err != nil {
 		return fmt.Errorf("audit: save entry: %w", err)
 	}
-	return nil
+	return runHooks(tx, []Entry{e})
 }
 
 // RecordAll stores many entries in batches, for one change that touches
@@ -93,7 +117,7 @@ func RecordAll(tx *gorm.DB, entries []Entry) error {
 	if err := tx.Omit("ActorName").CreateInBatches(logs, batchSize).Error; err != nil {
 		return fmt.Errorf("audit: save entries: %w", err)
 	}
-	return nil
+	return runHooks(tx, entries)
 }
 
 // newLog turns an entry into the row to store.

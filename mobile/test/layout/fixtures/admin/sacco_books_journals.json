@@ -1,0 +1,182 @@
+{
+  "status": 200,
+  "body": {
+    "success": true,
+    "message": "Journals",
+    "data": {
+      "from_date": "2026-10-01",
+      "to_date": "2026-11-30",
+      "journals": [
+        {
+          "id": "b591d0bc-43a1-452c-9020-1e7af89cf460",
+          "number": 40,
+          "date": "2026-11-11T00:00:00Z",
+          "kind": "AUTO",
+          "source_type": "pay_run",
+          "source_id": "5259d9ad-44ee-469a-843e-2bba03441193",
+          "memo": "Farmers' pay Oct 2026 sent (1 farmer)",
+          "total": 1350,
+          "created_by_id": 7,
+          "created_at": "2026-11-11T15:39:03.389786+03:00"
+        },
+        {
+          "id": "9e9d8e1f-4f63-4415-b872-ba493d8dbdfc",
+          "number": 39,
+          "date": "2026-11-11T00:00:00Z",
+          "kind": "AUTO",
+          "source_type": "farmer_entry",
+          "source_id": "4e42c7f0-8cec-4a65-8b83-518dbfc72756",
+          "memo": "Charge to Jane Muthoni: Dairy meal",
+          "total": 150,
+          "created_by_id": 7,
+          "created_at": "2026-11-11T15:39:03.386237+03:00"
+        },
+        {
+          "id": "b12c2d26-9b50-4316-a53d-b7490b0ab0c7",
+          "number": 38,
+          "date": "2026-11-11T00:00:00Z",
+          "kind": "AUTO",
+          "source_type": "farmer_entry",
+          "source_id": "31bea226-99db-4e24-92e7-f21176bd780f",
+          "memo": "Advance to Peter Kariuki",
+          "total": 300,
+          "created_by_id": 7,
+          "created_at": "2026-11-11T15:39:03.381818+03:00"
+        },
+        {
+          "id": "8839a345-affd-49d3-a0f4-8ad782467a85",
+          "number": 37,
+          "date": "2026-11-11T00:00:00Z",
+          "kind": "AUTO",
+          "source_type": "transfer",
+          "source_id": "34f86048-1056-4379-aab1-4d9b7a090b53",
+          "memo": "Moved from Bank to Petty cash",
+          "total": 2000,
+          "created_by_id": 7,
+          "created_at": "2026-11-11T15:39:03.3787+03:00"
+        },
+        {
+          "id": "aa59bc6d-c138-420d-ad66-67921e2f240f",
+          "number": 36,
+          "date": "2026-11-11T00:00:00Z",
+          "kind": "AUTO",
+          "source_type": "expense",
+          "source_id": "23cdfa0f-c8b0-46e1-ac12-2fa915dfb896",
+          "memo": "Transport and fuel: Total",
+          "total": 400,
+          "created_by_id": 7,
+          "created_at": "2026-11-11T15:39:03.374666+03:00"
+        },
+        {
+          "id": "1a53b54c-086d-407f-bcaa-6878de0adc88",
+          "number": 35,
+          "date": "2026-11-11T00:00:00Z",
+          "kind": "AUTO",
+          "source_type": "customer_payment",
+          "source_id": "748e5f58-9cd9-46ba-ad63-cbc2a1922ec8",
+          "memo": "Payment from Kiambu Cooler",
+          "reference": "QX1",
+          "total": 500,
+          "created_by_id": 7,
+          "created_at": "2026-11-11T15:39:03.371238+03:00"
+        },
+        {
+          "id": "beae8d3d-b829-4ac5-aea5-6e4439829018",
+          "number": 34,
+          "date": "2026-11-11T00:00:00Z",
+          "kind": "AUTO",
+          "source_type": "sale",
+          "source_id": "ef29bfd3-3ffc-44bb-90ae-fd5d174e38bf",
+          "memo": "Milk sale: Kiambu Cooler, 10 L",
+          "total": 600,
+          "created_by_id": 7,
+          "created_at": "2026-11-11T15:39:03.365455+03:00"
+        },
+        {
+          "id": "b78bef6b-0519-466b-867c-133397da527b",
+          "number": 33,
+          "date": "2026-11-11T00:00:00Z",
+          "kind": "AUTO",
+          "source_type": "sale",
+          "source_id": "dcbd7820-0032-4086-b2b6-e1407f8e960d",
+          "memo": "Milk sale: Kiambu Cooler, 4 L",
+          "total": 240,
+          "created_by_id": 7,
+          "created_at": "2026-11-11T15:39:03.361711+03:00"
+        },
+        {
+          "id": "6cffbb51-bf8d-41a4-b6ca-678249d646bf",
+          "number": 32,
+          "date": "2026-10-31T00:00:00Z",
+          "kind": "AUTO",
+          "source_type": "pay_run",
+          "source_id": "5259d9ad-44ee-469a-843e-2bba03441193",
+          "memo": "Farmers' pay Oct 2026: milk, deductions and net pay",
+          "total": 3850,
+          "created_by_id": 7,
+          "created_at": "2026-11-11T15:39:03.35587+03:00"
+        },
+        {
+          "id": "fba86bfa-57a4-45ba-adbe-8d63b4f46074",
+          "number": 31,
+          "date": "2026-10-20T00:00:00Z",
+          "kind": "AUTO",
+          "source_type": "sale",
+          "source_id": "47bbb911-3e0c-4491-805f-9d2aa7846ed0",
+          "memo": "Milk sale: Kiambu Cooler, 1 L",
+          "total": 60,
+          "created_by_id": 7,
+          "created_at": "2026-11-11T15:39:03.352322+03:00"
+        },
+        {
+          "id": "04c64b4d-f623-4682-9f8c-90cc2aa3d070",
+          "number": 21,
+          "date": "2026-10-15T00:00:00Z",
+          "kind": "MANUAL",
+          "memo": "Reversal of J-20: Admin",
+          "total": 1,
+          "reverses_id": "3cee91ae-5efe-4832-b995-e6c4a6d0f878",
+          "reason": "Test entry",
+          "created_by_id": 7,
+          "created_at": "2026-11-11T15:38:57.305739+03:00"
+        },
+        {
+          "id": "3cee91ae-5efe-4832-b995-e6c4a6d0f878",
+          "number": 20,
+          "date": "2026-10-15T00:00:00Z",
+          "kind": "MANUAL",
+          "memo": "Admin",
+          "total": 1,
+          "reversed_by_id": "04c64b4d-f623-4682-9f8c-90cc2aa3d070",
+          "created_by_id": 2,
+          "created_at": "2026-11-11T15:38:57.167161+03:00"
+        },
+        {
+          "id": "974fc46a-7007-4513-a684-4524b3c8542d",
+          "number": 19,
+          "date": "2026-10-15T00:00:00Z",
+          "kind": "MANUAL",
+          "memo": "Cooler bought on a loan",
+          "total": 5000,
+          "created_by_id": 7,
+          "created_at": "2026-11-11T15:38:56.846869+03:00"
+        },
+        {
+          "id": "d2027c9d-1bda-4f20-81d5-a8e4ef3046eb",
+          "number": 30,
+          "date": "2026-10-03T00:00:00Z",
+          "kind": "AUTO",
+          "source_type": "pay_run",
+          "source_id": "ea44b44a-797b-4fed-b257-c803ea45686d",
+          "memo": "Farmers' pay Sep 2026 sent (2 farmers)",
+          "total": 8400,
+          "created_by_id": 7,
+          "created_at": "2026-11-11T15:39:03.348188+03:00"
+        }
+      ],
+      "total": 14,
+      "page": 1,
+      "limit": 50
+    }
+  }
+}

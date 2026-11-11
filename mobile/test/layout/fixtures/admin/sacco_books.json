@@ -1,0 +1,75 @@
+{
+  "status": 200,
+  "body": {
+    "success": true,
+    "message": "Books",
+    "data": {
+      "books": {
+        "started": true,
+        "start_date": "2026-09-15",
+        "journals": 19,
+        "checked_at": "2026-11-11T15:39:03.396116+03:00",
+        "balanced": true,
+        "agrees": true,
+        "controls": [
+          {
+            "name": "Customers",
+            "account_id": "ba65f764-c404-457d-b32f-5b8dc4915644",
+            "code": "1200",
+            "books": -540,
+            "records": -540,
+            "difference": 0,
+            "ok": true
+          },
+          {
+            "name": "Farmers' accounts",
+            "account_id": "5a0a72da-ba57-485a-9870-24f6cb51cdec",
+            "code": "1300",
+            "books": 300,
+            "records": 300,
+            "difference": 0,
+            "ok": true
+          },
+          {
+            "name": "Farmers' pay due",
+            "account_id": "4b6ef133-ca3a-4253-a1b1-4fb3715a6bd3",
+            "code": "2000",
+            "books": 0,
+            "records": 0,
+            "difference": 0,
+            "ok": true
+          },
+          {
+            "name": "Equity Bank",
+            "account_id": "698cd204-1b85-490d-8c37-302935f76c97",
+            "code": "1001",
+            "books": 6250,
+            "records": 6250,
+            "difference": 0,
+            "ok": true
+          },
+          {
+            "name": "Petty cash",
+            "account_id": "fc02cf6f-132d-4a1b-9a83-1263ea6a874c",
+            "code": "1002",
+            "books": 3700,
+            "records": 3700,
+            "difference": 0,
+            "ok": true
+          },
+          {
+            "name": "M-Pesa",
+            "account_id": "e9984dd8-49f2-42f0-94b1-d9ebc3859fce",
+            "code": "1003",
+            "books": -8560,
+            "records": -8560,
+            "difference": 0,
+            "ok": true
+          }
+        ],
+        "not_in_account": 0
+      },
+      "journals_made": 0
+    }
+  }
+}

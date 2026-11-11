@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../app/router/app_router.dart';
+import '../../../../app/shell/app_destinations.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/cache/keep_fresh.dart';
 import '../../../../core/layout/breakpoints.dart';
@@ -13,6 +14,7 @@ import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/figure_grid.dart';
 import '../../../../core/widgets/skeleton.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
+import '../../../books/presentation/books_providers.dart';
 import '../finance_providers.dart';
 import '../widgets/finance_sheets.dart';
 import 'finance_screen.dart';
@@ -84,6 +86,23 @@ class MoneyHomeScreen extends ConsumerWidget {
                     ],
                   ),
                   const SizedBox(height: 16),
+                  if (user?.seesBooks ?? false) const _BooksTile(),
+                  if (user?.seesCustomerBalances ?? false)
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(
+                        Icons.handshake_outlined,
+                        color: AppColors.primary,
+                      ),
+                      title: const Text('Customers'),
+                      subtitle: const Text(
+                        'What each customer owes, payments and statements',
+                      ),
+                      trailing: const Icon(Icons.chevron_right_rounded),
+                      onTap: () => StatefulNavigationShell.maybeOf(
+                        context,
+                      )?.goBranch(AppSection.customers.branch),
+                    ),
                   ListTile(
                     contentPadding: EdgeInsets.zero,
                     leading: const Icon(
@@ -103,6 +122,44 @@ class MoneyHomeScreen extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Whether the books agree with the records: a difference shows here first.
+class _BooksTile extends ConsumerWidget {
+  const _BooksTile();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final st = ref.watch(booksStatusProvider).valueOrNull;
+    final wrong = st != null && st.started && !(st.agrees && st.balanced);
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      leading: Icon(
+        wrong ? Icons.error_outline_rounded : Icons.menu_book_outlined,
+        color: wrong ? AppColors.error : AppColors.primary,
+      ),
+      title: const Text('Books'),
+      subtitle: Text(
+        st == null
+            ? 'Journals, trial balance and chart of accounts'
+            : !st.started
+            ? 'Not started yet'
+            : wrong
+            ? 'The books differ from the records: open to see why'
+            : 'The books agree with the records',
+        style: TextStyle(color: wrong ? AppColors.error : null),
+      ),
+      trailing: const Icon(Icons.chevron_right_rounded),
+      onTap: () {
+        final shell = StatefulNavigationShell.maybeOf(context);
+        if (shell != null) {
+          shell.goBranch(AppSection.books.branch);
+        } else {
+          context.push(AppRoutes.books);
+        }
+      },
     );
   }
 }
